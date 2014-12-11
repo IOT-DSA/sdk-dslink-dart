@@ -76,6 +76,7 @@ class DSLink {
             m = new GetValueMethod();
             break;
           case "GetValueHistory":
+            m = new GetValueHistoryMethod();
             break;
           case "Invoke":
             m = new InvokeMethod();

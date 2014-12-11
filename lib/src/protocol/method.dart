@@ -33,14 +33,14 @@ class GetNodeListMethod extends Method {
       total++;
 
       buff.add(out[i]);
-      
+
       if (((i % MAX) == 0 && i != 0) || i == out.length - 1) {
         var p = {
           "from": from,
           "field": "nodes",
           "items": buff.toList()
         };
-        
+
         if (i == out.length - 1) {
           p["total"] = -1;
         } else {
@@ -73,6 +73,51 @@ class GetValueMethod extends Method {
     res.addAll(DSEncoder.encodeValue(node));
     send(res);
   }
+}
+
+class GetValueHistoryMethod extends Method {
+  @override
+  handle(Map request, ResponseSender send) {
+    var node = link.resolvePath(request["path"]);
+    TimeRange timeRange;
+    Interval interval;
+
+    {
+      var tr = request["timeRange"];
+      var split = tr.split("/") as List<String>;
+      var from = DateTime.parse(split[0]);
+      var to = DateTime.parse(split[1]);
+      timeRange = new TimeRange(from, to);
+    }
+
+    {
+      var inter = request["interval"];
+      interval = Interval.forName(inter);
+    }
+
+    runZoned(() {
+      new Future.value(node.getValueHistory()).then((trend) {
+        if (trend != null) {
+          if (trend is! Trend) {
+            throw new Exception("This is not a trend.");
+          }
+          int index = 0;
+          bool more = true;
+          while (more) {
+            var res = new Map.from(request);
+            more = DSEncoder.encodeValueHistory(request["reqId"], request["path"], trend, index, MAX, res);
+            send(res);
+            index += MAX;
+          }
+        }
+      });
+    }, zoneValues: {
+      DSContext.ID_INTERVAL: interval,
+      DSContext.ID_TIME_RANGE: timeRange
+    });
+  }
+
+  static const int MAX = 100;
 }
 
 class SubscribeMethod extends Method {
@@ -114,14 +159,14 @@ class InvokeMethod extends Method {
       if (results is Map) {
         var res = new Map.from(request);
         send(res..addAll({
-          "results": results
-        }));
+              "results": results
+            }));
       } else if (results == null) {
         send(request);
       } else if (results is Table) {
         Table table = results;
         String tableName = table is SimpleTable && table.hasName ? table.tableName : "table";
-        
+
         var response = new Map.from(request);
         var r = response["results"] = {};
         var resp = r[tableName] = {};
@@ -133,13 +178,12 @@ class InvokeMethod extends Method {
           m["name"] = table.getColumnName(i);
           m.addAll(DSEncoder.encodeFacets(table.getColumnType(i)));
         }
-        
+
         int index = 0;
         bool more = true;
-        
+
         while (more) {
-          if (response == null)
-            response = new Map.from(request);
+          if (response == null) response = new Map.from(request);
           more = DSEncoder.encodeTable(response, tableName, table, index, MAX);
           send(response);
           response = null;
@@ -150,7 +194,7 @@ class InvokeMethod extends Method {
       }
     });
   }
-  
+
   static const int MAX = 100;
 }
 
@@ -159,7 +203,7 @@ class RemoteSubscriber extends Subscriber {
   int _updateId = 0;
   int get updateId => _updateId = _updateId - 1;
   final ResponseSender send;
-  
+
   RemoteSubscriber(this.send, String name) : super(name);
 
   @override
@@ -167,25 +211,25 @@ class RemoteSubscriber extends Subscriber {
     nodes.add(node);
     valueChanged(node, node.value);
   }
-  
+
   @override
   void unsubscribed(DSNode node) {
     nodes.remove(node);
   }
-  
+
   @override
   void valueChanged(DSNode node, Value value) {
     var values = [];
     for (var it in nodes) {
       values.add(DSEncoder.encodeValue(it)..addAll({
-        "path": it.path
-      }));
+            "path": it.path
+          }));
     }
-    
+
     send({
       "method": "UpdateSubscription",
       "reqId": updateId,
-      "values":  values
+      "values": values
     });
   }
 }
@@ -205,13 +249,14 @@ class GetNodeMethod extends Method {
 class MapEntry<K, V> {
   K key;
   V value;
-  
+
   static List<MapEntry> forMap(Map input) {
     var entries = [];
     for (var k in input.keys) {
-      entries.add(new MapEntry()..key = k..value = input[k]);
+      entries.add(new MapEntry()
+          ..key = k
+          ..value = input[k]);
     }
     return entries;
   }
 }
-

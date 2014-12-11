@@ -54,8 +54,8 @@ class DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String name, {dynamic value, String icon}) {
-    var node = new DSNode(name);
+  DSNode createChild(String name, {dynamic value, String icon, bool recording: false}) {
+    var node = recording ? new RecordingDSNode(name) : new DSNode(name);
     addChild(node);
     node.value = value;
     node.icon = icon;
@@ -63,7 +63,9 @@ class DSNode {
   }
   
   Value get value => _value;
-  set value(val) {
+  set value(val) => _setValue(val);
+  
+  void _setValue(val) {
     Value v;
     if (val is Value) {
       v = val;
@@ -97,6 +99,33 @@ class DSNode {
     }
     return null;
   }
+  
+  /// Fetches Value History. This can return a Trend or a Future<Trend>
+  getValueHistory() {
+    return null;
+  }
+  
+  bool hasValueHistory = false;
+}
+
+class RecordingDSNode extends DSNode {
+  final List<Value> values = [];
+  
+  RecordingDSNode(String name) : super(name) {
+    _start = new DateTime.now();
+    hasValueHistory = true;
+  }
+  
+  @override
+  set value(val) {
+    _setValue(val);
+    values.add(value);
+  }
+  
+  @override
+  getValueHistory() => new ValueTrend(DSContext.getTimeRange(), valueType, values, interval: DSContext.getInterval());
+  
+  DateTime _start;
 }
 
 typedef dynamic ActionExecutor(Map<String, Value> args);
