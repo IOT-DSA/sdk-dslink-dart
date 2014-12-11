@@ -1,5 +1,7 @@
 import "dart:convert";
-import "package:dslink/dslink.dart";
+
+import "package:dslink/protocol.dart";
+import "package:dslink/link.dart";
 
 void main() {
   var link = new DSLink("Node Resolver");

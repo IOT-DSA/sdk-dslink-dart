@@ -1,4 +1,4 @@
-part of dslink;
+part of dslink.protocol;
 
 typedef void ResponseSender(Map response);
 

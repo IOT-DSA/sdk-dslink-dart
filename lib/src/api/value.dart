@@ -1,17 +1,4 @@
-part of dslink;
-
-class Metadata {
-  static final Metadata STRING = new Metadata()
-    ..type = ValueType.STRING;
-  
-  List<String> enumValues;
-  double maxValue;
-  double minValue;
-  int precision;
-  String timezone;
-  ValueType type;
-  String unitSymbol;
-}
+part of dslink.api;
 
 class Value {
   final DateTime timestamp;

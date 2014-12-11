@@ -1,4 +1,4 @@
-part of dslink;
+part of dslink.link;
 
 class DSLink {
   DSNode rootNode = new DSNode("Root");
@@ -51,10 +51,8 @@ class DSLink {
   
   void handleMessage(String input) {
     var json = JSON.decode(input);
-    var msg = new DSAMessage.request(subscription: json["subscription"]);
-    msg.requests.addAll(json["requests"]);
     
-    for (var req in msg.requests) {
+    for (var req in json["requests"]) {
       int id = req["reqId"];
       String method = req["method"] != null ? req["method"] : "";
       String path = req["path"];

@@ -1,4 +1,5 @@
-part of dslink;
+part of dslink.api;
+
 class DSNode {
   final String name;
   final Map<String, DSNode> children = {};
