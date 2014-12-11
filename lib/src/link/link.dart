@@ -10,6 +10,8 @@ class DSLink {
   WebSocket _socket;
   Timer _timer;
   
+  bool debug = false;
+  
   DSLink(this.name);
   
   Future connect(String host) {
@@ -20,7 +22,9 @@ class DSLink {
       
       socket.listen((data) {
         if (data is String) {
-          print("RECEIVED: ${data}");
+          if (debug) {
+            print("RECEIVED: ${data}");
+          }
           handleMessage(data);
         }
       });
@@ -40,7 +44,11 @@ class DSLink {
             "subscription": sub,
             "responses": responses.map((it) => it["response"]).toList()
           });
-          print("SENT: ${out}");
+          
+          if (debug) {
+            print("SENT: ${out}");
+          }
+          
           _socket.add(out);
         }
       });
