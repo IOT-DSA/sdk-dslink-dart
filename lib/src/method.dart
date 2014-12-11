@@ -140,6 +140,18 @@ class RemoteSubscriber extends Subscriber {
   }
 }
 
+class GetNodeMethod extends Method {
+  @override
+  handle(Map request, ResponseSender send) {
+    var res = new Map.from(request);
+    var node = link.resolvePath(request["path"]);
+    var nodeMap = res["node"] = {};
+    DSEncoder.encodeNode(node);
+    nodeMap["path"] = node.path;
+    send(nodeMap);
+  }
+}
+
 class DSEncoder {
   static Map encodeNode(DSNode node) {
     var map = {};
@@ -173,3 +185,4 @@ class DSEncoder {
     return map;
   }
 }
+
