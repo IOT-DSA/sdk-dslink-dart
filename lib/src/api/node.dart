@@ -8,6 +8,8 @@ class DSNode {
   bool hasValue = false;
   ValueType _type;
   
+  String icon;
+  
   set valueType(ValueType val) => _type = val;
   ValueType get valueType {
     if (value != null) {
@@ -52,10 +54,11 @@ class DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String name, {dynamic value}) {
+  DSNode createChild(String name, {dynamic value, String icon}) {
     var node = new DSNode(name);
     addChild(node);
     node.value = value;
+    node.icon = icon;
     return node;
   }
   

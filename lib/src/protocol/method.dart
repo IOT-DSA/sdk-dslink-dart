@@ -184,6 +184,9 @@ class DSEncoder {
       map["type"] = node.value.type.name;
       map.addAll(encodeFacets(node.valueType));
     }
+    if (node.icon != null) {
+      map["icon"] = node.icon;
+    }
     map.addAll(encodeActions(node));
     return map;
   }
