@@ -196,6 +196,8 @@ class Poller {
   }
 }
 
+Poller poller(Runnable runner) => new Poller(runner);
+
 class DSAction {
   final String name;
   final Map<String, ValueType> results;

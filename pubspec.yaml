@@ -1,8 +1,6 @@
 name: dslink
 version: 1.0.0
 description: DSLink SDK for Dart
-dependencies:
-  quiver: '>=0.19.0+1 <0.20.0'
 dev_dependencies:
   linux:
     git: https://github.com/DirectMyFile/linux.git

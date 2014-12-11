@@ -16,7 +16,7 @@ void main() {
       led.brightness = args["brightness"].toInteger();
     });
     
-    new Poller(() {
+    poller(() {
       brightnessNode.value = led.brightness;
     }).pollEverySecond();
     
