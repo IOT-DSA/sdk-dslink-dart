@@ -26,6 +26,13 @@ class DSEncoder {
     map["type"] = val.type.name;
     map.addAll(encodeFacets(node.valueType));
     map["lastUpdate"] = val.timestamp.toIso8601String();
+    
+    var display = node.getDisplayValue(val);
+    
+    if (display != null) {
+      map["formatted"] = display;
+    }
+    
     return map;
   }
   

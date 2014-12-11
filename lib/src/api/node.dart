@@ -50,6 +50,10 @@ class DSNode {
     return "/" + parts.join("/");
   }
   
+  String getDisplayValue(Value val) {
+    return null;
+  }
+  
   void addChild(DSNode child) {
     children[child.name] = child;
     child.parent = this;
