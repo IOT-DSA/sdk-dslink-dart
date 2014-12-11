@@ -1,10 +1,14 @@
 part of dslink.api;
 
+typedef Value ValueCreator();
+
 class DSNode {
   final String name;
   final Map<String, DSNode> children = {};
   final List<Subscriber> subscribers = [];
   final Map<String, DSAction> actions = {};
+  
+  ValueCreator valueCreator;
   
   bool hasValue = false;
   ValueType _type;
@@ -12,9 +16,11 @@ class DSNode {
   String icon;
   
   set valueType(ValueType val) => _type = val;
+  
   ValueType get valueType {
-    if (value != null) {
-      return value.type;
+    var v = value;
+    if (v != null) {
+      return v.type;
     } else if (_type != null) {
       return _type;
     } else {
@@ -81,7 +87,15 @@ class DSNode {
     return node;
   }
   
-  Value get value => _value;
+  Value get value {
+    if (_value != null) {
+      return _value;
+    } else {
+      _setValue(valueCreator());
+      return _value;
+    }
+  }
+  
   set value(val) => _setValue(val);
   
   void _setValue(val) {
@@ -148,6 +162,35 @@ class RecordingDSNode extends DSNode {
 }
 
 typedef dynamic ActionExecutor(Map<String, Value> args);
+typedef void Runnable();
+
+class Poller {
+  final Runnable runner;
+  
+  Timer _timer;
+  
+  Poller(this.runner);
+  
+  void poll(Duration interval) {
+    if (_timer != null && _timer.isActive) {
+      throw new StateError("poller already started");
+    }
+    
+    _timer = new Timer.periodic(interval, (timer) {
+      runner();
+    });
+  }
+  
+  void pollSeconds(int count) => poll(new Duration(seconds: count));
+  void pollMinutes(int count) => poll(new Duration(minutes: count));
+  void pollHours(int count) => poll(new Duration(hours: count));
+  void pollEverySecond() => pollSeconds(1);
+  void pollEveryFiveSeconds() => pollSeconds(5);
+  
+  void cancel() {
+    _timer.cancel();
+  }
+}
 
 class DSAction {
   final String name;
