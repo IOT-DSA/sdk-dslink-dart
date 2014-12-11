@@ -4,7 +4,6 @@ const String HASH_ICON = "https://www.hscripts.com/freeimages/icons/web-basic-ic
 
 void main() {
   var link = new DSLink("DartLink");
-  link.debug = true;
   var types = link.createRootNode("Types");
   var integerNode = types.createChild("Integer", value: 1, icon: HASH_ICON);
   var stringNode = types.createChild("String", value: "Hello World");
