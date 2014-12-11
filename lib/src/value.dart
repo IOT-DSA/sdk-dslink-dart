@@ -68,8 +68,10 @@ class Value {
       return new Value(new DateTime.now(), ValueType.DOUBLE, input);
     } else if (input is bool) {
       return new Value(new DateTime.now(), ValueType.BOOLEAN, input);
+    } else if (input == null) {
+      return new Value(new DateTime.now(), ValueType.NULL, input);
     } else {
-      throw new Exception("Unsupported Type");
+      throw new Exception("Unsupported Type: ${input.runtimeType}");
     }
   }
 }
@@ -79,6 +81,7 @@ class ValueType {
   static const ValueType INTEGER = const ValueType("integer");
   static const ValueType DOUBLE = const ValueType("double");
   static const ValueType BOOLEAN = const ValueType("bool", enumValues: const ["true", "false"]);
+  static const ValueType NULL = const ValueType("null");
   
   const ValueType(this.name, {this.enumValues});
   

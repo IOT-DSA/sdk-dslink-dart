@@ -101,6 +101,27 @@ class UnsubscribeMethod extends Method {
 class InvokeMethod extends Method {
   @override
   handle(Map request, ResponseSender send) {
+    var path = request["path"];
+    var node = link.resolvePath(path);
+    var action = request["action"];
+    var params = <String, Value>{};
+    var p = request["parameters"] as Map;
+    for (var key in p.keys) {
+      params[key] = Value.of(p[key]);
+    }
+    var result = new Future.value(node.invoke(action, params));
+    result.then((results) {
+      if (results is Map) {
+        var res = new Map.from(request);
+        send(res..addAll({
+          "results": results
+        }));
+      } else if (results == null) {
+        send(request);
+      } else {
+        throw new Exception("Invalid Action Return Type");
+      }
+    });
   }
 }
 
@@ -163,6 +184,7 @@ class DSEncoder {
       map["type"] = node.value.type.name;
       map.addAll(encodeFacets(node.valueType));
     }
+    map.addAll(encodeActions(node));
     return map;
   }
   
@@ -182,7 +204,45 @@ class DSEncoder {
     if (type.enumValues != null) {
       map["enum"] = type.enumValues.join(",");
     }
+    map["type"] = type.name;
     return map;
+  }
+  
+  static Map encodeActions(DSNode node) {
+    var map = {};
+    if (node.actions.isEmpty) {
+      return {};
+    }
+    var actions = map["actions"] = [];
+    for (var action in node.actions.values) { 
+      actions.add({
+        "parameters": MapEntry.forMap(action.params).map((it) {
+          return {
+            "name": it.key
+          }..addAll(encodeFacets(it.value));
+        }).toList(),
+        "results": MapEntry.forMap(action.results).map((it) {
+          return {
+            "name": it.key
+          }..addAll(encodeFacets(it.value));
+        }).toList(),
+        "name": action.name
+      });
+    }
+    return map;
+  }
+}
+
+class MapEntry<K, V> {
+  K key;
+  V value;
+  
+  static List<MapEntry> forMap(Map input) {
+    var entries = [];
+    for (var k in input.keys) {
+      entries.add(new MapEntry()..key = k..value = input[k]);
+    }
+    return entries;
   }
 }
 

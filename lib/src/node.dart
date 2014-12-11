@@ -1,9 +1,9 @@
 part of dslink;
-
 class DSNode {
   final String name;
   final Map<String, DSNode> children = {};
   final List<Subscriber> subscribers = [];
+  final Map<String, DSAction> actions = {};
   bool hasValue = false;
   ValueType _type;
   
@@ -71,20 +71,40 @@ class DSNode {
     _notifyValueUpdate();
   }
   
+  void addAction(DSAction action) {
+    actions[action.name] = action;
+  }
+  
   void _notifyValueUpdate() {
     for (var sub in subscribers) {
       sub.valueChanged(this, value);
     }
   }
+  
+  dynamic invoke(String action, Map<String, Value> params) {
+    if (actions.containsKey(action)) {
+      return actions[action].invoke(params);
+    }
+    return null;
+  }
 }
+
+typedef dynamic ActionExecutor(Map<String, Value> args);
 
 class DSAction {
   final String name;
+  final Map<String, ValueType> results;
+  final Map<String, ValueType> params;
+  final ActionExecutor execute;
   
-  DSAction(this.name);
+  DSAction(this.name, {this.results: const {}, this.params: const {}, this.execute});
   
   dynamic invoke(Map<String, Value> args) {
-    return null;
+    if (execute != null) {
+      return execute(args);
+    } else {
+      return null;
+    }
   }
 }
 
