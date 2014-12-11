@@ -79,6 +79,12 @@ class DSNode {
     actions[action.name] = action;
   }
   
+  DSAction createAction(String name, {Map<String, ValueType> params, Map<String, ValueType> results, ActionExecutor execute}) {
+    var action = new DSAction(name, params: params, results: results, execute: execute);
+    addAction(action);
+    return action;
+  }
+  
   void _notifyValueUpdate() {
     for (var sub in subscribers) {
       sub.valueChanged(this, value);

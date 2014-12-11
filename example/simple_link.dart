@@ -10,11 +10,11 @@ void main() {
   var doubleNode = types.createChild("Double", value: 2.352);
   var boolNode = types.createChild("Boolean", value: true);
   
-  boolNode.addAction(new DSAction("SetValue", params: {
+  boolNode.createAction("SetValue", params: {
     "value": ValueType.BOOLEAN
   }, execute: (args) {
     boolNode.value = args["value"];
-  }));
+  });
   
   link.connect("rnd.iot-dsa.org").then((_) {
     print("Connected.");
