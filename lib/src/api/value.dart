@@ -46,6 +46,8 @@ class Value {
     ].contains(_value.runtimeType) ? _value : _value.toString());
   }
   
+  bool get isNull => _value == null;
+  
   static Value of(input) {
     if (input is String) {
       return new Value(new DateTime.now(), ValueType.STRING, input);
