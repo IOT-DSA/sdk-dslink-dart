@@ -4,6 +4,7 @@ const String HASH_ICON = "https://www.hscripts.com/freeimages/icons/web-basic-ic
 
 void main() {
   var link = new DSLink("DartLink");
+  link.debug = true;
   var types = link.createRootNode("Types");
   var integerNode = types.createChild("Integer", value: 1, icon: HASH_ICON);
   var stringNode = types.createChild("String", value: "Hello World");
@@ -14,6 +15,14 @@ void main() {
     "value": ValueType.BOOLEAN
   }, execute: (args) {
     boolNode.value = args["value"];
+  });
+  
+  types.createAction("GetTable", hasTableReturn: true, execute: (args) {
+    return new SimpleTable({
+      "Greeting": ValueType.STRING
+    }, {
+      "Greeting": Value.of("Hello World")
+    });
   });
   
   link.connect("rnd.iot-dsa.org").then((_) {

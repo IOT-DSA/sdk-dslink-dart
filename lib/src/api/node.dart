@@ -79,8 +79,8 @@ class DSNode {
     actions[action.name] = action;
   }
   
-  DSAction createAction(String name, {Map<String, ValueType> params: const {}, Map<String, ValueType> results: const {}, ActionExecutor execute}) {
-    var action = new DSAction(name, params: params, results: results, execute: execute);
+  DSAction createAction(String name, {Map<String, ValueType> params: const {}, Map<String, ValueType> results: const {}, ActionExecutor execute, bool hasTableReturn: false}) {
+    var action = new DSAction(name, params: params, results: results, execute: execute, hasTableReturn: hasTableReturn);
     addAction(action);
     return action;
   }
@@ -106,8 +106,10 @@ class DSAction {
   final Map<String, ValueType> results;
   final Map<String, ValueType> params;
   final ActionExecutor execute;
+  final bool hasTableReturn;
+  final String tableName;
   
-  DSAction(this.name, {this.results: const {}, this.params: const {}, this.execute});
+  DSAction(this.name, {this.results: const {}, this.params: const {}, this.execute, this.hasTableReturn: false, this.tableName: "table"});
   
   dynamic invoke(Map<String, Value> args) {
     if (execute != null) {

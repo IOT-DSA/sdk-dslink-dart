@@ -118,11 +118,38 @@ class InvokeMethod extends Method {
         }));
       } else if (results == null) {
         send(request);
+      } else if (results is Table) {
+        Table table = results;
+        String tableName = table is SimpleTable && table.hasName ? table.tableName : "table";
+        
+        var response = new Map.from(request);
+        var columns = response["columns"] = [];
+        int columnCount = table.columnCount;
+        for (var i = 0; i < columnCount; i++) {
+          var m = {};
+          columns.add(m);
+          m["name"] = table.getColumnName(i);
+          m.addAll(DSEncoder.encodeFacets(table.getColumnType(i)));
+        }
+        
+        int index = 0;
+        bool more = true;
+        
+        while (more) {
+          if (response == null)
+            response = new Map.from(request);
+          more = DSEncoder.encodeTable(response, tableName, table, index, MAX);
+          send(response);
+          response = null;
+          index += MAX;
+        }
       } else {
         throw new Exception("Invalid Action Return Type");
       }
     });
   }
+  
+  static const int MAX = 100;
 }
 
 class RemoteSubscriber extends Subscriber {
@@ -170,69 +197,6 @@ class GetNodeMethod extends Method {
     DSEncoder.encodeNode(node);
     nodeMap["path"] = node.path;
     send(nodeMap);
-  }
-}
-
-class DSEncoder {
-  static Map encodeNode(DSNode node) {
-    var map = {};
-    map["name"] = node.name;
-    map["hasChildren"] = node.children.isNotEmpty;
-    map["hasValue"] = node.hasValue;
-    map["hasHistory"] = false;
-    if (node.hasValue) {
-      map["type"] = node.value.type.name;
-      map.addAll(encodeFacets(node.valueType));
-    }
-    if (node.icon != null) {
-      map["icon"] = node.icon;
-    }
-    map.addAll(encodeActions(node));
-    return map;
-  }
-  
-  static Map encodeValue(DSNode node) {
-    var val = node.value;
-    var map = {};
-    map["value"] = val.toPrimitive();
-    map["status"] = val.status;
-    map["type"] = val.type.name;
-    map.addAll(encodeFacets(node.valueType));
-    map["lastUpdate"] = val.timestamp.toIso8601String();
-    return map;
-  }
-  
-  static Map encodeFacets(ValueType type) {
-    var map = {};
-    if (type.enumValues != null) {
-      map["enum"] = type.enumValues.join(",");
-    }
-    map["type"] = type.name;
-    return map;
-  }
-  
-  static Map encodeActions(DSNode node) {
-    var map = {};
-    if (node.actions.isEmpty) {
-      return {};
-    }
-    var actions = map["actions"] = [];
-    for (var action in node.actions.values) { 
-      actions.add({
-        "parameters": MapEntry.forMap(action.params).map((it) {
-          return {
-            "name": it.key
-          }..addAll(encodeFacets(it.value));
-        }).toList(),
-        "results": MapEntry.forMap(action.results).map((it) {
-          return {
-            "name": it.key
-          }..addAll(encodeFacets(it.value));
-        }).toList(),
-        "name": action.name
-      });
-    }
-    return map;
   }
 }
 
