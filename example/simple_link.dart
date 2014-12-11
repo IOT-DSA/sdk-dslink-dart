@@ -3,11 +3,11 @@ import "dart:async";
 
 void main() {
   var link = new DSLink("DartLink");
-  var testA = new DSNode("TestA");
-  var testB = new DSNode("TestB");
-  testA.addChild(testB);
+  var testA = link.createRootNode("TestA");
+  var testB = testA.createChild("TestB");
+
   testB.value = Value.of(1);
-  link.rootNode.addChild(testA);
+  
   link.connect("rnd.iot-dsa.org").then((_) {
     print("Connected.");
     

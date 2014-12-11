@@ -109,6 +109,12 @@ class DSLink {
     }
   }
   
+  DSNode createRootNode(String name) {
+    var node = new DSNode(name);
+    rootNode.addChild(node);
+    return node;
+  }
+  
   DSNode resolvePath(String path) {
     path = path.replaceAll("+", " ");
     var node = rootNode;

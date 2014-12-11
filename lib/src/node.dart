@@ -39,6 +39,12 @@ class DSNode {
     subscriber.unsubscribed(this);
   }
   
+  DSNode createChild(String name) {
+    var node = new DSNode(name);
+    addChild(node);
+    return node;
+  }
+  
   Value get value => _value;
   set value(Value val) {
     hasValue = true;
