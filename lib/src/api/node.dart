@@ -5,6 +5,7 @@ class DSNode {
   final Map<String, DSNode> children = {};
   final List<Subscriber> subscribers = [];
   final Map<String, DSAction> actions = {};
+  
   bool hasValue = false;
   ValueType _type;
   
@@ -24,6 +25,16 @@ class DSNode {
   DSNode parent;
   
   Value _value;
+  
+  String _displayName;
+  set displayName(String val) => _displayName = val;
+  String get displayName {
+    if (_displayName != null) {
+      return _displayName;
+    } else {
+      return name;
+    }
+  }
   
   DSNode(this.name);
   

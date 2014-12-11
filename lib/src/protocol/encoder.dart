@@ -3,7 +3,7 @@ part of dslink.protocol;
 class DSEncoder {
   static Map encodeNode(DSNode node) {
     var map = {};
-    map["name"] = node.name;
+    map["name"] = node.displayName;
     map["hasChildren"] = node.children.isNotEmpty;
     map["hasValue"] = node.hasValue;
     map["hasHistory"] = node.hasValueHistory;
