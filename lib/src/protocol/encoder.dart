@@ -34,6 +34,23 @@ class DSEncoder {
     if (type.enumValues != null) {
       map["enum"] = type.enumValues.join(",");
     }
+    
+    if (type.precision != null) {
+      map["precision"] = type.precision;
+    }
+    
+    if (type.max != null) {
+      map["max"] = type.max;
+    }
+    
+    if (type.min != null) {
+      map["min"] = type.min;
+    }
+    
+    if (type.unit != null) {
+      map["unit"] = type.unit;
+    }
+    
     map["type"] = type.name;
     return map;
   }

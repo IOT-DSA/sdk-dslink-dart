@@ -57,6 +57,8 @@ class Value {
       return new Value(new DateTime.now(), ValueType.DOUBLE, input);
     } else if (input is bool) {
       return new Value(new DateTime.now(), ValueType.BOOLEAN, input);
+    } else if (input is num) {
+      return new Value(new DateTime.now(), ValueType.NUMBER, input);
     } else if (input == null) {
       return new Value(new DateTime.now(), ValueType.NULL, input);
     } else {
@@ -67,13 +69,19 @@ class Value {
 
 class ValueType {
   static const ValueType STRING = const ValueType("string");
-  static const ValueType INTEGER = const ValueType("integer");
-  static const ValueType DOUBLE = const ValueType("double");
+  static const ValueType INTEGER = const ValueType("number", precision: 0);
+  static const ValueType DOUBLE = const ValueType("number");
+  static const ValueType NUMBER = const ValueType("number");
   static const ValueType BOOLEAN = const ValueType("bool", enumValues: const ["true", "false"]);
   static const ValueType NULL = const ValueType("null");
+  static const ValueType BINARY = const ValueType("number", precision: 0, min: 0, max: 255);
   
-  const ValueType(this.name, {this.enumValues});
+  const ValueType(this.name, {this.enumValues, this.precision, this.max, this.min, this.unit});
   
   final String name;
   final List<String> enumValues;
+  final int precision;
+  final int max;
+  final int min;
+  final String unit;
 }

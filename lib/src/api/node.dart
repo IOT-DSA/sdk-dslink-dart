@@ -57,7 +57,11 @@ class DSNode {
   DSNode createChild(String name, {dynamic value, String icon, bool recording: false}) {
     var node = recording ? new RecordingDSNode(name) : new DSNode(name);
     addChild(node);
-    node.value = value;
+    
+    if (value != null) {
+      node.value = value;
+    }
+    
     node.icon = icon;
     return node;
   }
