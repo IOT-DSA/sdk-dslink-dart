@@ -75,12 +75,13 @@ class Value {
 }
 
 class ValueType {
-  static const ValueType STRING = const ValueType._("string");
-  static const ValueType INTEGER = const ValueType._("integer");
-  static const ValueType DOUBLE = const ValueType._("double");
-  static const ValueType BOOLEAN = const ValueType._("bool");
+  static const ValueType STRING = const ValueType("string");
+  static const ValueType INTEGER = const ValueType("integer");
+  static const ValueType DOUBLE = const ValueType("double");
+  static const ValueType BOOLEAN = const ValueType("bool", enumValues: const ["true", "false"]);
   
-  const ValueType._(this.name);
+  const ValueType(this.name, {this.enumValues});
   
-  final String name;  
+  final String name;
+  final List<String> enumValues;
 }

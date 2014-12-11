@@ -5,6 +5,18 @@ class DSNode {
   final Map<String, DSNode> children = {};
   final List<Subscriber> subscribers = [];
   bool hasValue = false;
+  ValueType _type;
+  
+  set valueType(ValueType val) => _type = val;
+  ValueType get valueType {
+    if (value != null) {
+      return value.type;
+    } else if (_type != null) {
+      return _type;
+    } else {
+      return null;
+    }
+  }
   
   DSNode parent;
   
@@ -70,6 +82,10 @@ class DSAction {
   final String name;
   
   DSAction(this.name);
+  
+  dynamic invoke(Map<String, Value> args) {
+    return null;
+  }
 }
 
 abstract class Subscriber {

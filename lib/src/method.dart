@@ -149,6 +149,7 @@ class DSEncoder {
     map["hasHistory"] = false;
     if (node.hasValue) {
       map["type"] = node.value.type.name;
+      map.addAll(encodeFacets(node.valueType));
     }
     return map;
   }
@@ -159,7 +160,16 @@ class DSEncoder {
     map["value"] = val.toPrimitive();
     map["status"] = val.status;
     map["type"] = val.type.name;
+    map.addAll(encodeFacets(node.valueType));
     map["lastUpdate"] = val.timestamp.toIso8601String();
+    return map;
+  }
+  
+  static Map encodeFacets(ValueType type) {
+    var map = {};
+    if (type.enumValues != null) {
+      map["enum"] = type.enumValues.join(",");
+    }
     return map;
   }
 }
