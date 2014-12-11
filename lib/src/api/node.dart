@@ -75,12 +75,16 @@ class DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String name, {dynamic value, String icon, bool recording: false}) {
+  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, String displayName}) {
     var node = recording ? new RecordingDSNode(name) : new DSNode(name);
     addChild(node);
     
     if (value != null) {
       node.value = value;
+    }
+    
+    if (displayName != null) {
+      node.displayName = displayName;
     }
     
     node.icon = icon;

@@ -20,7 +20,7 @@ void main() {
       brightnessNode.value = led.brightness;
     }).pollEverySecond();
     
-    node.createChild("MaxBrightness", value: led.maxBrightness);
+    node.createChild("MaxBrightness", displayName: "Max Brightness", value: led.maxBrightness);
   }
   
   link.connect("rnd.iot-dsa.org").then((_) {
