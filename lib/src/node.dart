@@ -39,16 +39,23 @@ class DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String name) {
+  DSNode createChild(String name, {dynamic value}) {
     var node = new DSNode(name);
     addChild(node);
+    node.value = value;
     return node;
   }
   
   Value get value => _value;
-  set value(Value val) {
+  set value(val) {
+    Value v;
+    if (val is Value) {
+      v = val;
+    } else {
+      v = Value.of(val);
+    }
     hasValue = true;
-    _value = val;
+    _value = v;
     _notifyValueUpdate();
   }
   
