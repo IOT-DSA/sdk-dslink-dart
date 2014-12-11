@@ -64,6 +64,8 @@ class Value {
       return new Value(new DateTime.now(), ValueType.STRING, input);
     } else if (input is int) {
       return new Value(new DateTime.now(), ValueType.INTEGER, input);
+    } else if (input.runtimeType == double) {
+      return new Value(new DateTime.now(), ValueType.DOUBLE, input);
     } else {
       throw new Exception("Unsupported Type");
     }
