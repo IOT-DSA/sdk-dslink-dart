@@ -66,6 +66,8 @@ class Value {
       return new Value(new DateTime.now(), ValueType.INTEGER, input);
     } else if (input.runtimeType == double) {
       return new Value(new DateTime.now(), ValueType.DOUBLE, input);
+    } else if (input is bool) {
+      return new Value(new DateTime.now(), ValueType.BOOLEAN, input);
     } else {
       throw new Exception("Unsupported Type");
     }
@@ -76,6 +78,7 @@ class ValueType {
   static const ValueType STRING = const ValueType._("string");
   static const ValueType INTEGER = const ValueType._("integer");
   static const ValueType DOUBLE = const ValueType._("double");
+  static const ValueType BOOLEAN = const ValueType._("bool");
   
   const ValueType._(this.name);
   
