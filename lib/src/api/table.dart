@@ -74,8 +74,8 @@ class SimpleTable extends Table {
 
   @override
   bool next() {
-    return --_i >= 0;
+    return _calledNext = !_calledNext;
   }
-
-  int _i = 10;
+  
+  bool _calledNext = false;
 }

@@ -123,7 +123,9 @@ class InvokeMethod extends Method {
         String tableName = table is SimpleTable && table.hasName ? table.tableName : "table";
         
         var response = new Map.from(request);
-        var columns = response["columns"] = [];
+        var r = response["results"] = {};
+        var resp = r[tableName] = {};
+        var columns = resp["columns"] = [];
         int columnCount = table.columnCount;
         for (var i = 0; i < columnCount; i++) {
           var m = {};
