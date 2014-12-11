@@ -3,7 +3,7 @@ import "package:dslink/link.dart";
 import "package:linux/leds.dart";
 
 void main() {
-  var link = new DSLink("Linux")..debug = true;
+  var link = new DSLink("Linux");
   var ledsNode = link.createRootNode("LEDs");
   var leds = LED.list();
   
@@ -14,8 +14,12 @@ void main() {
       "brightness": ValueType.INTEGER
     }, execute: (args) {
       led.brightness = args["brightness"].toInteger();
-      node.value = led.brightness;
     });
+    
+    new Poller(() {
+      brightnessNode.value = led.brightness;
+    }).pollEverySecond();
+    
     node.createChild("MaxBrightness", value: led.maxBrightness);
   }
   
