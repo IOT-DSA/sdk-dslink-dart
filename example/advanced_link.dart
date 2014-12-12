@@ -4,7 +4,7 @@ import "package:dslink/link.dart";
 
 void main() {
   var link = new DSLink("DartLinkAdvanced")..debug = true;
-  var advanced = link.createRootNode("AdvancedNodes");
+  var advanced = link.createRootNode("Advanced Nodes");
   var counter = advanced.createChild("Counter", recording: true, value: 1);
   
   link.connect("rnd.iot-dsa.org").then((_) {

@@ -117,7 +117,8 @@ class DSLink {
   }
   
   DSNode createRootNode(String name) {
-    var node = new BaseNode(name);
+    var node = new BaseNode(name.replaceAll(" ", "_"));
+    node.displayName = name;
     rootNode.addChild(node);
     return node;
   }

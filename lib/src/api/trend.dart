@@ -44,6 +44,15 @@ class ValueTrend extends Trend {
       if ((_lastTimestamp < 0) && (timestamp < _lastTimestamp)) {
         continue;
       }
+      
+      if (interval != null) {
+        var difference = timestamp - _lastTimestamp;
+        
+        if (difference < interval.millis) {
+          continue;
+        }
+      }
+      
       _lastTimestamp = timestamp;
       return ret;
     }
