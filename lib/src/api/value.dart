@@ -25,10 +25,10 @@ class Value {
   }
   
   double toDouble() {
-    if (_value.runtimeType != double) {
+    if (_value.runtimeType != num) {
       throw new Exception("NOT THE RIGHT TYPE!");
     }
-    return _value;
+    return (_value as num).toDouble();
   }
   
   bool toBoolean() {
