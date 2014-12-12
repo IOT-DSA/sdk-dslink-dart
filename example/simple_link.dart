@@ -32,11 +32,11 @@ const ValueType LETTER = const ValueType("enum", enumValues: const [
 void main() {
   var link = new DSLink("DartLink");
   var types = link.createRootNode("Types");
-  var integerNode = types.createChild("Integer1", displayName: "Integer Point 1", value: 1);
-  var stringNode = types.createChild("String1", displayName: "String Point 1", value: "Hello World");
-  var doubleNode = types.createChild("Double1", displayName: "Double Point 1", value: 2.352);
-  var boolNode = types.createChild("Boolean1", displayName: "Boolean Point 1", value: true);
-  var letterNode = types.createChild("Letter1", displayName: "Letter Point 1", value: new Value(new DateTime.now(), LETTER, "A"));
+  var integerNode = types.createChild("Integer Point 1", value: 1);
+  var stringNode = types.createChild("String Point 1", value: "Hello World");
+  var doubleNode = types.createChild("Double Point 1", value: 2.352);
+  var boolNode = types.createChild("Boolean Point 1", value: true);
+  var letterNode = types.createChild("Letter Point 1", value: new Value(new DateTime.now(), LETTER, "A"));
   
   boolNode.createAction("SetValue", params: {
     "value": ValueType.BOOLEAN
