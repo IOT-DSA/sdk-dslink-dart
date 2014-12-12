@@ -94,6 +94,8 @@ class GetValueHistoryMethod extends Method {
       var inter = request["interval"];
       interval = Interval.forName(inter);
     }
+    
+    var rollupType = request["rollup"] != null ? RollupType.forName(request["rollup"]) : null;
 
     runZoned(() {
       new Future.value(node.getValueHistory()).then((trend) {
@@ -113,7 +115,8 @@ class GetValueHistoryMethod extends Method {
       });
     }, zoneValues: {
       DSContext.ID_INTERVAL: interval,
-      DSContext.ID_TIME_RANGE: timeRange
+      DSContext.ID_TIME_RANGE: timeRange,
+      DSContext.ID_ROLLUP_TYPE: rollupType
     });
   }
 
