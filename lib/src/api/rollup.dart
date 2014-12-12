@@ -26,23 +26,12 @@ class MinRollup extends Rollup {
 
 class OrRollup extends Rollup {
   @override
-  combine(List<Value> values) => Value.of(values.any((value) => isTruthy(value)));
-  
-  bool isTruthy(Value input) {
-    if (input.type == "number") {
-      return input.toPrimitive() != 0;
-    }
-    
-    if (input.type == "string") {
-      return input.toString().toLowerCase() == "true";
-    }
-    
-    if (input.type == "bool") {
-      return input.toBoolean();
-    }
-    
-    return false;
-  }
+  combine(List<Value> values) => Value.of(values.any((value) => value.isTruthy()));
+}
+
+class AndRollup extends Rollup {
+  @override
+  combine(List<Value> values) => Value.of(values.every((value) => value.isTruthy()));
 }
 
 class CountRollup extends Rollup {

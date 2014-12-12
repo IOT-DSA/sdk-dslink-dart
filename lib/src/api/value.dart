@@ -46,6 +46,22 @@ class Value {
     ].contains(_value.runtimeType) ? _value : _value.toString());
   }
   
+  bool isTruthy() {
+    if (type == "number") {
+      return toPrimitive() != 0;
+    }
+    
+    if (type == "string") {
+      return toString().toLowerCase() == "true";
+    }
+    
+    if (type == "bool") {
+      return toBoolean();
+    }
+    
+    return false;
+  }
+  
   bool get isNull => _value == null;
   
   static Value of(input) {
