@@ -5,9 +5,9 @@ import "package:dslink/link.dart";
 
 void main() {
   var link = new DSLink("Node Resolver");
-  var testA = new DSNode("TestA");
-  var testB = new DSNode("TestB");
-  var testC = new DSNode("TestC");
+  var testA = new BaseNode("TestA");
+  var testB = new BaseNode("TestB");
+  var testC = new BaseNode("TestC");
   testA.addChild(testB);
   testA.addChild(testC);
   link.rootNode.addChild(testA);

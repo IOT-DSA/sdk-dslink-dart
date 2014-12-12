@@ -1,19 +1,53 @@
 import "package:dslink/link.dart";
 
-const String HASH_ICON = "https://www.hscripts.com/freeimages/icons/web-basic-icons/hash/hash19.gif";
+const ValueType LETTER = const ValueType("enum", enumValues: const [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+  "U",
+  "V",
+  "W",
+  "X",
+  "Y",
+  "Z"
+]);
 
 void main() {
   var link = new DSLink("DartLink");
   var types = link.createRootNode("Types");
-  var integerNode = types.createChild("Integer", value: 1, icon: HASH_ICON);
-  var stringNode = types.createChild("String", value: "Hello World");
-  var doubleNode = types.createChild("Double", value: 2.352);
-  var boolNode = types.createChild("Boolean", value: true);
+  var integerNode = types.createChild("Integer1", displayName: "Integer Point 1", value: 1);
+  var stringNode = types.createChild("String1", displayName: "String Point 1", value: "Hello World");
+  var doubleNode = types.createChild("Double1", displayName: "Double Point 1", value: 2.352);
+  var boolNode = types.createChild("Boolean1", displayName: "Boolean Point 1", value: true);
+  var letterNode = types.createChild("Letter1", displayName: "Letter Point 1", value: new Value(new DateTime.now(), LETTER, "A"));
   
   boolNode.createAction("SetValue", params: {
     "value": ValueType.BOOLEAN
   }, execute: (args) {
     boolNode.value = args["value"];
+  });
+  
+  letterNode.createAction("SetValue", params: {
+    "value": LETTER
+  }, execute: (args) {
+    letterNode.value = args["value"];
   });
   
   types.createAction("GetTable", hasTableReturn: true, execute: (args) {

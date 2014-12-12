@@ -2,7 +2,38 @@ part of dslink.api;
 
 typedef Value ValueCreator();
 
-class DSNode {
+/// A DSA Node
+abstract class DSNode {
+  String get name;
+  Map<String, DSNode> get children;
+  Map<String, DSAction> get actions;
+  List<Subscriber> get subscribers;
+  ValueCreator get valueCreator;
+  set valueCreator(ValueCreator creator);
+  String get icon;
+  set icon(String url);
+  ValueType get valueType;
+  set valueType(ValueType type);
+  DSNode get parent;
+  set parent(DSNode node);
+  bool get hasValue;
+  bool get hasValueHistory;
+  Value get value;
+  set value(Value val);
+  String get displayName;
+  set displayName(String name);
+  void addChild(DSNode node);
+  void addAction(DSAction action);
+  dynamic invoke(String action, Map<String, Value> args);
+  getValueHistory();
+  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, String displayName});
+  DSAction createAction(String name, {Map<String, ValueType> params: const {}, Map<String, ValueType> results: const {}, ActionExecutor execute, bool hasTableReturn: false});
+  void subscribe(Subscriber subscriber);
+  void unsubscribe(Subscriber subscriber);
+  String getDisplayValue(Value value);
+}
+
+class BaseNode extends DSNode {
   final String name;
   final Map<String, DSNode> children = {};
   final List<Subscriber> subscribers = [];
@@ -14,6 +45,8 @@ class DSNode {
   ValueType _type;
   
   String icon;
+
+  BaseNode(this.name);
   
   set valueType(ValueType val) => _type = val;
   
@@ -41,8 +74,6 @@ class DSNode {
       return name;
     }
   }
-  
-  DSNode(this.name);
   
   String get path {
     var n = this;
@@ -76,7 +107,7 @@ class DSNode {
   }
   
   DSNode createChild(String name, {dynamic value, String icon, bool recording: false, String displayName}) {
-    var node = recording ? new RecordingDSNode(name) : new DSNode(name);
+    var node = recording ? new RecordingDSNode(name) : new BaseNode(name);
     addChild(node);
     
     if (value != null) {
@@ -145,7 +176,7 @@ class DSNode {
   bool hasValueHistory = false;
 }
 
-class RecordingDSNode extends DSNode {
+class RecordingDSNode extends BaseNode {
   final List<Value> values = [];
   
   RecordingDSNode(String name) : super(name) {

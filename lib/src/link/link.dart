@@ -1,7 +1,7 @@
 part of dslink.link;
 
 class DSLink {
-  DSNode rootNode = new DSNode("Root");
+  final DSNode rootNode = new BaseNode("Root");
   
   final String name;
   
@@ -117,7 +117,7 @@ class DSLink {
   }
   
   DSNode createRootNode(String name) {
-    var node = new DSNode(name);
+    var node = new BaseNode(name);
     rootNode.addChild(node);
     return node;
   }
