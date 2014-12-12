@@ -189,7 +189,7 @@ class RecordingDSNode extends BaseNode {
   }
   
   @override
-  getValueHistory() => new ValueTrend(DSContext.getTimeRange(), valueType, values, interval: DSContext.getInterval());
+  getValueHistory() => Trends.create(valueType, values);
   
   DateTime _start;
 }
