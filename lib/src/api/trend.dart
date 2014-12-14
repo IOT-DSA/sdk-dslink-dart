@@ -28,9 +28,7 @@ class Trends {
     if (roll == null) {
       roll = RollupType.FIRST;
     }
-    
-    print("Making Rollup");
-    
+        
     return new RollupTrend(roll, interval, his);
   }
 }
