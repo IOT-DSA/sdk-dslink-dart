@@ -168,7 +168,7 @@ class Interval {
   static const Interval FIVE_SECONDS = const Interval._(5 * 1000);
   static const Interval TEN_SECONDS = const Interval._(10 * 1000);
   static const Interval FIFTEEN_SECONDS = const Interval._(15 * 1000);
-  static const Interval THIRTY_SECONDS = const Interval._(30 * (60 * 1000));
+  static const Interval THIRTY_SECONDS = const Interval._(30 * 1000);
   static const Interval ONE_MINUTE = const Interval._(60 * 1000);
   static const Interval FIVE_MINUTES = const Interval._(5 * (60 * 1000));
   static const Interval TEN_MINUTES = const Interval._(10 * (60 * 1000));
