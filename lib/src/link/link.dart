@@ -10,9 +10,9 @@ class DSLink {
   WebSocket _socket;
   Timer _timer;
   
-  bool debug = false;
+  bool debug;
   
-  DSLink(this.name);
+  DSLink(this.name, {this.debug: false});
   
   Future connect(String host) {
     var url = "ws://" + host + "/wstunnel?${name}";
