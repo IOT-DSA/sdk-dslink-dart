@@ -74,6 +74,10 @@ class DSLinkBase {
   List<String> _subscriptionNames = [];
   
   void handleMessage(String input) {
+    if (debug) {
+      print("RECEIVED: ${input}");
+    }
+    
     var json = JSON.decode(input);
     
     if (json["subscription"] != null) {
