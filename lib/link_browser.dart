@@ -3,14 +3,16 @@ library dslink.link;
 import "dart:async";
 import "dart:html";
 
-import "_link.dart";
-export "_link.dart";
+import "link_base.dart";
+export "link_base.dart";
 
-class _BrowserSide extends SideProvider {
-  WebSocket _socket;
+class _BrowserWebSocketProvider extends WebSocketProvider {
+  _BrowserWebSocketProvider(String url) : super(url);
   
+  WebSocket _socket;
+
   @override
-  Future connect(String url) {
+  Future connect() {
     var openCompleter = new Completer();
     
     _socket = new WebSocket(url);
@@ -19,27 +21,37 @@ class _BrowserSide extends SideProvider {
       openCompleter.complete();
     });
     
-    _socket.onMessage.listen((event) {
-      var data = event.data;
-      if (link.debug) print("RECEIVED: ${data}");
-      link.handleMessage(data);
-    });
-    
     return openCompleter.future;
   }
 
   @override
   Future disconnect() {
     _socket.close();
-    return _socket.onClose.single;
+  
+    var closeCompleter = new Completer();
+    _socket.onClose.listen((_) {
+      closeCompleter.complete();
+    });
+    
+    return closeCompleter.future;
   }
 
   @override
   void send(String data) {
     _socket.sendString(data);
   }
+
+  @override
+  Stream<String> stream() => _socket.onMessage.map((event) => event.data);
+}
+
+class _BrowserPlatformProvider extends PlatformProvider {
+  @override
+  WebSocketProvider createWebSocket(String url) {
+    return new _BrowserWebSocketProvider(url);
+  }
 }
 
 class DSLink extends DSLinkBase {
-  DSLink(String name, {bool debug: false}) : super(name, new _BrowserSide(), debug: debug);
+  DSLink(String name, {bool debug: false}) : super(name, new _BrowserPlatformProvider(), debug: debug);
 }

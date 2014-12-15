@@ -1,17 +1,24 @@
-part of dslink._link;
+part of dslink.link_base;
 
-abstract class SideProvider {
-  DSLinkBase link;
+abstract class PlatformProvider {
+  WebSocketProvider createWebSocket(String url);
+}
+
+abstract class WebSocketProvider {
+  final String url;
+  
+  WebSocketProvider(this.url);
   
   void send(String data);
-  Future connect(String url);
+  Stream<String> stream();
+  Future connect();
   Future disconnect();
 }
 
 class DSLinkBase {
   final DSNode rootNode = new BaseNode("Root");
   final String name;
-  final SideProvider side;
+  final PlatformProvider platform;
   
   List<Map<String, dynamic>> _sendQueue = [];
   Timer _timer;
@@ -19,16 +26,21 @@ class DSLinkBase {
   Map<String, int> _lastPing;
   Map<String, RemoteSubscriber> _subscribers = {};
   
+  WebSocketProvider _socket;
+  
   bool debug;
   
-  DSLinkBase(this.name, this.side, {this.debug: false}) {
-    side.link = this;
-  }
+  DSLinkBase(this.name, this.platform, {this.debug: false});
   
   Future connect(String host) {
     _lastPing = {};
     var url = "ws://" + host + "/wstunnel?${name}";
-    return side.connect(url).then((socket) {
+    _socket = platform.createWebSocket(url);
+    return _socket.connect().then((_) {
+      _socket.stream().listen((data) {
+        handleMessage(data);
+      });
+      
       _timer = new Timer.periodic(new Duration(milliseconds: 100), (timer) {
         var subnames = new List.from(_lastPing.keys);
         for (var sub in subnames) {
@@ -68,7 +80,7 @@ class DSLinkBase {
             print("SENT: ${out}");
           }
           
-          side.send(out);
+          _socket.send(out);
         }
       });
     });
@@ -175,5 +187,5 @@ class DSLinkBase {
     return node;
   }
   
-  Future disconnect() => side.disconnect();
+  Future disconnect() => _socket.disconnect();
 }

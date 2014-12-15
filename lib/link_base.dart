@@ -1,4 +1,4 @@
-library dslink._link;
+library dslink.link_base;
 
 import "dart:async";
 import "dart:convert";

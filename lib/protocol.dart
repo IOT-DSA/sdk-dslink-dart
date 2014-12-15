@@ -2,7 +2,7 @@ library dslink.protocol;
 
 import "dart:async";
 
-import "_link.dart";
+import "link_base.dart";
 import "api.dart";
 
 part "src/protocol/protocol.dart";
