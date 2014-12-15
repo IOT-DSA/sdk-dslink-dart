@@ -12,6 +12,7 @@ class _IOSide extends SideProvider {
   @override
   Future connect(String url) {
     return WebSocket.connect(url).then((sock) {
+      _socket = sock;
       sock.pingInterval = new Duration(seconds: 5);
       sock.listen((data) {
         if (data is String) {
