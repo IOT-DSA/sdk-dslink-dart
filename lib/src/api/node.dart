@@ -7,10 +7,11 @@ abstract class DSNode {
   String get name;
   Map<String, DSNode> get children;
   Map<String, DSAction> get actions;
-  List<Subscriber> get subscribers;
+  Set<Subscriber> get subscribers;
   ValueCreator get valueCreator;
   set valueCreator(ValueCreator creator);
   String get icon;
+  String get path;
   set icon(String url);
   ValueType get valueType;
   set valueType(ValueType type);
@@ -31,12 +32,15 @@ abstract class DSNode {
   void subscribe(Subscriber subscriber);
   void unsubscribe(Subscriber subscriber);
   String getDisplayValue(Value value);
+  bool get isWatchable;
 }
+
+typedef void ActionHandler();
 
 class BaseNode extends DSNode {
   final String name;
   final Map<String, DSNode> children = {};
-  final List<Subscriber> subscribers = [];
+  final Set<Subscriber> subscribers = new Set<Subscriber>();
   final Map<String, DSAction> actions = {};
   
   ValueCreator valueCreator = () => Value.of(null);
@@ -94,6 +98,13 @@ class BaseNode extends DSNode {
   void addChild(DSNode child) {
     children[child.name] = child;
     child.parent = this;
+    _notifyTreeUpdate();
+  }
+  
+  void _notifyTreeUpdate() {
+    for (var sub in subscribers) {
+      sub.treeChanged(this);
+    }
   }
   
   void subscribe(Subscriber subscriber) {
@@ -144,6 +155,7 @@ class BaseNode extends DSNode {
   }
   
   void addAction(DSAction action) {
+    _notifyTreeUpdate();
     actions[action.name] = action;
   }
   
@@ -172,6 +184,9 @@ class BaseNode extends DSNode {
   }
   
   bool hasValueHistory = false;
+
+  @override
+  bool get isWatchable => true;
 }
 
 class RecordingDSNode extends BaseNode {
@@ -254,4 +269,5 @@ abstract class Subscriber {
   void subscribed(DSNode node) {}
   void valueChanged(DSNode node, Value value);
   void unsubscribed(DSNode node) {}
+  void treeChanged(DSNode node) {}
 }

@@ -11,7 +11,12 @@ abstract class Method {
 class GetNodeListMethod extends Method {
   @override
   handle(Map request, ResponseSender send) {
-    var node = link.resolvePath(request["path"]);
+    DSNode node;
+    if (request["node"] is DSNode) {
+      node = request["node"];
+    } else {
+      node = link.resolvePath(request["path"]);
+    }
     List<DSNode> children = node.children.values.toList();
     var out = [];
 
@@ -19,7 +24,7 @@ class GetNodeListMethod extends Method {
       Iterator<DSNode> iterator = children.iterator;
       while (iterator.moveNext()) {
         var map = DSEncoder.encodeNode(iterator.current);
-        map["path"] = (request["path"] + "/" + Uri.encodeComponent(iterator.current.name)).replaceAll("//", "/");
+        map["path"] = (node.path + "/" + Uri.encodeComponent(iterator.current.name)).replaceAll("//", "/");
         out.add(map);
       }
     }
@@ -75,6 +80,24 @@ class GetValueMethod extends Method {
   }
 }
 
+class SubscribeNodeListMethod extends Method {
+  @override
+  handle(Map request, ResponseSender send) {
+    var node = link.resolvePath(request["path"]);
+    var sub = link.getSubscriber(send, request["subscription"] != null ? request["subscription"] : "_NodeList_");
+    node.subscribe(sub);
+  }
+}
+
+class UnsubscribeNodeListMethod extends Method {
+  @override
+  handle(Map request, ResponseSender send) {
+    var node = link.resolvePath(request["path"]);
+    var sub = link.getSubscriber(send, request["subscription"] != null ? request["subscription"] : "_NodeList_");
+    node.unsubscribe(sub);
+  }
+}
+
 class GetValueHistoryMethod extends Method {
   @override
   handle(Map request, ResponseSender send) {
@@ -94,7 +117,7 @@ class GetValueHistoryMethod extends Method {
       var inter = request["interval"];
       interval = Interval.forName(inter);
     }
-    
+
     var rollupType = request["rollup"] != null ? RollupType.forName(request["rollup"]) : null;
 
     runZoned(() {
@@ -163,8 +186,8 @@ class InvokeMethod extends Method {
       if (results is Map) {
         var res = new Map.from(request);
         send(res..addAll({
-              "results": results
-            }));
+          "results": results
+        }));
       } else if (results == null) {
         send(request);
       } else if (results is Table) {
@@ -213,7 +236,9 @@ class RemoteSubscriber extends Subscriber {
   @override
   void subscribed(DSNode node) {
     nodes.add(node);
-    valueChanged(node, node.value);
+    if (node.hasValue) {
+      valueChanged(node, node.value);
+    }
   }
 
   @override
@@ -226,14 +251,32 @@ class RemoteSubscriber extends Subscriber {
     var values = [];
     for (var it in nodes) {
       values.add(DSEncoder.encodeValue(it)..addAll({
-            "path": it.path
-          }));
+        "path": it.path
+      }));
     }
 
     send({
       "method": "UpdateSubscription",
       "reqId": updateId,
       "values": values
+    });
+  }
+  
+  @override
+  void treeChanged(DSNode node) {
+    var s = send;
+    new GetNodeListMethod().handle({
+      "method": "GetNodeList",
+      "node": node,
+      "reqId": updateId
+    }, (response) {
+      var actual = new Map.from(response);
+      actual["updateId"] = actual["reqId"];
+      actual.remove("node");
+      actual["path"] = node.path;
+      actual.remove("reqId");
+      actual["method"] = "UpdateNodeList";
+      s(actual);
     });
   }
 }

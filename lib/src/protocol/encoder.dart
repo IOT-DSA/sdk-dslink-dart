@@ -7,13 +7,17 @@ class DSEncoder {
     map["hasChildren"] = node.children.isNotEmpty;
     map["hasValue"] = node.hasValue;
     map["hasHistory"] = node.hasValueHistory;
+    map["watchable"] = node.isWatchable;
+    
     if (node.hasValue) {
       map["type"] = node.value.type.name;
       map.addAll(encodeFacets(node.valueType));
     }
+    
     if (node.icon != null) {
       map["icon"] = node.icon;
     }
+    
     map.addAll(encodeActions(node));
     return map;
   }

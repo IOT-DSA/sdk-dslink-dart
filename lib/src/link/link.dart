@@ -1,20 +1,5 @@
 part of dslink.link_base;
 
-abstract class PlatformProvider {
-  WebSocketProvider createWebSocket(String url);
-}
-
-abstract class WebSocketProvider {
-  final String url;
-  
-  WebSocketProvider(this.url);
-  
-  void send(String data);
-  Stream<String> stream();
-  Future connect();
-  Future disconnect();
-}
-
 class DSLinkBase {
   final DSNode rootNode = new BaseNode("Root");
   final String name;
@@ -121,6 +106,12 @@ class DSLinkBase {
             break;
           case "Unsubscribe":
             m = new UnsubscribeMethod();
+            break;
+          case "SubscribeNodeList":
+            m = new SubscribeNodeListMethod();
+            break;
+          case "UnsubscribeNodeList":
+            m = new UnsubscribeNodeListMethod();
             break;
           default:
             req["error"] = "Unknown method: ${method}";
