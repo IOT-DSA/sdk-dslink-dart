@@ -10,7 +10,19 @@ Timer timer;
 void main() {
   link = new DSLink("DartBrowserLink", debug: true);
   table = querySelector("#table");
-    
+  
+  querySelector("#connect").onClick.listen((_) {
+    link.connect("rnd.iot-dsa.org").then((_) {
+      print("Connected.");
+    });
+  });
+  
+  querySelector("#disconnect").onClick.listen((_) {
+    link.disconnect().then((_) {
+      print("Disconnected.");
+    });
+  });
+ 
   var types = link.createRootNode("Types");
   var integerNode = types.createChild("Integer Point 1", value: 1);
   var stringNode = types.createChild("String Point 1", value: "Hello World");
@@ -29,10 +41,6 @@ void main() {
     }, {
       "Greeting": Value.of("Hello World")
     });
-  });
-  
-  link.connect("rnd.iot-dsa.org").then((_) {
-    print("Connected.");
   });
   
   timer = new Timer.periodic(new Duration(seconds: 2), (t) {
