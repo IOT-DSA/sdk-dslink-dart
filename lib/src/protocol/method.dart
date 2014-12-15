@@ -128,7 +128,8 @@ class SubscribeMethod extends Method {
   handle(Map request, ResponseSender send) {
     for (var path in request["paths"]) {
       var node = link.resolvePath(path);
-      node.subscribe(new RemoteSubscriber(send, request["name"]));
+      var sub = link.getSubscriber(send, request["name"]);
+      node.subscribe(sub);
     }
   }
 }

@@ -16,6 +16,9 @@ class DSLinkBase {
   List<Map<String, dynamic>> _sendQueue = [];
   Timer _timer;
   
+  Map<String, int> _lastPing;
+  Map<String, RemoteSubscriber> _subscribers = {};
+  
   bool debug;
   
   DSLinkBase(this.name, this.side, {this.debug: false}) {
@@ -23,9 +26,26 @@ class DSLinkBase {
   }
   
   Future connect(String host) {
+    _lastPing = {};
     var url = "ws://" + host + "/wstunnel?${name}";
     return side.connect(url).then((socket) {
       _timer = new Timer.periodic(new Duration(milliseconds: 100), (timer) {
+        for (var sub in _lastPing.keys) {
+          var lastPing = _lastPing[sub];
+          var diff = new DateTime.now().millisecondsSinceEpoch - lastPing;
+          if (diff >= 10000) {
+            if (debug) print("TIMEOUT: ${sub}");
+            _sendQueue.removeWhere((it) => it["subscription"] == sub);
+            if (_subscribers.containsKey(sub)) {
+              var rsub = _subscribers[sub];
+              for (var node in rsub.nodes) {
+                node.unsubscribe(rsub);
+              }
+              _subscribers.remove(sub);
+            }
+          }
+        }
+        
         if (_sendQueue.isEmpty) {
           return;
         }
@@ -55,6 +75,11 @@ class DSLinkBase {
   
   void handleMessage(String input) {
     var json = JSON.decode(input);
+    
+    if (json["subscription"] != null && json["requests"] == null || json["requests"].isEmpty) {
+      _lastPing[json["subscription"]] = new DateTime.now().millisecondsSinceEpoch;
+      return;
+    }
     
     for (var req in json["requests"]) {
       int id = req["reqId"];
@@ -109,6 +134,14 @@ class DSLinkBase {
           });
         });
       }
+    }
+  }
+  
+  RemoteSubscriber getSubscriber(ResponseSender send, String name) {
+    if (_subscribers.containsKey(name)) {
+      return _subscribers[name];
+    } else {
+      return _subscribers[name] = new RemoteSubscriber(send, name);
     }
   }
   
