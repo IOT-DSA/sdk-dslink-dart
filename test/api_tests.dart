@@ -1,9 +1,14 @@
 import "package:scheduled_test/scheduled_test.dart";
 import "package:unittest/vm_config.dart";
+import "package:unittest/compact_vm_config.dart";
 import "package:dslink/api.dart";
 
-void main() {
-  useVMConfiguration();
+void main(args) {
+  if (args.contains("-v") || args.contains("--verbose")) {
+    useVMConfiguration();
+  } else {
+    useCompactVMConfiguration();
+  }
   
   group("DSNode", () {
     test("should keep identity but change it's path", () {
