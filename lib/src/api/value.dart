@@ -25,10 +25,10 @@ class Value {
   }
   
   double toDouble() {
-    if (_value.runtimeType != num) {
+    if (_value.runtimeType != double) {
       throw new Exception("NOT THE RIGHT TYPE!");
     }
-    return (_value as num).toDouble();
+    return _value;
   }
   
   bool toBoolean() {
@@ -69,7 +69,7 @@ class Value {
       return new Value(new DateTime.now(), ValueType.STRING, input);
     } else if (input is int) {
       return new Value(new DateTime.now(), ValueType.INTEGER, input);
-    } else if (input.runtimeType == double) {
+    } else if (input is num && (input % 1) != 0) {
       return new Value(new DateTime.now(), ValueType.DOUBLE, input);
     } else if (input is bool) {
       return new Value(new DateTime.now(), ValueType.BOOLEAN, input);
@@ -84,15 +84,15 @@ class Value {
 }
 
 class ValueType {
-  static const ValueType STRING = const ValueType("string");
-  static const ValueType INTEGER = const ValueType("number", precision: 0);
-  static const ValueType DOUBLE = const ValueType("number");
-  static const ValueType NUMBER = const ValueType("number");
-  static const ValueType BOOLEAN = const ValueType("bool", enumValues: const ["true", "false"]);
-  static const ValueType NULL = const ValueType("null");
-  static const ValueType BINARY = const ValueType("number", precision: 0, min: 0, max: 255);
+  static const ValueType STRING = const ValueType("string", id: 1);
+  static const ValueType INTEGER = const ValueType("number", precision: 0, id: 2);
+  static const ValueType DOUBLE = const ValueType("number", id: 3);
+  static const ValueType NUMBER = const ValueType("number", id: 4);
+  static const ValueType BOOLEAN = const ValueType("bool", enumValues: const ["true", "false"], id: 5);
+  static const ValueType NULL = const ValueType("null", id: 6);
+  static const ValueType BINARY = const ValueType("number", precision: 0, min: 0, max: 255, id: 7);
   
-  const ValueType(this.name, {this.enumValues, this.precision, this.max, this.min, this.unit});
+  const ValueType(this.name, {this.enumValues, this.precision, this.max, this.min, this.unit, this.id});
   
   final String name;
   final List<String> enumValues;
@@ -100,4 +100,5 @@ class ValueType {
   final int max;
   final int min;
   final String unit;
+  final int id;
 }
