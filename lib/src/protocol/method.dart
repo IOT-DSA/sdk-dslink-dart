@@ -192,7 +192,7 @@ class InvokeMethod extends Method {
         send(request);
       } else if (results is Table) {
         Table table = results;
-        String tableName = table is SimpleTable && table.hasName ? table.tableName : "table";
+        String tableName = table is SingleRowTable && table.hasName ? table.tableName : "table";
 
         var response = new Map.from(request);
         var r = response["results"] = {};

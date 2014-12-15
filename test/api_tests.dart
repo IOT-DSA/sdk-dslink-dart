@@ -185,11 +185,11 @@ void main(args) {
     });
   });
 
-  group("Simple Tables", () {
+  group("Single Row Tables", () {
     Table table;
 
     setUp(() {
-      table = new SimpleTable({
+      table = new SingleRowTable({
         "name": ValueType.STRING,
         "age": ValueType.NUMBER
       }, {

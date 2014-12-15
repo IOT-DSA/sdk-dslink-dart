@@ -36,7 +36,7 @@ void main() {
   });
   
   types.createAction("GetTable", hasTableReturn: true, execute: (args) {
-    return new SimpleTable({
+    return new SingleRowTable({
       "Greeting": ValueType.STRING
     }, {
       "Greeting": Value.of("Hello World")
