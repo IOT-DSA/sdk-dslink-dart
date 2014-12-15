@@ -1,12 +1,38 @@
 library dslink.link;
 
 import "dart:async";
-import "dart:convert";
 import "dart:io";
 
-import "api.dart";
-import "protocol.dart";
+import "_link.dart";
+export "_link.dart";
 
-export "api.dart";
+class _IOSide extends SideProvider {
+  WebSocket _socket;
+  
+  @override
+  Future connect(String url) {
+    return WebSocket.connect(url).then((sock) {
+      sock.pingInterval = new Duration(seconds: 5);
+      sock.listen((data) {
+        if (data is String) {
+          if (link.debug) print("RECEIVED: ${data}");
+          link.handleMessage(data);
+        }
+      });
+    });
+  }
 
-part "src/link/link.dart";
+  @override
+  Future disconnect() {
+    return _socket.close();
+  }
+
+  @override
+  void send(String data) {
+    _socket.add(data);
+  }
+}
+
+class DSLink extends DSLinkBase {
+  DSLink(String name, {bool debug: false}) : super(name, new _IOSide(), debug: debug);
+}

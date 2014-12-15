@@ -3,7 +3,7 @@ part of dslink.protocol;
 typedef void ResponseSender(Map response);
 
 abstract class Method {
-  DSLink link;
+  DSLinkBase link;
 
   handle(Map request, ResponseSender send);
 }

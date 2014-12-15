@@ -1,34 +1,30 @@
-part of dslink.link;
+part of dslink._link;
 
-class DSLink {
-  final DSNode rootNode = new BaseNode("Root");
+abstract class SideProvider {
+  DSLinkBase link;
   
+  void send(String data);
+  Future connect(String url);
+  Future disconnect();
+}
+
+class DSLinkBase {
+  final DSNode rootNode = new BaseNode("Root");
   final String name;
+  final SideProvider side;
   
   List<Map<String, dynamic>> _sendQueue = [];
-  
-  WebSocket _socket;
   Timer _timer;
   
   bool debug;
   
-  DSLink(this.name, {this.debug: false});
+  DSLinkBase(this.name, this.side, {this.debug: false}) {
+    side.link = this;
+  }
   
   Future connect(String host) {
     var url = "ws://" + host + "/wstunnel?${name}";
-    return WebSocket.connect(url).then((socket) {
-      _socket = socket;
-      socket.pingInterval = new Duration(seconds: 10);
-      
-      socket.listen((data) {
-        if (data is String) {
-          if (debug) {
-            print("RECEIVED: ${data}");
-          }
-          handleMessage(data);
-        }
-      });
-      
+    return side.connect(url).then((socket) {
       _timer = new Timer.periodic(new Duration(milliseconds: 100), (timer) {
         if (_sendQueue.isEmpty) {
           return;
@@ -49,7 +45,7 @@ class DSLink {
             print("SENT: ${out}");
           }
           
-          _socket.add(out);
+          side.send(out);
         }
       });
     });
@@ -143,4 +139,6 @@ class DSLink {
     
     return node;
   }
+  
+  Future disconnect() => side.disconnect();
 }
