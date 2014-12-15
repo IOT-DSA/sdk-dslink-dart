@@ -1,14 +1,7 @@
-import "package:scheduled_test/scheduled_test.dart";
-import "package:unittest/vm_config.dart";
-import "package:unittest/compact_vm_config.dart";
-import "package:dslink/api.dart";
+import "common.dart";
 
 void main(args) {
-  if (args.contains("-v") || args.contains("--verbose")) {
-    useVMConfiguration();
-  } else {
-    useCompactVMConfiguration();
-  }
+  setupTests(args);
   
   group("DSNode", () {
     test("should keep identity but change it's path", () {
@@ -23,7 +16,6 @@ void main(args) {
       expect(node.path, equals("/TestA"));
     });
   });
-  
   
   group("String Values", () {
     Value value;
@@ -56,8 +48,17 @@ void main(args) {
       expect(() => value.toBoolean(), throws);
     });
     
-    test("are truthy", () {
+    test("are not usually truthy", () {
+      expect(value.isTruthy(), equals(false));
+    });
+    
+    test("are truthy when equal to true", () {
+      value = Value.of("true");
       expect(value.isTruthy(), equals(true));
+      value = Value.of("TRUE");
+      expect(value.isTruthy(), equals(true));
+      value = Value.of("false");
+      expect(value.isTruthy(), equals(false));
     });
   });
 }

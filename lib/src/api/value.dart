@@ -47,15 +47,15 @@ class Value {
   }
   
   bool isTruthy() {
-    if (type == "number") {
+    if (type.name == "number") {
       return toPrimitive() != 0;
     }
     
-    if (type == "string") {
-      return toString().toLowerCase() == "true";
+    if (type.name == "string") {
+      return toString().toLowerCase().trim() == "true";
     }
     
-    if (type == "bool") {
+    if (type.name == "bool") {
       return toBoolean();
     }
     
