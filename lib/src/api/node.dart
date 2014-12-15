@@ -39,7 +39,7 @@ class BaseNode extends DSNode {
   final List<Subscriber> subscribers = [];
   final Map<String, DSAction> actions = {};
   
-  ValueCreator valueCreator;
+  ValueCreator valueCreator = () => Value.of(null);
   
   bool hasValue = false;
   ValueType _type;

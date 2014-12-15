@@ -83,10 +83,6 @@ class DSLinkBase {
       _lastPing[json["subscription"]] = new DateTime.now().millisecondsSinceEpoch;
     }
     
-    if (json["requests"] == null || json["requests"].isEmpty) {
-      return;
-    }
-    
     for (var req in json["requests"]) {
       int id = req["reqId"];
       String method = req["method"] != null ? req["method"] : "";

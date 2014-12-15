@@ -4,3 +4,4 @@ description: DSLink SDK for Dart
 dev_dependencies:
   scheduled_test: ">=0.11.6 <0.12.0"
   grinder: ">=0.6.3 <0.7.0"
+  browser: any

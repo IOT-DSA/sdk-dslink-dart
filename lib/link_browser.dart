@@ -11,16 +11,21 @@ class _BrowserSide extends SideProvider {
   
   @override
   Future connect(String url) {
+    var openCompleter = new Completer();
+    
     _socket = new WebSocket(url);
-    _socket.onMessage.listen((event) {
-      var data = event.data;
-      if (data is String) {
-        if (link.debug) print("RECEIVED: ${data}");
-        link.handleMessage(data);
-      }
+    
+    _socket.onOpen.listen((_) {
+      openCompleter.complete();
     });
     
-    return _socket.onOpen.single;
+    _socket.onMessage.listen((event) {
+      var data = event.data;
+      if (link.debug) print("RECEIVED: ${data}");
+      link.handleMessage(data);
+    });
+    
+    return openCompleter.future;
   }
 
   @override
