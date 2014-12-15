@@ -30,19 +30,22 @@ class DSLinkBase {
     var url = "ws://" + host + "/wstunnel?${name}";
     return side.connect(url).then((socket) {
       _timer = new Timer.periodic(new Duration(milliseconds: 100), (timer) {
-        for (var sub in _lastPing.keys) {
+        var subnames = new List.from(_lastPing.keys);
+        for (var sub in subnames) {
           var lastPing = _lastPing[sub];
           var diff = new DateTime.now().millisecondsSinceEpoch - lastPing;
-          if (diff >= 10000) {
+          if (diff >= 30000) {
             if (debug) print("TIMEOUT: ${sub}");
             _sendQueue.removeWhere((it) => it["subscription"] == sub);
             if (_subscribers.containsKey(sub)) {
               var rsub = _subscribers[sub];
-              for (var node in rsub.nodes) {
+              var nodes = new List.from(rsub.nodes);
+              for (var node in nodes) {
                 node.unsubscribe(rsub);
               }
               _subscribers.remove(sub);
             }
+            _lastPing.remove(sub);
           }
         }
         
@@ -76,8 +79,11 @@ class DSLinkBase {
   void handleMessage(String input) {
     var json = JSON.decode(input);
     
-    if (json["subscription"] != null && json["requests"] == null || json["requests"].isEmpty) {
+    if (json["subscription"] != null) {
       _lastPing[json["subscription"]] = new DateTime.now().millisecondsSinceEpoch;
+    }
+    
+    if (json["requests"] == null || json["requests"].isEmpty) {
       return;
     }
     

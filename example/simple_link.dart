@@ -29,8 +29,8 @@ const ValueType LETTER = const ValueType("enum", enumValues: const [
   "Z"
 ]);
 
-void main() {
-  var link = new DSLink("DartLink");
+void main(args) {
+  var link = new DSLink("DartLink", debug: args.contains("-d") || args.contains("--debug"));
   var types = link.createRootNode("Types");
   var integerNode = types.createChild("Integer Point 1", value: 1);
   var stringNode = types.createChild("String Point 1", value: "Hello World");
