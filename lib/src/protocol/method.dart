@@ -12,7 +12,7 @@ class GetNodeListMethod extends Method {
   @override
   handle(Map request, ResponseSender send) {
     var node = link.resolvePath(request["path"]);
-    List<DSNode> children = node.children.values;
+    List<DSNode> children = node.children.values.toList();
     var out = [];
 
     {
