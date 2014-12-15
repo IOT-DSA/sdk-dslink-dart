@@ -53,7 +53,11 @@ void main(args) {
     });
     
     test("throw when converting to boolean", () {
-      expect(() => value.toBoolean(), (throws));
+      expect(() => value.toBoolean(), throws);
+    });
+    
+    test("are truthy", () {
+      expect(value.isTruthy(), equals(true));
     });
   });
 }

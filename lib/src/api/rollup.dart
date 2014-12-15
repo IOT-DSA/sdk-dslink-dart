@@ -1,9 +1,18 @@
 part of dslink.api;
 
+/**
+ * Represents a way to combine multiple values into a single value.
+ */
 abstract class Rollup {
+  /**
+   * Rolls multiple values into a single value.
+   */
   Value combine(List<Value> values);
 }
 
+/**
+ * Represents a type of rollup.
+ */
 class RollupType {
   static const RollupType FIRST = const RollupType._(1);
   static const RollupType LAST = const RollupType._(2);
@@ -43,6 +52,9 @@ class RollupType {
     }
   }
   
+  /**
+   * Creates a rollup from this type.
+   */
   Rollup create() {
     switch (this) {
       case FIRST:
