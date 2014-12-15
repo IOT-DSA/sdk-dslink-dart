@@ -25,5 +25,5 @@ void main() {
 
 ## Links
 
-[DSA Site](http://iot-dsa.org/)
-[Community Wiki](https://github.com/IOT-DSA/community/wiki)
+- [DSA Site](http://iot-dsa.org/)
+- [Community Wiki](https://github.com/IOT-DSA/community/wiki)
