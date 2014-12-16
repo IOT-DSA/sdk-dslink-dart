@@ -86,7 +86,6 @@ class BaseNode extends DSNode {
       parts.add(n.name);
       n = n.parent;
     }
-    var buff = new StringBuffer();
     parts = parts.reversed;
     return "/" + parts.join("/");
   }
