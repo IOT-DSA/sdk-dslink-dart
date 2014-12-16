@@ -1,7 +1,7 @@
 library dslink.link;
 
 import "dart:async";
-import "dart:html";
+import "dart:html" as HTML;
 
 import "link_base.dart";
 export "link_base.dart";
@@ -9,13 +9,13 @@ export "link_base.dart";
 class _BrowserWebSocketProvider extends WebSocketProvider {
   _BrowserWebSocketProvider(String url) : super(url);
   
-  WebSocket _socket;
+  HTML.WebSocket _socket;
 
   @override
   Future connect() {
     var openCompleter = new Completer();
     
-    _socket = new WebSocket(url);
+    _socket = new HTML.WebSocket(url);
     
     _socket.onOpen.listen((_) {
       openCompleter.complete();
@@ -49,6 +49,34 @@ class _BrowserPlatformProvider extends PlatformProvider {
   @override
   WebSocketProvider createWebSocket(String url) {
     return new _BrowserWebSocketProvider(url);
+  }
+
+  @override
+  HttpProvider createHttpClient() {
+    return new _BrowserHttpProvider();
+  }
+}
+
+class _BrowserHttpProvider extends HttpProvider {
+  
+  @override
+  Future<HttpResponse> send(HttpRequest request) {
+    var completer = new Completer();
+    var req = new HTML.HttpRequest();
+    req.open(request.method, request.url);
+    for (var key in request.headers.keys) {
+      req.setRequestHeader(key, request.headers[key]);
+    }
+    if (request.body != null) {
+      req.send(request.body);
+    }
+    req.onReadyStateChange.listen((e) {
+      if (req.readyState == HTML.HttpRequest.DONE) {
+        var res = new HttpResponse(req.status, req.responseText, req.responseHeaders);
+        completer.complete(res);
+      }
+    });
+    return completer.future;
   }
 }
 
