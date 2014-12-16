@@ -28,7 +28,7 @@ class Trends {
     if (roll == null) {
       roll = RollupType.FIRST;
     }
-        
+    
     return new RollupTrend(roll, interval, his);
   }
 }
