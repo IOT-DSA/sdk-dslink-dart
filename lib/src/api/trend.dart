@@ -88,8 +88,10 @@ class ValueTrend extends Trend {
 
   List<Value> _findActuals(List<Value> inputs) {
     var vals = inputs.where((value) {
-      var t = value.timestamp;
-      return t.isAfter(timeRange.from) || t.isAtSameMomentAs(t) && t.isBefore(timeRange.from) || t.isAtSameMomentAs(timeRange.to);
+      var t = value.timestamp.millisecondsSinceEpoch;
+      var l = timeRange.from.millisecondsSinceEpoch;
+      var u = timeRange.to.millisecondsSinceEpoch;
+      return t <= u && t >= l;
     }).toList();
     vals.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return vals;
