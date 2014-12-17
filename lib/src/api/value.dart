@@ -31,6 +31,13 @@ class Value {
     return _value;
   }
   
+  num toNumber() {
+    if (_value is! num) {
+      throw new Exception("NOT THE RIGHT TYPE!");
+    }
+    return _value;
+  }
+  
   bool toBoolean() {
     if (_value is! bool) {
       throw new Exception("NOT THE RIGHT TYPE!");
