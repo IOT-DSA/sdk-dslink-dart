@@ -13,6 +13,7 @@ class DSLinkBase {
 
   WebSocketProvider _socket;
   HttpProvider _http;
+  int _reqId = 0;
 
   bool debug;
 
@@ -20,7 +21,7 @@ class DSLinkBase {
 
   Future connect(String host) {
     _lastPing = {};
-    var url = "ws://" + host + "/wstunnel?${name}";
+    var url = "ws://" + host + "/wstunnel?${name.replaceAll(" ", "")}";
     _socket = platform.createWebSocket(url);
     return _socket.connect().then((_) {
       _socket.stream().listen((data) {
@@ -29,7 +30,7 @@ class DSLinkBase {
 
       _startSendTimer();
     });
-    
+
     /* .catchError((e) {
       _socket.disconnect().catchError(() {});
       _socket = null;
@@ -37,6 +38,14 @@ class DSLinkBase {
       print("ERROR: Failed to connect to WebSocket!");
       print(e);
     });  */
+  }
+
+  Stream<Map<String, dynamic>> sendRequest(Map<String, dynamic> request) {
+    _reqId++;
+    var controller = new StreamController.broadcast();
+    _responseStreams[_reqId] = controller;
+    
+    return controller.stream;
   }
 
   List<String> _subscriptionNames = [];
@@ -52,6 +61,39 @@ class DSLinkBase {
       _lastPing[json["subscription"]] = new DateTime.now().millisecondsSinceEpoch;
     }
 
+    if (json["requests"] != null) {
+      _handleRequests(json);
+    }
+    
+    if (json["responses"] != null) {
+      _handleResponses(json);
+    }
+  }
+  
+  void _handleResponses(json) {
+    for (var response in json["responses"]) {
+      var id = response["reqId"];
+      
+      if (_responseStreams[id] != null) {
+        var controller = _responseStreams[id];
+        controller.add(response);
+        if (response["partial"] != null) {
+          if (response["partial"]["total"] == -1) {
+            controller.close();
+            _responseStreams.remove(id);
+          }
+        } else {
+          controller.close();
+          _responseStreams.remove(id);
+        }
+      }
+    }
+  }
+  
+  Map<int, StreamController> _responseStreams = {};
+  Map<int, Map> _responseData = {};
+
+  void _handleRequests(json) {
     for (var req in json["requests"]) {
       int id = req["reqId"];
       String method = req["method"] != null ? req["method"] : "";
@@ -118,6 +160,7 @@ class DSLinkBase {
     _timer = new Timer.periodic(new Duration(milliseconds: 100), (timer) {
       var subnames = new List.from(_lastPing.keys);
       for (var sub in subnames) {
+        if (sub == null) continue;
         var lastPing = _lastPing[sub];
         var diff = new DateTime.now().millisecondsSinceEpoch - lastPing;
         if (diff >= 30000) {
@@ -142,13 +185,19 @@ class DSLinkBase {
       var subs = _sendQueue.map((it) => it["subscription"]).toSet();
 
       for (var sub in subs) {
-        var responses = _sendQueue.where((it) => it["subscription"] == sub).toList();
-        _sendQueue.removeWhere((it) => responses.contains(it));
+        var datas = _sendQueue.where((it) => it["subscription"] == sub).toList();
+        _sendQueue.removeWhere((it) => datas.contains(it));
 
-        var out = JSON.encode({
-          "subscription": sub,
-          "responses": responses.map((it) => it["response"]).toList()
-        });
+        var map = {
+          "responses": datas.where((it) => it["response"] != null).map((it) => it["response"]).toList(),
+          "requests": datas.where((it) => it["request"] != null).map((it) => it["request"]).toList()
+        };
+        
+        if (sub != null) {
+          map["subscription"] = sub;
+        }
+        
+        var out = JSON.encode(map);
 
         if (debug) {
           print("SENT: ${out}");

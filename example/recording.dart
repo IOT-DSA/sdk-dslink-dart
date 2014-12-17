@@ -3,7 +3,7 @@ import "dart:async";
 import "package:dslink/link.dart";
 
 void main() {
-  var link = new DSLink("DartLinkRecording", debug: true);
+  var link = new DSLink("Dart Link Recording", debug: true);
   var advanced = link.createRootNode("Advanced Nodes");
   var counter = advanced.createChild("Counter", recording: true, value: 1);
   
