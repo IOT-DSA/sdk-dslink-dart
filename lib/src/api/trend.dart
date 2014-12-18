@@ -274,7 +274,7 @@ class TimeRange {
   TimeRange(this.from, this.to);
 
   @override
-  String toString() => "${from} - ${to}"
+  String toString() => "${from} - ${to}";
 }
 
 class _IntervalMapper {
