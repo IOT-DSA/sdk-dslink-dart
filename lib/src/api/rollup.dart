@@ -51,6 +51,8 @@ class RollupType {
       return null;
     }
   }
+
+  Value combine(List<Value> values) => create().combine(values);
   
   /**
    * Creates a rollup from this type.
@@ -93,12 +95,12 @@ class LastRollup extends Rollup {
 
 class MaxRollup extends Rollup {
   @override
-  combine(List<Value> values) => _copySort(values, (a, b) => b.toDouble().compareTo(a.toDouble())).first;
+  combine(List<Value> values) => _copySort(values, (a, b) => b.toNumber().compareTo(a.toNumber())).first;
 }
 
 class MinRollup extends Rollup {
   @override
-  combine(List<Value> values) => _copySort(values, (a, b) => a.toDouble().compareTo(b.toDouble())).first;
+  combine(List<Value> values) => _copySort(values, (a, b) => a.toNumber().compareTo(b.toNumber())).first;
 }
 
 class OrRollup extends Rollup {
