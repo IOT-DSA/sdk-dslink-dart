@@ -262,6 +262,9 @@ class Interval {
   int next(int ts) {
     return ts + millis;
   }
+
+  @override
+  String toString() => "${millis}ms";
 }
 
 class TimeRange {
@@ -269,10 +272,13 @@ class TimeRange {
   final DateTime to;
 
   TimeRange(this.from, this.to);
+
+  @override
+  String toString() => "${from} - ${to}"
 }
 
 class _IntervalMapper {
-  final Map map ={};
+  final Map map = {};
 
   _IntervalMapper();
 
