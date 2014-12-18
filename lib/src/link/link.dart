@@ -12,6 +12,8 @@ class DSLinkBase {
   Map<String, RemoteSubscriber> _subscribers = {};
 
   WebSocketProvider _socket;
+  WebSocketProvider _clientSocket;
+  String _host;
   HttpProvider _http;
   int _reqId = 0;
 
@@ -20,6 +22,7 @@ class DSLinkBase {
   DSLinkBase(this.name, this.platform, {this.debug: false});
 
   Future connect(String host) {
+    _host = host;
     _lastPing = {};
     var url = "ws://" + host + "/wstunnel?${name.replaceAll(" ", "")}";
     _socket = platform.createWebSocket(url);
@@ -189,8 +192,7 @@ class DSLinkBase {
         _sendQueue.removeWhere((it) => datas.contains(it));
 
         var map = {
-          "responses": datas.where((it) => it["response"] != null).map((it) => it["response"]).toList(),
-          "requests": datas.where((it) => it["request"] != null).map((it) => it["request"]).toList()
+          "responses": datas.where((it) => it["response"] != null).map((it) => it["response"]).toList()
         };
         
         if (sub != null) {
