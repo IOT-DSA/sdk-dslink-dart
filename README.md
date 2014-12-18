@@ -2,8 +2,6 @@
 
 With the DSLink SDK, you can provide IoT data to any DSA compatible consumer.
 
-This SDK is maintained by [DGLogik](http://www.dglogik.com/) and other open source contributors.
-
 ## Getting Started
 
 DSLink's API is very simple!
