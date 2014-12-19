@@ -2,8 +2,7 @@ part of dslink.protocol;
 
 class DSEncoder {
   static Map encodeNode(DSNode node) {
-    var map = {
-    };
+    var map = {};
     map["name"] = node.displayName;
     map["hasChildren"] = node.children.isNotEmpty;
     map["hasValue"] = node.hasValue;
@@ -25,8 +24,7 @@ class DSEncoder {
 
   static Map encodeValue(DSNode node) {
     var val = node.value;
-    var map = {
-    };
+    var map = {};
     map["value"] = val.toPrimitive();
     map["status"] = val.status;
     map["type"] = val.type.name;
@@ -73,8 +71,8 @@ class DSEncoder {
     var columnCount = table.columnCount;
     var types = [];
     var partial = {
-        "from": fromIndex,
-        "field": "results.${tableName}.rows"
+      "from": fromIndex,
+      "field": "results.${tableName}.rows"
     };
     var items = partial["items"] = [];
     int rowCount = 0;
@@ -109,46 +107,41 @@ class DSEncoder {
   }
 
   static Map encodeActions(DSNode node) {
-    var map = {
-    };
     if (node.actions.isEmpty) {
-      return {
-      };
+      return {};
     }
+    var map = {};
     var actions = map["actions"] = [];
     for (var action in node.actions.values) {
       if (action.hasTableReturn) {
         var name = action.tableName != null ? action.tableName : "table";
         actions.add({
-            "name": action.name,
-            "parameters": MapEntry.forMap(action.params).map((it) {
-              return {
-                  "name": it.key
-              }
-                ..addAll(encodeFacets(it.value));
-            }).toList(),
-            "results": [
-                {
-                    "name": name,
-                    "type": "table"
-                }
-            ]
+          "name": action.name,
+          "parameters": MapEntry.forMap(action.params).map((it) {
+            return {
+              "name": it.key
+            }..addAll(encodeFacets(it.value));
+          }).toList(),
+          "results": [
+            {
+              "name": name,
+              "type": "table"
+            }
+          ]
         });
       } else {
         actions.add({
-            "parameters": MapEntry.forMap(action.params).map((it) {
-              return {
-                  "name": it.key
-              }
-                ..addAll(encodeFacets(it.value));
-            }).toList(),
-            "results": MapEntry.forMap(action.results).map((it) {
-              return {
-                  "name": it.key
-              }
-                ..addAll(encodeFacets(it.value));
-            }).toList(),
-            "name": action.name
+          "parameters": MapEntry.forMap(action.params).map((it) {
+            return {
+              "name": it.key
+            }..addAll(encodeFacets(it.value));
+          }).toList(),
+          "results": MapEntry.forMap(action.results).map((it) {
+            return {
+              "name": it.key
+            }..addAll(encodeFacets(it.value));
+          }).toList(),
+          "name": action.name
         });
       }
     }
@@ -164,24 +157,20 @@ class DSEncoder {
     res["reqId"] = reqId;
     res["path"] = path;
     var columns = res["columns"] = [];
-    var column = {
-    };
+    var column = {};
     columns.add(column);
     column["name"] = "timestamp";
     column["type"] = "time";
     column["timezone"] = new DateTime.now().timeZoneName;
-    column = {
-    };
+    column = {};
     columns.add(column);
     column["name"] = "value";
     column.addAll(encodeFacets(valueType));
-    column = {
-    };
+    column = {};
     columns.add(column);
     column["name"] = "status";
     column["type"] = "string";
-    var partial = res["partial"] = {
-    };
+    var partial = res["partial"] = {};
     partial["from"] = index;
     partial["field"] = "rows";
     var items = partial["items"] = [];
