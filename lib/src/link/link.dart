@@ -25,6 +25,10 @@ class DSLinkBase {
   DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host});
 
   Future connect() {
+    if (host == null) {
+      throw new Exception("no broker host defined");
+    }
+    
     _lastPing = {};
     var url = "ws://" + host + "/wstunnel?${name.replaceAll(" ", "")}";
     _socket = platform.createWebSocket(url);
