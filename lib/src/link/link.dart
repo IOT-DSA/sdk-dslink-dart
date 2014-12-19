@@ -98,6 +98,27 @@ class DSLinkBase {
     }
   }
   
+  void loadNodes(List<Map<String, dynamic>> input, {DSNode container}) {
+    if (container == null) container = rootNode;
+    for (var it in input) {
+      var node = container.createChild(it["name"], value: it["value"], icon: it["icon"], recording: it["recording"], setter: it["setter"]);
+      
+      if (it["children"] != null) {
+        loadNodes(it["children"], container: node);
+      }
+      
+      if (it["initialize"] != null) {
+        it["initialize"](node);
+      }
+      
+      if (it["actions"] != null) {
+        for (var d in it["actions"]) {
+          var action = container.createAction(d["name"], params: d["params"], results: d["results"], execute: d["execute"], hasTableReturn: d["hasTableReturn"]);
+        }
+      }
+    }
+  }
+  
   Map<int, StreamController> _responseStreams = {};
   Map<int, Map> _responseData = {};
 

@@ -27,7 +27,7 @@ abstract class DSNode {
   void addAction(DSAction action);
   dynamic invoke(String action, Map<String, Value> args);
   getValueHistory();
-  DSNode createChild(String name, {dynamic value, String icon, bool recording: false});
+  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, bool setter: false});
   DSAction createAction(String name, {Map<String, ValueType> params: const {}, Map<String, ValueType> results: const {}, ActionExecutor execute, bool hasTableReturn: false});
   void subscribe(Subscriber subscriber);
   void unsubscribe(Subscriber subscriber);
@@ -116,13 +116,21 @@ class BaseNode extends DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String displayName, {dynamic value, String icon, bool recording: false}) {
+  DSNode createChild(String displayName, {dynamic value, String icon, bool recording: false, bool setter: false}) {
     var name = displayName.replaceAll(" ", "_");
     var node = recording ? new RecordingDSNode(name) : new BaseNode(name);
     addChild(node);
     
     if (value != null) {
       node.value = value;
+    }
+    
+    if (setter) {
+      node.createAction("SetValue", params: {
+        "value": node.value.type
+      }, execute: (args) {
+        node.value = args["value"];
+      });
     }
     
     node.displayName = displayName;
