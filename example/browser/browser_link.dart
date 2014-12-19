@@ -11,13 +11,13 @@ Timer timer;
 
 void main() {
   var random = new Random();
-  link = new DSLink("DartBrowserLink${random.nextInt(255)}", debug: true);
+  link = new DSLink("DartBrowserLink${random.nextInt(255)}", debug: true, host: "rnd.iot-dsa.org");
   table = querySelector("#table");
   
   print("Your link is called '${link.name}'");
   
   querySelector("#connect").onClick.listen((_) {
-    link.connect("rnd.iot-dsa.org").then((_) {
+    link.connect().then((_) {
       print("Connected.");
     });
   });

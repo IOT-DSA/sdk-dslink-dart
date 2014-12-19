@@ -144,8 +144,8 @@ class SumRollup extends Rollup {
       throw new Exception("Rollup contains non-numerical values.");
     }
 
-    var prims = values.map((it) => it.toPrimitive()).toList();
-    return Value.of(prims.reduce((a, b) => a + b));
+    var primitives = values.map((it) => it.toPrimitive()).toList();
+    return Value.of(primitives.reduce((a, b) => a + b));
   }
 }
 
@@ -156,8 +156,8 @@ class AvgRollup extends Rollup {
       throw new Exception("Rollup contains non-numerical values.");
     }
     
-    var prims = values.map((it) => it.toPrimitive()).toList();
-    return Value.of(prims.reduce((a, b) => a + b) / prims.length);
+    var primitives = values.map((it) => it.toPrimitive()).toList();
+    return Value.of(primitives.reduce((a, b) => a + b) / primitives.length);
   }
 }
 
