@@ -148,13 +148,23 @@ class DSLinkBase {
 
       if (m != null) {
         m.link = this;
-        m.handle(req, (response) {
-          response.remove("subscription");
-          _sendQueue.add({
-            "subscription": json["subscription"],
-            "response": response
+        try {
+          m.handle(req, (response) {
+            response.remove("subscription");
+            _sendQueue.add({
+                "subscription": json["subscription"],
+                "response": response
+            });
           });
-        });
+        } on MessageException catch (e) {
+          var response = new Map.from(req);
+          response["error"] = e.message;
+          req["error"] = e.message;
+          _sendQueue.add({
+              "subscription": null,
+              "response": response
+          });
+        }
       }
     }
   }
@@ -240,7 +250,7 @@ class DSLinkBase {
       p += "/${el}";
 
       if (node == null) {
-        throw new Exception("No Such Node");
+        throw new MessageException("No Such Node");
       }
     }
 

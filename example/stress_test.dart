@@ -32,7 +32,7 @@ const ValueType LETTER = const ValueType("enum", enumValues: const [
 void main(args) {
   var link = new DSLink("Dart Link", debug: args.contains("-d") || args.contains("--debug"));
 
-  for (var i = 0; i < 500; i++) {
+  for (var i = 1; i <= 50000; i++) {
     var node = link.createRootNode("Node ${i}");
     var integerNode = node.createChild("Integer Point 1", value: 1);
     var stringNode = node.createChild("String Point 1", value: "Hello World");
