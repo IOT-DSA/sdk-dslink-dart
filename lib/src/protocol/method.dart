@@ -18,56 +18,8 @@ class GetNodeListMethod extends Method {
       node = link.resolvePath(request["path"]);
     }
     List<DSNode> children = node.children.values.toList();
-//    var out = [];
-//
-//    {
-//      Iterator<DSNode> iterator = children.iterator;
-//      while (iterator.moveNext()) {
-//        var map = DSEncoder.encodeNode(iterator.current);
-//        map["path"] = (node.path + "/" + Uri.encodeComponent(iterator.current.name)).replaceAll("//", "/");
-//        out.add(map);
-//      }
-//    }
-//
-//    var partials = [];
-//    var buff = [];
-//
-//    int total = 0;
-//    var from = 0;
-//    for (int i = 0; i < out.length; i++) {
-//      total++;
-//
-//      buff.add(out[i]);
-//
-//      if (((i % MAX) == 0 && i != 0) || i == out.length - 1) {
-//        var p = {
-//          "from": from,
-//          "field": "nodes",
-//          "items": buff.toList()
-//        };
-//
-//        if (i == out.length - 1) {
-//          p["total"] = -1;
-//        } else {
-//          p["total"] = total;
-//        }
-//
-//        partials.add(p);
-//        buff.clear();
-//        from = i;
-//        total = 0;
-//      }
-//    }
-//
-//    for (var partial in partials) {
-//      var res = partials.first == partial ? new Map.from(request) : {};
-//      res["partial"] = partial;
-//      res["reqId"] = request["reqId"];
-//      send(res);
-//    }
 
-    JavaIterator iterator = new JavaIterator(children);
-
+    BetterIterator iterator = new BetterIterator(children);
 
     Map response;
     int grandTotal = 0;
@@ -111,20 +63,6 @@ class GetNodeListMethod extends Method {
   }
 
   static const int MAX = 50;
-}
-
-class JavaIterator {
-  final List list;
-
-  int i = -1;
-
-  JavaIterator(this.list);
-
-  bool hasNext() => list.length - 1 > i + 1;
-  dynamic next() {
-    i++;
-    return list[i];
-  }
 }
 
 class GetValueMethod extends Method {
@@ -257,6 +195,7 @@ class InvokeMethod extends Method {
         var resp = r[tableName] = {};
         var columns = resp["columns"] = [];
         int columnCount = table.columnCount;
+
         for (var i = 0; i < columnCount; i++) {
           var m = {};
           columns.add(m);

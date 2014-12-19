@@ -199,7 +199,7 @@ class DSEncoder {
     }
     
     if (count > max) {
-      partial["total"] = index + max + max;
+      partial["total"] = index + max;
       return true;
     } else {
       partial["total"] = -1;

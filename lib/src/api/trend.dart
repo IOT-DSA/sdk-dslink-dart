@@ -45,25 +45,20 @@ class ValueTrend extends Trend {
       : this.interval = interval != null ? interval : interval = Interval.NONE,
         this.timeRange = timeRange {
     _values = _findActuals(inputs.toList());
+    _iterator = new BetterIterator<Value>(_values);
   }
 
   @override
   bool hasNext() {
-    _current = _next();
-    return _current != null;
+    return _iterator.hasNext();
   }
 
-  Value _current;
-
   Value _next() {
-    if (_iterator == null) {
-      reset();
-    }
-
     int timestamp;
     Value ret;
-    while (_iterator.moveNext()) {
-      ret = _iterator.current;
+
+    while (_iterator.hasNext()) {
+      ret = _iterator.next();
       timestamp = ret.timestamp.millisecondsSinceEpoch;
 
       if ((_lastTimestamp < 0) && (timestamp < _lastTimestamp)) {
@@ -81,6 +76,7 @@ class ValueTrend extends Trend {
       _lastTimestamp = timestamp;
       return ret;
     }
+
     return null;
   }
 
@@ -97,15 +93,15 @@ class ValueTrend extends Trend {
     return vals;
   }
 
-  Iterator _iterator;
+  BetterIterator<Value> _iterator;
 
   @override
   Value next() {
-    return _current;
+    return _next();
   }
 
   void reset() {
-    _iterator = values.iterator;
+    _iterator.reset();
   }
 }
 

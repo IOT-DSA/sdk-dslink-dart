@@ -1,6 +1,7 @@
 library dslink.api;
 
 import "dart:async";
+import "utils.dart";
 
 part "src/api/node.dart";
 part "src/api/value.dart";
