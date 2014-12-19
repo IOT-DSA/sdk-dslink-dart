@@ -118,7 +118,7 @@ class DSEncoder {
     var actions = map["actions"] = [];
     for (var action in node.actions.values) {
       if (action.hasTableReturn) {
-        var name = action.tableName;
+        var name = action.tableName != null ? action.tableName : "table";
         actions.add({
             "name": action.name,
             "parameters": MapEntry.forMap(action.params).map((it) {
