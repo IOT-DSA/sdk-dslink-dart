@@ -30,7 +30,7 @@ const ValueType LETTER = const ValueType("enum", enumValues: const [
 ]);
 
 void main(args) {
-  var link = new DSLink("Dart Link", debug: args.contains("-d") || args.contains("--debug"));
+  var link = new DSLink("Dart Link", host: "rnd.iot-dsa.org", debug: args.contains("-d") || args.contains("--debug"));
 
   for (var i = 1; i <= 50000; i++) {
     var node = link.createRootNode("Node ${i}");
@@ -61,7 +61,7 @@ void main(args) {
     });
   }
 
-  link.connect("rnd.iot-dsa.org").then((_) {
+  link.connect().then((_) {
     print("Connected.");
   });
 }

@@ -13,34 +13,35 @@ class DSLinkBase {
 
   WebSocketProvider _socket;
   WebSocketProvider _clientSocket;
-  String _host;
+  String host;
   HttpProvider _http;
   int _reqId = 0;
 
   bool debug;
+  bool autoReconnect;
 
-  DSLinkBase(this.name, this.platform, {this.debug: false});
+  Stream<String> _dataStream;
 
-  Future connect(String host) {
-    _host = host;
+  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host});
+
+  Future connect() {
     _lastPing = {};
     var url = "ws://" + host + "/wstunnel?${name.replaceAll(" ", "")}";
     _socket = platform.createWebSocket(url);
+
     return _socket.connect().then((_) {
-      _socket.stream().listen((data) {
+      _dataStream = _socket.stream();
+
+      _dataStream.listen((data) {
         handleMessage(data);
+      }).onDone(() {
+        if (autoReconnect) {
+          connect();
+        }
       });
 
       _startSendTimer();
     });
-
-    /* .catchError((e) {
-      _socket.disconnect().catchError(() {});
-      _socket = null;
-      
-      print("ERROR: Failed to connect to WebSocket!");
-      print(e);
-    });  */
   }
 
   Stream<Map<String, dynamic>> sendRequest(Map<String, dynamic> request) {

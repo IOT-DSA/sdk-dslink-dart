@@ -81,5 +81,5 @@ class _BrowserHttpProvider extends HttpProvider {
 }
 
 class DSLink extends DSLinkBase {
-  DSLink(String name, {bool debug: false}) : super(name, new _BrowserPlatformProvider(), debug: debug);
+  DSLink(String name, {String host, bool debug: false}) : super(name, new _BrowserPlatformProvider(), host: host, debug: debug);
 }
