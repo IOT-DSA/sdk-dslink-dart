@@ -37,19 +37,19 @@ void main(args) {
   var doubleNode = types.createChild("Double Point 1", value: 2.352);
   var boolNode = types.createChild("Boolean Point 1", value: true);
   var letterNode = types.createChild("Letter Point 1", value: new Value(new DateTime.now(), LETTER, "A"));
-  
+
   boolNode.createAction("SetValue", params: {
     "value": ValueType.BOOLEAN
   }, execute: (args) {
     boolNode.value = args["value"];
   });
-  
+
   letterNode.createAction("SetValue", params: {
     "value": LETTER
   }, execute: (args) {
     letterNode.value = args["value"];
   });
-  
+
   types.createAction("GetTable", hasTableReturn: true, execute: (args) {
     return new SingleRowTable({
       "Greeting": ValueType.STRING

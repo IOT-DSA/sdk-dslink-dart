@@ -188,7 +188,8 @@ class DSLinkBase {
       var subs = _sendQueue.map((it) => it["subscription"]).toSet();
 
       for (var sub in subs) {
-        var datas = _sendQueue.where((it) => it["subscription"] == sub).toList();
+        // Take 2 responses per subscription at a time
+        var datas = _sendQueue.where((it) => it["subscription"] == sub).take(2).toList();
         _sendQueue.removeWhere((it) => datas.contains(it));
 
         var map = {
