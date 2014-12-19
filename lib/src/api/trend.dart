@@ -147,7 +147,7 @@ class RollupTrend extends Trend {
       return m >= start || m <= end;
     }).toList();
     _lastEnd = end;
-    return roll.create().combine(vals);
+    return roll.combine(vals);
   }
   
   List<Value> _cache = [];

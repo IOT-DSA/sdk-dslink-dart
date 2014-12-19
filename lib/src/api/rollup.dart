@@ -8,6 +8,25 @@ abstract class Rollup {
    * Rolls multiple values into a single value.
    */
   Value combine(List<Value> values);
+  
+  Value rollup(List<Value> values) {
+    var filter = _filterStatus(values);
+    values = filter.values;
+    var result = combine(values);
+    
+    if (result.status != filter.status) {
+      result = new Value(result.timestamp, result.type, result._value, status: filter.status);
+    }
+
+    return result;
+  }
+}
+
+class _StatusFilter {
+  final String status;
+  final List<Value> values;
+  
+  _StatusFilter(this.status, this.values);
 }
 
 /**
@@ -52,7 +71,7 @@ class RollupType {
     }
   }
 
-  Value combine(List<Value> values) => create().combine(values);
+  Value combine(List<Value> values) => create().rollup(values);
   
   /**
    * Creates a rollup from this type.
@@ -146,4 +165,13 @@ List<Value> _copySort(List<Value> values, Comparator<Value> comparator) {
   var list = new List.from(values);
   list.sort(comparator);
   return list;
+}
+
+_StatusFilter _filterStatus(List<Value> inputs) {
+  var anyOk = inputs.any((it) => it.status == "ok");
+  if (!anyOk) {
+    return new _StatusFilter(inputs.last.status, inputs);
+  } else {
+    return new _StatusFilter("ok", inputs.where((it) => it.status == "ok").toList());
+  }
 }
