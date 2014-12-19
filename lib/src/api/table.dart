@@ -142,7 +142,7 @@ class SimpleTable extends Table {
 
   @override
   bool next() {
-    if (values.isEmpty ? true : current <= values.length - 1) {
+    if (values.isEmpty ? true : current >= values.length - 1) {
       return false;
     } else {
       current++;
