@@ -2,14 +2,19 @@ import "dart:html";
 import "dart:async";
 import "package:dslink/link_browser.dart";
 
+import "dart:math";
+
 DSLink link;
 TableElement table;
 
 Timer timer;
 
 void main() {
-  link = new DSLink("DartBrowserLink", debug: true);
+  var random = new Random();
+  link = new DSLink("DartBrowserLink${random.nextInt(255)}", debug: true);
   table = querySelector("#table");
+  
+  print("Your link is called '${link.name}'");
   
   querySelector("#connect").onClick.listen((_) {
     link.connect("rnd.iot-dsa.org").then((_) {
