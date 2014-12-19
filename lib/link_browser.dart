@@ -20,20 +20,30 @@ class _BrowserWebSocketProvider extends WebSocketProvider {
     _socket.onOpen.listen((_) {
       openCompleter.complete();
     });
+
+    _msgController = new StreamController<String>();
+
+    _socket.onMessage.listen((event) {
+      _msgController.add(event.data);
+    });
+
+    _socket.onClose.listen((e) {
+      _msgController.close();
+
+      if (_closeCompleter != null) {
+        _closeCompleter.complete();
+      }
+    });
     
     return openCompleter.future;
   }
+  Completer _closeCompleter;
 
   @override
   Future disconnect() {
     _socket.close();
-  
-    var closeCompleter = new Completer();
-    _socket.onClose.listen((_) {
-      closeCompleter.complete();
-    });
-    
-    return closeCompleter.future;
+    _closeCompleter = new Completer();
+    return _closeCompleter.future;
   }
 
   @override
@@ -41,8 +51,10 @@ class _BrowserWebSocketProvider extends WebSocketProvider {
     _socket.sendString(data);
   }
 
+  StreamController<String> _msgController;
+
   @override
-  Stream<String> stream() => _socket.onMessage.map((event) => event.data);
+  Stream<String> stream() => _msgController.stream;
 }
 
 class _BrowserPlatformProvider extends PlatformProvider {
@@ -67,9 +79,11 @@ class _BrowserHttpProvider extends HttpProvider {
     for (var key in request.headers.keys) {
       req.setRequestHeader(key, request.headers[key]);
     }
+
     if (request.body != null) {
       req.send(request.body);
     }
+
     req.onReadyStateChange.listen((e) {
       if (req.readyState == HTML.HttpRequest.DONE) {
         var res = new HttpResponse(req.status, req.responseText, req.responseHeaders);

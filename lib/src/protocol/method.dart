@@ -19,8 +19,19 @@ class GetNodeListMethod extends Method {
     }
     List<DSNode> children = node.children.values.toList();
 
-    BetterIterator iterator = new BetterIterator(children);
+    if (children.length <= MAX) {
+      var response = new Map.from(request);
+      var nodes = [];
+      for (var item in children) {
+        var nodeMap = DSEncoder.encodeNode(item);
+        nodeMap["path"] = item.path;
+        nodes.add(nodeMap);
+      }
+      response["nodes"] = nodes;
+      send(response);
+    }
 
+    BetterIterator iterator = new BetterIterator(children);
     Map response;
     int grandTotal = 0;
     int fromIdx = 0;
