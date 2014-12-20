@@ -131,6 +131,7 @@ class DSLinkBase {
       try {
         switch (method) {
           case "GetNode":
+            m = new GetNodeMethod();
             break;
           case "GetNodeList":
             m = new GetNodeListMethod();
@@ -173,7 +174,8 @@ class DSLinkBase {
       }
 
       if (m != null) {
-        m.link = this;
+        m.resolvePath = resolvePath;
+        m.getSubscriber = getSubscriber;
         try {
           m.handle(req, (response) {
             response.remove("subscription");
@@ -262,7 +264,7 @@ class DSLinkBase {
     return node;
   }
 
-  DSNode resolvePath(String path) {
+  Future<DSNode> resolvePath(String path) {
     path = path.replaceAll("+", " ");
     var node = rootNode;
     var p = "";
@@ -280,7 +282,7 @@ class DSLinkBase {
       }
     }
 
-    return node;
+    return new Future.value(node);
   }
 
   Future disconnect() => _socket.disconnect();
