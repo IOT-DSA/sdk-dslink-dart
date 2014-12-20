@@ -4,6 +4,7 @@ class DSLinkBase {
   final DSNode rootNode = new BaseNode("Root");
   final String name;
   final PlatformProvider platform;
+  final int sendInterval;
 
   List<Map<String, dynamic>> _sendQueue = [];
   Timer _timer;
@@ -22,7 +23,7 @@ class DSLinkBase {
 
   Stream<String> _dataStream;
 
-  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host});
+  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host, this.sendInterval: 50});
 
   Future connect() {
     if (host == null) {
@@ -198,7 +199,7 @@ class DSLinkBase {
   }
 
   void _startSendTimer() {
-    _timer = new Timer.periodic(new Duration(milliseconds: 100), (timer) {
+    _timer = new Timer.periodic(new Duration(milliseconds: sendInterval), (timer) {
       var subnames = new List.from(_lastPing.keys);
       for (var sub in subnames) {
         if (sub == null) continue;
@@ -282,7 +283,9 @@ class DSLinkBase {
       }
     }
 
-    return new Future.value(node);
+    return new Future.sync(() {
+      return node;
+    });
   }
 
   Future disconnect() => _socket.disconnect();
