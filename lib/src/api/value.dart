@@ -6,7 +6,14 @@ class Value {
   final dynamic _value;
   final String status;
   
-  Value(this.timestamp, this.type, dynamic value, {this.status: "ok"}) : _value = value;
+  Value(this.timestamp, this.type, dynamic value, {this.status: "ok"}) : _value = value {
+    if (type.name == "enum") {
+      var values = type.enumValues;
+      if (!values.contains(_value)) {
+        throw new Exception("Unknown enum value: ${_value}");
+      }
+    }
+  }
   
   @override
   String toString() {
