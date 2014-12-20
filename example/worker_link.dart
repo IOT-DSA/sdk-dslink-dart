@@ -21,7 +21,7 @@ void main(args) {
 }
 
 void _startWorker() {
-  var socket = spawnWorker(worker);
+  var socket = createWorker(worker);
   
   socket.waitFor().then((_) {
     socket.listen((value) {
