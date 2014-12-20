@@ -29,7 +29,7 @@ class DSLinkBase {
     if (host == null) {
       throw new Exception("no broker host defined");
     }
-    
+
     _lastPing = {};
     var url = "ws://" + host + "/wstunnel?${name.replaceAll(" ", "")}";
     _socket = platform.createWebSocket(url);
@@ -53,7 +53,7 @@ class DSLinkBase {
     _reqId++;
     var controller = new StreamController.broadcast();
     _responseStreams[_reqId] = controller;
-    
+
     return controller.stream;
   }
 
@@ -73,16 +73,16 @@ class DSLinkBase {
     if (json["requests"] != null) {
       _handleRequests(json);
     }
-    
+
     if (json["responses"] != null) {
       _handleResponses(json);
     }
   }
-  
+
   void _handleResponses(json) {
     for (var response in json["responses"]) {
       var id = response["reqId"];
-      
+
       if (_responseStreams[id] != null) {
         var controller = _responseStreams[id];
         controller.add(response);
@@ -98,20 +98,20 @@ class DSLinkBase {
       }
     }
   }
-  
+
   void loadNodes(List<Map<String, dynamic>> input, {DSNode container}) {
     if (container == null) container = rootNode;
     for (var it in input) {
       var node = container.createChild(it["name"], value: it["value"], icon: it["icon"], recording: it["recording"], setter: it["setter"]);
-      
+
       if (it["children"] != null) {
         loadNodes(it["children"], container: node);
       }
-      
+
       if (it["initialize"] != null) {
         it["initialize"](node);
       }
-      
+
       if (it["actions"] != null) {
         for (var d in it["actions"]) {
           var action = container.createAction(d["name"], params: d["params"], results: d["results"], execute: d["execute"], hasTableReturn: d["hasTableReturn"]);
@@ -119,7 +119,7 @@ class DSLinkBase {
       }
     }
   }
-  
+
   Map<int, StreamController> _responseStreams = {};
   Map<int, Map> _responseData = {};
 
@@ -181,8 +181,8 @@ class DSLinkBase {
           m.handle(req, (response) {
             response.remove("subscription");
             _sendQueue.add({
-                "subscription": json["subscription"],
-                "response": response
+              "subscription": json["subscription"],
+              "response": response
             });
           });
         } on MessageException catch (e) {
@@ -190,8 +190,8 @@ class DSLinkBase {
           response["error"] = e.message;
           req["error"] = e.message;
           _sendQueue.add({
-              "subscription": null,
-              "response": response
+            "subscription": null,
+            "response": response
           });
         }
       }
@@ -200,54 +200,58 @@ class DSLinkBase {
 
   void _startSendTimer() {
     _timer = new Timer.periodic(new Duration(milliseconds: sendInterval), (timer) {
-      var subnames = new List.from(_lastPing.keys);
-      for (var sub in subnames) {
-        if (sub == null) continue;
-        var lastPing = _lastPing[sub];
-        var diff = new DateTime.now().millisecondsSinceEpoch - lastPing;
-        if (diff >= 30000) {
-          if (debug) print("TIMEOUT: ${sub}");
-          _sendQueue.removeWhere((it) => it["subscription"] == sub);
-          if (_subscribers.containsKey(sub)) {
-            var rsub = _subscribers[sub];
-            var nodes = new List.from(rsub.nodes);
-            for (var node in nodes) {
-              node.unsubscribe(rsub);
-            }
-            _subscribers.remove(sub);
-          }
-          _lastPing.remove(sub);
-        }
-      }
-
-      if (_sendQueue.isEmpty) {
-        return;
-      }
-
-      var subs = _sendQueue.map((it) => it["subscription"]).toSet();
-
-      for (var sub in subs) {
-        // Take 2 responses per subscription at a time
-        var datas = _sendQueue.where((it) => it["subscription"] == sub).take(2).toList();
-        _sendQueue.removeWhere((it) => datas.contains(it));
-
-        var map = {
-          "responses": datas.where((it) => it["response"] != null).map((it) => it["response"]).toList()
-        };
-        
-        if (sub != null) {
-          map["subscription"] = sub;
-        }
-        
-        var out = JSON.encode(map);
-
-        if (debug) {
-          print("SENT: ${out}");
-        }
-
-        _socket.send(out);
-      }
+      _flushSendQueue();
     });
+  }
+
+  void _flushSendQueue() {
+    var subnames = new List.from(_lastPing.keys);
+    for (var sub in subnames) {
+      if (sub == null) continue;
+      var lastPing = _lastPing[sub];
+      var diff = new DateTime.now().millisecondsSinceEpoch - lastPing;
+      if (diff >= 30000) {
+        if (debug) print("TIMEOUT: ${sub}");
+        _sendQueue.removeWhere((it) => it["subscription"] == sub);
+        if (_subscribers.containsKey(sub)) {
+          var rsub = _subscribers[sub];
+          var nodes = new List.from(rsub.nodes);
+          for (var node in nodes) {
+            node.unsubscribe(rsub);
+          }
+          _subscribers.remove(sub);
+        }
+        _lastPing.remove(sub);
+      }
+    }
+
+    if (_sendQueue.isEmpty) {
+      return;
+    }
+
+    var subs = _sendQueue.map((it) => it["subscription"]).toSet();
+
+    for (var sub in subs) {
+      // Take 2 responses per subscription at a time
+      var datas = _sendQueue.where((it) => it["subscription"] == sub).take(2).toList();
+      _sendQueue.removeWhere((it) => datas.contains(it));
+
+      var map = {
+        "responses": datas.where((it) => it["response"] != null).map((it) => it["response"]).toList()
+      };
+
+      if (sub != null) {
+        map["subscription"] = sub;
+      }
+
+      var out = JSON.encode(map);
+
+      if (debug) {
+        print("SENT: ${out}");
+      }
+
+      _socket.send(out);
+    }
   }
 
   RemoteSubscriber getSubscriber(ResponseSender send, String name) {
@@ -288,5 +292,11 @@ class DSLinkBase {
     });
   }
 
-  Future disconnect() => _socket.disconnect();
+  Future disconnect() {
+    _timer.cancel();
+    _flushSendQueue();
+    return new Future.delayed(new Duration(milliseconds: 300), () {
+      return _socket.disconnect();
+    });
+  }
 }
