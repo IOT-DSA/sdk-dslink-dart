@@ -23,7 +23,7 @@ class DSLinkBase {
 
   Stream<String> _dataStream;
 
-  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host, this.sendInterval: 50});
+  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host, this.sendInterval: 100});
 
   Future connect() {
     if (host == null) {
