@@ -33,6 +33,8 @@ abstract class DSNode {
   void unsubscribe(Subscriber subscriber);
   String getDisplayValue(Value value);
   bool get isWatchable;
+  // RollupType getUpdateRollup();
+  // Interval getUpdateInterval();
 }
 
 typedef void ActionHandler();
