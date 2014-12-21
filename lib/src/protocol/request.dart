@@ -80,10 +80,9 @@ class DSProtocol {
         m.forwarder = forwarder;
         try {
           m.handle(req, send);
-        } on MessageException catch (e) {
+        } catch (e) {
           var response = new Map.from(req);
-          response["error"] = e.message;
-          req["error"] = e.message;
+          response["error"] = e.toString();
           send(response);
         }
       }
