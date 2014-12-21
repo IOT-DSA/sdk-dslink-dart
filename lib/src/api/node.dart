@@ -156,6 +156,11 @@ class BaseNode extends DSNode {
     } else {
       v = Value.of(val);
     }
+    
+    if (_value != null && v.type == _value.type && v.toPrimitive() == _value.toPrimitive()) { // Value is the exact same
+      return;
+    }
+    
     hasValue = true;
     _value = v;
     _notifyValueUpdate();
