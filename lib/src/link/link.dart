@@ -209,7 +209,7 @@ class DSLinkBase {
   
   Future<DSNode> resolvePath(String path) => DSProtocol.resolvePath(path, rootNode);
   
-  DSNode nodeAt(String path) {
+  DSNode nodeAt(String path, {bool allowNullReturn: false}) {
     path = path.replaceAll("+", " ");
     var node = rootNode;
     var p = "";
@@ -223,7 +223,11 @@ class DSLinkBase {
       p += "/${el}";
 
       if (node == null) {
-        throw new MessageException("No Such Node");
+        if (allowNullReturn) {
+          return null;
+        } else {
+          throw new MessageException("No Such Node");
+        }
       }
     }
     
@@ -231,7 +235,32 @@ class DSLinkBase {
   }
   
   DSNode operator [](String path) {
-    return nodeAt(path);
+    try {
+      return nodeAt(path);
+    } catch (e) {
+      path = path.replaceAll("+", " ");
+      var possibles = PathHelpers.possibles(path);
+      var bestRoot = rootNode;
+      
+      for (var possible in possibles) {
+        if (nodeAt(possible, allowNullReturn: true) != null) {
+          bestRoot = nodeAt(possible);
+        }
+      }
+      
+      var diff = path.replaceFirst(bestRoot.path + "/", "");
+      var toCreate = diff.split("/");
+      toCreate.removeWhere((it) => it.trim().isEmpty);
+      print(toCreate);
+      DSNode currentNode = bestRoot;
+      int index = 0;
+      while (currentNode.path != path) {
+        var name = toCreate[index];
+        currentNode = currentNode.createChild(name);
+        index++;
+      }
+      return currentNode;
+    }
   }
 
   Future disconnect() {
@@ -243,6 +272,17 @@ class DSLinkBase {
   }
 }
 
+class PathHelpers {
+  static List<String> possibles(String path) {
+    var parts = path.split("/")..removeWhere((it) => it.trim().isEmpty);
+    var paths = [];
+    for (var i = 0; i < parts.length; i++) {
+      paths.add("/" + parts.sublist(0, i).join("/"));
+    }
+    paths.add(path);
+    return paths;
+  }
+}
 
 class _NoForwarder extends Forwarder {
   
