@@ -238,7 +238,7 @@ class DSLinkBase {
     try {
       return nodeAt(path);
     } catch (e) {
-      path = path.replaceAll("+", " ");
+      path = path.replaceAll(" ", "_");
       var possibles = PathHelpers.possibles(path);
       var bestRoot = rootNode;
       
@@ -251,7 +251,6 @@ class DSLinkBase {
       var diff = path.replaceFirst(bestRoot.path + "/", "");
       var toCreate = diff.split("/");
       toCreate.removeWhere((it) => it.trim().isEmpty);
-      print(toCreate);
       DSNode currentNode = bestRoot;
       int index = 0;
       while (currentNode.path != path) {
