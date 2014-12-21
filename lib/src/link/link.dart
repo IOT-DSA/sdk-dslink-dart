@@ -229,6 +229,10 @@ class DSLinkBase {
     
     return node;
   }
+  
+  DSNode operator [](String path) {
+    return nodeAt(path);
+  }
 
   Future disconnect() {
     _timer.cancel();
