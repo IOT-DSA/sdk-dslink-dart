@@ -1,5 +1,4 @@
 import "package:dslink/isolation.dart";
-import "dart:isolate";
 
 void _worker(port) {
   var socket = new WorkerSocket.worker(port);
@@ -16,9 +15,7 @@ void _worker(port) {
 }
 
 void main() {
-  var receiver = new ReceivePort();
-  var socket = new WorkerSocket.master(receiver);
-  Isolate.spawn(_worker, receiver.sendPort);
+  var socket = createWorker(_worker);
   
   socket.waitFor().then((_) {
     socket.add("Hello World");
