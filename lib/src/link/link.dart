@@ -208,6 +208,27 @@ class DSLinkBase {
   }
   
   Future<DSNode> resolvePath(String path) => DSProtocol.resolvePath(path, rootNode);
+  
+  DSNode nodeAt(String path) {
+    path = path.replaceAll("+", " ");
+    var node = rootNode;
+    var p = "";
+    var parts = path.split("/")..removeWhere((it) => it.trim().isEmpty);
+    var iter = parts.iterator;
+
+    while (iter.moveNext()) {
+      var el = iter.current;
+
+      node = node.children[el];
+      p += "/${el}";
+
+      if (node == null) {
+        throw new MessageException("No Such Node");
+      }
+    }
+    
+    return node;
+  }
 
   Future disconnect() {
     _timer.cancel();
