@@ -35,6 +35,8 @@ abstract class DSNode {
   String getDisplayValue(Value value);
   bool get isWatchable;
   bool shouldUpdate(Value lastValue, Value currentValue);
+  Interval getUpdateInterval();
+  RollupType getUpdateRollup();
 }
 
 typedef void ActionHandler();
@@ -219,6 +221,16 @@ class BaseNode extends DSNode {
     } else {
       return updateFilter(lastValue, currentValue);
     }
+  }
+
+  @override
+  Interval getUpdateInterval() {
+    return Interval.ONE_HUNDRED_MILLISECONDS;
+  }
+
+  @override
+  RollupType getUpdateRollup() {
+    return RollupType.LAST;
   }
 }
 

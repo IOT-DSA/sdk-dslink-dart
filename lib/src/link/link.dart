@@ -4,7 +4,6 @@ class DSLinkBase {
   final DSNode rootNode = new BaseNode("Root");
   final String name;
   final PlatformProvider platform;
-  final int sendInterval;
 
   List<Map<String, dynamic>> _sendQueue = [];
   Timer _timer;
@@ -23,7 +22,7 @@ class DSLinkBase {
 
   Stream<String> _dataStream;
 
-  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host, this.sendInterval: 100});
+  DSLinkBase(this.name, this.platform, {this.debug: false, this.autoReconnect: true, this.host});
 
   Future connect() {
     if (host == null) {
@@ -141,12 +140,16 @@ class DSLinkBase {
   }
 
   void _startSendTimer() {
-    _timer = new Timer.periodic(new Duration(milliseconds: sendInterval), (timer) {
+    _timer = new Timer.periodic(new Duration(milliseconds: 10), (timer) {
       _flushSendQueue();
     });
   }
 
   void _flushSendQueue() {
+    for (var subscriber in _subscribers.values) {
+      subscriber.tick();
+    }
+    
     var subnames = new List.from(_lastPing.keys);
     for (var sub in subnames) {
       if (sub == null) continue;
@@ -177,9 +180,10 @@ class DSLinkBase {
       // Take 2 responses per subscription at a time
       var datas = _sendQueue.where((it) => it["subscription"] == sub).take(2).toList();
       _sendQueue.removeWhere((it) => datas.contains(it));
-
+      var responses = datas.where((it) => it["response"] != null).map((it) => it["response"]).toList();
+      
       var map = {
-        "responses": datas.where((it) => it["response"] != null).map((it) => it["response"]).toList()
+        "responses": responses
       };
 
       if (sub != null) {

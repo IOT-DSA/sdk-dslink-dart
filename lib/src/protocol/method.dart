@@ -101,7 +101,7 @@ class GetValueMethod extends Method {
     }
     resolvePath(request["path"]).then((node) {
       res["method"] = "GetValue";
-      res.addAll(DSEncoder.encodeValue(node));
+      res.addAll(DSEncoder.encodeValue(node, node.value));
       send(res);
     });
   }
@@ -298,64 +298,6 @@ class InvokeMethod extends Method {
   }
 
   static const int MAX = 100;
-}
-
-class RemoteSubscriber extends Subscriber {
-  List<DSNode> nodes = [];
-  int _updateId = 0;
-  int get updateId => _updateId = _updateId - 1;
-  final ResponseSender send;
-
-  RemoteSubscriber(this.send, String name) : super(name);
-
-  @override
-  void subscribed(DSNode node) {
-    nodes.add(node);
-    if (node.hasValue) {
-      valueChanged(null, node, node.value);
-    }
-  }
-
-  @override
-  void unsubscribed(DSNode node) {
-    nodes.remove(node);
-  }
-
-  @override
-  void valueChanged(Value lastValue, DSNode node, Value value) {
-    var values = [];
-    for (var it in nodes) {
-      if (it.shouldUpdate(lastValue, value)) {
-        values.add(DSEncoder.encodeValue(it)..addAll({
-          "path": it.path
-        }));
-      }
-    }
-
-    send({
-      "method": "UpdateSubscription",
-      "reqId": updateId,
-      "values": values
-    });
-  }
-
-  @override
-  void treeChanged(DSNode node) {
-    var s = send;
-    new GetNodeListMethod().handle({
-      "method": "GetNodeList",
-      "node": node,
-      "reqId": updateId
-    }, (response) {
-      var actual = new Map.from(response);
-      actual["updateId"] = actual["reqId"];
-      actual.remove("node");
-      actual["path"] = node.path;
-      actual.remove("reqId");
-      actual["method"] = "UpdateNodeList";
-      s(actual);
-    });
-  }
 }
 
 class GetNodeMethod extends Method {

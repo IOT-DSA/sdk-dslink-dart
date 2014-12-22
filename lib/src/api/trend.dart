@@ -158,37 +158,42 @@ class RollupTrend extends Trend {
 }
 
 class Interval {
-  static const Interval ONE_SECOND = const Interval._(1000);
-  static const Interval NONE = const Interval._(0);
-  static const Interval ONE_INTERVAL = const Interval._(0);
-  static const Interval FIVE_SECONDS = const Interval._(5 * 1000);
-  static const Interval TEN_SECONDS = const Interval._(10 * 1000);
-  static const Interval FIFTEEN_SECONDS = const Interval._(15 * 1000);
-  static const Interval THIRTY_SECONDS = const Interval._(30 * 1000);
-  static const Interval ONE_MINUTE = const Interval._(60 * 1000);
-  static const Interval FIVE_MINUTES = const Interval._(5 * (60 * 1000));
-  static const Interval TEN_MINUTES = const Interval._(10 * (60 * 1000));
-  static const Interval FIFTEEN_MINUTES = const Interval._(15 * (60 * 1000));
-  static const Interval TWENTY_MINUTES = const Interval._(20 * (60 * 1000));
-  static const Interval THIRTY_MINUTES = const Interval._(30 * (60 * 1000));
-  static const Interval ONE_HOUR = const Interval._(60 * (60 * 1000));
-  static const Interval TWO_HOURS = const Interval._(120 * (60 * 1000));
-  static const Interval THREE_HOURS = const Interval._(180 * (60 * 1000));
-  static const Interval FOUR_HOURS = const Interval._(240 * (60 * 1000));
-  static const Interval SIX_HOURS = const Interval._(360 * (60 * 1000));
-  static const Interval TWELVE_HOURS = const Interval._(720 * (60 * 1000));
-  static const Interval ONE_DAY = const Interval._(1440 * (60 * 1000));
-  static const Interval ONE_WEEK = const Interval._(10080 * (60 * 1000));
-  static const Interval ONE_MONTH = const Interval._(40320 * (60 * 1000));
-  static const Interval THREE_MONTHS = const Interval._(7257600000);
-  static const Interval ONE_YEAR = const Interval._(29030400000);
-  static const Interval FIVE_YEARS = const Interval._(145152000000);
-  static const Interval ONE_DECADE = const Interval._(290304000000);
-  static const Interval ONE_CENTURY = const Interval._(29030400000 * 100);
+  static const Interval ONE_SECOND = const Interval.inMilliseconds(1000);
+  static const Interval FIFTEEN_MILLISECONDS = const Interval.inMilliseconds(15);
+  static const Interval ONE_HUNDRED_MILLISECONDS = const Interval.inMilliseconds(100);
+  static const Interval TWO_HUNDRED_MILLISECONDS = const Interval.inMilliseconds(100);
+  static const Interval FIVE_HUNDRED_MILLISECONDS = const Interval.inMilliseconds(500);
+  static const Interval FIFTY_MILLISECONDS = const Interval.inMilliseconds(50);
+  static const Interval NONE = const Interval.inMilliseconds(0);
+  static const Interval ONE_INTERVAL = const Interval.inMilliseconds(0);
+  static const Interval FIVE_SECONDS = const Interval.inMilliseconds(5 * 1000);
+  static const Interval TEN_SECONDS = const Interval.inMilliseconds(10 * 1000);
+  static const Interval FIFTEEN_SECONDS = const Interval.inMilliseconds(15 * 1000);
+  static const Interval THIRTY_SECONDS = const Interval.inMilliseconds(30 * 1000);
+  static const Interval ONE_MINUTE = const Interval.inMilliseconds(60 * 1000);
+  static const Interval FIVE_MINUTES = const Interval.inMilliseconds(5 * (60 * 1000));
+  static const Interval TEN_MINUTES = const Interval.inMilliseconds(10 * (60 * 1000));
+  static const Interval FIFTEEN_MINUTES = const Interval.inMilliseconds(15 * (60 * 1000));
+  static const Interval TWENTY_MINUTES = const Interval.inMilliseconds(20 * (60 * 1000));
+  static const Interval THIRTY_MINUTES = const Interval.inMilliseconds(30 * (60 * 1000));
+  static const Interval ONE_HOUR = const Interval.inMilliseconds(60 * (60 * 1000));
+  static const Interval TWO_HOURS = const Interval.inMilliseconds(120 * (60 * 1000));
+  static const Interval THREE_HOURS = const Interval.inMilliseconds(180 * (60 * 1000));
+  static const Interval FOUR_HOURS = const Interval.inMilliseconds(240 * (60 * 1000));
+  static const Interval SIX_HOURS = const Interval.inMilliseconds(360 * (60 * 1000));
+  static const Interval TWELVE_HOURS = const Interval.inMilliseconds(720 * (60 * 1000));
+  static const Interval ONE_DAY = const Interval.inMilliseconds(1440 * (60 * 1000));
+  static const Interval ONE_WEEK = const Interval.inMilliseconds(10080 * (60 * 1000));
+  static const Interval ONE_MONTH = const Interval.inMilliseconds(40320 * (60 * 1000));
+  static const Interval THREE_MONTHS = const Interval.inMilliseconds(7257600000);
+  static const Interval ONE_YEAR = const Interval.inMilliseconds(29030400000);
+  static const Interval FIVE_YEARS = const Interval.inMilliseconds(145152000000);
+  static const Interval ONE_DECADE = const Interval.inMilliseconds(290304000000);
+  static const Interval ONE_CENTURY = const Interval.inMilliseconds(29030400000 * 100);
 
   final int millis;
 
-  const Interval._(this.millis);
+  const Interval.inMilliseconds(this.millis);
 
   static Interval determineBest(int start, int end) {
     var diff = end - start;

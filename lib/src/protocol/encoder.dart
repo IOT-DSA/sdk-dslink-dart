@@ -22,8 +22,7 @@ class DSEncoder {
     return map;
   }
 
-  static Map encodeValue(DSNode node) {
-    var val = node.value;
+  static Map encodeValue(DSNode node, Value val) {
     var map = {};
     map["value"] = val.toPrimitive();
     map["status"] = val.status;

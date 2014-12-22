@@ -27,3 +27,7 @@ class BetterIterator<T> {
     i = -1;
   }
 }
+
+int currentMillis() {
+  return new DateTime.now().millisecondsSinceEpoch;
+}
