@@ -33,8 +33,7 @@ abstract class DSNode {
   void unsubscribe(Subscriber subscriber);
   String getDisplayValue(Value value);
   bool get isWatchable;
-  // RollupType getUpdateRollup();
-  // Interval getUpdateInterval();
+  bool shouldUpdate(Value lastValue, Value currentValue);
 }
 
 typedef void ActionHandler();
@@ -151,6 +150,8 @@ class BaseNode extends DSNode {
   
   set value(val) => _setValue(val);
   
+  Value _lastValue;
+  
   void _setValue(val) {
     Value v;
     if (val is Value) {
@@ -162,6 +163,8 @@ class BaseNode extends DSNode {
     if (_value != null && v.type == _value.type && v.toPrimitive() == _value.toPrimitive()) { // Value is the exact same
       return;
     }
+    
+    _lastValue = _value;
     
     hasValue = true;
     _value = v;
@@ -181,7 +184,7 @@ class BaseNode extends DSNode {
   
   void _notifyValueUpdate() {
     for (var sub in subscribers) {
-      sub.valueChanged(this, value);
+      sub.valueChanged(_lastValue, this, value);
     }
   }
   
@@ -201,6 +204,11 @@ class BaseNode extends DSNode {
 
   @override
   bool get isWatchable => true;
+
+  @override
+  bool shouldUpdate(Value lastValue, Value currentValue) {
+    return true;
+  }
 }
 
 class RecordingDSNode extends BaseNode {
@@ -281,7 +289,7 @@ abstract class Subscriber {
   Subscriber(this.name);
   
   void subscribed(DSNode node) {}
-  void valueChanged(DSNode node, Value value);
+  void valueChanged(Value lastValue, DSNode node, Value value);
   void unsubscribed(DSNode node) {}
   void treeChanged(DSNode node) {}
 }

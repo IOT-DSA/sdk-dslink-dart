@@ -312,7 +312,7 @@ class RemoteSubscriber extends Subscriber {
   void subscribed(DSNode node) {
     nodes.add(node);
     if (node.hasValue) {
-      valueChanged(node, node.value);
+      valueChanged(null, node, node.value);
     }
   }
 
@@ -322,12 +322,14 @@ class RemoteSubscriber extends Subscriber {
   }
 
   @override
-  void valueChanged(DSNode node, Value value) {
+  void valueChanged(Value lastValue, DSNode node, Value value) {
     var values = [];
     for (var it in nodes) {
-      values.add(DSEncoder.encodeValue(it)..addAll({
-            "path": it.path
-          }));
+      if (it.shouldUpdate(lastValue, value)) {
+        values.add(DSEncoder.encodeValue(it)..addAll({
+          "path": it.path
+        }));
+      }
     }
 
     send({
