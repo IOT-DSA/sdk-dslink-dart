@@ -9,4 +9,3 @@ part "src/protocol/protocol.dart";
 part "src/protocol/method.dart";
 part "src/protocol/encoder.dart";
 part "src/protocol/decoder.dart";
-part "src/protocol/request.dart";
