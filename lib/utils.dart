@@ -1,5 +1,7 @@
 library dslink.utils;
 
+import "dart:async";
+
 class BetterIterator<T> {
   final List<T> list;
 
@@ -30,4 +32,8 @@ class BetterIterator<T> {
 
 int currentMillis() {
   return new DateTime.now().millisecondsSinceEpoch;
+}
+
+Future waitAndRun(Duration time, action()) {
+  return new Future.delayed(time, action);
 }
