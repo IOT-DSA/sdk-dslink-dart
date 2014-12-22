@@ -46,11 +46,13 @@ class RemoteSubscriber extends Subscriber {
       _values.removeAll(node);
     }
     
-    send({
-      "method": "UpdateSubscription",
-      "reqId": updateId,
-      "values": updates
-    });
+    if (updates.isNotEmpty) {
+      send({
+        "method": "UpdateSubscription",
+        "reqId": updateId,
+        "values": updates
+      });   
+    }
     
     _lastMs = currentMs;
   }
