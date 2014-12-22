@@ -1,14 +1,13 @@
-part of dslink.protocol;
-
-typedef void RemoteSubscriberSender(DSNode node);
+part of dslink.link_base;
 
 class RemoteSubscriber extends Subscriber {
   List<DSNode> nodes = [];
   int _updateId = 0;
   int get updateId => _updateId = _updateId - 1;
   final ResponseSender send;
+  final DSLinkBase link;
 
-  RemoteSubscriber(this.send, String name) : super(name);
+  RemoteSubscriber(this.link, this.send, String name) : super(name);
 
   @override
   void subscribed(DSNode node) {
@@ -62,7 +61,26 @@ class RemoteSubscriber extends Subscriber {
   @override
   void valueChanged(Value lastValue, DSNode node, Value value) {
     if (node.shouldUpdate(lastValue, value)) {
-      _values.add(node, value);
+      if (node.getUpdateInterval().isNone()) {
+        var data = {
+          "subscription": name,
+          "responses": [
+            {
+              "method": "UpdateSubscription",
+              "reqId": updateId,
+              "values": [
+                DSEncoder.encodeValue(node, value)..addAll({
+                  "path": node.path
+                })
+              ]
+            }
+          ]
+        };
+        
+        link._socket.send(JSON.encode(data));
+      } else {
+        _values.add(node, value);
+      }
     }
   }
 

@@ -266,6 +266,10 @@ class Interval {
 
   @override
   String toString() => "${millis}ms";
+  
+  bool isNone() {
+    return millis == 0;
+  }
 }
 
 class TimeRange {

@@ -200,7 +200,7 @@ class DSLinkBase {
     if (_subscribers.containsKey(name)) {
       return _subscribers[name];
     } else {
-      return _subscribers[name] = new RemoteSubscriber(send, name);
+      return _subscribers[name] = new RemoteSubscriber(this, send, name);
     }
   }
 
