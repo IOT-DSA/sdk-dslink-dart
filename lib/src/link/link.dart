@@ -129,13 +129,27 @@ class DSLinkBase {
       }
     }
     
-    var list = [];
-    var root = {};
-    list.add(root);
+    var it = n;
     
-    doMake(root, n);
-    
-    return new JsonEncoder.withIndent("  ").convert(list);
+    if (it == rootNode) {
+      var list = [];
+      
+      for (var child in it.children.values) {
+        var map = {};
+        doMake(map, child);
+        list.add(map);
+      }
+      
+      return new JsonEncoder.withIndent("  ").convert(list);
+    } else {
+      var list = [];
+      var root = {};
+      list.add(root);
+      
+      doMake(root, n);
+      
+      return new JsonEncoder.withIndent("  ").convert(list); 
+    }
   }
 
   void loadNodes(List<Map<String, dynamic>> input, {DSNode container}) {
