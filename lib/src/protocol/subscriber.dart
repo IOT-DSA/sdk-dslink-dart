@@ -26,23 +26,21 @@ class RemoteSubscriber extends Subscriber {
   Multimap<DSNode, Value> _values = new Multimap<DSNode, Value>();
   
   void tick() {
-    var currentMs = currentMillis();
-    var diff = currentMs - _lastMs;
     var m = _values.toMap();
     var updates = [];
     var toRemove = [];
     for (var node in m.keys) {
       var interval = node.getUpdateInterval();
       var rollup = node.getUpdateRollup();
-      if (diff >= interval.millis) {
-        print("SENDING ${node.path} VALUE");
+      var lastUpdate = _lastUpdateTimes[node];
+      if (lastUpdate == null) lastUpdate = 0;
+      if (currentMillis() - lastUpdate >= interval.millis) {
         var value = rollup.combine(m[node].toList());
         updates.add(DSEncoder.encodeValue(node, value)..addAll({
           "path": node.path
         }));
+        _lastUpdateTimes[node] = currentMillis();
         toRemove.add(node);
-      } else {
-        print(diff);
       }
     }
     
@@ -57,11 +55,9 @@ class RemoteSubscriber extends Subscriber {
         "values": updates
       });
     }
-    
-    _lastMs = currentMillis();
   }
   
-  int _lastMs = 0;
+  Map<DSNode, int> _lastUpdateTimes = {};
 
   @override
   void valueChanged(Value lastValue, DSNode node, Value value) {
