@@ -104,14 +104,10 @@ class DSLinkBase {
       bool recording = it["recording"] != null ? it["recording"] : false;
       bool setter = it["setter"] != null ? it["setter"] : false;
       
-      var node = container.createChild(it["name"], value: it["value"], icon: it["icon"], recording: recording, setter: setter);
+      DSNode node = container.createChild(it["name"], value: it["value"], icon: it["icon"], recording: recording, setter: setter, updateFilter: it["updateFilter"], updateInterval: it["updateInterval"], updateRollup: it["updateRollup"]);
 
       if (it["initialize"] != null) {
         it["initialize"](node);
-      }
-      
-      if (it["updateFilter"] != null) {
-        node.updateFilter = it["updateFilter"];
       }
       
       if (it["children"] != null) {

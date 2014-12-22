@@ -28,7 +28,7 @@ abstract class DSNode {
   void addAction(DSAction action);
   dynamic invoke(String action, Map<String, Value> args);
   getValueHistory();
-  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, bool setter: false, UpdateFilter updateFilter});
+  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, bool setter: false, UpdateFilter updateFilter, Interval updateInterval, RollupType updateRollup});
   DSAction createAction(String name, {Map<String, ValueType> params: const {}, Map<String, ValueType> results: const {}, ActionExecutor execute, bool hasTableReturn: false});
   void subscribe(Subscriber subscriber);
   void unsubscribe(Subscriber subscriber);
@@ -48,6 +48,8 @@ class BaseNode extends DSNode {
   final Map<String, DSAction> actions = {};
   
   UpdateFilter updateFilter;
+  RollupType updateRollup = RollupType.LAST;
+  Interval updateInterval = Interval.ONE_HUNDRED_MILLISECONDS;
   
   ValueCreator valueCreator = () => Value.of(null);
   
@@ -122,7 +124,7 @@ class BaseNode extends DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String displayName, {dynamic value, String icon, bool recording: false, bool setter: false, UpdateFilter updateFilter}) {
+  DSNode createChild(String displayName, {dynamic value, String icon, bool recording: false, bool setter: false, UpdateFilter updateFilter, Interval updateInterval, RollupType updateRollup}) {
     var name = displayName.replaceAll(" ", "_");
     var node = recording ? new RecordingDSNode(name) : new BaseNode(name);
     addChild(node);
@@ -133,6 +135,14 @@ class BaseNode extends DSNode {
     
     if (updateFilter != null) {
       node.updateFilter = updateFilter;
+    }
+    
+    if (updateInterval != null) {
+      node.updateInterval = updateInterval;
+    }
+    
+    if (updateRollup != null) {
+      node.updateRollup = updateRollup;
     }
     
     if (setter) {
@@ -225,12 +235,12 @@ class BaseNode extends DSNode {
 
   @override
   Interval getUpdateInterval() {
-    return Interval.ONE_HUNDRED_MILLISECONDS;
+    return updateInterval;
   }
 
   @override
   RollupType getUpdateRollup() {
-    return RollupType.LAST;
+    return updateRollup;
   }
 }
 
