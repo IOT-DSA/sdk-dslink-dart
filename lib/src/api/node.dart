@@ -1,6 +1,7 @@
 part of dslink.api;
 
 typedef Value ValueCreator();
+typedef bool UpdateFilter(Value last, Value current);
 
 /// A DSA Node
 abstract class DSNode {
@@ -27,7 +28,7 @@ abstract class DSNode {
   void addAction(DSAction action);
   dynamic invoke(String action, Map<String, Value> args);
   getValueHistory();
-  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, bool setter: false});
+  DSNode createChild(String name, {dynamic value, String icon, bool recording: false, bool setter: false, UpdateFilter updateFilter});
   DSAction createAction(String name, {Map<String, ValueType> params: const {}, Map<String, ValueType> results: const {}, ActionExecutor execute, bool hasTableReturn: false});
   void subscribe(Subscriber subscriber);
   void unsubscribe(Subscriber subscriber);
@@ -43,6 +44,8 @@ class BaseNode extends DSNode {
   final Map<String, DSNode> children = {};
   final Set<Subscriber> subscribers = new Set<Subscriber>();
   final Map<String, DSAction> actions = {};
+  
+  UpdateFilter updateFilter;
   
   ValueCreator valueCreator = () => Value.of(null);
   
@@ -117,13 +120,17 @@ class BaseNode extends DSNode {
     subscriber.unsubscribed(this);
   }
   
-  DSNode createChild(String displayName, {dynamic value, String icon, bool recording: false, bool setter: false}) {
+  DSNode createChild(String displayName, {dynamic value, String icon, bool recording: false, bool setter: false, UpdateFilter updateFilter}) {
     var name = displayName.replaceAll(" ", "_");
     var node = recording ? new RecordingDSNode(name) : new BaseNode(name);
     addChild(node);
     
     if (value != null) {
       node.value = value;
+    }
+    
+    if (updateFilter != null) {
+      node.updateFilter = updateFilter;
     }
     
     if (setter) {
@@ -207,7 +214,11 @@ class BaseNode extends DSNode {
 
   @override
   bool shouldUpdate(Value lastValue, Value currentValue) {
-    return true;
+    if (updateFilter == null) {
+      return true;
+    } else {
+      return updateFilter(lastValue, currentValue);
+    }
   }
 }
 

@@ -107,12 +107,16 @@ class DSLinkBase {
       
       var node = container.createChild(it["name"], value: it["value"], icon: it["icon"], recording: recording, setter: setter);
 
-      if (it["children"] != null) {
-        loadNodes(it["children"], container: node);
-      }
-
       if (it["initialize"] != null) {
         it["initialize"](node);
+      }
+      
+      if (it["updateFilter"] != null) {
+        node.updateFilter = it["updateFilter"];
+      }
+      
+      if (it["children"] != null) {
+        loadNodes(it["children"], container: node);
       }
 
       if (it["actions"] != null) {
