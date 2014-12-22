@@ -37,6 +37,10 @@ abstract class DSNode {
   bool shouldUpdate(Value lastValue, Value currentValue);
   Interval getUpdateInterval();
   RollupType getUpdateRollup();
+  Interval get updateInterval;
+  RollupType get updateRollup;
+  set updateInterval(Interval interval);
+  set updateRollup(RollupType rollup);
 }
 
 typedef void ActionHandler();
