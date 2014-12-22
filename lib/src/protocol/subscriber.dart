@@ -41,6 +41,8 @@ class RemoteSubscriber extends Subscriber {
           "path": node.path
         }));
         toRemove.add(node);
+      } else {
+        print(diff);
       }
     }
     
