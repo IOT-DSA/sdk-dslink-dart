@@ -203,11 +203,15 @@ class SubscribeMethod extends Method {
         forwarder.forward(path, send, req);
         continue;
       }
+      
       future = future.then((_) {
         return resolvePath(path);
       }).then((node) {
         var sub = getSubscriber(send, request["name"]);
         node.subscribe(sub);
+      }).catchError((e) {
+        // Ignore Error
+        return;
       });
     }
   }
@@ -225,6 +229,7 @@ class UnsubscribeMethod extends Method {
         forwarder.forward(path, send, req);
         continue;
       }
+      
       future = future.then((_) {
         return resolvePath(path);
       }).then((node) {
@@ -232,7 +237,10 @@ class UnsubscribeMethod extends Method {
         for (var it in all) {
           node.unsubscribe(it);
         }
-      });
+      }).catchError((e) {
+        // Ignore Error
+        return;
+      });;
     }
   }
 }
