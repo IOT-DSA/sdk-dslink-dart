@@ -3,7 +3,7 @@ import "common.dart";
 void main(args) {
   setupTests(args);
 
-  group("DSNode", () {
+  group("BaseNode", () {
     test("should keep identity but change it's path", () {
       var node = new BaseNode("TestA");
       expect(node.name, equals("TestA"));
@@ -14,6 +14,26 @@ void main(args) {
       rootNode.addChild(node);
       expect(node.name, equals("TestA"));
       expect(node.path, equals("/TestA"));
+    });
+    
+    test("wraps values correctly", () {
+      var node = new BaseNode("TestA");
+      
+      node.value = 1;
+      
+      expect(node.value, isNotNull);
+      expect(node.value, new isInstanceOf<Value>());
+      expect(node.value.type, equals(ValueType.INTEGER));
+      expect(node.value.toPrimitive(), equals(1));
+      expect(node.value.toNumber(), equals(1));
+      expect(node.value.toInteger(), equals(1));
+    });
+    
+    test("creates children correctly", () {
+      var root = new BaseNode("Root");
+      var helloWorldNode = root.createChild("Hello World");
+      expect(helloWorldNode.name, equals("Hello_World"));
+      expect(helloWorldNode.path, equals("/Hello_World"));
     });
   });
 
