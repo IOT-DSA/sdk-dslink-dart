@@ -29,6 +29,7 @@ class RemoteSubscriber extends Subscriber {
     var currentMs = currentMillis();
     var m = _values.toMap();
     var updates = [];
+    var toRemove = [];
     for (var node in m.keys) {
       var interval = node.getUpdateInterval();
       var rollup = node.getUpdateRollup();
@@ -37,8 +38,12 @@ class RemoteSubscriber extends Subscriber {
         updates.add(DSEncoder.encodeValue(node, value)..addAll({
           "path": node.path
         }));
-        _values.removeAll(node);
+        toRemove.add(node);
       }
+    }
+    
+    for (var node in toRemove) {
+      _values.removeAll(node);
     }
     
     send({
