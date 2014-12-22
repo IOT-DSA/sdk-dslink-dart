@@ -75,6 +75,8 @@ void main(args) {
     }
   ]);
   
+  print(link.createBasicLoadNode(link.rootNode));
+  
   link.connect().then((_) {
     print("Connected.");
   });

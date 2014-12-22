@@ -97,6 +97,46 @@ class DSLinkBase {
       }
     }
   }
+  
+  String createBasicLoadNode(DSNode n) {
+    void doMake(Map map, DSNode node) {
+      map["name"] = node.displayName;
+      
+      if (node.hasValue) {
+        map["value"] = node.value.toPrimitive();
+      }
+      
+      if (node.icon != null) {
+        map["icon"] = node.icon;
+      }
+      
+      if (node is RecordingDSNode) {
+        map["recording"] = true;
+      }
+      
+      if (node.actions.containsKey("SetValue")) {
+        map["setter"] = true;
+      }
+      
+      if (node.children.isEmpty) return;
+      
+      var kids = map["children"] = [];
+      
+      for (var child in node.children.values) {
+        var m = {};
+        doMake(m, child);
+        kids.add(m);
+      }
+    }
+    
+    var list = [];
+    var root = {};
+    list.add(root);
+    
+    doMake(root, n);
+    
+    return new JsonEncoder.withIndent("  ").convert(list);
+  }
 
   void loadNodes(List<Map<String, dynamic>> input, {DSNode container}) {
     if (container == null) container = rootNode;
