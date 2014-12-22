@@ -27,13 +27,15 @@ class RemoteSubscriber extends Subscriber {
   
   void tick() {
     var currentMs = currentMillis();
+    var diff = currentMs - _lastMs;
     var m = _values.toMap();
     var updates = [];
     var toRemove = [];
     for (var node in m.keys) {
       var interval = node.getUpdateInterval();
       var rollup = node.getUpdateRollup();
-      if ((currentMs - _lastMs) >= interval.millis) {
+      if (diff >= interval.millis) {
+        print("SENDING ${node.path} VALUE");
         var value = rollup.combine(m[node].toList());
         updates.add(DSEncoder.encodeValue(node, value)..addAll({
           "path": node.path
@@ -51,10 +53,10 @@ class RemoteSubscriber extends Subscriber {
         "method": "UpdateSubscription",
         "reqId": updateId,
         "values": updates
-      });   
+      });
     }
     
-    _lastMs = currentMs;
+    _lastMs = currentMillis();
   }
   
   int _lastMs = 0;
