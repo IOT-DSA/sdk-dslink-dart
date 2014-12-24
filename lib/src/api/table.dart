@@ -107,7 +107,7 @@ class SimpleTable extends Table {
   
   @override
   ValueType getColumnType(int column) {
-    return values[current][names[column]].type;
+    return values[current == -1 ? 0 : current][names[column]].type;
   }
 
   @override
