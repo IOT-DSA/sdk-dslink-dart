@@ -316,7 +316,7 @@ class GetNodeMethod extends Method {
       var nodeMap = res["node"] = {};
       DSEncoder.encodeNode(node);
       nodeMap["path"] = node.path;
-      send(nodeMap);
+      send(res);
     });
   }
 }
