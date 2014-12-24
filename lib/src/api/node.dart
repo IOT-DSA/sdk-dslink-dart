@@ -41,6 +41,7 @@ abstract class DSNode {
   RollupType get updateRollup;
   set updateInterval(Interval interval);
   set updateRollup(RollupType rollup);
+  void removeChild(String name);
 }
 
 typedef void ActionHandler();
@@ -245,6 +246,12 @@ class BaseNode extends DSNode {
   @override
   RollupType getUpdateRollup() {
     return updateRollup;
+  }
+
+  @override
+  void removeChild(String name) {
+    children.remove(name);
+    _notifyTreeUpdate();
   }
 }
 
