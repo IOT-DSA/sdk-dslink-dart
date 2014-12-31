@@ -1,7 +1,7 @@
 import "package:dslink/isolation.dart";
 
-void _worker(port) {
-  var socket = new WorkerSocket.worker(port);
+void _worker(Worker worker) {
+  var socket = worker.createSocket();
   
   print("Worker Started.");
   

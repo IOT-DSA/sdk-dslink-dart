@@ -13,6 +13,14 @@ class _WorkerData {
   _WorkerData(this.data);
 }
 
+class Worker {
+  final SendPort port;
+  
+  Worker(this.port);
+  
+  WorkerSocket createSocket() => new WorkerSocket.worker(port);
+}
+
 class _WorkerSendPort {
   final SendPort port;
   
@@ -20,6 +28,18 @@ class _WorkerSendPort {
 }
 
 class _WorkerStop {}
+
+class _WorkerPing {
+  final int id;
+  
+  _WorkerPing(this.id);
+}
+
+class _WorkerPong {
+  final int id;
+  
+  _WorkerPong(this.id);
+}
 
 class _WorkerStopped {}
 
@@ -38,11 +58,20 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       } else if (msg is _WorkerStop) {
         _stopCompleter.complete();
         _sendPort.send(new _WorkerStopped());
+      } else if (msg is _WorkerPing) {
+        _sendPort.send(new _WorkerPong(msg.id));
+      } else if (msg is _WorkerPong) {
+        if (_pings.containsKey(msg.id)) {
+          _pings[msg.id].complete();
+          _pings.remove(msg.id);
+        }
       } else {
         throw new Exception("Unknown message: ${msg}");
       }
     });
   }
+  
+  Map<int, Completer> _pings = {};
   
   final bool isWorker;
   
@@ -67,12 +96,27 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
         _controller.add(msg.data);
       } else if (msg is _WorkerError) {
         _controller.addError(msg.errorEvent, msg.stackTrace);
+      } else if (msg is _WorkerPing) {
+        _sendPort.send(new _WorkerPong(msg.id));
+      } else if (msg is _WorkerPong) {
+        if (_pings.containsKey(msg.id)) {
+          _pings[msg.id].complete();
+          _pings.remove(msg.id);
+        }
       } else if (msg is _WorkerStopped) {
         _stopCompleter.complete();
       } else {
         throw new Exception("Unknown message: ${msg}");
       }
     });
+  }
+  
+  Future ping() {
+    var id = new Random().nextInt(50000);
+    var completer = new Completer();
+    _pings[id] = completer;
+    _sendPort.send(new _WorkerPing(id));
+    return completer.future;
   }
   
   @override
