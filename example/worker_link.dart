@@ -30,8 +30,9 @@ void _startWorker() {
   });
 }
 
-void worker(port) {
-  var socket = new WorkerSocket.worker(port);
+void worker(Worker worker) {
+  var socket = worker.createSocket();
+  
   Timer timer;
   
   socket.done.then((_) {
