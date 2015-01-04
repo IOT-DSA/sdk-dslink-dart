@@ -2,6 +2,7 @@ library dslink.pk;
 import 'package:bignum/bignum.dart';
 import "package:cipher/cipher.dart";
 import "package:cipher/digests/sha384.dart";
+import "package:cipher/digests/sha256.dart";
 import "package:cipher/key_generators/rsa_key_generator.dart";
 import "package:cipher/params/key_generators/rsa_key_generator_parameters.dart";
 import "package:cipher/random/secure_random_base.dart";
@@ -27,6 +28,15 @@ class DsSecretToken{
   String toString() {
     return 'DsSceretToken: ${Base64.encode(bytes)}';
   }
+  
+  String hashSalt(String salt) {
+    List raw = []..addAll(UTF8.encode(salt))..addAll(bytes);
+    SHA256Digest sha256 = new SHA256Digest();
+    return Base64.encode(sha256.process(bytes));
+  }
+  bool verifySalt(String salt, String hash) {
+    return hashSalt(salt) == hash;
+  }
 }
 
 class DsPublicKey{
@@ -45,7 +55,7 @@ class DsPublicKey{
   String getDsaId(String prefix) {
     return '$prefix-$modulusHash64';
   }
-  String enctyptToke(DsSecretToken token) {
+  String encryptToken(DsSecretToken token) {
     var pubpar =  new PublicKeyParameter<RSAPublicKey>(rsaPublicKey);
     RSAEngine encrypt = new RSAEngine();
     encrypt.init(true, pubpar);
@@ -95,7 +105,7 @@ class DsPrivateKey{
     }
   }
   
-  DsSecretToken decryptToke(String token) {
+  DsSecretToken decryptToken(String token) {
     var privpar =  new PrivateKeyParameter<RSAPrivateKey>(rsaPrivateKey);
     RSAEngine decrypt = new RSAEngine();
     decrypt.init(false, privpar);
