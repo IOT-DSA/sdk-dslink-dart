@@ -3,6 +3,8 @@ version: 1.0.0
 description: DSLink SDK for Dart
 dependencies:
   quiver: ">=0.20.0 <0.21.0"
+  bignum: any
+  cipher: ">=0.7.1"
 dev_dependencies:
   scheduled_test: ">=0.11.6 <0.12.0"
   grinder: ">=0.6.3 <0.7.0"
