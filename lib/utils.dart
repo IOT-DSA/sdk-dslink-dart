@@ -1,34 +1,10 @@
 library dslink.utils;
 
 import "dart:async";
+import 'dart:typed_data';
 
-class BetterIterator<T> {
-  final List<T> list;
-
-  int i = -1;
-
-  BetterIterator(this.list);
-
-  bool hasNext() => list.length - 1 > i + 1;
-
-  T next() {
-    i++;
-    return list[i];
-  }
-
-  bool hasPrevious() => i >= 1;
-
-  T previous() {
-    i--;
-    return list[i];
-  }
-
-  T current() => list[i];
-
-  void reset() {
-    i = -1;
-  }
-}
+part "src/utils/better_iterator.dart";
+part "src/utils/base64.dart";
 
 int currentMillis() {
   return new DateTime.now().millisecondsSinceEpoch;
