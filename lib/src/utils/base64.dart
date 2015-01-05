@@ -1,17 +1,20 @@
 part of dslink.utils;
 
 /// difference from crypto lib CryptoUtils.bytesToBase64: 
-/// 1) allow byte array to have negative int -128 ~ -1
-/// 2) custom line size and custom padding space
+/// 1) default to url filename safe base64
+/// 2) allow byte array to have negative int -128 ~ -1
+/// 3) custom line size and custom padding space
 class Base64 {
   
   static const int PAD = 61; // '='
   static const int CR = 13;  // '\r'
   static const int LF = 10;  // '\n'
   static const int SP = 32;  // ' '
+  static const int PLUS = 43;  // '+'
+  static const int SLASH = 47;  // '/'
   
   static const String _encodeTable =
-     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
   /// Lookup table used for finding Base 64 alphabet index of a given byte.
   /// -2 : Outside Base 64 alphabet.
@@ -26,6 +29,8 @@ class Base64 {
     for (int i=0; i < len; ++i) {
       table[charCodes[i]] = i;
     }
+    table[PLUS] = 62;
+    table[SLASH] = 63;
     table[CR] = -1;
     table[LF] = -1;
     table[SP] = -1;

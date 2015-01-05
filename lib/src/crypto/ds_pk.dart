@@ -30,7 +30,7 @@ class DsSecretToken {
   }
 
   String toString() {
-    return 'DsSceretToken: ${Base64.encode(bytes)}';
+    return 'DsSecretToken: ${Base64.encode(bytes)}';
   }
 
   String hashSalt(String salt) {

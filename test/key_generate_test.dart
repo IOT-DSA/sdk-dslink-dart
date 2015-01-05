@@ -19,7 +19,7 @@ void main(){
   
   print('takes ${t2-t1} ms to generate key');
   print('dsaId: ${key.publicKey.getDsaId('my-dsa-test')}');
-  
+  print('public key: ${key.publicKey.modulusBase64}');
   //test token encrypt, decrypt
   DsSecretToken token = new DsSecretToken.generate();
   String enctyptedTokenStr = key.publicKey.encryptToken(token);
