@@ -23,12 +23,13 @@ abstract class DsBaseNode {
   DsBaseNode getChild(String name);
 }
 
-enum DsErroPhase { RequestError, ResponseError }
+enum DsErrorPhase { RequestError, ResponseError }
+
 class DsError {
   /// type of 
   String type;
   String detail;
   String msg;
   String path;
-  DsErroPhase phase;
+  DsErrorPhase phase;
 }
