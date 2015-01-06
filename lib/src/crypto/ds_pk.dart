@@ -69,8 +69,8 @@ class DsPublicKey {
     var pubpar = new PublicKeyParameter<RSAPublicKey>(rsaPublicKey);
     RSAEngine encrypt = new RSAEngine();
     encrypt.init(true, pubpar);
-    var enctypted = encrypt.process(token.bytes);
-    return Base64.encode(enctypted);
+    var encrypted = encrypt.process(token.bytes);
+    return Base64.encode(encrypted);
   }
 }
 
