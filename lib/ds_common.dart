@@ -4,6 +4,7 @@ import 'dart:async';
 
 abstract class DsConnection {
   void send(Map data);
+  
   Stream<Map> get onReceive;
   /// whether the connection is ready to send and receive data
   bool get isReady;
@@ -13,7 +14,7 @@ abstract class DsConnection {
 
 abstract class DsSession {
   DsConnection get requestConn;
-  DsConnection get respondConn;
+  DsConnection get responseConn;
 }
 
 abstract class DsBaseNode {
