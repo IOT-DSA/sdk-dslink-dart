@@ -1,6 +1,6 @@
 library dslink.common;
-import 'dart:async';
 
+import 'dart:async';
 
 abstract class DsConnection {
   void send(Map data);
@@ -16,7 +16,7 @@ abstract class DsSession {
   DsConnection get respondConn;
 }
 
-abstract class DsBaseNode{
+abstract class DsBaseNode {
   /// configs can be Map List or any primitive types
   Object getConfig(String name);
   String getAttribute(String name);

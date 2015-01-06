@@ -1,7 +1,7 @@
 part of dslink.requester;
 
 /// base request class
-abstract class DsRequest{
+abstract class DsRequest {
   final DsRequester requester;
   final int rid;
   
