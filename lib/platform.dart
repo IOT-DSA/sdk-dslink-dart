@@ -9,8 +9,9 @@ abstract class PlatformProvider {
 
 abstract class WebSocketProvider {
   final String url;
+  final Map<String, String> extraHeaders;
   
-  WebSocketProvider(this.url);
+  WebSocketProvider(this.url, {this.extraHeaders: const{}});
   
   void send(String data);
   Stream<String> stream();
