@@ -1,6 +1,9 @@
 library dslink.common;
-
 import 'dart:async';
+
+part 'src/common/node.dart';
+
+
 
 abstract class DsConnection {
   void send(Map data);
@@ -17,14 +20,16 @@ abstract class DsSession {
   DsConnection get responseConn;
 }
 
-abstract class DsBaseNode {
-  /// configs can be Map List or any primitive types
-  Object getConfig(String name);
-  String getAttribute(String name);
-  DsBaseNode getChild(String name);
+class DsStreamStatus {
+  static const String initialize = 'initialize';
+  static const String open = 'open';
+  static const String closed = 'closed';
 }
 
-enum DsErrorPhase { RequestError, ResponseError }
+class DsErrorPhase {
+  static const String request = 'request';
+  static const String response = 'response';
+}
 
 class DsError {
   /// type of 
@@ -32,5 +37,5 @@ class DsError {
   String detail;
   String msg;
   String path;
-  DsErrorPhase phase;
+  String phase;
 }

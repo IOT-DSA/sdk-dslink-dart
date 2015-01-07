@@ -2,8 +2,6 @@ library dslink.protocol;
 
 import "dart:async";
 
-import "package:quiver/collection.dart";
-
 import "api.dart";
 import "utils.dart";
 
