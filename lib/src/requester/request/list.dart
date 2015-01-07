@@ -12,15 +12,16 @@ class DsReqListUpdate {
 /// TODO: cleanup nodes that are no longer in use
 class DsReqNodeManager {
   Map<String, DsReqNode> _nodes = new Map<String, DsReqNode>();
+  
   DsReqNodeManager();
+  
   DsReqNode getNode(String path, DsRequester requester) {
-    if (!_nodes.containsKey(path)){
+    if (!_nodes.containsKey(path)) {
       _nodes[path] = new DsReqNode(path, requester);
     }
     return _nodes[path];
   }
 }
-
 
 class DsReqNode extends DsNode {
   final DsRequester requester;
@@ -48,6 +49,7 @@ class DsReqNode extends DsNode {
     }
     return true;
   }
+  
   Stream<DsReqListUpdate> _list() {
     if (_stream == null) {
       _controller = new StreamController<DsReqListUpdate>();
@@ -57,13 +59,16 @@ class DsReqNode extends DsNode {
     }
     return _stream;
   }
+  
   void _onUpdate(String status, List updates, List columns) {
 
     if (status == DsStreamStatus.closed) {
       _clearRequest();
     }
   }
+  
   HashSet _subscriptions;
+  
   void _onListen(StreamSubscription<DsReqListUpdate> subscription) {
     if (!_subscriptions.contains(subscription)) {
       _subscriptions.add(subscription);
@@ -75,6 +80,7 @@ class DsReqNode extends DsNode {
       }
     }
   }
+  
   void _onCancel(StreamSubscription<DsReqListUpdate> subscription) {
     if (_subscriptions.contains(subscription)) {
       _subscriptions.remove(subscription);
@@ -83,16 +89,19 @@ class DsReqNode extends DsNode {
       }
     }
   }
+  
   /// clear all configs attributes and children before reloading
-  void _clearProperties(){
-   
+  void _clearProperties() {
+
   }
+  
   /// stop request and the stream
   void _clearRequest() {
     if (_request != null) {
       requester.close(_request);
       _request = null;
     }
+    
     if (_controller != null) {
       _controller.close();
       _controller = null;

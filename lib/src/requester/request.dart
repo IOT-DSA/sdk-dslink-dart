@@ -12,6 +12,7 @@ class DsRequest {
   DsRequest(this.requester, this.rid, this.updater);
 
   String streamStatus = DsStreamStatus.initialize;
+  
   void _update(Map m) {
     if (m['stream'] is String) {
       streamStatus = m['stream'];
