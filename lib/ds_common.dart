@@ -14,6 +14,22 @@ abstract class DsConnection {
   Future<DsConnection> get onReady;
 }
 
+abstract class DsConnectionBase implements DsConnection {
+  Completer _readyCompleter = new Completer();
+  bool _isReady = false;
+  
+  @override
+  bool get isReady => _isReady;
+  
+  @override
+  Future<DsConnection> get onReady => _readyCompleter.future;
+  
+  void ready() {
+    _readyCompleter.complete(this);
+    _isReady = true;
+  }
+}
+
 abstract class DsSession {
   DsConnection get requestConn;
   DsConnection get responseConn;
