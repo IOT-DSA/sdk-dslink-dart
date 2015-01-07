@@ -7,6 +7,7 @@ import "dart:convert";
 import "dart:io";
 import "package:dslink/utils.dart";
 import "package:dslink/platform.dart";
+import "package:dslink/ds_common.dart";
 
 class VMWebSocket extends WebSocketProvider {
   WebSocket _socket;
@@ -35,6 +36,8 @@ class VMWebSocket extends WebSocketProvider {
   Stream<String> stream() {
     return _socket.where((it) => it is String);
   }
+  
+  WebSocket get realWebSocket => _socket;
 }
 
 class _WebSocketHacker {
