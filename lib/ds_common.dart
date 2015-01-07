@@ -1,9 +1,8 @@
 library dslink.common;
+
 import 'dart:async';
 
 part 'src/common/node.dart';
-
-
 
 abstract class DsConnection {
   void send(Map data);
@@ -32,7 +31,7 @@ class DsErrorPhase {
 }
 
 class DsError {
-  /// type of 
+  /// type of error
   String type;
   String detail;
   String msg;
