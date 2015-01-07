@@ -1,8 +1,7 @@
 import 'package:dslink/src/crypto/ds_pk.dart';
 import 'dart:io';
 
-
-void main(){
+void main() {
   String rslt;
   if (Platform.isWindows) {
     rslt = Process.runSync('getmac', []).stdout.toString();
