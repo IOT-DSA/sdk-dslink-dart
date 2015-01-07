@@ -3,6 +3,6 @@ part of dslink.requester;
 class DsReqSubscribeUpdate {
   String ts;
   Object value;
-  Map meta
+  Map meta;
   DsError error;
 }
