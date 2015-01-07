@@ -19,8 +19,7 @@ import 'dart:convert';
 class DsSecretToken {
   Uint8List bytes;
 
-  DsSecretToken(this.bytes) {
-  }
+  DsSecretToken(this.bytes);
 
   DsSecretToken.generate() {
     bytes = new Uint8List(16);
@@ -185,10 +184,35 @@ class DsaRandom extends SecureRandomBase {
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
     Math.Random r = new Math.Random();
-    final keyBytes = [r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)];
+    final keyBytes = [
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256),
+        r.nextInt(256)];
     final key = new KeyParameter(new Uint8List.fromList(keyBytes));
     r = new Math.Random((new DateTime.now()).millisecondsSinceEpoch);
-    final iv = new Uint8List.fromList([r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)]);
+    final iv = new Uint8List.fromList(
+        [
+            r.nextInt(256),
+            r.nextInt(256),
+            r.nextInt(256),
+            r.nextInt(256),
+            r.nextInt(256),
+            r.nextInt(256),
+            r.nextInt(256),
+            r.nextInt(256)]);
     final params = new ParametersWithIV(key, iv);
     _delegate.seed(params);
   }
@@ -233,6 +257,7 @@ Uint8List _bigintToUint8List(BigInteger input) {
     if (p < BigInteger.BI_DB && (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
       r[k++] = d | (input.s << (BigInteger.BI_DB - p));
     }
+    
     while (i >= 0) {
       if (p < 8) {
         d = (this_array[i] & ((1 << p) - 1)) << (8 - p);
