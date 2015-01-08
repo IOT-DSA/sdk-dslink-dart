@@ -1,5 +1,17 @@
 part of dslink.requester;
 
+/// manage cached nodes for requester
+/// TODO: cleanup nodes that are no longer in use
+class DsReqNodeCache {
+  Map<String, DsReqNode> _nodes = new Map<String, DsReqNode>();
+  DsReqNodeCache();
+  DsReqNode getNode(String path, DsRequester requester) {
+    if (!_nodes.containsKey(path)) {
+      _nodes[path] = new DsReqNode(path, requester);
+    }
+    return _nodes[path];
+  }
+}
 
 class DsReqNode extends DsNode {
   final DsRequester requester;

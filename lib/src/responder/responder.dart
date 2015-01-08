@@ -21,25 +21,33 @@ class DsResponder {
   }
   void _onData(Map m) {
     if (m['method'] is String && m['rid'] is int) {
-      if (!_responses.containsKey(m['rid'])) {
-        // make sure rid is valid before calling the method
-        switch (m['method']) {
-          case 'list':
-            return _list(m);
-          case 'subscribe':
-            return _subscribe(m);
-          case 'unsubscribe':
-            return _unsubscribe(m);
-          case 'invoke':
-            return _invoke(m);
-          case 'set':
-            return _set(m);
-          case 'remove':
-            return _remove(m);
-          case 'close':
-            return _close(m);
-          default:
-        }
+      if (_responses.containsKey(m['rid'])) {
+        // when rid is invalid, nothing needs to be sent back
+        return;
+      }
+      switch (m['method']) {
+        case 'list':
+          _list(m);
+          return;
+        case 'subscribe':
+          _subscribe(m);
+          return;
+        case 'unsubscribe':
+          _unsubscribe(m);
+          return;
+        case 'invoke':
+          _invoke(m);
+          return;
+        case 'set':
+          _set(m);
+          return;
+        case 'remove':
+          _remove(m);
+          return;
+        case 'close':
+          _close(m);
+          return;
+        default:
       }
     }
     if (m['rid'] is int) {
@@ -117,10 +125,12 @@ class DsResponder {
   void _set(Map m) {
     DsPath path = DsPath.getValidPath(m['path']);
     if (path == null || path.absolute) {
-      return _closeResponse(m['rid'], new DsError('invalid path'));
+      _closeResponse(m['rid'], new DsError('invalid path'));
+      return;
     }
     if (!m.containsKey('value')) {
-      return _closeResponse(m['rid'], new DsError('missing value'));
+      _closeResponse(m['rid'], new DsError('missing value'));
+      return;
     }
     Object value = m['value'];
     int rid = m['rid'];
@@ -143,7 +153,8 @@ class DsResponder {
   void _remove(Map m) {
     DsPath path = DsPath.getValidPath(m['path']);
     if (path == null || path.absolute) {
-      return _closeResponse(m['rid'], new DsError('invalid path'));
+      _closeResponse(m['rid'], new DsError('invalid path'));
+      return;
     }
     int rid = m['rid'];
     if (path.isNode) {
