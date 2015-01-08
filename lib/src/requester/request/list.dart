@@ -26,7 +26,7 @@ class DsListController {
     // TODO update node data and _controller
 
   }
-  
+
   void _onListen(StreamSubscription<DsReqListUpdate> listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);
@@ -47,7 +47,7 @@ class DsListController {
       }
     }
   }
-  
+
   void _destroy() {
     if (_request != null) {
       node.requester.closeRequest(_request);

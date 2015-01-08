@@ -12,7 +12,7 @@ class DsRequest {
   DsRequest(this.requester, this.rid, this.updater);
 
   String streamStatus = DsStreamStatus.initialize;
-  
+
   void _update(Map m) {
     if (m['stream'] is String) {
       streamStatus = m['stream'];
@@ -39,7 +39,7 @@ class DsRequest {
       updater(DsStreamStatus.closed, null, null);
     }
   }
-  
+
   /// close the request from the client side
   void close() {
     // _close will also be called later from the requester;

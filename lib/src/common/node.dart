@@ -66,7 +66,7 @@ class DsNode {
     }
     return null;
   }
-  
+
   /// clear all configs attributes and children
   void reset() {
     // TODO
@@ -121,7 +121,7 @@ class DsPath {
   DsPath(this.path) {
     _parse();
   }
-  void _parse(){
+  void _parse() {
     if (path == '' || path.contains(invalidChar) || path.contains('//')) {
       valid = false;
     }
@@ -153,7 +153,7 @@ class DsPath {
   bool get absolute {
     return name == '/' || parentPath.startsWith('/');
   }
-  bool get isRoot{
+  bool get isRoot {
     return name == '/';
   }
   bool get isConfig {
@@ -165,7 +165,7 @@ class DsPath {
   bool get isNode {
     return !name.startsWith(r'@') && !name.startsWith(r'$');
   }
-  
+
   void mergeBasePath(String base, [bool force = false]) {
     if (base == null) {
       return;
@@ -177,7 +177,7 @@ class DsPath {
         parentPath = '$base/$parentPath';
       }
       path = '$parentPath/$name';
-    } else if (force){
+    } else if (force) {
       // apply base path on a absolute path
       if (name == '') {
         // map the root path

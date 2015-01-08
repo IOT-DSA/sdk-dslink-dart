@@ -13,6 +13,6 @@ class DsResponse {
   }
   /// close the response now, no need to send more response update
   void _close() {
-    
+
   }
 }

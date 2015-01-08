@@ -10,15 +10,15 @@ class DsSubscribeRequest extends DsRequest {
   final Map<String, DsSubscribeController> subsriptions = new Map<String, DsSubscribeController>();
 
   DsSubscribeRequest(DsRequester requester, int rid) : super(requester, rid, null);
-  
+
   void _update(Map m) {
     List updates = m['updates'];
-    if (updates is List){
+    if (updates is List) {
       // TODO, update DsSubscribeController
     }
   }
-  
-  
+
+
   HashSet<String> _changedPaths = new HashSet<String>();
   void addSubscription(DsSubscribeController controller) {
     String path = controller.node.path;

@@ -9,6 +9,3 @@ part "src/utils/timer.dart";
 
 
 
-Future waitAndRun(Duration time, action()) {
-  return new Future.delayed(time, action);
-}
