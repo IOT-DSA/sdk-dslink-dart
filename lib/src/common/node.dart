@@ -66,10 +66,15 @@ class DsNode {
     }
     return null;
   }
+  
+  /// clear all configs attributes and children
+  void reset() {
+    // TODO
+  }
 }
 
 
-/// Util class for ds node path and config attribut path
+/// Util class for ds node path and config/attribute path
 class DsPath {
   static final RegExp invalidChar = new RegExp(r'[\.\/\\\?%\*:|"<>]');
   static DsPath getValidPath(Object path, [String basePath]) {
@@ -110,25 +115,29 @@ class DsPath {
   }
   String path;
   String parentPath;
+  /// root node has the name '/';
   String name;
   bool valid = true;
-  bool absolute;
   DsPath(this.path) {
+    _parse();
+  }
+  void _parse(){
     if (path == '' || path.contains(invalidChar) || path.contains('//')) {
       valid = false;
     }
     if (path == '/') {
       valid = true;
-      name = '';
+      name = '/';
+      parentPath = '';
       return;
     }
     if (path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }
-    absolute = path.startsWith('/');
     int pos = path.lastIndexOf('/');
     if (pos < 0) {
       name = path;
+      parentPath = '';
     } else if (pos == 0) {
       parentPath = '/';
       name = path.substring(1);
@@ -141,6 +150,12 @@ class DsPath {
       }
     }
   }
+  bool get absolute {
+    return name == '/' || parentPath.startsWith('/');
+  }
+  bool get isRoot{
+    return name == '/';
+  }
   bool get isConfig {
     return name.startsWith(r'$');
   }
@@ -151,17 +166,27 @@ class DsPath {
     return !name.startsWith(r'@') && !name.startsWith(r'$');
   }
   
-  void mergeBasePath(String base) {
+  void mergeBasePath(String base, [bool force = false]) {
     if (base == null) {
       return;
     }
     if (!absolute) {
-      if (parentPath == null) {
+      if (parentPath == '') {
         parentPath = base;
       } else {
-        parentPath = base + '/' + parentPath;
+        parentPath = '$base/$parentPath';
+      }
+      path = '$parentPath/$name';
+    } else if (force){
+      // apply base path on a absolute path
+      if (name == '') {
+        // map the root path
+        path = base;
+        _parse();
+      } else {
+        parentPath = '$base$parentPath';
+        path = '$parentPath/$name';
       }
     }
-    absolute = base.startsWith('/');
   }
 }

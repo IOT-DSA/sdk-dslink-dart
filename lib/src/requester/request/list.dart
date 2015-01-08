@@ -8,93 +8,52 @@ class DsReqListUpdate {
   DsError error;
 }
 
-class DsReqNode extends DsNode {
-  final DsRequester requester;
-
+class DsListController {
+  final DsReqNode node;
   StreamController<DsReqListUpdate> _controller;
   Stream<DsReqListUpdate> _stream;
   DsRequest _request;
-
-  DsReqNode(String path, this.requester) : super(path);
-
-  /// node data is not ready until all profile and mixins are updated
-  bool isUpdated() {
-    if (!isSelfUpdated()) {
-      return false;
-    }
-    if (profile is DsReqNode && !(profile as DsReqNode).isSelfUpdated()) {
-      return false;
-    }
-    if (mixins != null) {
-      for (DsNode mixin in mixins) {
-        if (mixin is DsReqNode && !mixin.isSelfUpdated()) {
-          return false;
-        }
-      }
-    }
-    return true;
+  HashSet _listeners;
+  DsListController(this.node) {
+    _controller = new StreamController<DsReqListUpdate>();
+    _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
+    _listeners = new HashSet();
   }
-  /// whether the node's own data is updated
-  bool isSelfUpdated() {
+  bool get initialized {
     return _request != null && _request.streamStatus != DsStreamStatus.initialize;
   }
-
-  Stream<DsReqListUpdate> _list() {
-    if (_stream == null) {
-      _controller = new StreamController<DsReqListUpdate>();
-      _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
-      _subscriptions = new HashSet();
-      _clearProperties();
-    }
-    return _stream;
-  }
-
   void _onUpdate(String status, List updates, List columns) {
+    // TODO update node data and _controller
 
-    if (status == DsStreamStatus.closed) {
-      _clearRequest();
-    }
   }
-
-  HashSet _subscriptions;
-
-  void _onListen(StreamSubscription<DsReqListUpdate> subscription) {
-    if (!_subscriptions.contains(subscription)) {
-      _subscriptions.add(subscription);
+  
+  void _onListen(StreamSubscription<DsReqListUpdate> listener) {
+    if (!_listeners.contains(listener)) {
+      _listeners.add(listener);
       if (_request == null) {
-        _request = requester._sendRequest({
+        _request = node.requester._sendRequest({
           'method': 'list',
-          'path': path
+          'path': node.path
         }, _onUpdate);
       }
     }
   }
 
-  void _onCancel(StreamSubscription<DsReqListUpdate> subscription) {
-    if (_subscriptions.contains(subscription)) {
-      _subscriptions.remove(subscription);
-      if (_subscriptions.isEmpty) {
-        _clearRequest();
+  void _onCancel(StreamSubscription<DsReqListUpdate> listener) {
+    if (_listeners.contains(listener)) {
+      _listeners.remove(listener);
+      if (_listeners.isEmpty) {
+        _destroy();
       }
     }
   }
-
-  /// clear all configs attributes and children before reloading
-  void _clearProperties() {
-
-  }
-
-  /// stop request and the stream
-  void _clearRequest() {
+  
+  void _destroy() {
     if (_request != null) {
-      requester.close(_request);
+      node.requester.closeRequest(_request);
       _request = null;
     }
-
-    if (_controller != null) {
-      _controller.close();
-      _controller = null;
-      _stream = null;
-    }
+    _controller.close();
+    node._listController = null;
   }
 }

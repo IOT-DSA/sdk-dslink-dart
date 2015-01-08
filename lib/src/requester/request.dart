@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-
+/// request class handles raw response from responder
 class DsRequest {
   final DsRequester requester;
   final int rid;
@@ -26,6 +26,10 @@ class DsRequest {
       columns = m['columns'];
     }
     updater(streamStatus, updates, columns);
+    // remove the request from global Map
+    if (streamStatus == DsStreamStatus.closed) {
+      requester._requests.remove(rid);
+    }
   }
 
   /// close the request from the client side
@@ -38,7 +42,7 @@ class DsRequest {
   
   /// close the request from the client side
   void close() {
-    // let requester call _close();
-    requester.close(this);
+    // _close will also be called later from the requester;
+    requester.closeRequest(this);
   }
 }

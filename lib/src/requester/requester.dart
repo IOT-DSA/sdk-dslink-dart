@@ -20,11 +20,12 @@ class DsRequester {
   final Map<int, DsRequest> _requests = new Map<int, DsRequest>();
   /// caching of nodes
   final DsReqNodeCache _nodeCache = new DsReqNodeCache();
-  //final DsSubscriptionStream subscriptionStream = new DsSubscriptionStream(this, 0);
+  DsSubscribeRequest _subsciption;
   
   DsRequester(this.conn) {
     conn.onReceive.listen(_onData);
-    //_requests[0] = subscriptionStream;
+    _subsciption = new DsSubscribeRequest(this, 0);
+    _requests[0] = _subsciption;
   }
   
   void _onData(Map m) {
@@ -35,8 +36,11 @@ class DsRequester {
   int nextRid = 1;
   DsRequest _sendRequest(Map m, _DsRequestUpdater updater) {
     m['rid'] = nextRid;
-    DsRequest req = new DsRequest(this, nextRid, updater);
-    _requests[nextRid] = req;
+    DsRequest req;
+    if (updater != null) {
+      req = new DsRequest(this, nextRid, updater);
+      _requests[nextRid] = req;      
+    }
     conn.send(m);
     ++nextRid;
     return req;
@@ -45,13 +49,12 @@ class DsRequester {
   Stream<DsReqSubscribeUpdate> subscribe(String path) {
     return null;
   }
-  
-  
+
   Stream<DsReqListUpdate> list(String path) {
     DsReqNode node = _nodeCache.getNode(path, this);
     return node._list();
   }
-
+// TODO: implement these Request classes
 //  DsInvokeRequest invoke(String path) {
 //    DsInvokeRequest req = new DsInvokeRequest();
 //  }
@@ -68,7 +71,8 @@ class DsRequester {
 //    DsListRequest req = new DsListRequest();
 //  }
   
-  void close(DsRequest request) {
+  /// close the request from requester side and notify responder
+  void closeRequest(DsRequest request) {
     if (_requests.containsKey(request.rid)) {
       conn.send({'method':'close','rid':request.rid});
       _requests.remove(request.rid);
