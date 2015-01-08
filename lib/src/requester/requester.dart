@@ -1,10 +1,25 @@
 part of dslink.requester;
 
+/// manage cached nodes for requester
+/// TODO: cleanup nodes that are no longer in use
+class DsReqNodeCache {
+  Map<String, DsReqNode> _nodes = new Map<String, DsReqNode>();
+  DsReqNodeCache();
+  DsReqNode getNode(String path, DsRequester requester) {
+    if (!_nodes.containsKey(path)) {
+      _nodes[path] = new DsReqNode(path, requester);
+    }
+    return _nodes[path];
+  }
+}
+
+
+
 class DsRequester {
   final DsConnection conn;
   final Map<int, DsRequest> _requests = new Map<int, DsRequest>();
   /// caching of nodes
-  final DsReqNodeManager _nodeManager = new DsReqNodeManager();
+  final DsReqNodeCache _nodeCache = new DsReqNodeCache();
   //final DsSubscriptionStream subscriptionStream = new DsSubscriptionStream(this, 0);
   
   DsRequester(this.conn) {
@@ -33,7 +48,7 @@ class DsRequester {
   
   
   Stream<DsReqListUpdate> list(String path) {
-    DsReqNode node = _nodeManager.getNode(path, this);
+    DsReqNode node = _nodeCache.getNode(path, this);
     return node._list();
   }
 

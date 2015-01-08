@@ -28,13 +28,15 @@ class DsRequest {
     updater(streamStatus, updates, columns);
   }
 
+  /// close the request from the client side
   void _close() {
     if (streamStatus != DsStreamStatus.closed) {
       streamStatus = DsStreamStatus.closed;
       updater(DsStreamStatus.closed, null, null);
     }
   }
-
+  
+  /// close the request from the client side
   void close() {
     // let requester call _close();
     requester.close(this);
