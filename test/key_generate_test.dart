@@ -20,9 +20,9 @@ void main() {
   print('dsaId: ${key.publicKey.getDsaId('my-dsa-test')}');
   print('public key: ${key.publicKey.modulusBase64}');
   //test token encrypt, decrypt
-  DsSecretToken token = new DsSecretToken.generate();
-  String enctyptedTokenStr = key.publicKey.encryptToken(token);
-  var rsltToken = key.decryptToken(enctyptedTokenStr);
+  DsSecretNonce token = new DsSecretNonce.generate();
+  String enctyptedTokenStr = key.publicKey.encryptNonce(token);
+  var rsltToken = key.decryptNonce(enctyptedTokenStr);
   
   print('original token:  ${token.toString()}');
   print('decrypted token: ${rsltToken.toString()}');
