@@ -114,14 +114,13 @@ class Base64 {
      if (c < 0) {
        extrasLen++;
        if(c == -2) {
-         throw new FormatException('Invalid character: ${input[i]}');
+         return null;
        }
      }
    }
   
    if ((len - extrasLen) % 4 != 0) {
-     throw new FormatException('''Size of Base 64 characters in Input
-         must be a multiple of 4. Input: $input''');
+     return null;
    }
   
    // Count pad characters.
