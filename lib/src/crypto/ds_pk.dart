@@ -18,18 +18,22 @@ import 'dart:convert';
 
 class DsSecretNonce {
   Uint8List bytes;
+  String nonce64;
 
-  DsSecretNonce(this.bytes);
+  DsSecretNonce(this.bytes) {
+    nonce64 = Base64.encode(bytes);
+  }
 
   DsSecretNonce.generate() {
     bytes = new Uint8List(16);
     for (int i = 0; i < 16; ++i) {
       bytes[i] = DsaRandom.instance.nextUint8();
     }
+    nonce64 = Base64.encode(bytes);
   }
 
   String toString() {
-    return 'DsSecretNonce: ${Base64.encode(bytes)}';
+    return 'DsSecretNonce: $nonce64';
   }
 
   String hashSalt(String salt) {
@@ -62,6 +66,9 @@ class DsPublicKey {
 
   String getDsaId(String prefix) {
     return '$prefix-$modulusHash64';
+  }
+  bool verifyDsId(String dsId) {
+    return (dsId.length >= 64 && dsId.substring(dsId.length - 64) == modulusHash64);
   }
 
   String encryptNonce(DsSecretNonce nonce) {
@@ -184,35 +191,10 @@ class DsaRandom extends SecureRandomBase {
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
     Math.Random r = new Math.Random();
-    final keyBytes = [
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256),
-        r.nextInt(256)];
+    final keyBytes = [r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)];
     final key = new KeyParameter(new Uint8List.fromList(keyBytes));
     r = new Math.Random((new DateTime.now()).millisecondsSinceEpoch);
-    final iv = new Uint8List.fromList(
-        [
-            r.nextInt(256),
-            r.nextInt(256),
-            r.nextInt(256),
-            r.nextInt(256),
-            r.nextInt(256),
-            r.nextInt(256),
-            r.nextInt(256),
-            r.nextInt(256)]);
+    final iv = new Uint8List.fromList([r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)]);
     final params = new ParametersWithIV(key, iv);
     _delegate.seed(params);
   }
@@ -257,7 +239,7 @@ Uint8List _bigintToUint8List(BigInteger input) {
     if (p < BigInteger.BI_DB && (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
       r[k++] = d | (input.s << (BigInteger.BI_DB - p));
     }
-    
+
     while (i >= 0) {
       if (p < 8) {
         d = (this_array[i] & ((1 << p) - 1)) << (8 - p);

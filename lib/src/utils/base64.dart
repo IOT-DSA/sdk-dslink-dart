@@ -101,6 +101,9 @@ class Base64 {
   }
   
   static Uint8List decode(String input) {
+    if (input == null) {
+      return null;
+    }
    int len = input.length;
    if (len == 0) {
      return new Uint8List(0);
