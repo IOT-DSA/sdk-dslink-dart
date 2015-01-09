@@ -16,12 +16,12 @@ import 'dart:math' as Math;
 import 'dart:convert';
 
 
-class DsSecretToken {
+class DsSecretNonce {
   Uint8List bytes;
 
-  DsSecretToken(this.bytes);
+  DsSecretNonce(this.bytes);
 
-  DsSecretToken.generate() {
+  DsSecretNonce.generate() {
     bytes = new Uint8List(16);
     for (int i = 0; i < 16; ++i) {
       bytes[i] = DsaRandom.instance.nextUint8();
@@ -29,7 +29,7 @@ class DsSecretToken {
   }
 
   String toString() {
-    return 'DsSecretToken: ${Base64.encode(bytes)}';
+    return 'DsSecretNonce: ${Base64.encode(bytes)}';
   }
 
   String hashSalt(String salt) {
@@ -64,11 +64,11 @@ class DsPublicKey {
     return '$prefix-$modulusHash64';
   }
 
-  String encryptToken(DsSecretToken token) {
+  String encryptNonce(DsSecretNonce nonce) {
     var pubpar = new PublicKeyParameter<RSAPublicKey>(rsaPublicKey);
     RSAEngine encrypt = new RSAEngine();
     encrypt.init(true, pubpar);
-    var encrypted = encrypt.process(token.bytes);
+    var encrypted = encrypt.process(nonce.bytes);
     return Base64.encode(encrypted);
   }
 }
@@ -117,12 +117,12 @@ class DsPrivateKey {
     }
   }
 
-  DsSecretToken decryptToken(String token) {
+  DsSecretNonce decryptNonce(String nonce) {
     var privpar = new PrivateKeyParameter<RSAPrivateKey>(rsaPrivateKey);
     RSAEngine decrypt = new RSAEngine();
     decrypt.init(false, privpar);
-    var decrypted = decrypt.process(Base64.decode(token));
-    return new DsSecretToken(decrypted);
+    var decrypted = decrypt.process(Base64.decode(nonce));
+    return new DsSecretNonce(decrypted);
   }
 
   String saveToString() {
