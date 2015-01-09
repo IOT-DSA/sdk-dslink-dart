@@ -11,6 +11,7 @@ class DsResponse {
     streamStatus = DsStreamStatus.closed;
     responder._closeResponse(rid, err);
   }
+  
   /// close the response now, no need to send more response update
   void _close() {
 
