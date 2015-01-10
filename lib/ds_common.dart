@@ -1,40 +1,36 @@
 library dslink.common;
 
 import 'dart:async';
+import 'ds_requester.dart';
+import 'ds_responder.dart';
 
 part 'src/common/node.dart';
 
 abstract class DsConnection {
   /// send data for a single request or response method
   void send(Map data);
-
+  /// a processor function that returns before the data is sent
+  /// same processor won't be added to the list twice
+  /// this makes sure a data won't get sent multiple times in same frame
+  void addProcessor(void processor());
+  /// receive data from method stream
   Stream<Map> get onReceive;
-
+  
   /// whether the connection is ready to send and receive data
   bool get isReady;
-  /// when onReady is triggered, isReady must be true
-  Future<DsConnection> get onReady;
-}
+  
+  /// 
+  Future<DsConnection> get onDisconnected;
 
-abstract class DsConnectionBase implements DsConnection {
-  Completer _readyCompleter = new Completer();
-  bool _isReady = false;
-
-  @override
-  bool get isReady => _isReady;
-
-  @override
-  Future<DsConnection> get onReady => _readyCompleter.future;
-
-  void ready() {
-    _readyCompleter.complete(this);
-    _isReady = true;
-  }
+  /// close the connection
+  void close();
+  
+  //
 }
 
 abstract class DsSession {
-  DsConnection get requestConn;
-  DsConnection get responseConn;
+  DsRequester get requester;
+  DsResponder get responder;
 }
 
 class DsStreamStatus {

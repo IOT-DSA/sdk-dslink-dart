@@ -2,8 +2,7 @@ part of dslink.http_server;
 
 class DsHttpServer {
   /// to open a secure server, SecureSocket.initialize() need to be called before start()
-  DsHttpServer.start(dynamic address, {int httpPort: 80, int httpsPort: 443, String certificateName}) {
-
+  DsHttpServer.start(dynamic address, {int httpPort: 80, int httpsPort: 443, String certificateName, this.nodeProvider}) {
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
         print('listen on $httpPort');
@@ -12,7 +11,6 @@ class DsHttpServer {
         print(err);
       });
     }
-
     if (httpsPort > 0 && certificateName != null) {
       HttpServer.bindSecure(address, httpsPort, certificateName: certificateName).then((server) {
         print('listen on $httpsPort');
@@ -22,8 +20,8 @@ class DsHttpServer {
       });
     }
   }
-
-  Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
+  final DsNodeProvider nodeProvider;
+  final Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
 
   void _handleRqeuest(HttpRequest request) {
     try {
@@ -62,7 +60,7 @@ class DsHttpServer {
 
   void _handleConn(HttpRequest request, String dsId) {
     DsHttpServerSession session = _sessions[dsId];
-    if (session == null){
+    if (session == null) {
       String modulus = request.headers.value('ds-public-key');
       var bytes = Base64.decode(modulus);
       if (bytes == null) {
@@ -79,16 +77,36 @@ class DsHttpServer {
     session.initSession(request);
   }
   void _handleHttpUpdate(HttpRequest request, String dsId) {
-    //TODO
+    DsHttpServerSession session = _sessions[dsId];
+    if (session != null) {
+      session._handleHttpUpdate(request);
+    } else {
+      throw HttpStatus.UNAUTHORIZED;
+    }
   }
   void _handleHttpData(HttpRequest request, String dsId) {
-    //TODO
+    DsHttpServerSession session = _sessions[dsId];
+    if (session != null) {
+      session._handleHttpData(request);
+    } else {
+      throw HttpStatus.UNAUTHORIZED;
+    }
   }
   void _handleWsUpdate(HttpRequest request, String dsId) {
-    //TODO
+    DsHttpServerSession session = _sessions[dsId];
+    if (session != null) {
+      session._handleWsUpdate(request);
+    } else {
+      throw HttpStatus.UNAUTHORIZED;
+    }
   }
   void _handleWsData(HttpRequest request, String dsId) {
-    //TODO
+    DsHttpServerSession session = _sessions[dsId];
+    if (session != null) {
+      session._handleWsData(request);
+    } else {
+      throw HttpStatus.UNAUTHORIZED;
+    }
   }
 
 }

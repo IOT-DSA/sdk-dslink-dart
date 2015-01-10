@@ -2,18 +2,40 @@ part of dslink.responder;
 
 /// a responder for one connection
 class DsResponder {
-  final DsConnection conn;
   final Map<int, DsResponse> _responses = new Map<int, DsResponse>();
   DsSubscribeResponse _subscription;
   /// caching of nodes
   final DsNodeProvider nodeProvider;
 
-  DsResponder(this.conn, this.nodeProvider) {
+  DsResponder(this.nodeProvider) {
     _subscription = new DsSubscribeResponse(this, 0);
     _responses[0] = _subscription;
-
-    conn.onReceive.listen(_onData);
   }
+  DsConnection _conn;
+  StreamSubscription _connListener;
+  DsConnection get connection => _conn;
+  void set connection(DsConnection conn) {
+    if (_connListener != null) {
+      _connListener.cancel();
+      _connListener = null;
+      onDisconnected(_conn);
+    }
+    _conn = conn;
+    _connListener = _conn.onReceive.listen(_onData);
+    _conn.onDisconnected.then(onDisconnected);
+  }
+  void onDisconnected(DsConnection conn) {
+    if (_conn == conn) {
+      if (_connListener != null) {
+        _connListener.cancel();
+        _connListener = null;
+      }
+      _conn = null;
+      //TODO close and remove all stream
+
+    }
+  }
+
   void addResponse(DsResponse response) {
     if (response.streamStatus != DsStreamStatus.closed) {
       _responses[response.rid] = response;
@@ -56,14 +78,16 @@ class DsResponder {
   }
   /// close the response from responder side and notify requester
   void _closeResponse(int rid, [DsError err]) {
-    Map m = {
-      'rid': rid,
-      'stream': DsStreamStatus.closed
-    };
-    if (err != null) {
-      m['error'] = err.serialize();
+    if (_conn != null) {
+      Map m = {
+        'rid': rid,
+        'stream': DsStreamStatus.closed
+      };
+      if (err != null) {
+        m['error'] = err.serialize();
+      }
+      _conn.send(m);
     }
-    conn.send(m);
   }
 
 

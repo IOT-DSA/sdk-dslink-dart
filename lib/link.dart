@@ -10,7 +10,8 @@ class DsLink {
   
   DsLink(this.connection) {
     nodeProvider = new _NodeProvider(this);
-    responder = new DsResponder(connection, nodeProvider);
+    responder = new DsResponder(nodeProvider);
+    responder.connection = connection;
   }
   
   BaseNode rootNode = new BaseNode("/");

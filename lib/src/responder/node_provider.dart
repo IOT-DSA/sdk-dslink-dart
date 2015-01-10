@@ -20,8 +20,6 @@ abstract class DsRespNode extends DsNode {
   DsResponse removeConfig(String name, DsResponder responder, int rid);
   /// set node value
   DsResponse setValue(Object value, DsResponder responder, int rid);
-
-
 }
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders

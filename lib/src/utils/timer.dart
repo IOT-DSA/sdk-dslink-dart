@@ -23,6 +23,7 @@ class DsTimer {
     _callbacks.add(callback);
   }
 
+  /// multiple calls to callLaterOnce will only run function once
   static void callLaterOnce(Function callback) {
     if (!_callbacks.contains(callback)) {
       if (!_pending) {
@@ -30,6 +31,13 @@ class DsTimer {
       }
       _callbacks.add(callback);
     }
+  }
+  /// call the function and remove it from the pending list
+  static void callNow(Function callback) {
+    if (_callbacks.contains(callback)) {
+      _callbacks.remove(callback);
+    }
+    callback();
   }
 //  static void callOnceAfter(Function callback, int ms) {
 //    if (!_callbacks.contains(callback)) {

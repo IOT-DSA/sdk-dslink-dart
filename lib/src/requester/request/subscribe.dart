@@ -27,9 +27,7 @@ class DsSubscribeRequest extends DsRequest {
       if (_changedPaths.contains(path)) {
         _changedPaths.remove(path);
       } else {
-        if (_changedPaths.isEmpty) {
-          DsTimer.callLaterOnce(_sendSubscriptionReuests);
-        }
+        requester._addProcessor(_sendSubscriptionReuests);
         _changedPaths.add(path);
       }
     }
@@ -41,14 +39,15 @@ class DsSubscribeRequest extends DsRequest {
       if (_changedPaths.contains(path)) {
         _changedPaths.remove(path);
       } else {
-        if (_changedPaths.isEmpty) {
-          DsTimer.callLaterOnce(_sendSubscriptionReuests);
-        }
+        requester._addProcessor(_sendSubscriptionReuests);
         _changedPaths.add(path);
       }
     }
   }
   void _sendSubscriptionReuests() {
+    if (requester.connection == null) {
+      return;
+    }
     List toAdd = [];
     List toRemove = [];
     HashSet<String> processingPaths = _changedPaths;

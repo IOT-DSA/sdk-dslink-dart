@@ -30,7 +30,7 @@ class DsListController {
   void _onListen(StreamSubscription<DsReqListUpdate> listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);
-      if (_request == null) {
+      if (_request == null && node.requester.connection != null) {
         _request = node.requester._sendRequest({
           'method': 'list',
           'path': node.path

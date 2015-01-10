@@ -18,22 +18,18 @@ import 'dart:convert';
 
 class DsSecretNonce {
   Uint8List bytes;
-  String nonce64;
 
-  DsSecretNonce(this.bytes) {
-    nonce64 = Base64.encode(bytes);
-  }
+  DsSecretNonce(this.bytes);
 
   DsSecretNonce.generate() {
     bytes = new Uint8List(16);
     for (int i = 0; i < 16; ++i) {
       bytes[i] = DsaRandom.instance.nextUint8();
     }
-    nonce64 = Base64.encode(bytes);
   }
 
   String toString() {
-    return 'DsSecretNonce: $nonce64';
+    return 'DsSecretNonce: ${Base64.encode(bytes)}';
   }
 
   String hashSalt(String salt) {
