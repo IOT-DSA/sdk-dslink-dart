@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-class DsRequester {
+class DsRequester extends DsConnectionHandler{
 
   final Map<int, DsRequest> _requests = new Map<int, DsRequest>();
   /// caching of nodes
@@ -11,37 +11,16 @@ class DsRequester {
     _subsciption = new DsSubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
-  DsConnection _conn;
-  StreamSubscription _connListener;
-  StreamSubscription _beforeSendListener;
-  DsConnection get connection => _conn;
-  void set connection(DsConnection conn) {
-    if (_connListener != null) {
-      _connListener.cancel();
-      _connListener = null;
-      onDisconnected(_conn);
-    }
-    _conn = conn;
-    _connListener = _conn.onReceive.listen(_onData);
-    _conn.onDisconnected.then(onDisconnected);
-    // resend all requests after a connection
-    _resendRequests();
-  }
-  void onDisconnected(DsConnection conn) {
-    if (_conn == conn) {
-      if (_connListener != null) {
-        _connListener.cancel();
-        _connListener = null;
+  void onData(Map m) {
+    if (m['responses'] is List) {
+      for (Object resp in m['responses']) {
+        if (resp is Map) {
+          _onReceiveUpdate(resp);
+        }
       }
-      //TODO clean up
-      // send error and close all requests except the subscription and list requests
-      _conn = null;
     }
   }
-  void _resendRequests() {
-    //TODO resend requests for subscription and list
-  }
-  void _onData(Map m) {
+  void _onReceiveUpdate(Map m) {
     if (m['rid'] is int && _requests.containsKey(m['rid'])) {
       _requests[m['rid']]._update(m);
     }
@@ -54,18 +33,14 @@ class DsRequester {
       req = new DsRequest(this, nextRid, updater);
       _requests[nextRid] = req;
     }
-    if (_conn != null) {
-      _conn.send(m);
-    }
+    addToSendList(m);
     ++nextRid;
     return req;
   }
-  /// no data is sent yet, but need to make connection to send a onBeforeSending event
-  void _addProcessor(void processor()) {
-    if (_conn != null) {
-      _conn.addProcessor(processor);
-    }
+  Map prepareData(List<Map> datas) {
+    return {'requests':datas};
   }
+  
   Stream<DsReqSubscribeUpdate> subscribe(String path) {
     return null;
   }
@@ -94,12 +69,20 @@ class DsRequester {
   /// close the request from requester side and notify responder
   void closeRequest(DsRequest request) {
     if (_requests.containsKey(request.rid)) {
-      _conn.send({
+      addToSendList({
         'method': 'close',
         'rid': request.rid
       });
       _requests.remove(request.rid);
       request._close();
     }
+  }
+
+  void onDisconnected() {
+    // TODO: close pending requests, except subscription and list
+  }
+
+  void onReconnected() {
+    // TODO: resend subscription and list 
   }
 }

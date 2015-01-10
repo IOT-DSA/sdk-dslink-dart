@@ -5,14 +5,14 @@ import 'ds_requester.dart';
 import 'ds_responder.dart';
 
 part 'src/common/node.dart';
+part 'src/common/connection_handler.dart';
 
 abstract class DsConnection {
-  /// send data for a single request or response method
-  void send(Map data);
-  /// a processor function that returns before the data is sent
-  /// same processor won't be added to the list twice
-  /// this makes sure a data won't get sent multiple times in same frame
-  void addProcessor(void processor());
+  /// raw connection need to handle error and resending of data, so it can only send one map at a time
+  /// a new getData function will always overwrite the previous one;
+  /// requester and responder should handle the merging of methods
+  void sendWhenReady(Map getData());
+
   /// receive data from method stream
   Stream<Map> get onReceive;
   
@@ -24,8 +24,6 @@ abstract class DsConnection {
 
   /// close the connection
   void close();
-  
-  //
 }
 
 abstract class DsSession {

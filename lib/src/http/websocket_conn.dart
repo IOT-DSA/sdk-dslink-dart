@@ -6,24 +6,11 @@ class DsWebsocketConnection implements DsConnection {
   List<Function> _processors = [];
 
   final WebSocket socket;
-
-  DsWebsocketConnection(this.socket);
-
-  void send(Map data) {
-
-  }
-  void addProcessor(void processor()) {
-    if (_processors.contains(processor)) {
-      _processors.add(processor);
-    }
+  DsWebsocketConnection(this.socket) {
   }
 
-  void _doSend() {
-    var processors = _processors;
-    _processors = [];
-    for (Function processor in processors) {
-      processor();
-    }
+  void sendWhenReady(Map getData()) {
+    // TODO: implement sendWhenReady
   }
 
   bool _isReady = false;
@@ -39,6 +26,4 @@ class DsWebsocketConnection implements DsConnection {
   Completer<DsConnection> _onDisconnectController = new Completer<DsConnection>();
   Future<DsConnection> get onDisconnected => _onDisconnectController.future;
 
-  StreamController<DsConnection> _onBeforeSendController = new StreamController<DsConnection>();
-  Stream<DsConnection> get onBeforeSend => _onBeforeSendController.stream;
 }

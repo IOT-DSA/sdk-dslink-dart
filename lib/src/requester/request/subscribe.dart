@@ -27,7 +27,7 @@ class DsSubscribeRequest extends DsRequest {
       if (_changedPaths.contains(path)) {
         _changedPaths.remove(path);
       } else {
-        requester._addProcessor(_sendSubscriptionReuests);
+        requester.addProcessor(_sendSubscriptionReuests);
         _changedPaths.add(path);
       }
     }
@@ -39,7 +39,7 @@ class DsSubscribeRequest extends DsRequest {
       if (_changedPaths.contains(path)) {
         _changedPaths.remove(path);
       } else {
-        requester._addProcessor(_sendSubscriptionReuests);
+        requester.addProcessor(_sendSubscriptionReuests);
         _changedPaths.add(path);
       }
     }

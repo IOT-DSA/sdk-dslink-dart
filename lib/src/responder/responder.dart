@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 /// a responder for one connection
-class DsResponder {
+class DsResponder extends DsConnectionHandler{
   final Map<int, DsResponse> _responses = new Map<int, DsResponse>();
   DsSubscribeResponse _subscription;
   /// caching of nodes
@@ -11,37 +11,32 @@ class DsResponder {
     _subscription = new DsSubscribeResponse(this, 0);
     _responses[0] = _subscription;
   }
-  DsConnection _conn;
-  StreamSubscription _connListener;
-  DsConnection get connection => _conn;
-  void set connection(DsConnection conn) {
-    if (_connListener != null) {
-      _connListener.cancel();
-      _connListener = null;
-      onDisconnected(_conn);
-    }
-    _conn = conn;
-    _connListener = _conn.onReceive.listen(_onData);
-    _conn.onDisconnected.then(onDisconnected);
+  
+  void onDisconnected() {
+    // TODO close and clear all responses
   }
-  void onDisconnected(DsConnection conn) {
-    if (_conn == conn) {
-      if (_connListener != null) {
-        _connListener.cancel();
-        _connListener = null;
-      }
-      _conn = null;
-      //TODO close and remove all stream
-
-    }
+  void onReconnected() {
   }
 
+  @override
+  Map prepareData(List<Map> datas) {
+    return {'responses':datas};
+  }
   void addResponse(DsResponse response) {
     if (response.streamStatus != DsStreamStatus.closed) {
       _responses[response.rid] = response;
     }
   }
-  void _onData(Map m) {
+  void onData(Map m) {
+    if (m['responses'] is List) {
+      for (Object resp in m['requests']) {
+        if (resp is Map) {
+          _onReceiveRequest(resp);
+        }
+      }
+    }
+  }
+  void _onReceiveRequest(Map m) {
     if (m['method'] is String && m['rid'] is int) {
       if (_responses.containsKey(m['rid'])) {
         // when rid is invalid, nothing needs to be sent back
@@ -78,7 +73,6 @@ class DsResponder {
   }
   /// close the response from responder side and notify requester
   void _closeResponse(int rid, [DsError err]) {
-    if (_conn != null) {
       Map m = {
         'rid': rid,
         'stream': DsStreamStatus.closed
@@ -86,8 +80,7 @@ class DsResponder {
       if (err != null) {
         m['error'] = err.serialize();
       }
-      _conn.send(m);
-    }
+      addToSendList(m);
   }
 
 
