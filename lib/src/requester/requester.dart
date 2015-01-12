@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-class DsRequester extends DsConnectionHandler{
+class DsRequester extends DsConnectionHandler {
 
   final Map<int, DsRequest> _requests = new Map<int, DsRequest>();
   /// caching of nodes
@@ -11,12 +11,10 @@ class DsRequester extends DsConnectionHandler{
     _subsciption = new DsSubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
-  void onData(Map m) {
-    if (m['responses'] is List) {
-      for (Object resp in m['responses']) {
-        if (resp is Map) {
-          _onReceiveUpdate(resp);
-        }
+  void onData(List list) {
+    for (Object resp in list) {
+      if (resp is Map) {
+        _onReceiveUpdate(resp);
       }
     }
   }
@@ -37,10 +35,7 @@ class DsRequester extends DsConnectionHandler{
     ++nextRid;
     return req;
   }
-  Map prepareData(List<Map> datas) {
-    return {'requests':datas};
-  }
-  
+
   Stream<DsReqSubscribeUpdate> subscribe(String path) {
     return null;
   }
@@ -83,6 +78,6 @@ class DsRequester extends DsConnectionHandler{
   }
 
   void onReconnected() {
-    // TODO: resend subscription and list 
+    // TODO: resend subscription and list
   }
 }

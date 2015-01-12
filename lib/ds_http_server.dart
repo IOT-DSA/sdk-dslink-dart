@@ -7,6 +7,7 @@ import 'package:bignum/bignum.dart';
 import 'ds_requester.dart';
 import 'ds_responder.dart';
 import 'src/http/websocket_conn.dart';
+import 'dart:convert';
 
 part 'src/http/server_http_conn.dart';
 part 'src/http/server_session.dart';

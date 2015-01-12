@@ -1,11 +1,11 @@
 part of dslink.common;
 
 abstract class DsConnectionHandler {
-  DsConnection _conn;
+  DsConnectionChannel _conn;
   StreamSubscription _connListener;
   StreamSubscription _beforeSendListener;
-  DsConnection get connection => _conn;
-  void set connection(DsConnection conn) {
+  DsConnectionChannel get connection => _conn;
+  void set connection(DsConnectionChannel conn) {
     if (_connListener != null) {
       _connListener.cancel();
       _connListener = null;
@@ -17,7 +17,7 @@ abstract class DsConnectionHandler {
     // resend all requests after a connection
     onReconnected();
   }
-  void _onDisconnected(DsConnection conn) {
+  void _onDisconnected(DsConnectionChannel conn) {
     if (_conn == conn) {
       if (_connListener != null) {
         _connListener.cancel();
@@ -30,11 +30,11 @@ abstract class DsConnectionHandler {
   }
   void onDisconnected();
   void onReconnected();
-  void onData(Map m);
-  
-  
+  void onData(List m);
+
+
   List _toSendList = [];
-  void addToSendList(Map m){
+  void addToSendList(Map m) {
     if (!_pendingSend && _conn != null) {
       _conn.sendWhenReady(_doSend);
       _pendingSend = true;
@@ -54,17 +54,16 @@ abstract class DsConnectionHandler {
     }
   }
   bool _pendingSend = false;
-  /// gather all the changes from 
-  Map _doSend(){
+  /// gather all the changes from
+  List _doSend() {
     _pendingSend = false;
     var processors = _processors;
     _processors = [];
     for (var proc in processors) {
       proc();
     }
-    Map rslt = prepareData(_toSendList);
-    _toSendList = null;
-    return rslt;
+    List rslt = _toSendList;
+    _toSendList = [];
+    return _toSendList;
   }
-  Map prepareData(List<Map> datas);
 }

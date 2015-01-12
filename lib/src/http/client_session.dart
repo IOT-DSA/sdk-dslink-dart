@@ -10,22 +10,17 @@ class DsHttpClientSession implements DsSession {
 
   DsSecretNonce _nonce;
 
-  DsConnection _requesterConn;
-  DsConnection _responderConn;
+  DsConnection _connection;
 
 
   static const Map<String, int> saltNameMap = const {
-    'ds-req-salt': 0,
-    'ds-req-salt-s': 1,
-    'ds-resp-salt': 2,
-    'ds-resp-salt-s': 3
+    'salt': 0,
+    'saltS': 1,
   };
   /// 4 salts, reqSaltL reqSaltS respSaltL respSaltS
   final List<String> salts = new List<String>(4);
 
-  Uri _wsDataUri;
   Uri _wsUpdateUri;
-  Uri _httpDataUri;
   Uri _httpUpdateUri;
 
   DsHttpClientSession(String conn, String dsIdPrefix, DsPrivateKey privateKey, {DsNodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
@@ -37,12 +32,13 @@ class DsHttpClientSession implements DsSession {
     // TODO more error handling
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse(conn);
-    client.getUrl(connUri).then((HttpClientRequest request) {
+    client.postUrl(connUri).then((HttpClientRequest request) {
       request.headers.add('ds-id', dsId);
       request.headers.add('ds-public-key', privateKey.publicKey.modulusBase64);
       request.headers.add('ds-is-requester', isRequester.toString());
       request.headers.add('ds-is-responder', (isResponder && nodeProvider != null).toString());
       request.close().then((HttpClientResponse response) {
+        print(response.headers);
         try {
           saltNameMap.forEach((name, idx) {
             //read salts
@@ -61,24 +57,16 @@ class DsHttpClientSession implements DsSession {
             });
             String rslt = UTF8.decode(merged);
             Map serverConfig = JSON.decode(rslt);
-            if (serverConfig['ws-data-uri'] is String) {
-              _wsDataUri = connUri.resolve(serverConfig['ws-data-uri']);
-            }
             if (serverConfig['ws-update-uri'] is String) {
-              _wsUpdateUri = connUri.resolve(serverConfig['ws-update-uri']);
-            }
-            if (serverConfig['http-data-uri'] is String) {
-              _httpDataUri = connUri.resolve(serverConfig['http-data-uri']);
+              _wsUpdateUri = connUri.resolve(serverConfig['wsUri']);
             }
             if (serverConfig['http-update-uri'] is String) {
-              _httpUpdateUri = connUri.resolve(serverConfig['http-update-uri']);
+              // TODO implement http
+              _httpUpdateUri = connUri.resolve(serverConfig['httpUri']);
             }
             // start requester and responder
-            if (requester != null && _wsDataUri != null) {
-              initWebsocketRequester();
-            }
             if (responder != null && _wsUpdateUri != null) {
-              initWebsocketResponder();
+              initWebsocket();
             }
           } catch (err) {
             print(err);
@@ -88,10 +76,15 @@ class DsHttpClientSession implements DsSession {
       });
     });
   }
-  void initWebsocketRequester() {
-    WebSocket.connect(_wsDataUri.toString()).then((WebSocket socket) {
-      _requesterConn = new DsWebsocketConnection(socket);
-      requester.connection = _requesterConn;
+  void initWebsocket() {
+    WebSocket.connect(_wsUpdateUri.toString()).then((WebSocket socket) {
+      _connection = new DsWebSocketConnection(socket);
+      if (requester != null) {
+        requester.connection = _connection.requesterChannel;
+      }
+      if (responder != null) {
+        responder.connection = _connection.responderChannel;
+      }
     });
 
   }

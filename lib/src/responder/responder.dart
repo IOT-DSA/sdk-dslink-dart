@@ -27,12 +27,10 @@ class DsResponder extends DsConnectionHandler{
       _responses[response.rid] = response;
     }
   }
-  void onData(Map m) {
-    if (m['responses'] is List) {
-      for (Object resp in m['requests']) {
-        if (resp is Map) {
-          _onReceiveRequest(resp);
-        }
+  void onData(List list) {
+    for (Object resp in list) {
+      if (resp is Map) {
+        _onReceiveRequest(resp);
       }
     }
   }

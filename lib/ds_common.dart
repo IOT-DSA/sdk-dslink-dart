@@ -8,22 +8,26 @@ part 'src/common/node.dart';
 part 'src/common/connection_handler.dart';
 
 abstract class DsConnection {
+  DsConnectionChannel get requesterChannel;
+  DsConnectionChannel get responderChannel;
+  /// 
+  
+
+  /// close the connection
+  void close();
+}
+abstract class DsConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
   /// a new getData function will always overwrite the previous one;
   /// requester and responder should handle the merging of methods
-  void sendWhenReady(Map getData());
-
+  void sendWhenReady(List getData());
   /// receive data from method stream
-  Stream<Map> get onReceive;
+  Stream<List> get onReceive;
   
   /// whether the connection is ready to send and receive data
   bool get isReady;
   
-  /// 
-  Future<DsConnection> get onDisconnected;
-
-  /// close the connection
-  void close();
+  Future<DsConnectionChannel> get onDisconnected;
 }
 
 abstract class DsSession {
