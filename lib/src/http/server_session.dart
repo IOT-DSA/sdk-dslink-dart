@@ -4,8 +4,6 @@ part of dslink.http_server;
 class DsHttpServerSession implements DsSession {
   final String dsId;
 
-  // TODO: implement requester
-  @override
   final DsRequester requester;
   final DsResponder responder;
   final DsPublicKey _publicKey;
@@ -15,6 +13,8 @@ class DsHttpServerSession implements DsSession {
   /// nonce after user verified the public key
   DsSecretNonce _verifiedNonce;
 
+  DsConnection _requesterConn;
+  DsConnection _responderConn;
 
   /// 4 salts, reqSaltL reqSaltS respSaltL respSaltS
   final List<int> salts = new List<int>(4);
@@ -83,11 +83,17 @@ class DsHttpServerSession implements DsSession {
     if (!_verifySalt(2, request.headers.value('ds-auth'))) {
       throw HttpStatus.UNAUTHORIZED;
     }
+    if (requester == null) {
+      throw HttpStatus.FORBIDDEN;
+    }
     //TODO
   }
   void _handleHttpData(HttpRequest request) {
     if (!_verifySalt(0, request.headers.value('ds-auth'))) {
       throw HttpStatus.UNAUTHORIZED;
+    }
+    if (responder == null) {
+      throw HttpStatus.FORBIDDEN;
     }
     //TODO
   }
@@ -96,19 +102,25 @@ class DsHttpServerSession implements DsSession {
     if (!_verifySalt(2, request.headers.value('ds-auth'))) {
       throw HttpStatus.UNAUTHORIZED;
     }
+    if (requester == null) {
+      throw HttpStatus.FORBIDDEN;
+    }
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       _responderConn = new DsWebsocketConnection(websocket);
+      requester.connection = _responderConn;
     });
   }
   void _handleWsData(HttpRequest request) {
     if (!_verifySalt(0, request.headers.value('ds-auth'))) {
       throw HttpStatus.UNAUTHORIZED;
     }
+    if (responder == null) {
+      throw HttpStatus.FORBIDDEN;
+    }
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       _responderConn = new DsWebsocketConnection(websocket);
+      responder.connection = _responderConn;
     });
   }
 
-  DsConnection _requesterConn;
-  DsConnection _responderConn;
 }

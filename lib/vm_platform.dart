@@ -7,7 +7,6 @@ import "dart:convert";
 import "dart:io";
 import "package:dslink/utils.dart";
 import "package:dslink/platform.dart";
-import "package:dslink/ds_common.dart";
 
 class VMWebSocket extends WebSocketProvider {
   WebSocket _socket;

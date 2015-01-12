@@ -18,7 +18,7 @@ void main() {
   
   print('takes ${t2-t1} ms to generate key');
   print('dsaId: ${key.publicKey.getDsaId('my-dsa-test')}');
-  print('public key: ${key.publicKey.modulusBase64}');
+  print('saved key:\n${key.saveToString()}');
   //test token encrypt, decrypt
   DsSecretNonce token = new DsSecretNonce.generate();
   String enctyptedTokenStr = key.publicKey.encryptNonce(token);

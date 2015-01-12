@@ -146,7 +146,7 @@ class DsPrivateKey {
 /// parse key file, works for both dsa key file and openssl plain text key file
 Map _parseOpensslTextKey(String str) {
   var rslt = {};
-  var lines = str.split('\n');
+  var lines = str.replaceAll('\r\n', '\n').split('\n');
 
   for (int i = 0; i < lines.length; ++i) {
     String line = lines[i];

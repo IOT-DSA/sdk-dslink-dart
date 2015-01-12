@@ -24,6 +24,7 @@ class DsHttpServer {
   final Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
 
   void _handleRqeuest(HttpRequest request) {
+    print(request);
     try {
       String dsId = request.headers.value('ds-id');
       if (dsId == null || dsId.length < 64) {
@@ -67,7 +68,10 @@ class DsHttpServer {
         // public key is invalid
         throw HttpStatus.BAD_REQUEST;
       }
-      session = new DsHttpServerSession(dsId, new BigInteger.fromBytes(1, bytes));
+      session = new DsHttpServerSession(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider, //
+      isRequester: request.headers.value('ds-is-responder') == 'true', // if client is responder, then server is requester
+      isResponder: request.headers.value('ds-is-requester') == 'true' // if client is requester, then server is responder
+      );
       if (!session.valid) {
         // dsId doesn't match public key
         throw HttpStatus.BAD_REQUEST;
