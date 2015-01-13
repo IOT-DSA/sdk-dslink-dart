@@ -4,7 +4,7 @@ import "package:dslink/ds_common.dart";
 import "package:dslink/ds_responder.dart";
 
 class DsLink {
-  final DsConnection connection;
+  final DsConnectionChannel connection;
   _NodeProvider nodeProvider;
   DsResponder responder;
   

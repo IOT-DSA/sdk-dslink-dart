@@ -77,6 +77,7 @@ class DsNode {
 /// Util class for ds node path and config/attribute path
 class DsPath {
   static final RegExp invalidChar = new RegExp(r'[\.\/\\\?%\*:|"<>]');
+  
   static DsPath getValidPath(Object path, [String basePath]) {
     if (path is String) {
       DsPath p = new DsPath(path);
@@ -86,6 +87,7 @@ class DsPath {
     }
     return null;
   }
+  
   static DsPath getValidNodePath(Object path, [String basePath]) {
     if (path is String) {
       DsPath p = new DsPath(path);
@@ -95,6 +97,7 @@ class DsPath {
     }
     return null;
   }
+  
   static DsPath getValidAttributePath(Object path, [String basePath]) {
     if (path is String) {
       DsPath p = new DsPath(path);
@@ -104,6 +107,7 @@ class DsPath {
     }
     return null;
   }
+  
   static DsPath getValidConfigPath(Object path, [String basePath]) {
     if (path is String) {
       DsPath p = new DsPath(path);
@@ -113,14 +117,17 @@ class DsPath {
     }
     return null;
   }
+  
   String path;
   String parentPath;
   /// root node has the name '/';
   String name;
   bool valid = true;
+  
   DsPath(this.path) {
     _parse();
   }
+  
   void _parse() {
     if (path == '' || path.contains(invalidChar) || path.contains('//')) {
       valid = false;
@@ -150,18 +157,23 @@ class DsPath {
       }
     }
   }
+  
   bool get absolute {
     return name == '/' || parentPath.startsWith('/');
   }
+  
   bool get isRoot {
     return name == '/';
   }
+  
   bool get isConfig {
     return name.startsWith(r'$');
   }
+  
   bool get isAttribute {
     return name.startsWith(r'@');
   }
+  
   bool get isNode {
     return !name.startsWith(r'@') && !name.startsWith(r'$');
   }

@@ -15,7 +15,6 @@ import '../../utils.dart';
 import 'dart:math' as Math;
 import 'dart:convert';
 
-
 class DsSecretNonce {
   Uint8List bytes;
 
