@@ -1,7 +1,7 @@
 library dslink.link;
 
 import "package:dslink/common.dart";
-import "package:dslink/responder";
+import "package:dslink/responder.dart";
 
 class DsLink {
   final DsConnectionChannel connection;

@@ -1,11 +1,14 @@
 library dslink.common;
 
 import 'dart:async';
-import 'requester.dart';
-import 'responder';
 import 'dart:convert';
+import 'requester.dart';
+import 'responder.dart';
+
+import 'package:quiver/core.dart';
 
 part 'src/common/node.dart';
+part 'src/common/value.dart';
 part 'src/common/connection_handler.dart';
 
 JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();

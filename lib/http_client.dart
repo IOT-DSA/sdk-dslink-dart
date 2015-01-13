@@ -1,7 +1,8 @@
 library dslink.client;
+
 import 'common.dart';
 import 'requester.dart';
-import 'responder';
+import 'responder.dart';
 import 'src/crypto/ds_pk.dart';
 import 'dart:io';
 import 'dart:convert';
