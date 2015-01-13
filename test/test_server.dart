@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dslink/ds_http_server.dart';
+import 'package:dslink/http_server.dart';
 
 void main() {
   // load certificate

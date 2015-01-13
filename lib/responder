@@ -1,5 +1,5 @@
 library dslink.responder;
-import 'ds_common.dart';
+import 'common.dart';
 
 part 'src/responder/responder.dart';
 part 'src/responder/response.dart';

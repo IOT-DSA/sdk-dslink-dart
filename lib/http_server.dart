@@ -1,11 +1,11 @@
 library dslink.http_server;
-import 'ds_common.dart';
+import 'common.dart';
 import 'dart:io';
 import 'src/crypto/ds_pk.dart';
 import 'utils.dart';
 import 'package:bignum/bignum.dart';
-import 'ds_requester.dart';
-import 'ds_responder.dart';
+import 'requester.dart';
+import 'responder';
 import 'src/http/websocket_conn.dart';
 import 'dart:convert';
 

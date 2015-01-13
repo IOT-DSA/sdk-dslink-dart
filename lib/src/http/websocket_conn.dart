@@ -2,7 +2,7 @@ library dslink.http.websocket;
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import '../../ds_common.dart';
+import '../../common.dart';
 import '../../utils.dart';
 
 class DsWebSocketConnection implements DsConnection {

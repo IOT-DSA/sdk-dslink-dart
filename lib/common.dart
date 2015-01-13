@@ -1,8 +1,8 @@
 library dslink.common;
 
 import 'dart:async';
-import 'ds_requester.dart';
-import 'ds_responder.dart';
+import 'requester.dart';
+import 'responder';
 import 'dart:convert';
 
 part 'src/common/node.dart';
@@ -19,6 +19,7 @@ abstract class DsConnection {
   /// close the connection
   void close();
 }
+
 abstract class DsConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
   /// a new getData function will always overwrite the previous one;

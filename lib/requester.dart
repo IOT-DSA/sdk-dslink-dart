@@ -1,6 +1,6 @@
 library dslink.requester;
 
-import 'ds_common.dart';
+import 'common.dart';
 import 'dart:async';
 import 'dart:collection';
 

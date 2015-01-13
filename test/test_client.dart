@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dslink/ds_http_client.dart';
+import 'package:dslink/http_client.dart';
 import 'package:dslink/src/crypto/ds_pk.dart';
 
 void main() {
