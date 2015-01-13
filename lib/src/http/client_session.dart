@@ -22,8 +22,8 @@ class DsHttpClientSession implements DsSession {
     'salt': 0,
     'saltS': 1,
   };
-  /// 4 salts, reqSaltL reqSaltS respSaltL respSaltS
-  final List<String> salts = new List<String>(4);
+  /// 2 salts, salt and saltS
+  final List<String> salts = new List<String>(2);
 
   String _wsUpdateUri;
   String _httpUpdateUri;

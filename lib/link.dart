@@ -45,44 +45,43 @@ class BaseNode extends DsRespNode {
   bool get exists => true;
 
   @override
-  DsResponse invoke(Map params, DsResponder responder, int rid) {
+  DsResponse invoke(Map params, DsResponder responder, DsResponse response) {
     return null;
   }
 
   @override
-  DsResponse list(DsResponder responder, int rid) {
-    var resp = new DsResponse(responder, rid);
+  DsResponse list(DsResponder responder, DsResponse response) {
     return null;
   }
 
   @override
-  DsResponse removeAttribute(String name, DsResponder responder, int rid) {
+  DsResponse removeAttribute(String name, DsResponder responder, DsResponse response) {
     attributes.remove(name);
-    return new DsResponse(responder, rid)..close();
+    return response..close();
   }
 
   @override
-  DsResponse removeConfig(String name, DsResponder responder, int rid) {
+  DsResponse removeConfig(String name, DsResponder responder, DsResponse response) {
     configs.remove(name);
-    return new DsResponse(responder, rid)..close();
+    return response..close();
   }
 
   @override
-  DsResponse setAttribute(String name, String value, DsResponder responder, int rid) {
+  DsResponse setAttribute(String name, String value, DsResponder responder, DsResponse response) {
     attributes[name] = value;
-    return new DsResponse(responder, rid)..close();
+    return response..close();
   }
 
   @override
-  DsResponse setConfig(String name, Object value, DsResponder responder, int rid) {
+  DsResponse setConfig(String name, Object value, DsResponder responder, DsResponse response) {
     configs[name] = value;
-    return new DsResponse(responder, rid)..close();
+    return response..close();
   }
 
   @override
-  DsResponse setValue(Object value, DsResponder responder, int rid) {
+  DsResponse setValue(Object value, DsResponder responder, DsResponse response) {
     _value = value;
-    return new DsResponse(responder, rid)..close();
+    return response..close();
   }
 
   @override

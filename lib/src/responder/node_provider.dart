@@ -8,18 +8,18 @@ abstract class DsRespNode extends DsNode {
   /// other api like set remove, invoke, can only be applied to existing node
   bool get exists;
 
-  DsResponse list(DsResponder responder, int rid);
+  DsResponse list(DsResponder responder, DsResponse response);
   void subscribe(DsSubscribeResponse subscription, DsResponder responder);
   void unsubscribe(DsSubscribeResponse subscription, DsResponder responder);
 
-  DsResponse invoke(Map params, DsResponder responder, int rid);
+  DsResponse invoke(Map params, DsResponder responder, DsResponse rid);
 
-  DsResponse setAttribute(String name, String value, DsResponder responder, int rid);
-  DsResponse removeAttribute(String name, DsResponder responder, int rid);
-  DsResponse setConfig(String name, Object value, DsResponder responder, int rid);
-  DsResponse removeConfig(String name, DsResponder responder, int rid);
+  DsResponse setAttribute(String name, String value, DsResponder responder, DsResponse rid);
+  DsResponse removeAttribute(String name, DsResponder responder, DsResponse rid);
+  DsResponse setConfig(String name, Object value, DsResponder responder, DsResponse rid);
+  DsResponse removeConfig(String name, DsResponder responder, DsResponse rid);
   /// set node value
-  DsResponse setValue(Object value, DsResponder responder, int rid);
+  DsResponse setValue(Object value, DsResponder responder, DsResponse rid);
 }
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders

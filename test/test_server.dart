@@ -24,41 +24,39 @@ class TestNode extends DsRespNode {
 
   bool get exists => true;
 
-  DsResponse invoke(Map params, DsResponder responder, int rid) {
-    DsResponse resp = new DsResponse(responder, rid);
-    responder.addResponse(resp);
-    resp.add([[1, 2]], streamStatus: DsStreamStatus.closed, columns: [{
+  DsResponse invoke(Map params, DsResponder responder, DsResponse response) {
+    responder.updateReponse(response, [[1, 2]], status: DsStreamStatus.closed, columns: [{
         'name': 'v1',
         'type': 'number'
       }, {
         'name': 'v2',
         'type': 'number'
       }]);
-    return resp;
+    return response;
   }
 
-  DsResponse list(DsResponder responder, int rid) {
-    // TODO: implement list
+  DsResponse list(DsResponder responder, DsResponse response) {
+    return response;
   }
 
-  DsResponse removeAttribute(String name, DsResponder responder, int rid) {
-    // TODO: implement removeAttribute
+  DsResponse removeAttribute(String name, DsResponder responder, DsResponse response) {
+    return response;
   }
 
-  DsResponse removeConfig(String name, DsResponder responder, int rid) {
-    // TODO: implement removeConfig
+  DsResponse removeConfig(String name, DsResponder responder, DsResponse response) {
+    return response;
   }
 
-  DsResponse setAttribute(String name, String value, DsResponder responder, int rid) {
-    // TODO: implement setAttribute
+  DsResponse setAttribute(String name, String value, DsResponder responder, DsResponse response) {
+    return response;
   }
 
-  DsResponse setConfig(String name, Object value, DsResponder responder, int rid) {
-    // TODO: implement setConfig
+  DsResponse setConfig(String name, Object value, DsResponder responder, DsResponse response) {
+    return response;
   }
 
-  DsResponse setValue(Object value, DsResponder responder, int rid) {
-    // TODO: implement setValue
+  DsResponse setValue(Object value, DsResponder responder, DsResponse response) {
+    return response;
   }
 
   void subscribe(DsSubscribeResponse subscription, DsResponder responder) {
