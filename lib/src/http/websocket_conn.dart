@@ -8,18 +8,24 @@ import '../../utils.dart';
 class DsWebSocketConnection implements DsConnection {
   DsWebsocketChannel _responderChannel;
   DsConnectionChannel get responderChannel => _responderChannel;
+
   DsWebsocketChannel _requesterChannel;
   DsConnectionChannel get requesterChannel => _requesterChannel;
+
+  Completer<DsConnectionChannel> _onRequestReadyCompleter = new Completer<DsConnectionChannel>();
+  Future<DsConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
   final WebSocket socket;
   DsWebSocketConnection(this.socket) {
     _responderChannel = new DsWebsocketChannel(this);
     _requesterChannel = new DsWebsocketChannel(this);
     socket.listen(_onData, onDone: _onDone);
-
+    // TODO, wait for the server to send {allowed} before complete this
+    _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
   }
 
   void _onData(dynamic data) {
+    print('onData: $data');
     if (data is String) {
       Map m;
       try {
@@ -44,14 +50,14 @@ class DsWebSocketConnection implements DsConnection {
     if (_responderChannel._getData != null) {
       List rslt = _responderChannel._getData();
       if (rslt != null && rslt.length != 0) {
-        m['responses'];
+        m['responses'] = rslt;
         needSend = true;
       }
     }
     if (_requesterChannel._getData != null) {
       List rslt = _requesterChannel._getData();
       if (rslt != null && rslt.length != 0) {
-        m['requests'];
+        m['requests'] = rslt;
         needSend = true;
       }
     }
@@ -72,7 +78,6 @@ class DsWebSocketConnection implements DsConnection {
     socket.close();
     _onDone();
   }
-
 
 }
 

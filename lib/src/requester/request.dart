@@ -25,11 +25,11 @@ class DsRequest {
     if (m['columns'] is List) {
       columns = m['columns'];
     }
-    updater(streamStatus, updates, columns);
     // remove the request from global Map
     if (streamStatus == DsStreamStatus.closed) {
       requester._requests.remove(rid);
     }
+    updater(streamStatus, updates, columns);
   }
 
   /// close the request from the client side

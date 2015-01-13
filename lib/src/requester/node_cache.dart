@@ -56,4 +56,7 @@ class DsReqNode extends DsNode {
     }
     return _subscribeController._stream;
   }
+  Stream<DsReqInvokeUpdate> _invoke(Map params) {
+    return new DsInvokeController(this, params)._stream;
+  }
 }

@@ -44,11 +44,13 @@ class DsRequester extends DsConnectionHandler {
     DsReqNode node = _nodeCache.getNode(path, this);
     return node._list();
   }
+
+  Stream<DsReqInvokeUpdate> invoke(String path, Map params) {
+    DsReqNode node = _nodeCache.getNode(path, this);
+    return node._invoke(params);
+  }
+
 // TODO: implement these Request classes
-//  DsInvokeRequest invoke(String path) {
-//    DsInvokeRequest req = new DsInvokeRequest();
-//  }
-//
 //  DsSetRequest set(String path, Object value) {
 //    DsSetRequest req = new DsSetRequest();
 //  }
@@ -64,10 +66,12 @@ class DsRequester extends DsConnectionHandler {
   /// close the request from requester side and notify responder
   void closeRequest(DsRequest request) {
     if (_requests.containsKey(request.rid)) {
-      addToSendList({
-        'method': 'close',
-        'rid': request.rid
-      });
+      if (request.streamStatus != DsStreamStatus.closed) {
+        addToSendList({
+          'method': 'close',
+          'rid': request.rid
+        });
+      }
       _requests.remove(request.rid);
       request._close();
     }

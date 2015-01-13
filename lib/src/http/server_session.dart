@@ -4,6 +4,9 @@ part of dslink.http_server;
 class DsHttpServerSession implements DsSession {
   final String dsId;
 
+  Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
+  Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
+
   final DsRequester requester;
   final DsResponder responder;
   final DsPublicKey _publicKey;
@@ -93,8 +96,10 @@ class DsHttpServerSession implements DsSession {
       }
       if (requester != null) {
         requester.connection = _connection.requesterChannel;
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
       }
     });
   }
-
 }

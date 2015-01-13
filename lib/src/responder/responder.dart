@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 /// a responder for one connection
-class DsResponder extends DsConnectionHandler{
+class DsResponder extends DsConnectionHandler {
   final Map<int, DsResponse> _responses = new Map<int, DsResponse>();
   DsSubscribeResponse _subscription;
   /// caching of nodes
@@ -11,19 +11,16 @@ class DsResponder extends DsConnectionHandler{
     _subscription = new DsSubscribeResponse(this, 0);
     _responses[0] = _subscription;
   }
-  
+
   void onDisconnected() {
     // TODO close and clear all responses
   }
   void onReconnected() {
   }
 
-  @override
-  Map prepareData(List<Map> datas) {
-    return {'responses':datas};
-  }
+
   void addResponse(DsResponse response) {
-    if (response.streamStatus != DsStreamStatus.closed) {
+    if (response._streamStatus != DsStreamStatus.closed) {
       _responses[response.rid] = response;
     }
   }
@@ -71,14 +68,14 @@ class DsResponder extends DsConnectionHandler{
   }
   /// close the response from responder side and notify requester
   void _closeResponse(int rid, [DsError err]) {
-      Map m = {
-        'rid': rid,
-        'stream': DsStreamStatus.closed
-      };
-      if (err != null) {
-        m['error'] = err.serialize();
-      }
-      addToSendList(m);
+    Map m = {
+      'rid': rid,
+      'stream': DsStreamStatus.closed
+    };
+    if (err != null) {
+      m['error'] = err.serialize();
+    }
+    addToSendList(m);
   }
 
 

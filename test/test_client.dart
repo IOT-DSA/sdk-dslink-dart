@@ -5,6 +5,14 @@ import 'package:dslink/src/crypto/ds_pk.dart';
 void main() {
   String str = new File('certs/private_key.txt').readAsStringSync();
   DsPrivateKey key = new DsPrivateKey.loadFromString(str);
-  
-  var clientSession = new DsHttpClientSession('http://localhost/conn','test-client-',key,isRequester:true);
+
+  var clientSession = new DsHttpClientSession('http://localhost/conn', 'test-client-', key, isRequester: true);
+
+  clientSession.onRequesterReady.then((requester) {
+    requester.invoke('/', {
+      'msg': 'hello world'
+    }).listen((update) {
+      print(update.rows);
+    });
+  });
 }

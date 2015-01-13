@@ -2,6 +2,11 @@ part of dslink.client;
 
 /// a client session for both http and ws
 class DsHttpClientSession implements DsSession {
+
+  Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
+  Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
+
+
   final String dsId;
 
   final DsRequester requester;
@@ -80,17 +85,16 @@ class DsHttpClientSession implements DsSession {
   void initWebsocket() {
     WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}').then((WebSocket socket) {
       _connection = new DsWebSocketConnection(socket);
-      if (requester != null) {
-        requester.connection = _connection.requesterChannel;
-      }
+
       if (responder != null) {
         responder.connection = _connection.responderChannel;
       }
+      if (requester != null) {
+        _connection.onRequesterReady.then((channel) {
+          requester.connection = channel;
+          _onRequesterReadyCompleter.complete(requester);
+        });
+      }
     });
-
-  }
-
-  void initWebsocketResponder() {
-
   }
 }

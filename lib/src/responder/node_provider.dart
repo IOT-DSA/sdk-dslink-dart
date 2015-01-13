@@ -24,10 +24,6 @@ abstract class DsRespNode extends DsNode {
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders
 abstract class DsNodeProvider {
-
-  Map<String, DsRespNode> _nodes;
-
   /// get a existing node or create a dummy node for requester to listen on
   DsRespNode getNode(String path);
-
 }

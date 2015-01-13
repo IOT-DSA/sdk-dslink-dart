@@ -8,6 +8,7 @@ import 'responder.dart';
 import 'package:quiver/core.dart';
 
 part 'src/common/node.dart';
+part 'src/common/table.dart';
 part 'src/common/value.dart';
 part 'src/common/connection_handler.dart';
 
@@ -16,9 +17,8 @@ JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
 abstract class DsConnection {
   DsConnectionChannel get requesterChannel;
   DsConnectionChannel get responderChannel;
-  /// 
-  
-
+  /// trigger when requester channel is Ready
+  Future<DsConnectionChannel> get onRequesterReady;
   /// close the connection
   void close();
 }
@@ -30,16 +30,19 @@ abstract class DsConnectionChannel {
   void sendWhenReady(List getData());
   /// receive data from method stream
   Stream<List> get onReceive;
-  
+
   /// whether the connection is ready to send and receive data
   bool get isReady;
-  
+
   Future<DsConnectionChannel> get onDisconnected;
 }
 
 abstract class DsSession {
   DsRequester get requester;
   DsResponder get responder;
+
+  /// trigger when requester channel is Ready
+  Future<DsRequester> get onRequesterReady;
 }
 
 class DsStreamStatus {
@@ -60,9 +63,9 @@ class DsError {
   String msg;
   String path;
   String phase;
-  
+
   DsError(this.msg, {this.detail, this.type, this.path, this.phase: DsErrorPhase.response});
-  
+
   Map serialize() {
     Map rslt = {
       'msg': msg

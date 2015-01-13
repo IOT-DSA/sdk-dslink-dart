@@ -75,7 +75,7 @@ class DsHttpServer {
           }
           session = new DsHttpServerSession(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider, //
           isRequester: m['isResponder'] == true, // if client is responder, then server is requester
-          isResponder: m['isRrequester'] == true // if client is requester, then server is responder
+          isResponder: m['isRequester'] == true // if client is requester, then server is responder
           );
           if (!session.valid) {
             // dsId doesn't match public key
