@@ -24,7 +24,6 @@ class DsHttpServer {
   final Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
 
   void _handleRqeuest(HttpRequest request) {
-    print(request);
     try {
       String dsId = request.uri.queryParameters['dsId'];
       if (dsId == null || dsId.length < 64) {
@@ -59,7 +58,11 @@ class DsHttpServer {
         List<int> merged = lists.fold([], (List a, List b) {
           return a..addAll(b);
         });
-        print('merged:${merged.length}');
+        if (merged.length > 1024) {
+          // invalid connection request
+          request.response.close();
+          return;
+        }
         String str = UTF8.decode(merged);
         Map m = JSON.decode(str);
         DsHttpServerSession session = _sessions[dsId];

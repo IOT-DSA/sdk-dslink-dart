@@ -3,9 +3,12 @@ library dslink.common;
 import 'dart:async';
 import 'ds_requester.dart';
 import 'ds_responder.dart';
+import 'dart:convert';
 
 part 'src/common/node.dart';
 part 'src/common/connection_handler.dart';
+
+JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
 
 abstract class DsConnection {
   DsConnectionChannel get requesterChannel;

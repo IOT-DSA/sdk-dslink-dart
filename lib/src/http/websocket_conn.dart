@@ -6,14 +6,17 @@ import '../../ds_common.dart';
 import '../../utils.dart';
 
 class DsWebSocketConnection implements DsConnection {
-  DsWebsocketChannel _requesterChannel;
-  DsConnectionChannel get requesterChannel => _requesterChannel;
   DsWebsocketChannel _responderChannel;
   DsConnectionChannel get responderChannel => _responderChannel;
+  DsWebsocketChannel _requesterChannel;
+  DsConnectionChannel get requesterChannel => _requesterChannel;
 
   final WebSocket socket;
   DsWebSocketConnection(this.socket) {
+    _responderChannel = new DsWebsocketChannel(this);
+    _requesterChannel = new DsWebsocketChannel(this);
     socket.listen(_onData, onDone: _onDone);
+
   }
 
   void _onData(dynamic data) {

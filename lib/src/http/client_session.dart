@@ -20,8 +20,8 @@ class DsHttpClientSession implements DsSession {
   /// 4 salts, reqSaltL reqSaltS respSaltL respSaltS
   final List<String> salts = new List<String>(4);
 
-  Uri _wsUpdateUri;
-  Uri _httpUpdateUri;
+  String _wsUpdateUri;
+  String _httpUpdateUri;
 
   DsHttpClientSession(String conn, String dsIdPrefix, DsPrivateKey privateKey, {DsNodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : _privateKey = privateKey,
@@ -31,25 +31,18 @@ class DsHttpClientSession implements DsSession {
     // TODO don't put everything in constructor
     // TODO more error handling
     HttpClient client = new HttpClient();
-    Uri connUri = Uri.parse(conn);
+    Uri connUri = Uri.parse('$conn?dsId=$dsId');
     client.postUrl(connUri).then((HttpClientRequest request) {
-      request.headers.add('ds-id', dsId);
-      request.headers.add('ds-public-key', privateKey.publicKey.modulusBase64);
-      request.headers.add('ds-is-requester', isRequester.toString());
-      request.headers.add('ds-is-responder', (isResponder && nodeProvider != null).toString());
+      Map requestJson = {
+        'publicKey': privateKey.publicKey.modulusBase64,
+        'isRequester': isRequester,
+        'isResponder': (isResponder && nodeProvider != null)
+      };
+
+      request.add(jsonUtf8Encoder.convert(requestJson));
       request.close().then((HttpClientResponse response) {
         print(response.headers);
-        try {
-          saltNameMap.forEach((name, idx) {
-            //read salts
-            salts[idx] = response.headers.value(name);
-          });
-          String encryptedNonce = response.headers.value('ds-encrypted-nonce');
-          _nonce = _privateKey.decryptNonce(encryptedNonce);
-        } catch (err) {
-          print(err);
-          return;
-        }
+
         response.toList().then((List<List<int>> lists) {
           try {
             List<int> merged = lists.fold([], (List a, List b) {
@@ -57,15 +50,23 @@ class DsHttpClientSession implements DsSession {
             });
             String rslt = UTF8.decode(merged);
             Map serverConfig = JSON.decode(rslt);
-            if (serverConfig['ws-update-uri'] is String) {
-              _wsUpdateUri = connUri.resolve(serverConfig['wsUri']);
+
+            saltNameMap.forEach((name, idx) {
+              //read salts
+              salts[idx] = serverConfig[name];
+            });
+            String encryptedNonce = serverConfig['encryptedNonce'];
+            _nonce = _privateKey.decryptNonce(encryptedNonce);
+
+            if (serverConfig['wsUri'] is String) {
+              _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
             }
-            if (serverConfig['http-update-uri'] is String) {
+            if (serverConfig['httpUri'] is String) {
               // TODO implement http
-              _httpUpdateUri = connUri.resolve(serverConfig['httpUri']);
+              _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
             }
             // start requester and responder
-            if (responder != null && _wsUpdateUri != null) {
+            if (_wsUpdateUri != null) {
               initWebsocket();
             }
           } catch (err) {
@@ -77,7 +78,7 @@ class DsHttpClientSession implements DsSession {
     });
   }
   void initWebsocket() {
-    WebSocket.connect(_wsUpdateUri.toString()).then((WebSocket socket) {
+    WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}').then((WebSocket socket) {
       _connection = new DsWebSocketConnection(socket);
       if (requester != null) {
         requester.connection = _connection.requesterChannel;

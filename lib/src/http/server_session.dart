@@ -22,7 +22,7 @@ class DsHttpServerSession implements DsSession {
       : _publicKey = new DsPublicKey(modulus),
         requester = isRequester ? new DsRequester() : null,
         responder = (isResponder && nodeProvider != null) ? new DsResponder(nodeProvider) : null {
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 2; ++i) {
       salts[i] = DsaRandom.instance.nextUint8();
     }
   }
@@ -35,17 +35,16 @@ class DsHttpServerSession implements DsSession {
     _tempNonce = new DsSecretNonce.generate();
 
     // TODO, dont use hard coded id and public key
-    request.response.write(r'''{
-  "id":"broker-dsa-5PjTP4kGLqxAAykKBU1MDUb0diZNOUpk_Au8MWxtCYa2YE_hOFaC8eAO6zz6FC0e",
-  "publicKey":"AIHYvVkY5M_uMsRI4XmTH6nkngf2lMLXOOX4rfhliEYhv4Hw1wlb_I39Q5cw6a9zHSvonI8ZuG73HWLGKVlDmHGbYHWsWsXgrAouWt5H3AMGZl3hPoftvs0rktVsq0L_pz2Cp1h_7XGot87cLah5IV-AJ5bKBBFkXHOqOsIiDXNFhHjSI_emuRh01LmaN9_aBwfkyNq73zP8kY-hpb5mEG-sIcLvMecxsVS-guMFRCk_V77AzVCwOU52dmpfT5oNwiWhLf2n9A5GVyFxxzhKRc8NrfSdTFzKn0LvDPM29UDfzGOyWpfJCwrYisrftC3QbBD7e0liGbMCN5UgZsSssOk=",
-  "wsUri":"/ws_data",
-  "httpUri":"/http_update",
-  "encryptedNonce":_publicKey.encryptNonce(_tempNonce),
-  "salt":,'0x${salts[0]}',
-  "saltS":,'1x${salts[1]}',
-  "min-update-interval-ms":200
-}
-''');
+    request.response.write(JSON.encode({
+      "id": "broker-dsa-5PjTP4kGLqxAAykKBU1MDUb0diZNOUpk_Au8MWxtCYa2YE_hOFaC8eAO6zz6FC0e",
+      "publicKey": "AIHYvVkY5M_uMsRI4XmTH6nkngf2lMLXOOX4rfhliEYhv4Hw1wlb_I39Q5cw6a9zHSvonI8ZuG73HWLGKVlDmHGbYHWsWsXgrAouWt5H3AMGZl3hPoftvs0rktVsq0L_pz2Cp1h_7XGot87cLah5IV-AJ5bKBBFkXHOqOsIiDXNFhHjSI_emuRh01LmaN9_aBwfkyNq73zP8kY-hpb5mEG-sIcLvMecxsVS-guMFRCk_V77AzVCwOU52dmpfT5oNwiWhLf2n9A5GVyFxxzhKRc8NrfSdTFzKn0LvDPM29UDfzGOyWpfJCwrYisrftC3QbBD7e0liGbMCN5UgZsSssOk=",
+      "wsUri": "/ws",
+      "httpUri": "/http",
+      "encryptedNonce": _publicKey.encryptNonce(_tempNonce),
+      "salt": '0x${salts[0]}',
+      "saltS": '1x${salts[1]}',
+      "min-update-interval-ms": 200
+    }));
     request.response.close();
   }
 
@@ -72,7 +71,7 @@ class DsHttpServerSession implements DsSession {
     }
   }
   void _handleHttpUpdate(HttpRequest request) {
-    if (!_verifySalt(2, request.headers.value('auth'))) {
+    if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
     if (requester == null) {
@@ -80,23 +79,15 @@ class DsHttpServerSession implements DsSession {
     }
     //TODO
   }
-  void _handleHttpData(HttpRequest request) {
-    if (!_verifySalt(0, request.headers.value('auth'))) {
-      throw HttpStatus.UNAUTHORIZED;
-    }
-    if (responder == null) {
-      throw HttpStatus.FORBIDDEN;
-    }
-    //TODO
-  }
 
   void _handleWsUpdate(HttpRequest request) {
-    if (!_verifySalt(2, request.headers.value('auth'))) {
+    if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
-
+    print('upgrade websocket');
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       _connection = new DsWebSocketConnection(websocket);
+      print('new websocket created');
       if (responder != null) {
         responder.connection = _connection.responderChannel;
       }
