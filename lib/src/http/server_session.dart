@@ -16,15 +16,15 @@ class DsHttpServerSession implements DsSession {
   /// nonce after user verified the public key
   DsSecretNonce _verifiedNonce;
 
-  DsWebSocketConnection _connection;
+  DsConnection _connection;
 
   /// 2 salts, salt saltS
   final List<int> salts = new List<int>(2);
 
-  DsHttpServerSession(this.dsId, BigInteger modulus, {DsNodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
+  DsHttpServerSession(this.dsId, BigInteger modulus, {DsNodeProvider nodeProvider})
       : _publicKey = new DsPublicKey(modulus),
-        requester = isRequester ? new DsRequester() : null,
-        responder = (isResponder && nodeProvider != null) ? new DsResponder(nodeProvider) : null {
+        requester =  new DsRequester(),
+        responder = (nodeProvider != null) ? new DsResponder(nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DsaRandom.instance.nextUint8();
     }
@@ -36,7 +36,9 @@ class DsHttpServerSession implements DsSession {
 
   void initSession(HttpRequest request) {
     _tempNonce = new DsSecretNonce.generate();
-
+//          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
+//          isResponder: m['isRequester'] == true // if client is requester, then server is responder
+    
     // TODO, dont use hard coded id and public key
     request.response.write(JSON.encode({
       "id": "broker-dsa-5PjTP4kGLqxAAykKBU1MDUb0diZNOUpk_Au8MWxtCYa2YE_hOFaC8eAO6zz6FC0e",

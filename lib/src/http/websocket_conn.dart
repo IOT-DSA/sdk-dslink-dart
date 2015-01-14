@@ -68,14 +68,24 @@ class DsWebSocketConnection implements DsConnection {
 
   }
   void _onDone() {
-    _responderChannel._onReceiveController.close();
-    _responderChannel._onDisconnectController.complete(_requesterChannel);
-    _requesterChannel._onReceiveController.close();
-    _requesterChannel._onDisconnectController.complete(_requesterChannel);
+    if (!_requesterChannel._onReceiveController.isClosed) {
+      _requesterChannel._onReceiveController.close();
+    }
+    if (!_requesterChannel._onDisconnectController.isCompleted) {
+      _requesterChannel._onDisconnectController.complete(_requesterChannel);
+    }
+    if (!_responderChannel._onReceiveController.isClosed) {
+      _responderChannel._onReceiveController.close();
+    }
+    if (!_responderChannel._onDisconnectController.isCompleted) {
+      _responderChannel._onDisconnectController.complete(_requesterChannel);
+    }
   }
 
   void close() {
-    socket.close();
+    if (socket.readyState == WebSocket.OPEN || socket.readyState == WebSocket.CONNECTING) {
+      socket.close();
+    }
     _onDone();
   }
 

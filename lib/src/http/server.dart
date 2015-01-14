@@ -73,10 +73,7 @@ class DsHttpServer {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
-          session = new DsHttpServerSession(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider, //
-          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
-          isResponder: m['isRequester'] == true // if client is requester, then server is responder
-          );
+          session = new DsHttpServerSession(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider);
           if (!session.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
