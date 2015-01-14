@@ -210,6 +210,7 @@ class DsResponder extends DsConnectionHandler {
       throw 'unexpected case';
     }
   }
+  
   void _close(Map m) {
     if (m['rid'] is int) {
       int rid = m['rid'];

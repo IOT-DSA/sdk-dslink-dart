@@ -82,19 +82,19 @@ class DsHttpClientSession implements DsSession {
       });
     });
   }
-  void initWebsocket() {
-    WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}').then((WebSocket socket) {
-      _connection = new DsWebSocketConnection(socket);
+  
+  initWebsocket() async {
+    var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+    _connection = new DsWebSocketConnection(socket);
 
-      if (responder != null) {
-        responder.connection = _connection.responderChannel;
-      }
-      if (requester != null) {
-        _connection.onRequesterReady.then((channel) {
-          requester.connection = channel;
-          _onRequesterReadyCompleter.complete(requester);
-        });
-      }
-    });
+    if (responder != null) {
+      responder.connection = _connection.responderChannel;
+    }
+    if (requester != null) {
+      _connection.onRequesterReady.then((channel) {
+        requester.connection = channel;
+        _onRequesterReadyCompleter.complete(requester);
+      });
+    }
   }
 }
