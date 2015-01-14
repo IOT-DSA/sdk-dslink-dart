@@ -1,4 +1,4 @@
-import 'package:dslink/src/crypto/ds_pk.dart';
+import 'package:dslink/src/crypto/pk.dart';
 import 'dart:io';
 
 void main() {

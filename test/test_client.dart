@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:dslink/http_client.dart';
-import 'package:dslink/src/crypto/ds_pk.dart';
+import 'package:dslink/src/crypto/pk.dart';
 
 void main() {
   String str = new File('certs/private_key.txt').readAsStringSync();
