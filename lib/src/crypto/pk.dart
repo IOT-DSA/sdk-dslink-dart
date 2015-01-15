@@ -89,7 +89,7 @@ class DsPrivateKey {
   factory DsPrivateKey.generate() {
     var gen = new RSAKeyGenerator();
     var rnd = new DsaRandom();
-    var rsapars = new RSAKeyGeneratorParameters(DsPublicKey._publicExp, 2048, 12);
+    var rsapars = new RSAKeyGeneratorParameters(DsPublicKey._publicExp, 2048, 32);
     var params = new ParametersWithRandom(rsapars, rnd);
     gen.init(params);
     var pair = gen.generateKeyPair();

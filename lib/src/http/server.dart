@@ -53,11 +53,8 @@ class DsHttpServer {
   }
 
   void _handleConn(HttpRequest request, String dsId) {
-    request.toList().then((List<List<int>> lists) {
+    request.fold([], foldList).then((List<int> merged) {
       try {
-        List<int> merged = lists.fold([], (List a, List b) {
-          return a..addAll(b);
-        });
         if (merged.length > 1024) {
           // invalid connection request
           request.response.close();

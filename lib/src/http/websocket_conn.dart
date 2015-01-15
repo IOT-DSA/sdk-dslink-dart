@@ -5,25 +5,40 @@ import 'dart:convert';
 import '../../common.dart';
 import '../../utils.dart';
 
-class DsWebSocketConnection implements DsConnection {
-  DsWebsocketChannel _responderChannel;
+class DsWebSocketConnection implements DsServerConnection, DsClientConnection {
+  DsPassiveChannel _responderChannel;
   DsConnectionChannel get responderChannel => _responderChannel;
 
-  DsWebsocketChannel _requesterChannel;
+  DsPassiveChannel _requesterChannel;
   DsConnectionChannel get requesterChannel => _requesterChannel;
 
   Completer<DsConnectionChannel> _onRequestReadyCompleter = new Completer<DsConnectionChannel>();
   Future<DsConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
+  final DsClientSession clientSession;
+
   final WebSocket socket;
-  DsWebSocketConnection(this.socket) {
-    _responderChannel = new DsWebsocketChannel(this);
-    _requesterChannel = new DsWebsocketChannel(this);
+  /// clientSession is not needed when websocket works in server session
+  DsWebSocketConnection(this.socket, {this.clientSession}) {
+    _responderChannel = new DsPassiveChannel(this);
+    _requesterChannel = new DsPassiveChannel(this);
     socket.listen(_onData, onDone: _onDone);
-    // TODO, wait for the server to send {allowed} before complete this
+    // TODO, when it's used in client session, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
   }
 
+  void requireSend() {
+    DsTimer.callLaterOnce(_send);
+  }
+
+  Map _serverCommand;
+  void addServerCommand(String key, Object value) {
+    if (_serverCommand == null) {
+      _serverCommand = {};
+    }
+    _serverCommand[key] = value;
+    DsTimer.callLaterOnce(_send);
+  }
   void _onData(dynamic data) {
     print('onData: $data');
     if (data is String) {
@@ -31,31 +46,39 @@ class DsWebSocketConnection implements DsConnection {
       try {
         m = JSON.decode(data);
       } catch (err) {
+        close();
         return;
       }
       if (m['responses'] is List) {
         // send responses to requester channel
-        _requesterChannel._onReceiveController.add(m['responses']);
+        _requesterChannel.onReceiveController.add(m['responses']);
       }
       if (m['requests'] is List) {
         // send requests to responder channel
-        _responderChannel._onReceiveController.add(m['requests']);
+        _responderChannel.onReceiveController.add(m['requests']);
       }
 
     }
   }
   void _send() {
-    Map m = {};
     bool needSend = false;
-    if (_responderChannel._getData != null) {
-      List rslt = _responderChannel._getData();
+    Map m;
+    if (_serverCommand != null) {
+      m = _serverCommand;
+      _serverCommand = null;
+      needSend = true;
+    } else {
+      m = {};
+    }
+    if (_responderChannel.getData != null) {
+      List rslt = _responderChannel.getData();
       if (rslt != null && rslt.length != 0) {
         m['responses'] = rslt;
         needSend = true;
       }
     }
-    if (_requesterChannel._getData != null) {
-      List rslt = _requesterChannel._getData();
+    if (_requesterChannel.getData != null) {
+      List rslt = _requesterChannel.getData();
       if (rslt != null && rslt.length != 0) {
         m['requests'] = rslt;
         needSend = true;
@@ -65,20 +88,19 @@ class DsWebSocketConnection implements DsConnection {
       print('send: $m');
       socket.add(JSON.encode(m));
     }
-
   }
   void _onDone() {
-    if (!_requesterChannel._onReceiveController.isClosed) {
-      _requesterChannel._onReceiveController.close();
+    if (!_requesterChannel.onReceiveController.isClosed) {
+      _requesterChannel.onReceiveController.close();
     }
-    if (!_requesterChannel._onDisconnectController.isCompleted) {
-      _requesterChannel._onDisconnectController.complete(_requesterChannel);
+    if (!_requesterChannel.onDisconnectController.isCompleted) {
+      _requesterChannel.onDisconnectController.complete(_requesterChannel);
     }
-    if (!_responderChannel._onReceiveController.isClosed) {
-      _responderChannel._onReceiveController.close();
+    if (!_responderChannel.onReceiveController.isClosed) {
+      _responderChannel.onReceiveController.close();
     }
-    if (!_responderChannel._onDisconnectController.isCompleted) {
-      _responderChannel._onDisconnectController.complete(_requesterChannel);
+    if (!_responderChannel.onDisconnectController.isCompleted) {
+      _responderChannel.onDisconnectController.complete(_requesterChannel);
     }
   }
 
@@ -88,31 +110,4 @@ class DsWebSocketConnection implements DsConnection {
     }
     _onDone();
   }
-
-}
-
-class DsWebsocketChannel implements DsConnectionChannel {
-  StreamController<List> _onReceiveController = new StreamController<List>();
-  Stream<List> get onReceive => _onReceiveController.stream;
-
-  List<Function> _processors = [];
-
-  final DsWebSocketConnection conn;
-  DsWebsocketChannel(this.conn) {
-  }
-  Function _getData;
-  void sendWhenReady(List getData()) {
-    _getData = getData;
-    DsTimer.callLaterOnce(conn._send);
-  }
-
-  bool _isReady = false;
-  bool get isReady => _isReady;
-  void set isReady(bool val) {
-    _isReady = val;
-  }
-
-  Completer<DsConnectionChannel> _onDisconnectController = new Completer<DsConnectionChannel>();
-  Future<DsConnectionChannel> get onDisconnected => _onDisconnectController.future;
-
 }

@@ -7,7 +7,7 @@ class DsTimer {
   static Future waitAndRun(Duration time, action()) {
     return new Future.delayed(time, action);
   }
-
+  // TODO does it need to use another hashset for quick search?
   static List<Function> _callbacks = [];
   //static Map<Function, int> _timerCallbacks = new Map<Function, int>();
 

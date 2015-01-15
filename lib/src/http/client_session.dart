@@ -1,7 +1,7 @@
 part of dslink.client;
 
 /// a client session for both http and ws
-class DsHttpClientSession implements DsSession {
+class DsHttpClientSession implements DsClientSession {
 
   Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
   Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
@@ -11,9 +11,10 @@ class DsHttpClientSession implements DsSession {
 
   final DsRequester requester;
   final DsResponder responder;
-  final DsPrivateKey _privateKey;
+  final DsPrivateKey privateKey;
 
   DsSecretNonce _nonce;
+  DsSecretNonce get nonce => _nonce;
 
   DsConnection _connection;
 
@@ -25,11 +26,15 @@ class DsHttpClientSession implements DsSession {
   /// 2 salts, salt and saltS
   final List<String> salts = new List<String>(2);
 
+  updateSalt(String salt, [bool shortPolling=false]) {
+    // TODO: implement updateSalt
+  }
+  
   String _wsUpdateUri;
   String _httpUpdateUri;
 
   DsHttpClientSession(String conn, String dsIdPrefix, DsPrivateKey privateKey, {DsNodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
-      : _privateKey = privateKey,
+      : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
         requester = isRequester ? new DsRequester() : null,
         responder = (isResponder && nodeProvider != null) ? new DsResponder(nodeProvider) : null {
@@ -47,12 +52,8 @@ class DsHttpClientSession implements DsSession {
       request.add(jsonUtf8Encoder.convert(requestJson));
       request.close().then((HttpClientResponse response) {
         print(response.headers);
-
-        response.toList().then((List<List<int>> lists) {
+        response.fold([], foldList).then((List<int> merged) {
           try {
-            List<int> merged = lists.fold([], (List a, List b) {
-              return a..addAll(b);
-            });
             String rslt = UTF8.decode(merged);
             Map serverConfig = JSON.decode(rslt);
 
@@ -61,7 +62,7 @@ class DsHttpClientSession implements DsSession {
               salts[idx] = serverConfig[name];
             });
             String encryptedNonce = serverConfig['encryptedNonce'];
-            _nonce = _privateKey.decryptNonce(encryptedNonce);
+            _nonce = privateKey.decryptNonce(encryptedNonce);
 
             if (serverConfig['wsUri'] is String) {
               _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
@@ -71,8 +72,11 @@ class DsHttpClientSession implements DsSession {
               _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
             }
             // start requester and responder
-            if (_wsUpdateUri != null) {
-              initWebsocket();
+//            if (_wsUpdateUri != null) {
+//              initWebsocket();
+//            }
+            if (_httpUpdateUri != null) {
+              initHttp();
             }
           } catch (err) {
             print(err);
@@ -87,6 +91,19 @@ class DsHttpClientSession implements DsSession {
     var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
     _connection = new DsWebSocketConnection(socket);
 
+    if (responder != null) {
+      responder.connection = _connection.responderChannel;
+    }
+    if (requester != null) {
+      _connection.onRequesterReady.then((channel) {
+        requester.connection = channel;
+        _onRequesterReadyCompleter.complete(requester);
+      });
+    }
+  }
+  
+  void initHttp() {
+    _connection = new DsHttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
     if (responder != null) {
       responder.connection = _connection.responderChannel;
     }
