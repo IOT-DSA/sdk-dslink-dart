@@ -40,12 +40,14 @@ class DsWebSocketConnection implements DsServerConnection, DsClientConnection {
     DsTimer.callLaterOnce(_send);
   }
   void _onData(dynamic data) {
-    print('onData: $data');
-    if (data is String) {
-      Map m;
+    print('onData:');
+    Map m;
+    if (data is List<int>) {
       try {
-        m = JSON.decode(data);
+        m = JSON.decode(UTF8.decode(data));
+        print('$m');
       } catch (err) {
+        print(err);
         close();
         return;
       }
@@ -57,8 +59,8 @@ class DsWebSocketConnection implements DsServerConnection, DsClientConnection {
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
       }
-
     }
+
   }
   void _send() {
     bool needSend = false;
@@ -86,7 +88,8 @@ class DsWebSocketConnection implements DsServerConnection, DsClientConnection {
     }
     if (needSend) {
       print('send: $m');
-      socket.add(JSON.encode(m));
+      //socket.add(JSON.encode(m));
+      socket.add(jsonUtf8Encoder.convert(m));
     }
   }
   void _onDone() {
