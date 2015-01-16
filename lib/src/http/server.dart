@@ -20,7 +20,7 @@ class DsHttpServer {
       });
     }
   }
-  final DsNodeProvider nodeProvider;
+  final NodeProvider nodeProvider;
   final Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
 
   void _handleRqeuest(HttpRequest request) {

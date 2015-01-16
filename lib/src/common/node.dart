@@ -1,19 +1,19 @@
 part of dslink.common;
 
-class DsNode {
+class Node {
   /// absoulte node path from the responder root.
   final String path;
 
   /// node name or custom name defined in $name
   String name;
 
-  DsNode profile;
+  Node profile;
 
   /// mixins are stored in a reverse order as the mixin string is defined
-  List<DsNode> mixins;
+  List<Node> mixins;
   Map<String, String> attributes = {};
 
-  DsNode(this.path);
+  Node(this.path);
 
   String getAttribute(String name) {
     if (attributes.containsKey(name)) {
@@ -53,9 +53,9 @@ class DsNode {
     return null;
   }
 
-  Map<String, DsNode> _children = {};
+  Map<String, Node> _children = {};
 
-  DsNode getChild(String name) {
+  Node getChild(String name) {
     if (_children.containsKey(name)) {
       return _children[name];
     }
@@ -75,12 +75,12 @@ class DsNode {
 
 
 /// Util class for ds node path and config/attribute path
-class DsPath {
+class Path {
   static final RegExp invalidChar = new RegExp(r'[\.\/\\\?%\*:|"<>]');
   
-  static DsPath getValidPath(Object path, [String basePath]) {
+  static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {
-      DsPath p = new DsPath(path);
+      Path p = new Path(path);
       if (p.valid) {
         return p..mergeBasePath(basePath);
       }
@@ -88,9 +88,9 @@ class DsPath {
     return null;
   }
   
-  static DsPath getValidNodePath(Object path, [String basePath]) {
+  static Path getValidNodePath(Object path, [String basePath]) {
     if (path is String) {
-      DsPath p = new DsPath(path);
+      Path p = new Path(path);
       if (p.valid && p.isNode) {
         return p..mergeBasePath(basePath);
       }
@@ -98,9 +98,9 @@ class DsPath {
     return null;
   }
   
-  static DsPath getValidAttributePath(Object path, [String basePath]) {
+  static Path getValidAttributePath(Object path, [String basePath]) {
     if (path is String) {
-      DsPath p = new DsPath(path);
+      Path p = new Path(path);
       if (p.valid && p.isAttribute) {
         return p..mergeBasePath(basePath);
       }
@@ -108,9 +108,9 @@ class DsPath {
     return null;
   }
   
-  static DsPath getValidConfigPath(Object path, [String basePath]) {
+  static Path getValidConfigPath(Object path, [String basePath]) {
     if (path is String) {
-      DsPath p = new DsPath(path);
+      Path p = new Path(path);
       if (p.valid && p.isConfig) {
         return p..mergeBasePath(basePath);
       }
@@ -124,7 +124,7 @@ class DsPath {
   String name;
   bool valid = true;
   
-  DsPath(this.path) {
+  Path(this.path) {
     _parse();
   }
   

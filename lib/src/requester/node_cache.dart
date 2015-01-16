@@ -2,36 +2,36 @@ part of dslink.requester;
 
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
-class DsReqNodeCache {
-  Map<String, DsReqNode> _nodes = new Map<String, DsReqNode>();
-  DsReqNodeCache();
-  DsReqNode getNode(String path, DsRequester requester) {
+class RequesterNodeCache {
+  Map<String, RequesterNode> _nodes = new Map<String, RequesterNode>();
+  RequesterNodeCache();
+  RequesterNode getNode(String path, DsRequester requester) {
     if (!_nodes.containsKey(path)) {
-      _nodes[path] = new DsReqNode(path, requester);
+      _nodes[path] = new RequesterNode(path, requester);
     }
     return _nodes[path];
   }
 }
 
-class DsReqNode extends DsNode {
+class RequesterNode extends Node {
   final DsRequester requester;
 
-  DsListController _listController;
-  DsSubscribeController _subscribeController;
+  ListController _listController;
+  SubscribeController _subscribeController;
 
-  DsReqNode(String path, this.requester) : super(path);
+  RequesterNode(String path, this.requester) : super(path);
 
   /// node data is not ready until all profile and mixins are updated
   bool isUpdated() {
     if (!isSelfUpdated()) {
       return false;
     }
-    if (profile is DsReqNode && !(profile as DsReqNode).isSelfUpdated()) {
+    if (profile is RequesterNode && !(profile as RequesterNode).isSelfUpdated()) {
       return false;
     }
     if (mixins != null) {
-      for (DsNode mixin in mixins) {
-        if (mixin is DsReqNode && !mixin.isSelfUpdated()) {
+      for (Node mixin in mixins) {
+        if (mixin is RequesterNode && !mixin.isSelfUpdated()) {
           return false;
         }
       }
@@ -43,20 +43,22 @@ class DsReqNode extends DsNode {
     return _listController != null && _listController.initialized;
   }
 
-  Stream<DsReqListUpdate> _list() {
+  Stream<RequesterListUpdate> _list() {
     if (_listController == null) {
-      _listController = new DsListController(this);
+      _listController = new ListController(this);
       reset();
     }
     return _listController._stream;
   }
-  Stream<DsReqSubscribeUpdate> _subscribe() {
+  
+  Stream<RequesterSubscribeUpdate> _subscribe() {
     if (_subscribeController == null) {
-      _subscribeController = new DsSubscribeController(this);
+      _subscribeController = new SubscribeController(this);
     }
     return _subscribeController._stream;
   }
-  Stream<DsReqInvokeUpdate> _invoke(Map params) {
-    return new DsInvokeController(this, params)._stream;
+  
+  Stream<RequesterInvokeUpdate> _invoke(Map params) {
+    return new InvokeController(this, params)._stream;
   }
 }

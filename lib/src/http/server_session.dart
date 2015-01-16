@@ -1,14 +1,14 @@
 part of dslink.http_server;
 
 /// a server session for both http and ws
-class DsHttpServerSession implements DsServerSession {
+class DsHttpServerSession implements ServerSession {
   final String dsId;
 
   Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
   Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   final DsRequester requester;
-  final DsResponder responder;
+  final Responder responder;
   final DsPublicKey publicKey;
 
   /// nonce for authentication, don't overwrite existing nonce
@@ -18,15 +18,15 @@ class DsHttpServerSession implements DsServerSession {
 
   DsSecretNonce get nonce => _verifiedNonce;
 
-  DsServerConnection _connection;
+  ServerConnection _connection;
 
   /// 2 salts, salt saltS
   final List<int> salts = new List<int>(2);
 
-  DsHttpServerSession(this.dsId, BigInteger modulus, {DsNodeProvider nodeProvider})
+  DsHttpServerSession(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
       : publicKey = new DsPublicKey(modulus),
         requester = new DsRequester(),
-        responder = (nodeProvider != null) ? new DsResponder(nodeProvider) : null {
+        responder = (nodeProvider != null) ? new Responder(nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DsaRandom.instance.nextUint8();
     }
@@ -79,9 +79,9 @@ class DsHttpServerSession implements DsServerSession {
   }
   void _handleHttpUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
-      if (_connection is DsHttpServerConnection && _verifySalt(1, request.uri.queryParameters['authS'])) {
+      if (_connection is HttpServerConnection && _verifySalt(1, request.uri.queryParameters['authS'])) {
         // handle http short polling
-        (_connection as DsHttpServerConnection).handleInputS(request, '1x${salts[1]}');
+        (_connection as HttpServerConnection).handleInputS(request, '1x${salts[1]}');
       } else {
         throw HttpStatus.UNAUTHORIZED;
       }
@@ -89,12 +89,12 @@ class DsHttpServerSession implements DsServerSession {
     if (requester == null) {
       throw HttpStatus.FORBIDDEN;
     }
-    if (_connection != null && _connection is! DsHttpServerConnection) {
+    if (_connection != null && _connection is! HttpServerConnection) {
       _connection.close();
       _connection = null;
     }
     if (_connection == null) {
-      _connection = new DsHttpServerConnection();
+      _connection = new HttpServerConnection();
       if (responder != null) {
         responder.connection = _connection.responderChannel;
       }
@@ -106,7 +106,7 @@ class DsHttpServerSession implements DsServerSession {
       }
     }
     _connection.addServerCommand('salt', '0x${salts[0]}');
-    (_connection as DsHttpServerConnection).handleInput(request);
+    (_connection as HttpServerConnection).handleInput(request);
   }
 
   void _handleWsUpdate(HttpRequest request) {
@@ -117,7 +117,7 @@ class DsHttpServerSession implements DsServerSession {
       _connection.close();
     }
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
-      _connection = new DsWebSocketConnection(websocket);
+      _connection = new WebSocketConnection(websocket);
       _connection.addServerCommand('salt', '0x${salts[0]}');
       if (responder != null) {
         responder.connection = _connection.responderChannel;

@@ -1,27 +1,28 @@
 library dslink.http.websocket;
+
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import '../../common.dart';
 import '../../utils.dart';
 
-class DsWebSocketConnection implements DsServerConnection, DsClientConnection {
-  DsPassiveChannel _responderChannel;
-  DsConnectionChannel get responderChannel => _responderChannel;
+class WebSocketConnection implements ServerConnection, ClientConnection {
+  PassiveChannel _responderChannel;
+  ConnectionChannel get responderChannel => _responderChannel;
 
-  DsPassiveChannel _requesterChannel;
-  DsConnectionChannel get requesterChannel => _requesterChannel;
+  PassiveChannel _requesterChannel;
+  ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<DsConnectionChannel> _onRequestReadyCompleter = new Completer<DsConnectionChannel>();
-  Future<DsConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
-  final DsClientSession clientSession;
+  final ClientSession clientSession;
 
   final WebSocket socket;
   /// clientSession is not needed when websocket works in server session
-  DsWebSocketConnection(this.socket, {this.clientSession}) {
-    _responderChannel = new DsPassiveChannel(this);
-    _requesterChannel = new DsPassiveChannel(this);
+  WebSocketConnection(this.socket, {this.clientSession}) {
+    _responderChannel = new PassiveChannel(this);
+    _requesterChannel = new PassiveChannel(this);
     socket.listen(_onData, onDone: _onDone);
     // TODO, when it's used in client session, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));

@@ -1,33 +1,33 @@
 part of dslink.requester;
 
-class DsReqListUpdate {
+class RequesterListUpdate {
   /// this is only a list of changed fields
   /// when changes is null, means everything could have been changed
   List<String> changes;
-  DsReqNode node;
-  DsError error;
+  RequesterNode node;
+  DSError error;
 }
 
-class DsListController {
-  final DsReqNode node;
-  StreamController<DsReqListUpdate> _controller;
-  Stream<DsReqListUpdate> _stream;
-  DsRequest _request;
+class ListController {
+  final RequesterNode node;
+  StreamController<RequesterListUpdate> _controller;
+  Stream<RequesterListUpdate> _stream;
+  Request _request;
   HashSet _listeners;
-  DsListController(this.node) {
-    _controller = new StreamController<DsReqListUpdate>();
+  ListController(this.node) {
+    _controller = new StreamController<RequesterListUpdate>();
     _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
     _listeners = new HashSet();
   }
   bool get initialized {
-    return _request != null && _request.streamStatus != DsStreamStatus.initialize;
+    return _request != null && _request.streamStatus != StreamStatus.initialize;
   }
   void _onUpdate(String status, List updates, List columns) {
     // TODO update node data and _controller
 
   }
 
-  void _onListen(StreamSubscription<DsReqListUpdate> listener) {
+  void _onListen(StreamSubscription<RequesterListUpdate> listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);
       if (_request == null && node.requester.connection != null) {
@@ -39,7 +39,7 @@ class DsListController {
     }
   }
 
-  void _onCancel(StreamSubscription<DsReqListUpdate> listener) {
+  void _onCancel(StreamSubscription<RequesterListUpdate> listener) {
     if (_listeners.contains(listener)) {
       _listeners.remove(listener);
       if (_listeners.isEmpty) {

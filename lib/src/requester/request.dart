@@ -1,17 +1,17 @@
 part of dslink.requester;
 
 /// request class handles raw response from responder
-class DsRequest {
+class Request {
   final DsRequester requester;
   final int rid;
   /// raw request callback
-  final _DsRequestUpdater updater;
+  final _RequestUpdater updater;
   bool _isClosed = false;
   bool get isClosed => _isClosed;
 
-  DsRequest(this.requester, this.rid, this.updater);
+  Request(this.requester, this.rid, this.updater);
 
-  String streamStatus = DsStreamStatus.initialize;
+  String streamStatus = StreamStatus.initialize;
 
   void _update(Map m) {
     if (m['stream'] is String) {
@@ -26,7 +26,7 @@ class DsRequest {
       columns = m['columns'];
     }
     // remove the request from global Map
-    if (streamStatus == DsStreamStatus.closed) {
+    if (streamStatus == StreamStatus.closed) {
       requester._requests.remove(rid);
     }
     updater(streamStatus, updates, columns);
@@ -34,9 +34,9 @@ class DsRequest {
 
   /// close the request from the client side
   void _close() {
-    if (streamStatus != DsStreamStatus.closed) {
-      streamStatus = DsStreamStatus.closed;
-      updater(DsStreamStatus.closed, null, null);
+    if (streamStatus != StreamStatus.closed) {
+      streamStatus = StreamStatus.closed;
+      updater(StreamStatus.closed, null, null);
     }
   }
 

@@ -1,14 +1,14 @@
 part of dslink.responder;
 
-class DsResponse {
-  final DsResponder responder;
+class Response {
+  final Responder responder;
   final int rid;
-  String _streamStatus = DsStreamStatus.initialize;
-  DsResponse(this.responder, this.rid);
+  String _streamStatus = StreamStatus.initialize;
+  Response(this.responder, this.rid);
 
   /// close the request from responder side and also notify the requester
-  void close([DsError err = null]) {
-    _streamStatus = DsStreamStatus.closed;
+  void close([DSError err = null]) {
+    _streamStatus = StreamStatus.closed;
     responder._closeResponse(rid, error: err, response: this);
   }
 

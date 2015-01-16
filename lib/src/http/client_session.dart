@@ -1,7 +1,7 @@
 part of dslink.client;
 
 /// a client session for both http and ws
-class DsHttpClientSession implements DsClientSession {
+class HttpClientSession implements ClientSession {
 
   Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
   Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
@@ -10,13 +10,13 @@ class DsHttpClientSession implements DsClientSession {
   final String dsId;
 
   final DsRequester requester;
-  final DsResponder responder;
+  final Responder responder;
   final DsPrivateKey privateKey;
 
   DsSecretNonce _nonce;
   DsSecretNonce get nonce => _nonce;
 
-  DsConnection _connection;
+  Connection _connection;
 
 
   static const Map<String, int> saltNameMap = const {
@@ -33,11 +33,11 @@ class DsHttpClientSession implements DsClientSession {
   String _wsUpdateUri;
   String _httpUpdateUri;
 
-  DsHttpClientSession(String conn, String dsIdPrefix, DsPrivateKey privateKey, {DsNodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
+  HttpClientSession(String conn, String dsIdPrefix, DsPrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
         requester = isRequester ? new DsRequester() : null,
-        responder = (isResponder && nodeProvider != null) ? new DsResponder(nodeProvider) : null {
+        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {
     // TODO don't put everything in constructor
     // TODO more error handling
     HttpClient client = new HttpClient();
@@ -89,7 +89,7 @@ class DsHttpClientSession implements DsClientSession {
   
   initWebsocket() async {
     var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _connection = new DsWebSocketConnection(socket);
+    _connection = new WebSocketConnection(socket);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

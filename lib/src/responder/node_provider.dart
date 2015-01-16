@@ -1,29 +1,29 @@
 part of dslink.responder;
 
 /// node can be subscribed or listed by multiple responder
-abstract class DsRespNode extends DsNode {
-  DsRespNode(String path) : super(path);
+abstract class ResponderNode extends Node {
+  ResponderNode(String path) : super(path);
 
   /// list and subscribe can be called on a node that doesn't exist
   /// other api like set remove, invoke, can only be applied to existing node
   bool get exists;
 
-  DsResponse list(DsResponder responder, DsResponse response);
-  void subscribe(DsSubscribeResponse subscription, DsResponder responder);
-  void unsubscribe(DsSubscribeResponse subscription, DsResponder responder);
+  Response list(Responder responder, Response response);
+  void subscribe(SubscribeResponse subscription, Responder responder);
+  void unsubscribe(SubscribeResponse subscription, Responder responder);
 
-  DsResponse invoke(Map params, DsResponder responder, DsResponse rid);
+  Response invoke(Map params, Responder responder, Response rid);
 
-  DsResponse setAttribute(String name, String value, DsResponder responder, DsResponse rid);
-  DsResponse removeAttribute(String name, DsResponder responder, DsResponse rid);
-  DsResponse setConfig(String name, Object value, DsResponder responder, DsResponse rid);
-  DsResponse removeConfig(String name, DsResponder responder, DsResponse rid);
+  Response setAttribute(String name, String value, Responder responder, Response rid);
+  Response removeAttribute(String name, Responder responder, Response rid);
+  Response setConfig(String name, Object value, Responder responder, Response rid);
+  Response removeConfig(String name, Responder responder, Response rid);
   /// set node value
-  DsResponse setValue(Object value, DsResponder responder, DsResponse rid);
+  Response setValue(Object value, Responder responder, Response rid);
 }
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders
-abstract class DsNodeProvider {
+abstract class NodeProvider {
   /// get a existing node or create a dummy node for requester to listen on
-  DsRespNode getNode(String path);
+  ResponderNode getNode(String path);
 }

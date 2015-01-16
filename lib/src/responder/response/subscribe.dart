@@ -1,5 +1,5 @@
 part of dslink.responder;
 
-class DsSubscribeResponse extends DsResponse {
-  DsSubscribeResponse(DsResponder responder, int rid) : super(responder, rid);
+class SubscribeResponse extends Response {
+  SubscribeResponse(Responder responder, int rid) : super(responder, rid);
 }

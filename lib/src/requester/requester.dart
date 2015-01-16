@@ -1,14 +1,14 @@
 part of dslink.requester;
 
-class DsRequester extends DsConnectionHandler {
+class DsRequester extends ConnectionHandler {
 
-  final Map<int, DsRequest> _requests = new Map<int, DsRequest>();
+  final Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
-  final DsReqNodeCache _nodeCache = new DsReqNodeCache();
-  DsSubscribeRequest _subsciption;
+  final RequesterNodeCache _nodeCache = new RequesterNodeCache();
+  SubscribeRequest _subsciption;
 
   DsRequester() {
-    _subsciption = new DsSubscribeRequest(this, 0);
+    _subsciption = new SubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
   void onData(List list) {
@@ -24,11 +24,11 @@ class DsRequester extends DsConnectionHandler {
     }
   }
   int nextRid = 1;
-  DsRequest _sendRequest(Map m, _DsRequestUpdater updater) {
+  Request _sendRequest(Map m, _RequestUpdater updater) {
     m['rid'] = nextRid;
-    DsRequest req;
+    Request req;
     if (updater != null) {
-      req = new DsRequest(this, nextRid, updater);
+      req = new Request(this, nextRid, updater);
       _requests[nextRid] = req;
     }
     addToSendList(m);
@@ -36,17 +36,17 @@ class DsRequester extends DsConnectionHandler {
     return req;
   }
 
-  Stream<DsReqSubscribeUpdate> subscribe(String path) {
+  Stream<RequesterSubscribeUpdate> subscribe(String path) {
     return null;
   }
 
-  Stream<DsReqListUpdate> list(String path) {
-    DsReqNode node = _nodeCache.getNode(path, this);
+  Stream<RequesterListUpdate> list(String path) {
+    RequesterNode node = _nodeCache.getNode(path, this);
     return node._list();
   }
 
-  Stream<DsReqInvokeUpdate> invoke(String path, Map params) {
-    DsReqNode node = _nodeCache.getNode(path, this);
+  Stream<RequesterInvokeUpdate> invoke(String path, Map params) {
+    RequesterNode node = _nodeCache.getNode(path, this);
     return node._invoke(params);
   }
 
@@ -64,9 +64,9 @@ class DsRequester extends DsConnectionHandler {
 //  }
 
   /// close the request from requester side and notify responder
-  void closeRequest(DsRequest request) {
+  void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
-      if (request.streamStatus != DsStreamStatus.closed) {
+      if (request.streamStatus != StreamStatus.closed) {
         addToSendList({
           'method': 'close',
           'rid': request.rid

@@ -1,12 +1,12 @@
 part of dslink.common;
 
-abstract class DsConnectionHandler {
-  DsConnectionChannel _conn;
+abstract class ConnectionHandler {
+  ConnectionChannel _conn;
   StreamSubscription _connListener;
   StreamSubscription _beforeSendListener;
-  DsConnectionChannel get connection => _conn;
+  ConnectionChannel get connection => _conn;
 
-  void set connection(DsConnectionChannel conn) {
+  void set connection(ConnectionChannel conn) {
     if (_connListener != null) {
       _connListener.cancel();
       _connListener = null;
@@ -19,7 +19,7 @@ abstract class DsConnectionHandler {
     onReconnected();
   }
 
-  void _onDisconnected(DsConnectionChannel conn) {
+  void _onDisconnected(ConnectionChannel conn) {
     if (_conn == conn) {
       if (_connListener != null) {
         _connListener.cancel();

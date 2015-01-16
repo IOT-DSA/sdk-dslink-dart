@@ -20,25 +20,27 @@ List foldList(List a, List b) {
   return a..addAll(b);
 }
 
-abstract class DsConnection {
-  DsConnectionChannel get requesterChannel;
-  DsConnectionChannel get responderChannel;
+abstract class Connection {
+  ConnectionChannel get requesterChannel;
+  ConnectionChannel get responderChannel;
   /// trigger when requester channel is Ready
-  Future<DsConnectionChannel> get onRequesterReady;
+  Future<ConnectionChannel> get onRequesterReady;
 
   /// notify the connection channel need to send data
   void requireSend();
   /// close the connection
   void close();
 }
-abstract class DsServerConnection extends DsConnection {
+abstract class ServerConnection extends Connection {
   /// send a server command to client such as salt string, or allowed:true
   void addServerCommand(String key, Object value);
 }
-abstract class DsClientConnection extends DsConnection {
+
+abstract class ClientConnection extends Connection {
 
 }
-abstract class DsConnectionChannel {
+
+abstract class ConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
   /// a new getData function will always overwrite the previous one;
   /// requester and responder should handle the merging of methods
@@ -49,45 +51,41 @@ abstract class DsConnectionChannel {
   /// whether the connection is ready to send and receive data
   bool get isReady;
 
-  Future<DsConnectionChannel> get onDisconnected;
+  Future<ConnectionChannel> get onDisconnected;
 }
 
-
-
-abstract class DsSession {
+abstract class Session {
   DsRequester get requester;
-  DsResponder get responder;
+  Responder get responder;
   
   DsSecretNonce get nonce;
   
   /// trigger when requester channel is Ready
   Future<DsRequester> get onRequesterReady;
 }
-abstract class DsServerSession extends DsSession {
+
+abstract class ServerSession extends Session {
   DsPublicKey get publicKey;
 }
-abstract class DsClientSession extends DsSession {
+
+abstract class ClientSession extends Session {
   DsPrivateKey get privateKey;
   /// shortPolling is only valid in http mode
   updateSalt(String salt, [bool shortPolling = false]);
 }
 
-
-
-
-
-class DsStreamStatus {
+class StreamStatus {
   static const String initialize = 'initialize';
   static const String open = 'open';
   static const String closed = 'closed';
 }
 
-class DsErrorPhase {
+class ErrorPhase {
   static const String request = 'request';
   static const String response = 'response';
 }
 
-class DsError {
+class DSError {
   /// type of error
   String type;
   String detail;
@@ -95,7 +93,7 @@ class DsError {
   String path;
   String phase;
 
-  DsError(this.msg, {this.detail, this.type, this.path, this.phase: DsErrorPhase.response});
+  DSError(this.msg, {this.detail, this.type, this.path, this.phase: ErrorPhase.response});
 
   Map serialize() {
     Map rslt = {
@@ -107,8 +105,8 @@ class DsError {
     if (path != null) {
       rslt['path'] = path;
     }
-    if (phase == DsErrorPhase.request) {
-      rslt['phase'] = DsErrorPhase.request;
+    if (phase == ErrorPhase.request) {
+      rslt['phase'] = ErrorPhase.request;
     }
     if (detail != null) {
       rslt['detail'] = detail;

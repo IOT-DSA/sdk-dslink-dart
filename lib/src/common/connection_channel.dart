@@ -1,14 +1,16 @@
 part of dslink.common;
 
-class DsPassiveChannel implements DsConnectionChannel{
+class PassiveChannel implements ConnectionChannel{
   final StreamController<List> onReceiveController = new StreamController<List>();
   Stream<List> get onReceive => onReceiveController.stream;
 
   List<Function> _processors = [];
 
-  final DsConnection conn;
-  DsPassiveChannel(this.conn) {
+  final Connection conn;
+  
+  PassiveChannel(this.conn) {
   }
+  
   Function getData;
   void sendWhenReady(List getData()) {
     this.getData = getData;
@@ -21,7 +23,6 @@ class DsPassiveChannel implements DsConnectionChannel{
     _isReady = val;
   }
 
-  final Completer<DsConnectionChannel> onDisconnectController = new Completer<DsConnectionChannel>();
-  Future<DsConnectionChannel> get onDisconnected => onDisconnectController.future;
-
+  final Completer<ConnectionChannel> onDisconnectController = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onDisconnected => onDisconnectController.future;
 }

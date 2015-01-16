@@ -4,26 +4,23 @@ import "package:dslink/common.dart";
 import "package:dslink/responder.dart";
 
 class DsLink {
-  final DsConnectionChannel connection;
+  final ClientConnection connection;
   _NodeProvider nodeProvider;
-  DsResponder responder;
   
   DsLink(this.connection) {
     nodeProvider = new _NodeProvider(this);
-    responder = new DsResponder(nodeProvider);
-    responder.connection = connection;
   }
   
   BaseNode rootNode = new BaseNode("/");
 }
 
-class _NodeProvider extends DsNodeProvider {
+class _NodeProvider extends NodeProvider {
   final DsLink link;
   
   _NodeProvider(this.link);
   
   @override
-  DsRespNode getNode(String path) {
+  ResponderNode getNode(String path) {
     var node = link.rootNode;
     var parts = path.split("/");
     int i = 0;
@@ -35,8 +32,8 @@ class _NodeProvider extends DsNodeProvider {
   }
 }
 
-class BaseNode extends DsRespNode {
-  List<DsSubscribeResponse> _subscribers;
+class BaseNode extends ResponderNode {
+  List<SubscribeResponse> _subscribers;
   Object _value;
   
   BaseNode(String path) : super(path);
@@ -45,53 +42,53 @@ class BaseNode extends DsRespNode {
   bool get exists => true;
 
   @override
-  DsResponse invoke(Map params, DsResponder responder, DsResponse response) {
+  Response invoke(Map params, Responder responder, Response response) {
     return null;
   }
 
   @override
-  DsResponse list(DsResponder responder, DsResponse response) {
+  Response list(Responder responder, Response response) {
     return null;
   }
 
   @override
-  DsResponse removeAttribute(String name, DsResponder responder, DsResponse response) {
+  Response removeAttribute(String name, Responder responder, Response response) {
     attributes.remove(name);
     return response..close();
   }
 
   @override
-  DsResponse removeConfig(String name, DsResponder responder, DsResponse response) {
+  Response removeConfig(String name, Responder responder, Response response) {
     configs.remove(name);
     return response..close();
   }
 
   @override
-  DsResponse setAttribute(String name, String value, DsResponder responder, DsResponse response) {
+  Response setAttribute(String name, String value, Responder responder, Response response) {
     attributes[name] = value;
     return response..close();
   }
 
   @override
-  DsResponse setConfig(String name, Object value, DsResponder responder, DsResponse response) {
+  Response setConfig(String name, Object value, Responder responder, Response response) {
     configs[name] = value;
     return response..close();
   }
 
   @override
-  DsResponse setValue(Object value, DsResponder responder, DsResponse response) {
+  Response setValue(Object value, Responder responder, Response response) {
     _value = value;
     return response..close();
   }
 
   @override
-  void subscribe(DsSubscribeResponse subscription, DsResponder responder) {
+  void subscribe(SubscribeResponse subscription, Responder responder) {
     _subscribers.add(subscription);
     subscription.close();
   }
 
   @override
-  void unsubscribe(DsSubscribeResponse subscription, DsResponder responder) {
+  void unsubscribe(SubscribeResponse subscription, Responder responder) {
     _subscribers.remove(subscription);
     subscription.close();
   }

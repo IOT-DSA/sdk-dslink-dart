@@ -1,18 +1,18 @@
 part of dslink.http_server;
 
-class DsHttpServerConnection implements DsServerConnection {
-  DsPassiveChannel _responderChannel;
-  DsConnectionChannel get responderChannel => _responderChannel;
+class HttpServerConnection implements ServerConnection {
+  PassiveChannel _responderChannel;
+  ConnectionChannel get responderChannel => _responderChannel;
 
-  DsPassiveChannel _requesterChannel;
-  DsConnectionChannel get requesterChannel => _requesterChannel;
+  PassiveChannel _requesterChannel;
+  ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<DsConnectionChannel> _onRequestReadyCompleter = new Completer<DsConnectionChannel>();
-  Future<DsConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
-  DsHttpServerConnection() {
-    _responderChannel = new DsPassiveChannel(this);
-    _requesterChannel = new DsPassiveChannel(this);
+  HttpServerConnection() {
+    _responderChannel = new PassiveChannel(this);
+    _requesterChannel = new PassiveChannel(this);
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
   }
   bool _pendingCheck = false;

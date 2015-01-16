@@ -1,23 +1,23 @@
 part of dslink.client;
 
-class DsHttpClientConnection implements DsClientConnection {
-  DsPassiveChannel _responderChannel;
-  DsConnectionChannel get responderChannel => _responderChannel;
+class DsHttpClientConnection implements ClientConnection {
+  PassiveChannel _responderChannel;
+  ConnectionChannel get responderChannel => _responderChannel;
 
-  DsPassiveChannel _requesterChannel;
-  DsConnectionChannel get requesterChannel => _requesterChannel;
+  PassiveChannel _requesterChannel;
+  ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<DsConnectionChannel> _onRequestReadyCompleter = new Completer<DsConnectionChannel>();
-  Future<DsConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
   final String url;
-  final DsClientSession clientSession;
+  final ClientSession clientSession;
 
   String salt;
   String saltS;
   DsHttpClientConnection(this.url, this.clientSession, this.salt, this.saltS) {
-    _responderChannel = new DsPassiveChannel(this);
-    _requesterChannel = new DsPassiveChannel(this);
+    _responderChannel = new PassiveChannel(this);
+    _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
     requireSend();

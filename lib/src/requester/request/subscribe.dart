@@ -1,15 +1,15 @@
 part of dslink.requester;
 
-class DsReqSubscribeUpdate {
+class RequesterSubscribeUpdate {
   String ts;
   Object value;
   Map meta;
-  DsError error;
+  DSError error;
 }
-class DsSubscribeRequest extends DsRequest {
-  final Map<String, DsSubscribeController> subsriptions = new Map<String, DsSubscribeController>();
+class SubscribeRequest extends Request {
+  final Map<String, SubscribeController> subsriptions = new Map<String, SubscribeController>();
 
-  DsSubscribeRequest(DsRequester requester, int rid) : super(requester, rid, null);
+  SubscribeRequest(DsRequester requester, int rid) : super(requester, rid, null);
 
   void _update(Map m) {
     List updates = m['updates'];
@@ -20,7 +20,7 @@ class DsSubscribeRequest extends DsRequest {
 
 
   HashSet<String> _changedPaths = new HashSet<String>();
-  void addSubscription(DsSubscribeController controller) {
+  void addSubscription(SubscribeController controller) {
     String path = controller.node.path;
     if (!subsriptions.containsKey(path)) {
       subsriptions[path] = controller;
@@ -32,7 +32,7 @@ class DsSubscribeRequest extends DsRequest {
       }
     }
   }
-  void removeSubscription(DsSubscribeController controller) {
+  void removeSubscription(SubscribeController controller) {
     String path = controller.node.path;
     if (subsriptions.containsKey(path)) {
       subsriptions.remove(path);
@@ -73,14 +73,14 @@ class DsSubscribeRequest extends DsRequest {
     }
   }
 }
-class DsSubscribeController {
-  final DsReqNode node;
+class SubscribeController {
+  final RequesterNode node;
 
-  StreamController<DsReqSubscribeUpdate> _controller;
-  Stream<DsReqSubscribeUpdate> _stream;
+  StreamController<RequesterSubscribeUpdate> _controller;
+  Stream<RequesterSubscribeUpdate> _stream;
   HashSet _listeners;
-  DsSubscribeController(this.node) {
-    _controller = new StreamController<DsReqSubscribeUpdate>();
+  SubscribeController(this.node) {
+    _controller = new StreamController<RequesterSubscribeUpdate>();
     _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
     _listeners = new HashSet();
   }
@@ -88,7 +88,7 @@ class DsSubscribeController {
 
 
   bool _subscribing = false;
-  void _onListen(StreamSubscription<DsReqSubscribeUpdate> listener) {
+  void _onListen(StreamSubscription<RequesterSubscribeUpdate> listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);
       if (!_subscribing) {
@@ -98,7 +98,7 @@ class DsSubscribeController {
     }
   }
 
-  void _onCancel(StreamSubscription<DsReqSubscribeUpdate> listener) {
+  void _onCancel(StreamSubscription<RequesterSubscribeUpdate> listener) {
     if (_listeners.contains(listener)) {
       _listeners.remove(listener);
       if (_listeners.isEmpty) {

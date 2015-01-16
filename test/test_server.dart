@@ -12,20 +12,20 @@ void main() {
   nodeProvider: new TestNodeProvider());
 }
 
-class TestNodeProvider extends DsNodeProvider {
+class TestNodeProvider extends NodeProvider {
   TestNode onlyNode = new TestNode('/');
-  DsRespNode getNode(String path) {
+  ResponderNode getNode(String path) {
     return onlyNode;
   }
 }
-class TestNode extends DsRespNode {
+class TestNode extends ResponderNode {
   TestNode(String path) : super(path);
 
 
   bool get exists => true;
 
-  DsResponse invoke(Map params, DsResponder responder, DsResponse response) {
-    responder.updateReponse(response, [[1, 2]], status: DsStreamStatus.closed, columns: [{
+  Response invoke(Map params, Responder responder, Response response) {
+    responder.updateReponse(response, [[1, 2]], status: StreamStatus.closed, columns: [{
         'name': 'v1',
         'type': 'number'
       }, {
@@ -35,35 +35,35 @@ class TestNode extends DsRespNode {
     return response;
   }
 
-  DsResponse list(DsResponder responder, DsResponse response) {
+  Response list(Responder responder, Response response) {
     return response;
   }
 
-  DsResponse removeAttribute(String name, DsResponder responder, DsResponse response) {
+  Response removeAttribute(String name, Responder responder, Response response) {
     return response;
   }
 
-  DsResponse removeConfig(String name, DsResponder responder, DsResponse response) {
+  Response removeConfig(String name, Responder responder, Response response) {
     return response;
   }
 
-  DsResponse setAttribute(String name, String value, DsResponder responder, DsResponse response) {
+  Response setAttribute(String name, String value, Responder responder, Response response) {
     return response;
   }
 
-  DsResponse setConfig(String name, Object value, DsResponder responder, DsResponse response) {
+  Response setConfig(String name, Object value, Responder responder, Response response) {
     return response;
   }
 
-  DsResponse setValue(Object value, DsResponder responder, DsResponse response) {
+  Response setValue(Object value, Responder responder, Response response) {
     return response;
   }
 
-  void subscribe(DsSubscribeResponse subscription, DsResponder responder) {
+  void subscribe(SubscribeResponse subscription, Responder responder) {
     // TODO: implement subscribe
   }
 
-  void unsubscribe(DsSubscribeResponse subscription, DsResponder responder) {
+  void unsubscribe(SubscribeResponse subscription, Responder responder) {
     // TODO: implement unsubscribe
   }
 }

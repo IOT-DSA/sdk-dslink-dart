@@ -1,30 +1,31 @@
 part of dslink.responder;
 
 /// a responder for one connection
-class DsResponder extends DsConnectionHandler {
-  final Map<int, DsResponse> _responses = new Map<int, DsResponse>();
-  DsSubscribeResponse _subscription;
+class Responder extends ConnectionHandler {
+  final Map<int, Response> _responses = new Map<int, Response>();
+  SubscribeResponse _subscription;
   /// caching of nodes
-  final DsNodeProvider nodeProvider;
+  final NodeProvider nodeProvider;
 
-  DsResponder(this.nodeProvider) {
-    _subscription = new DsSubscribeResponse(this, 0);
+  Responder(this.nodeProvider) {
+    _subscription = new SubscribeResponse(this, 0);
     _responses[0] = _subscription;
   }
 
   void onDisconnected() {
     // TODO close and clear all responses
   }
+  
   void onReconnected() {
   }
 
-
-  DsResponse addResponse(DsResponse response) {
-    if (response._streamStatus != DsStreamStatus.closed) {
+  Response addResponse(Response response) {
+    if (response._streamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
     }
     return response;
   }
+  
   void onData(List list) {
     for (Object resp in list) {
       if (resp is Map) {
@@ -32,6 +33,7 @@ class DsResponder extends DsConnectionHandler {
       }
     }
   }
+  
   void _onReceiveRequest(Map m) {
     if (m['method'] is String && m['rid'] is int) {
       if (_responses.containsKey(m['rid'])) {
@@ -64,29 +66,30 @@ class DsResponder extends DsConnectionHandler {
       }
     }
     if (m['rid'] is int) {
-      _closeResponse(m['rid'], error: new DsError('invalid request method'));
+      _closeResponse(m['rid'], error: new DSError('invalid request method'));
     }
   }
   /// close the response from responder side and notify requester
-  void _closeResponse(int rid, {DsResponse response, DsError error}) {
+  void _closeResponse(int rid, {Response response, DSError error}) {
     if (response != null) {
       if (_responses[response.rid] != response) {
         // this response is no longer valid
         return;
       }
-      response._streamStatus = DsStreamStatus.closed;
+      response._streamStatus = StreamStatus.closed;
       rid = response.rid;
     }
     Map m = {
       'rid': rid,
-      'stream': DsStreamStatus.closed
+      'stream': StreamStatus.closed
     };
     if (error != null) {
       m['error'] = error.serialize();
     }
     addToSendList(m);
   }
-  void updateReponse(DsResponse response, List updates, {String status, List<DsTableColumn> columns}) {
+  
+  void updateReponse(Response response, List updates, {String status, List<TableColumn> columns}) {
     if (_responses[response.rid] == response) {
       Map m = {
         'rid': response.rid
@@ -102,7 +105,7 @@ class DsResponder extends DsConnectionHandler {
         m['updates'] = updates;
       }
       addToSendList(m);
-      if (response._streamStatus == DsStreamStatus.closed) {
+      if (response._streamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
       }
     }
@@ -110,44 +113,44 @@ class DsResponder extends DsConnectionHandler {
 
 
   void _list(Map m) {
-    DsPath path = DsPath.getValidNodePath(m['path']);
+    Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
-      nodeProvider.getNode(path.path).list(this, addResponse(new DsResponse(this, rid)));
+      nodeProvider.getNode(path.path).list(this, addResponse(new Response(this, rid)));
     } else {
-      _closeResponse(m['rid'], error: new DsError('invalid path'));
+      _closeResponse(m['rid'], error: new DSError('invalid path'));
     }
   }
   void _subscribe(Map m) {
     if (m['paths'] is List) {
       int rid = m['rid'];
       for (Object str in m['paths']) {
-        DsPath path = DsPath.getValidNodePath(m['str']);
+        Path path = Path.getValidNodePath(m['str']);
         if (path != null && path.absolute) {
           nodeProvider.getNode(path.path).subscribe(_subscription, this);
         }
       }
       _closeResponse(m['rid']);
     } else {
-      _closeResponse(m['rid'], error: new DsError('invalid paths'));
+      _closeResponse(m['rid'], error: new DSError('invalid paths'));
     }
   }
   void _unsubscribe(Map m) {
     if (m['paths'] is List) {
       int rid = m['rid'];
       for (Object str in m['paths']) {
-        DsPath path = DsPath.getValidNodePath(m['str']);
+        Path path = Path.getValidNodePath(m['str']);
         if (path != null && path.absolute) {
           nodeProvider.getNode(path.path).unsubscribe(_subscription, this);
         }
       }
       _closeResponse(m['rid']);
     } else {
-      _closeResponse(m['rid'], error: new DsError('invalid paths'));
+      _closeResponse(m['rid'], error: new DSError('invalid paths'));
     }
   }
   void _invoke(Map m) {
-    DsPath path = DsPath.getValidNodePath(m['path']);
+    Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
       Map params = {};
@@ -159,32 +162,32 @@ class DsResponder extends DsConnectionHandler {
           }
         });
       }
-      nodeProvider.getNode(path.path).invoke(params, this, addResponse(new DsResponse(this, rid)));
+      nodeProvider.getNode(path.path).invoke(params, this, addResponse(new Response(this, rid)));
     } else {
-      _closeResponse(m['rid'], error: new DsError('invalid path'));
+      _closeResponse(m['rid'], error: new DSError('invalid path'));
     }
   }
   void _set(Map m) {
-    DsPath path = DsPath.getValidPath(m['path']);
+    Path path = Path.getValidPath(m['path']);
     if (path == null || path.absolute) {
-      _closeResponse(m['rid'], error: new DsError('invalid path'));
+      _closeResponse(m['rid'], error: new DSError('invalid path'));
       return;
     }
     if (!m.containsKey('value')) {
-      _closeResponse(m['rid'], error: new DsError('missing value'));
+      _closeResponse(m['rid'], error: new DSError('missing value'));
       return;
     }
     Object value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      nodeProvider.getNode(path.path).setValue(value, this, addResponse(new DsResponse(this, rid)));
+      nodeProvider.getNode(path.path).setValue(value, this, addResponse(new Response(this, rid)));
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).setConfig(path.name, value, this, addResponse(new DsResponse(this, rid)));
+      nodeProvider.getNode(path.parentPath).setConfig(path.name, value, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
       if (value is String) {
-        nodeProvider.getNode(path.parentPath).setAttribute(path.name, value, this, addResponse(new DsResponse(this, rid)));
+        nodeProvider.getNode(path.parentPath).setAttribute(path.name, value, this, addResponse(new Response(this, rid)));
       } else {
-        _closeResponse(m['rid'], error: new DsError('attribute value must be string'));
+        _closeResponse(m['rid'], error: new DSError('attribute value must be string'));
       }
     } else {
       // shouldn't be possible to reach here
@@ -193,18 +196,18 @@ class DsResponder extends DsConnectionHandler {
   }
 
   void _remove(Map m) {
-    DsPath path = DsPath.getValidPath(m['path']);
+    Path path = Path.getValidPath(m['path']);
     if (path == null || path.absolute) {
-      _closeResponse(m['rid'], error: new DsError('invalid path'));
+      _closeResponse(m['rid'], error: new DSError('invalid path'));
       return;
     }
     int rid = m['rid'];
     if (path.isNode) {
-      _closeResponse(m['rid'], error: new DsError('can not remove a node'));
+      _closeResponse(m['rid'], error: new DSError('can not remove a node'));
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).removeConfig(path.name, this, addResponse(new DsResponse(this, rid)));
+      nodeProvider.getNode(path.parentPath).removeConfig(path.name, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
-      nodeProvider.getNode(path.parentPath).removeAttribute(path.name, this, addResponse(new DsResponse(this, rid)));
+      nodeProvider.getNode(path.parentPath).removeAttribute(path.name, this, addResponse(new Response(this, rid)));
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';

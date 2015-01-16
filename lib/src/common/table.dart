@@ -1,11 +1,11 @@
 part of dslink.common;
 
-class DsTableColumn {
-  static List<DsTableColumn> parseColumns(List list) {
-    List<DsTableColumn> rslt = new List<DsTableColumn>();
+class TableColumn {
+  static List<TableColumn> parseColumns(List list) {
+    List<TableColumn> rslt = new List<TableColumn>();
     for (Object m in list) {
       if (m is Map && m['name'] is String && m['type'] is String) {
-        rslt.add(new DsTableColumn(m['name'], m['type'], m['default']));
+        rslt.add(new TableColumn(m['name'], m['type'], m['default']));
       } else {
         // invalid column data
         return null;
@@ -16,10 +16,10 @@ class DsTableColumn {
   String type;
   String name;
   Object defaultValue;
-  DsTableColumn(this.name, this.type, [this.defaultValue]);
+  TableColumn(this.name, this.type, [this.defaultValue]);
 }
 
-class DsTable {
-  List<DsTableColumn> columns;
+class Table {
+  List<TableColumn> columns;
   List<List> rows;
 }

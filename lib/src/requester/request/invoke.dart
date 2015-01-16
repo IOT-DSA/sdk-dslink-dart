@@ -1,30 +1,30 @@
 part of dslink.requester;
 
-class DsReqInvokeUpdate {
-  List<DsTableColumn> columns;
+class RequesterInvokeUpdate {
+  List<TableColumn> columns;
   List<List> rows;
-  DsReqInvokeUpdate(this.rows, this.columns);
+  RequesterInvokeUpdate(this.rows, this.columns);
 }
 
-class DsInvokeController {
-  static List<DsTableColumn> getNodeColumns(DsReqNode node) {
+class InvokeController {
+  static List<TableColumn> getNodeColumns(RequesterNode node) {
     Object columns = node.getConfig(r'$columns');
     if (columns is! List && node.profile != null) {
       columns = node.profile.getConfig(r'$columns');
     }
     if (columns is List) {
-      return DsTableColumn.parseColumns(columns);
+      return TableColumn.parseColumns(columns);
     }
     return null;
   }
 
-  final DsReqNode node;
-  StreamController<DsReqInvokeUpdate> _controller;
-  Stream<DsReqInvokeUpdate> _stream;
-  DsRequest _request;
-  List<DsTableColumn> _cachedColumns;
-  DsInvokeController(this.node, Map params) {
-    _controller = new StreamController<DsReqInvokeUpdate>();
+  final RequesterNode node;
+  StreamController<RequesterInvokeUpdate> _controller;
+  Stream<RequesterInvokeUpdate> _stream;
+  Request _request;
+  List<TableColumn> _cachedColumns;
+  InvokeController(this.node, Map params) {
+    _controller = new StreamController<RequesterInvokeUpdate>();
     _stream = _controller.stream;
     Map reqMap = {
       'method': 'invoke',
@@ -39,13 +39,13 @@ class DsInvokeController {
     _request = node.requester._sendRequest(reqMap, _onUpdate);
 //    }
   }
-  void _onNodeUpdate(DsReqListUpdate listUpdate) {
+  void _onNodeUpdate(RequesterListUpdate listUpdate) {
     //TODO, close the stream when configs are loaded
   }
 
   void _onUpdate(String status, List updates, List columns) {
     if (columns != null) {
-      _cachedColumns = DsTableColumn.parseColumns(columns);
+      _cachedColumns = TableColumn.parseColumns(columns);
     }
     if (_cachedColumns == null) {
       _controller.close();
@@ -69,7 +69,7 @@ class DsInvokeController {
           }
         } else if (obj is Map) {
           row = [];
-          for (DsTableColumn column in _cachedColumns) {
+          for (TableColumn column in _cachedColumns) {
             if (obj.containsKey(column.name)) {
               row.add(obj[column.name]);
             } else {
@@ -79,9 +79,9 @@ class DsInvokeController {
         }
         rows.add(row);
       }
-      _controller.add(new DsReqInvokeUpdate(rows, _cachedColumns));
+      _controller.add(new RequesterInvokeUpdate(rows, _cachedColumns));
     }
-    if (status == DsStreamStatus.closed) {
+    if (status == StreamStatus.closed) {
       _controller.close();
     }
   }

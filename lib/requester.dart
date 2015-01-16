@@ -11,4 +11,4 @@ part 'src/requester/request/list.dart';
 part 'src/requester/request/subscribe.dart';
 part 'src/requester/request/invoke.dart';
 /// update function for raw request callback
-typedef void _DsRequestUpdater(String status, List updates, List columns);
+typedef void _RequestUpdater(String status, List updates, List columns);
