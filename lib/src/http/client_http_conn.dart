@@ -1,6 +1,6 @@
 part of dslink.client;
 
-class DsHttpClientConnection implements ClientConnection {
+class HttpClientConnection implements ClientConnection {
   PassiveChannel _responderChannel;
   ConnectionChannel get responderChannel => _responderChannel;
 
@@ -15,7 +15,7 @@ class DsHttpClientConnection implements ClientConnection {
 
   String salt;
   String saltS;
-  DsHttpClientConnection(this.url, this.clientSession, this.salt, this.saltS) {
+  HttpClientConnection(this.url, this.clientSession, this.salt, this.saltS) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this

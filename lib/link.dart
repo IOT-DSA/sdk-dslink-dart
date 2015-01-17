@@ -1,21 +1,44 @@
 library dslink.link;
 
+import "dart:async";
+import "dart:io";
+
+import "package:dslink/http_client.dart";
+import "package:dslink/src/http/websocket_conn.dart";
 import "package:dslink/common.dart";
+import "package:dslink/src/crypto/pk.dart";
 import "package:dslink/responder.dart";
 
-class DsLink {
-  final ClientConnection connection;
-  _NodeProvider nodeProvider;
+export "package:dslink/src/crypto/pk.dart" show PrivateKey;
+
+class Link {
+  final String host;
+  final int port;
+  final PrivateKey privateKey;
   
-  DsLink(this.connection) {
-    nodeProvider = new _NodeProvider(this);
+  HttpClientSession session;
+  
+  
+  _NodeProvider _nodeProvider;
+  
+  Link(this.host, this.privateKey, {this.port: 80}) {
+    _nodeProvider = new _NodeProvider(this);
+  }
+  
+  void addRootNode(ResponderNode node) {
+    rootNode.addChild(node);
+  }
+  
+  Future connect() async {
+    session = new HttpClientSession("${host}:${port}", "broker-dsa", new PrivateKey.generate(), nodeProvider: _nodeProvider);
+    await session.init();
   }
   
   BaseNode rootNode = new BaseNode("/");
 }
 
 class _NodeProvider extends NodeProvider {
-  final DsLink link;
+  final Link link;
   
   _NodeProvider(this.link);
   

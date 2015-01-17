@@ -15,15 +15,15 @@ import '../../utils.dart';
 import 'dart:math' as Math;
 import 'dart:convert';
 
-class DsSecretNonce {
+class SecretNonce {
   Uint8List bytes;
 
-  DsSecretNonce(this.bytes);
+  SecretNonce(this.bytes);
 
-  DsSecretNonce.generate() {
+  SecretNonce.generate() {
     bytes = new Uint8List(16);
     for (int i = 0; i < 16; ++i) {
-      bytes[i] = DsaRandom.instance.nextUint8();
+      bytes[i] = DSRandom.instance.nextUint8();
     }
   }
 
@@ -44,14 +44,14 @@ class DsSecretNonce {
   }
 }
 
-class DsPublicKey {
+class PublicKey {
   static final BigInteger _publicExp = new BigInteger(65537);
 
   RSAPublicKey rsaPublicKey;
   String modulusBase64;
   String modulusHash64;
 
-  DsPublicKey(BigInteger modulus) {
+  PublicKey(BigInteger modulus) {
     rsaPublicKey = new RSAPublicKey(modulus, _publicExp);
     List bytes = _bigintToUint8List(modulus);
     modulusBase64 = Base64.encode(bytes);
@@ -66,7 +66,7 @@ class DsPublicKey {
     return (dsId.length >= 64 && dsId.substring(dsId.length - 64) == modulusHash64);
   }
 
-  String encryptNonce(DsSecretNonce nonce) {
+  String encryptNonce(SecretNonce nonce) {
     var pubpar = new PublicKeyParameter<RSAPublicKey>(rsaPublicKey);
     RSAEngine encrypt = new RSAEngine();
     encrypt.init(true, pubpar);
@@ -75,29 +75,29 @@ class DsPublicKey {
   }
 }
 
-class DsPrivateKey {
-  DsPublicKey publicKey;
+class PrivateKey {
+  PublicKey publicKey;
   RSAPrivateKey rsaPrivateKey;
   AsymmetricKeyPair keyPair;
 
-  DsPrivateKey(BigInteger modulus, BigInteger exponent, BigInteger p, BigInteger q) {
-    publicKey = new DsPublicKey(modulus);
+  PrivateKey(BigInteger modulus, BigInteger exponent, BigInteger p, BigInteger q) {
+    publicKey = new PublicKey(modulus);
     rsaPrivateKey = new RSAPrivateKey(modulus, exponent, p, q);
     keyPair = new AsymmetricKeyPair(publicKey.rsaPublicKey, rsaPrivateKey);
   }
 
-  factory DsPrivateKey.generate() {
+  factory PrivateKey.generate() {
     var gen = new RSAKeyGenerator();
-    var rnd = new DsaRandom();
-    var rsapars = new RSAKeyGeneratorParameters(DsPublicKey._publicExp, 2048, 32);
+    var rnd = new DSRandom();
+    var rsapars = new RSAKeyGeneratorParameters(PublicKey._publicExp, 2048, 32);
     var params = new ParametersWithRandom(rsapars, rnd);
     gen.init(params);
     var pair = gen.generateKeyPair();
     RSAPrivateKey key = pair.privateKey;
-    return new DsPrivateKey(key.modulus, key.exponent, key.p, key.q);
+    return new PrivateKey(key.modulus, key.exponent, key.p, key.q);
   }
 
-  factory DsPrivateKey.loadFromString(String str) {
+  factory PrivateKey.loadFromString(String str) {
     Map m = _parseOpensslTextKey(str);
 
     if (m['publicExponent'] == ' 65537 (0x10001)') {
@@ -108,23 +108,23 @@ class DsPrivateKey {
       BigInteger exponent = new BigInteger()..fromString(m['privateExponent'], 16);
       BigInteger p = new BigInteger()..fromString(m['prime1'], 16);
       BigInteger q = new BigInteger()..fromString(m['prime2'], 16);
-      return new DsPrivateKey(modulus, exponent, p, q);
+      return new PrivateKey(modulus, exponent, p, q);
     } else {
       // load a key file generated with saveToString()
       BigInteger modulus = new BigInteger.fromBytes(1, Base64.decode(m['m']));
       BigInteger exponent = new BigInteger.fromBytes(1, Base64.decode(m['e']));
       BigInteger p = new BigInteger.fromBytes(1, Base64.decode(m['p']));
       BigInteger q = new BigInteger.fromBytes(1, Base64.decode(m['q']));
-      return new DsPrivateKey(modulus, exponent, p, q);
+      return new PrivateKey(modulus, exponent, p, q);
     }
   }
 
-  DsSecretNonce decryptNonce(String nonce) {
+  SecretNonce decryptNonce(String nonce) {
     var privpar = new PrivateKeyParameter<RSAPrivateKey>(rsaPrivateKey);
     RSAEngine decrypt = new RSAEngine();
     decrypt.init(false, privpar);
     var decrypted = decrypt.process(Base64.decode(nonce));
-    return new DsSecretNonce(decrypted);
+    return new SecretNonce(decrypted);
   }
 
   String saveToString() {
@@ -173,15 +173,15 @@ Map _parseOpensslTextKey(String str) {
 }
 
 /// random number generator
-class DsaRandom extends SecureRandomBase {
-  static final DsaRandom instance = new DsaRandom();
+class DSRandom extends SecureRandomBase {
+  static final DSRandom instance = new DSRandom();
 
   BlockCtrRandom _delegate;
   AESFastEngine _aes;
 
   String get algorithmName => _delegate.algorithmName;
 
-  DsaRandom([int seed = -1]) {
+  DSRandom([int seed = -1]) {
     _aes = new AESFastEngine();
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later

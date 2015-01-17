@@ -9,14 +9,14 @@ class DsHttpServerSession implements ServerSession {
 
   final DsRequester requester;
   final Responder responder;
-  final DsPublicKey publicKey;
+  final PublicKey publicKey;
 
   /// nonce for authentication, don't overwrite existing nonce
-  DsSecretNonce _tempNonce;
+  SecretNonce _tempNonce;
   /// nonce after user verified the public key
-  DsSecretNonce _verifiedNonce;
+  SecretNonce _verifiedNonce;
 
-  DsSecretNonce get nonce => _verifiedNonce;
+  SecretNonce get nonce => _verifiedNonce;
 
   ServerConnection _connection;
 
@@ -24,11 +24,11 @@ class DsHttpServerSession implements ServerSession {
   final List<int> salts = new List<int>(2);
 
   DsHttpServerSession(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
-      : publicKey = new DsPublicKey(modulus),
+      : publicKey = new PublicKey(modulus),
         requester = new DsRequester(),
         responder = (nodeProvider != null) ? new Responder(nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
-      salts[i] = DsaRandom.instance.nextUint8();
+      salts[i] = DSRandom.instance.nextUint8();
     }
   }
   /// check if public key matchs the dsId
@@ -37,7 +37,7 @@ class DsHttpServerSession implements ServerSession {
   }
 
   void initSession(HttpRequest request) {
-    _tempNonce = new DsSecretNonce.generate();
+    _tempNonce = new SecretNonce.generate();
 //          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 
@@ -60,10 +60,10 @@ class DsHttpServerSession implements ServerSession {
       return false;
     }
     if (_verifiedNonce != null && _verifiedNonce.verifySalt('${type}x${salts[type]}', hash)) {
-      salts[type] += DsaRandom.instance.nextUint8() + 1;
+      salts[type] += DSRandom.instance.nextUint8() + 1;
       return true;
     } else if (_tempNonce != null && _tempNonce.verifySalt('${type}x${salts[type]}', hash)) {
-      salts[type] += DsaRandom.instance.nextUint8() + 1;
+      salts[type] += DSRandom.instance.nextUint8() + 1;
       _nonceChanged();
       return true;
     }

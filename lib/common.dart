@@ -37,7 +37,6 @@ abstract class ServerConnection extends Connection {
 }
 
 abstract class ClientConnection extends Connection {
-
 }
 
 abstract class ConnectionChannel {
@@ -58,18 +57,18 @@ abstract class Session {
   DsRequester get requester;
   Responder get responder;
   
-  DsSecretNonce get nonce;
+  SecretNonce get nonce;
   
   /// trigger when requester channel is Ready
   Future<DsRequester> get onRequesterReady;
 }
 
 abstract class ServerSession extends Session {
-  DsPublicKey get publicKey;
+  PublicKey get publicKey;
 }
 
 abstract class ClientSession extends Session {
-  DsPrivateKey get privateKey;
+  PrivateKey get privateKey;
   /// shortPolling is only valid in http mode
   updateSalt(String salt, [bool shortPolling = false]);
 }

@@ -54,6 +54,20 @@ class Node {
   }
 
   Map<String, Node> _children = {};
+  
+  void addChild(Node node) {
+    _children[node.name] = node;
+  }
+  
+  void removeChild(dynamic input) {
+    if (input is String) {
+      _children.remove(getChild(input));
+    } else if (input is Node) {
+      _children.remove(input);
+    } else {
+      throw new Exception("Invalid Input");
+    }
+  }
 
   Node getChild(String name) {
     if (_children.containsKey(name)) {

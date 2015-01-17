@@ -4,7 +4,7 @@ import 'package:dslink/src/crypto/pk.dart';
 
 void main() {
   String str = new File('certs/private_key.txt').readAsStringSync();
-  DsPrivateKey key = new DsPrivateKey.loadFromString(str);
+  PrivateKey key = new PrivateKey.loadFromString(str);
 
   var clientSession = new HttpClientSession('http://localhost/conn', 'test-client-', key, isRequester: true);
 

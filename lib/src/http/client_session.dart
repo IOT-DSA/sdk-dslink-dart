@@ -11,18 +11,18 @@ class HttpClientSession implements ClientSession {
 
   final DsRequester requester;
   final Responder responder;
-  final DsPrivateKey privateKey;
+  final PrivateKey privateKey;
 
-  DsSecretNonce _nonce;
-  DsSecretNonce get nonce => _nonce;
+  SecretNonce _nonce;
+  SecretNonce get nonce => _nonce;
 
   Connection _connection;
-
 
   static const Map<String, int> saltNameMap = const {
     'salt': 0,
     'saltS': 1,
   };
+  
   /// 2 salts, salt and saltS
   final List<String> salts = new List<String>(2);
 
@@ -32,59 +32,63 @@ class HttpClientSession implements ClientSession {
   
   String _wsUpdateUri;
   String _httpUpdateUri;
+  bool _isRequester;
+  bool _isResponder;
+  NodeProvider _nodeProvider;
+  String _conn;
 
-  HttpClientSession(String conn, String dsIdPrefix, DsPrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
+  HttpClientSession(String conn, String dsIdPrefix, PrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
         requester = isRequester ? new DsRequester() : null,
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {
-    // TODO don't put everything in constructor
-    // TODO more error handling
+    _isRequester = isRequester;
+    _isResponder = isResponder;
+    _nodeProvider = nodeProvider;
+    _conn = conn;
+  }
+        
+  Future init() async {
+    if (_nonce != null) {
+      return new Future.value();
+    }
+    
     HttpClient client = new HttpClient();
-    Uri connUri = Uri.parse('$conn?dsId=$dsId');
-    client.postUrl(connUri).then((HttpClientRequest request) {
-      Map requestJson = {
-        'publicKey': privateKey.publicKey.modulusBase64,
-        'isRequester': isRequester,
-        'isResponder': (isResponder && nodeProvider != null)
-      };
-
-      request.add(jsonUtf8Encoder.convert(requestJson));
-      request.close().then((HttpClientResponse response) {
-        print(response.headers);
-        response.fold([], foldList).then((List<int> merged) {
-          try {
-            String rslt = UTF8.decode(merged);
-            Map serverConfig = JSON.decode(rslt);
-
-            saltNameMap.forEach((name, idx) {
-              //read salts
-              salts[idx] = serverConfig[name];
-            });
-            String encryptedNonce = serverConfig['encryptedNonce'];
-            _nonce = privateKey.decryptNonce(encryptedNonce);
-
-            if (serverConfig['wsUri'] is String) {
-              _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
-            }
-            if (serverConfig['httpUri'] is String) {
-              // TODO implement http
-              _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
-            }
-            // start requester and responder
-//            if (_wsUpdateUri != null) {
-//              initWebsocket();
-//            }
-            if (_httpUpdateUri != null) {
-              initHttp();
-            }
-          } catch (err) {
-            print(err);
-            return;
-          }
-        });
-      });
+    Uri connUri = Uri.parse('$_conn?dsId=$dsId');
+    HttpClientRequest request = await client.postUrl(connUri);
+    Map requestJson = {
+      'publicKey': privateKey.publicKey.modulusBase64,
+      'isRequester': _isRequester,
+      'isResponder': (_isResponder && _nodeProvider != null)
+    };
+    request.add(jsonUtf8Encoder.convert(requestJson));
+    HttpClientResponse response = await request.close();
+    List<int> merged = await response.fold([], foldList);
+    String rslt = UTF8.decode(merged);
+    Map serverConfig = JSON.decode(rslt);
+    saltNameMap.forEach((name, idx) {
+      //read salts
+      salts[idx] = serverConfig[name];
     });
+    String encryptedNonce = serverConfig['encryptedNonce'];
+    _nonce = privateKey.decryptNonce(encryptedNonce);
+    
+    if (serverConfig['wsUri'] is String) {
+      _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
+    }
+    
+    if (serverConfig['httpUri'] is String) {
+      // TODO implement http
+      _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
+    }
+    
+    if (_wsUpdateUri != null) {
+      await initWebsocket();
+    }
+                        
+    if (_httpUpdateUri != null) {
+      await initHttp();
+    }
   }
   
   initWebsocket() async {
@@ -94,6 +98,7 @@ class HttpClientSession implements ClientSession {
     if (responder != null) {
       responder.connection = _connection.responderChannel;
     }
+    
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
@@ -102,11 +107,13 @@ class HttpClientSession implements ClientSession {
     }
   }
   
-  void initHttp() {
-    _connection = new DsHttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
+  initHttp() async {
+    _connection = new HttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
+    
     if (responder != null) {
       responder.connection = _connection.responderChannel;
     }
+    
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
