@@ -1,15 +1,14 @@
 part of dslink.requester;
 
-class RequesterSubscribeUpdate {
+class RequesterSubscribeUpdate extends RequesterUpdate {
   String ts;
   Object value;
   Map meta;
-  DSError error;
 }
 class SubscribeRequest extends Request {
   final Map<String, SubscribeController> subsriptions = new Map<String, SubscribeController>();
 
-  SubscribeRequest(DsRequester requester, int rid) : super(requester, rid, null);
+  SubscribeRequest(Requester requester, int rid) : super(requester, rid, null);
 
   void _update(Map m) {
     List updates = m['updates'];

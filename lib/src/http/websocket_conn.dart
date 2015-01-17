@@ -31,8 +31,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
-
+  /// special server command that need to be merged into message
+  /// now only 2 possible value, salt, allowed
   Map _serverCommand;
+  /// add server command, will be called only when used as server connection
   void addServerCommand(String key, Object value) {
     if (_serverCommand == null) {
       _serverCommand = {};

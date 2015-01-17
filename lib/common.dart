@@ -54,13 +54,13 @@ abstract class ConnectionChannel {
 }
 
 abstract class Session {
-  DsRequester get requester;
+  Requester get requester;
   Responder get responder;
   
   SecretNonce get nonce;
   
   /// trigger when requester channel is Ready
-  Future<DsRequester> get onRequesterReady;
+  Future<Requester> get onRequesterReady;
 }
 
 abstract class ServerSession extends Session {

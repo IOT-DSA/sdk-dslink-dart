@@ -1,13 +1,17 @@
 part of dslink.requester;
 
-class DsRequester extends ConnectionHandler {
+class RequesterUpdate {
+  DSError error;
+}
+
+class Requester extends ConnectionHandler {
 
   final Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
   final RequesterNodeCache _nodeCache = new RequesterNodeCache();
   SubscribeRequest _subsciption;
 
-  DsRequester() {
+  Requester() {
     _subsciption = new SubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
@@ -50,18 +54,14 @@ class DsRequester extends ConnectionHandler {
     return node._invoke(params);
   }
 
-// TODO: implement these Request classes
-//  DsSetRequest set(String path, Object value) {
-//    DsSetRequest req = new DsSetRequest();
-//  }
-//
-//  DsRemoveRequest remove(String path) {
-//    DsRemoveRequest req = new DsRemoveRequest();
-//  }
-//
-//  DsListRequest list(String path) {
-//    DsListRequest req = new DsListRequest();
-//  }
+  Future<RequesterUpdate> set(String path, Object value) {
+    return new SetController(this, path, value).future;
+  }
+
+  Future<RequesterUpdate> remove(String path) {
+    return new RemoveController(this, path).future;
+  }
+
 
   /// close the request from requester side and notify responder
   void closeRequest(Request request) {

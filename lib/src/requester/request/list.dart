@@ -1,11 +1,10 @@
 part of dslink.requester;
 
-class RequesterListUpdate {
+class RequesterListUpdate extends RequesterUpdate {
   /// this is only a list of changed fields
   /// when changes is null, means everything could have been changed
   List<String> changes;
   RequesterNode node;
-  DSError error;
 }
 
 class ListController {

@@ -28,13 +28,22 @@ class HttpServerConnection implements ServerConnection {
   void close() {
 
   }
+  /// special server command that need to be merged into message
+  /// now only 3 possible value, salt, saltS, allowed
   Map _serverCommand;
+  Map _serverCommandS;
   void addServerCommand(String key, Object value) {
-    if (_serverCommand == null) {
-      _serverCommand = {};
+    if (key == 'saltS') {
+      _serverCommandS = {
+        'saltS': value
+      };
+    } else {
+      if (_serverCommand == null) {
+        _serverCommand = {};
+      }
+      _serverCommand[key] = value;
     }
-    _serverCommand[key] = value;
-    if (key != 'salt') {
+    if (key == 'allowed') {
       requireSend();
     }
   }
