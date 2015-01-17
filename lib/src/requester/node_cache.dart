@@ -5,7 +5,7 @@ part of dslink.requester;
 class RequesterNodeCache {
   Map<String, RequesterNode> _nodes = new Map<String, RequesterNode>();
   RequesterNodeCache();
-  RequesterNode getNode(String path, DsRequester requester) {
+  RequesterNode getNode(String path, Requester requester) {
     if (!_nodes.containsKey(path)) {
       _nodes[path] = new RequesterNode(path, requester);
     }
@@ -14,7 +14,7 @@ class RequesterNodeCache {
 }
 
 class RequesterNode extends Node {
-  final DsRequester requester;
+  final Requester requester;
 
   ListController _listController;
   SubscribeController _subscribeController;

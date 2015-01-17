@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-class RequesterInvokeUpdate {
+class RequesterInvokeUpdate extends RequesterUpdate {
   List<TableColumn> columns;
   List<List> rows;
   RequesterInvokeUpdate(this.rows, this.columns);

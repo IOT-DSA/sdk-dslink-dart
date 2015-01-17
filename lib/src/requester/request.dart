@@ -2,7 +2,7 @@ part of dslink.requester;
 
 /// request class handles raw response from responder
 class Request {
-  final DsRequester requester;
+  final Requester requester;
   final int rid;
   /// raw request callback
   final _RequestUpdater updater;

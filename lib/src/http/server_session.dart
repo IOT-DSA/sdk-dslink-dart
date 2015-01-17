@@ -4,10 +4,10 @@ part of dslink.http_server;
 class DsHttpServerSession implements ServerSession {
   final String dsId;
 
-  Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
-  Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
+  Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+  Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
-  final DsRequester requester;
+  final Requester requester;
   final Responder responder;
   final PublicKey publicKey;
 
@@ -25,7 +25,7 @@ class DsHttpServerSession implements ServerSession {
 
   DsHttpServerSession(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
       : publicKey = new PublicKey(modulus),
-        requester = new DsRequester(),
+        requester = new Requester(),
         responder = (nodeProvider != null) ? new Responder(nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DSRandom.instance.nextUint8();

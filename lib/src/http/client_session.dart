@@ -3,13 +3,13 @@ part of dslink.client;
 /// a client session for both http and ws
 class HttpClientLink implements ClientSession {
 
-  Completer<DsRequester> _onRequesterReadyCompleter = new Completer<DsRequester>();
-  Future<DsRequester> get onRequesterReady => _onRequesterReadyCompleter.future;
+  Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+  Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
 
   final String dsId;
 
-  final DsRequester requester;
+  final Requester requester;
   final Responder responder;
   final PrivateKey privateKey;
 
@@ -40,7 +40,7 @@ class HttpClientLink implements ClientSession {
   HttpClientLink(String conn, String dsIdPrefix, PrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
-        requester = isRequester ? new DsRequester() : null,
+        requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {
     _isRequester = isRequester;
     _isResponder = isResponder;
