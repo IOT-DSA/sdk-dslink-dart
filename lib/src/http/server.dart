@@ -11,6 +11,7 @@ class DsHttpServer {
         print(err);
       });
     }
+    
     if (httpsPort > 0 && certificateName != null) {
       HttpServer.bindSecure(address, httpsPort, certificateName: certificateName).then((server) {
         print('listen on $httpsPort');
@@ -20,16 +21,19 @@ class DsHttpServer {
       });
     }
   }
+  
   final NodeProvider nodeProvider;
   final Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
 
   void _handleRqeuest(HttpRequest request) {
     try {
       String dsId = request.uri.queryParameters['dsId'];
+      
       if (dsId == null || dsId.length < 64) {
         request.response.close();
         return;
       }
+      
       switch (request.requestedUri.path) {
         case '/conn':
           _handleConn(request, dsId);
@@ -105,6 +109,4 @@ class DsHttpServer {
       throw HttpStatus.UNAUTHORIZED;
     }
   }
-
-
 }

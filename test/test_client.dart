@@ -2,17 +2,19 @@ import 'dart:io';
 import 'package:dslink/http_client.dart';
 import 'package:dslink/src/crypto/pk.dart';
 
-void main() {
+main() async {
   String str = new File('certs/private_key.txt').readAsStringSync();
   PrivateKey key = new PrivateKey.loadFromString(str);
 
-  var clientSession = new HttpClientSession('http://localhost/conn', 'test-client-', key, isRequester: true);
+  var link = new HttpClientLink('http://localhost/conn', 'test-client-', key, isRequester: true);
 
-  clientSession.onRequesterReady.then((requester) {
-    requester.invoke('/', {
-      'msg': 'hello world'
-    }).listen((update) {
-      print(update.rows);
-    });
+  var requester = await link.onRequesterReady;
+  
+  var updates = requester.invoke('/', {
+    'msg': 'hello world'
   });
+  
+  await for (var update in updates) {
+    print(update.rows);
+  }
 }

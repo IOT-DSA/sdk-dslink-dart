@@ -2,14 +2,18 @@ import 'dart:io';
 import 'package:dslink/http_server.dart';
 import 'package:dslink/responder.dart';
 import 'package:dslink/common.dart';
+
 void main() {
   // load certificate
   String certPath = Platform.script.resolve('certs').toFilePath();
   SecureSocket.initialize(database: certPath, password: 'mypassword');
+  
   // start the server
-  new DsHttpServer.start(InternetAddress.ANY_IP_V4, //
-  certificateName: "self signed for dart", //
-  nodeProvider: new TestNodeProvider());
+  var server = new DsHttpServer.start(
+      InternetAddress.ANY_IP_V4,
+      certificateName: "self signed for dart",
+      nodeProvider: new TestNodeProvider()
+  );
 }
 
 class TestNodeProvider extends NodeProvider {
@@ -18,6 +22,7 @@ class TestNodeProvider extends NodeProvider {
     return onlyNode;
   }
 }
+
 class TestNode extends ResponderNode {
   TestNode(String path) : super(path);
 
