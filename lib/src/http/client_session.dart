@@ -86,9 +86,9 @@ class HttpClientLink implements ClientSession {
       await initWebsocket();
     }
                         
-    if (_httpUpdateUri != null) {
-      await initHttp();
-    }
+//    if (_httpUpdateUri != null) {
+//      await initHttp();
+//    }
   }
   
   initWebsocket() async {
