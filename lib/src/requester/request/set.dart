@@ -7,7 +7,7 @@ class SetController {
   final String path;
   final Object value;
   Request _request;
-  SetController(this.requester, this.path, this.value){
+  SetController(this.requester, this.path, this.value) {
     Map reqMap = {
       'method': 'set',
       'path': path,
@@ -15,7 +15,7 @@ class SetController {
     };
     _request = requester._sendRequest(reqMap, _onUpdate);
   }
-  
+
   void _onUpdate(String status, List updates, List columns) {
     completer.complete(new RequesterUpdate());
   }

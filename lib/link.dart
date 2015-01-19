@@ -105,14 +105,8 @@ class BaseNode extends ResponderNode {
   }
 
   @override
-  void subscribe(SubscribeResponse subscription, Responder responder) {
-    _subscribers.add(subscription);
-    subscription.close();
+  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
+    return null;
   }
 
-  @override
-  void unsubscribe(SubscribeResponse subscription, Responder responder) {
-    _subscribers.remove(subscription);
-    subscription.close();
-  }
 }

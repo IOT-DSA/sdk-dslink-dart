@@ -13,7 +13,8 @@ class RequesterNodeCache {
   }
   /// update node with a map.
   RequesterNode updateNode(Map m) {
-    
+    //TODO
+    return null;
   }
 }
 
@@ -21,7 +22,7 @@ class RequesterNode extends Node {
   final Requester requester;
 
   ListController _listController;
-  SubscribeController _subscribeController;
+  ReqSubscribeController _subscribeController;
 
   RequesterNode(String path, this.requester) : super(path);
 
@@ -54,14 +55,14 @@ class RequesterNode extends Node {
     }
     return _listController._stream;
   }
-  
+
   Stream<RequesterSubscribeUpdate> _subscribe() {
     if (_subscribeController == null) {
-      _subscribeController = new SubscribeController(this);
+      _subscribeController = new ReqSubscribeController(this);
     }
     return _subscribeController._stream;
   }
-  
+
   Stream<RequesterInvokeUpdate> _invoke(Map params) {
     return new InvokeController(this, params)._stream;
   }

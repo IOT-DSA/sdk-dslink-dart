@@ -9,8 +9,7 @@ abstract class ResponderNode extends Node {
   bool get exists;
 
   Response list(Responder responder, Response response);
-  void subscribe(SubscribeResponse subscription, Responder responder);
-  void unsubscribe(SubscribeResponse subscription, Responder responder);
+  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder);
 
   Response invoke(Map params, Responder responder, Response rid);
 

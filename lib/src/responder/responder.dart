@@ -15,7 +15,7 @@ class Responder extends ConnectionHandler {
   void onDisconnected() {
     // TODO close and clear all responses
   }
-  
+
   void onReconnected() {
   }
 
@@ -25,7 +25,7 @@ class Responder extends ConnectionHandler {
     }
     return response;
   }
-  
+
   void onData(List list) {
     for (Object resp in list) {
       if (resp is Map) {
@@ -33,7 +33,7 @@ class Responder extends ConnectionHandler {
       }
     }
   }
-  
+
   void _onReceiveRequest(Map m) {
     if (m['method'] is String && m['rid'] is int) {
       if (_responses.containsKey(m['rid'])) {
@@ -88,7 +88,7 @@ class Responder extends ConnectionHandler {
     }
     addToSendList(m);
   }
-  
+
   void updateReponse(Response response, List updates, {String status, List<TableColumn> columns}) {
     if (_responses[response.rid] == response) {
       Map m = {
@@ -125,9 +125,9 @@ class Responder extends ConnectionHandler {
     if (m['paths'] is List) {
       int rid = m['rid'];
       for (Object str in m['paths']) {
-        Path path = Path.getValidNodePath(m['str']);
+        Path path = Path.getValidNodePath(str);
         if (path != null && path.absolute) {
-          nodeProvider.getNode(path.path).subscribe(_subscription, this);
+          _subscription.add(path.path, nodeProvider.getNode(path.path).subscribe(_subscription, this));
         }
       }
       _closeResponse(m['rid']);
@@ -139,9 +139,9 @@ class Responder extends ConnectionHandler {
     if (m['paths'] is List) {
       int rid = m['rid'];
       for (Object str in m['paths']) {
-        Path path = Path.getValidNodePath(m['str']);
+        Path path = Path.getValidNodePath(str);
         if (path != null && path.absolute) {
-          nodeProvider.getNode(path.path).unsubscribe(_subscription, this);
+          _subscription.remove(path.path);
         }
       }
       _closeResponse(m['rid']);
@@ -213,7 +213,7 @@ class Responder extends ConnectionHandler {
       throw 'unexpected case';
     }
   }
-  
+
   void _close(Map m) {
     if (m['rid'] is int) {
       int rid = m['rid'];

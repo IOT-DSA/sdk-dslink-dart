@@ -3,7 +3,7 @@ part of dslink.requester;
 class RequesterListUpdate extends RequesterUpdate {
   /// this is only a list of changed fields
   /// when changes is null, means everything could have been changed
-  Iterable<String> changes;
+  List<String> changes;
   RequesterNode node;
   RequesterListUpdate(this.node, this.changes);
 }
@@ -34,7 +34,7 @@ class ListController {
           if (update['name'] is String) {
             name = update['name'];
           } else {
-            continue;
+            continue; // invalid response
           }
           if (update['change'] == 'remove') {
             removed = true;
@@ -48,8 +48,10 @@ class ListController {
               value = update[1];
             }
           } else {
-            continue;
+            continue; // invalid response
           }
+        } else {
+          continue; // invalid response
         }
         if (name.startsWith(r'$')) {
           // TODO, loading for $is and $mixin
@@ -76,7 +78,7 @@ class ListController {
         }
       }
       if (_request.streamStatus != StreamStatus.initialize) {
-        _controller.add(new RequesterListUpdate(node, changes));
+        _controller.add(new RequesterListUpdate(node, changes.toList()));
         changes.clear();
       }
     }

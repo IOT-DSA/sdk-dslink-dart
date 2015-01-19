@@ -2,18 +2,15 @@ import 'dart:io';
 import 'package:dslink/http_server.dart';
 import 'package:dslink/responder.dart';
 import 'package:dslink/common.dart';
+import 'dart:async';
 
 void main() {
   // load certificate
   String certPath = Platform.script.resolve('certs').toFilePath();
   SecureSocket.initialize(database: certPath, password: 'mypassword');
-  
+
   // start the server
-  var server = new DsHttpServer.start(
-      InternetAddress.ANY_IP_V4,
-      certificateName: "self signed for dart",
-      nodeProvider: new TestNodeProvider()
-  );
+  var server = new DsHttpServer.start(InternetAddress.ANY_IP_V4, certificateName: "self signed for dart", nodeProvider: new TestNodeProvider());
 }
 
 class TestNodeProvider extends NodeProvider {
@@ -24,8 +21,15 @@ class TestNodeProvider extends NodeProvider {
 }
 
 class TestNode extends ResponderNode {
-  TestNode(String path) : super(path);
+  TestNode(String path) : super(path) {
+    new Timer.periodic(const Duration(seconds: 5), updateTime);
+  }
 
+  ValueController value = new ValueController();
+  int count = 0;
+  void updateTime(Timer t) {
+    value.controller.add(new RespValue(count++, (new DateTime.now()).toUtc().toIso8601String()));
+  }
 
   bool get exists => true;
 
@@ -41,6 +45,7 @@ class TestNode extends ResponderNode {
   }
 
   Response list(Responder responder, Response response) {
+    responder.updateReponse(response, [[r'$is', 'testNode']], status: StreamStatus.closed);
     return response;
   }
 
@@ -64,11 +69,8 @@ class TestNode extends ResponderNode {
     return response;
   }
 
-  void subscribe(SubscribeResponse subscription, Responder responder) {
-    // TODO: implement subscribe
+  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
+    return new RespSubscribeController(subscription, this, value);
   }
 
-  void unsubscribe(SubscribeResponse subscription, Responder responder) {
-    // TODO: implement unsubscribe
-  }
 }
