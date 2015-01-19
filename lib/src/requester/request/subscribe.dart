@@ -9,7 +9,8 @@ class SubscribeRequest extends Request {
   final Map<String, SubscribeController> subsriptions = new Map<String, SubscribeController>();
 
   SubscribeRequest(Requester requester, int rid) : super(requester, rid, null);
-
+  
+  @override
   void _update(Map m) {
     List updates = m['updates'];
     if (updates is List) {

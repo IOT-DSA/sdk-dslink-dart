@@ -11,6 +11,10 @@ class RequesterNodeCache {
     }
     return _nodes[path];
   }
+  /// update node with a map.
+  RequesterNode updateNode(Map m) {
+    
+  }
 }
 
 class RequesterNode extends Node {
@@ -61,4 +65,9 @@ class RequesterNode extends Node {
   Stream<RequesterInvokeUpdate> _invoke(Map params) {
     return new InvokeController(this, params)._stream;
   }
+}
+
+
+class RequesterProfileNode extends RequesterNode {
+  RequesterProfileNode(String path, Requester requester) : super(path, requester);
 }

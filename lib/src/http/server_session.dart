@@ -1,7 +1,7 @@
 part of dslink.http_server;
 
 /// a server session for both http and ws
-class DsHttpServerSession implements ServerSession {
+class HttpServerLink implements ServerSession {
   final String dsId;
 
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
@@ -23,7 +23,7 @@ class DsHttpServerSession implements ServerSession {
   /// 2 salts, salt saltS
   final List<int> salts = new List<int>(2);
 
-  DsHttpServerSession(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
+  HttpServerLink(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
       : publicKey = new PublicKey(modulus),
         requester = new Requester(),
         responder = (nodeProvider != null) ? new Responder(nodeProvider) : null {

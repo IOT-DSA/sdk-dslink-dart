@@ -9,7 +9,7 @@ main() async {
   var link = new HttpClientLink('http://localhost/conn', 'test-client-', key, isRequester: true);
   link.init();
   var requester = await link.onRequesterReady;
-  
+
   var updates = requester.invoke('/', {
     'msg': 'hello world'
   });

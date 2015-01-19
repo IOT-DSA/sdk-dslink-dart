@@ -2,7 +2,7 @@ part of dslink.common;
 
 class TableColumn {
   static List<TableColumn> parseColumns(List list) {
-    List<TableColumn> rslt = new List<TableColumn>();
+    List<TableColumn> rslt = <TableColumn>[];
     for (Object m in list) {
       if (m is Map && m['name'] is String && m['type'] is String) {
         rslt.add(new TableColumn(m['name'], m['type'], m['default']));

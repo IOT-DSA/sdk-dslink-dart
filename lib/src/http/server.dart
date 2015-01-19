@@ -23,7 +23,7 @@ class DsHttpServer {
   }
   
   final NodeProvider nodeProvider;
-  final Map<String, DsHttpServerSession> _sessions = new Map<String, DsHttpServerSession>();
+  final Map<String, HttpServerLink> _sessions = new Map<String, HttpServerLink>();
 
   void _handleRqeuest(HttpRequest request) {
     try {
@@ -66,7 +66,7 @@ class DsHttpServer {
         }
         String str = UTF8.decode(merged);
         Map m = JSON.decode(str);
-        DsHttpServerSession session = _sessions[dsId];
+        HttpServerLink session = _sessions[dsId];
         if (session == null) {
           String modulus = m['publicKey'];
           var bytes = Base64.decode(modulus);
@@ -74,7 +74,7 @@ class DsHttpServer {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
-          session = new DsHttpServerSession(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider);
+          session = new HttpServerLink(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider);
           if (!session.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
@@ -93,7 +93,7 @@ class DsHttpServer {
 
   }
   void _handleHttpUpdate(HttpRequest request, String dsId) {
-    DsHttpServerSession session = _sessions[dsId];
+    HttpServerLink session = _sessions[dsId];
     if (session != null) {
       session._handleHttpUpdate(request);
     } else {
@@ -102,7 +102,7 @@ class DsHttpServer {
   }
 
   void _handleWsUpdate(HttpRequest request, String dsId) {
-    DsHttpServerSession session = _sessions[dsId];
+    HttpServerLink session = _sessions[dsId];
     if (session != null) {
       session._handleWsUpdate(request);
     } else {
