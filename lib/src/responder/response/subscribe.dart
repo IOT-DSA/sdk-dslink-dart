@@ -85,7 +85,7 @@ class RespSubscribeController {
         'path': node.path
       };
       if (count > 1) {
-        m['count'] = m;
+        m['count'] = count;
         if (sum == sum) {
           m['sum'] = sum;
         }

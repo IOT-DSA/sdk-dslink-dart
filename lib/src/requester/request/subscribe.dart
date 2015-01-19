@@ -13,8 +13,8 @@ class RequesterSubscribeUpdate extends RequesterUpdate {
     return null;
   }
   int get count {
-    if (meta != null && meta['status'] is String) {
-      return meta['status'];
+    if (meta != null && meta['count'] is int) {
+      return meta['count'];
     }
     return null;
   }
