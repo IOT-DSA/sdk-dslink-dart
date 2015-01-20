@@ -12,6 +12,6 @@ import 'dart:convert';
 import 'dart:async';
 
 part 'src/http/server_http_conn.dart';
-part 'src/http/server_session.dart';
+part 'src/http/server_link.dart';
 part 'src/http/server.dart';
 
