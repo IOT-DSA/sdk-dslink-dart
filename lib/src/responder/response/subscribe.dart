@@ -40,39 +40,13 @@ class RespSubscribeController {
     _listener = node.valueStream.listen(addValue);
   }
 
-  Object lastValue;
-  String lastTs;
-  int count = 0;
-  String lastStatus;
-  num sum = double.NAN;
-  num min = double.NAN;
-  num max = double.NAN;
-  void addValue(ValueUpdate v) {
-    Object value = v.value;
-    // TODO: this is incorrect now, ignore the value, use the min max sum count in RespValue
-    if (count > 0) {
-      if (value is num && lastValue is num) {
-        if (count == 1) {
-          sum = lastValue;
-          min = lastValue;
-          max = lastValue;
-        }
-        sum += value;
-        if (value < min) min = value;
-        if (value > max) max = value;
-      } else {
-        sum = double.NAN;
-        min = double.NAN;
-        max = double.NAN;
-      }
-      ++count;
-
+  ValueUpdate lastValue;
+  void addValue(ValueUpdate val) {
+    if (lastValue == null) {
+      lastValue = val;
     } else {
-      count = 1;
+      lastValue = new ValueUpdate.merge(lastValue, val);
     }
-    lastValue = value;
-    lastTs = v.ts;
-    lastStatus = v.status;
     // TODO, don't allow this to be called from same controller more oftern than 100ms
     // the first response can happen ASAP, but
     response.subscriptionChanged(this);
@@ -80,32 +54,31 @@ class RespSubscribeController {
 
   Object process() {
     Object rslt;
-    if (count > 1 || lastStatus != null) {
+    if (lastValue.count > 1 || lastValue.status != null) {
       Map m = {
-        'ts': lastTs,
-        'value': lastValue,
+        'ts': lastValue.ts,
+        'value': lastValue.value,
         'path': node.path
       };
-      if (count > 1) {
-        m['count'] = count;
-        if (sum == sum) {
-          m['sum'] = sum;
+      if (lastValue.count == 0) {
+        
+      } else if (lastValue.count > 1) {
+        m['count'] = lastValue.count;
+        if (lastValue.sum.isFinite) {
+          m['sum'] = lastValue.sum;
         }
-        if (max == max) {
-          m['max'] = max;
+        if (lastValue.max.isFinite) {
+          m['max'] = lastValue.max;
         }
-        if (min == min) {
-          m['min'] = min;
+        if (lastValue.min.isFinite) {
+          m['min'] = lastValue.min;
         }
       }
       rslt = m;
     } else {
-      rslt = [node.path, lastValue, lastTs];
+      rslt = [node.path, lastValue.value, lastValue.ts];
     }
-    count = 0;
-    sum = double.NAN;
-    min = double.NAN;
-    max = double.NAN;
+    lastValue = null;
     return rslt;
   }
   void destroy() {
