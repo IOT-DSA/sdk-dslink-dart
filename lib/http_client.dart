@@ -10,6 +10,6 @@ import 'src/http/websocket_conn.dart';
 import 'dart:async';
 import 'utils.dart';
 
-part 'src/http/client_session.dart';
+part 'src/http/client_link.dart';
 part 'src/http/client_http_conn.dart';
 
