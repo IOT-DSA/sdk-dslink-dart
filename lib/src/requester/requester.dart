@@ -40,7 +40,7 @@ class Requester extends ConnectionHandler {
     return req;
   }
 
-  Stream<RequesterSubscribeUpdate> subscribe(String path) {
+  Stream<ValueUpdate> subscribe(String path) {
     RequesterNode node = _nodeCache.getNode(path, this);
     return node._subscribe();
   }

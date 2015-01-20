@@ -13,11 +13,10 @@ class ListController {
   StreamController<RequesterListUpdate> _controller;
   Stream<RequesterListUpdate> _stream;
   Request _request;
-  HashSet _listeners;
+  final HashSet _listeners = new HashSet();
   ListController(this.node) {
     _controller = new StreamController<RequesterListUpdate>();
     _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
-    _listeners = new HashSet();
   }
   bool get initialized {
     return _request != null && _request.streamStatus != StreamStatus.initialize;

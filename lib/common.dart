@@ -53,7 +53,7 @@ abstract class ConnectionChannel {
   Future<ConnectionChannel> get onDisconnected;
 }
 
-abstract class Session {
+abstract class Link {
   Requester get requester;
   Responder get responder;
   
@@ -63,14 +63,21 @@ abstract class Session {
   Future<Requester> get onRequesterReady;
 }
 
-abstract class ServerSession extends Session {
+abstract class ServerLink extends Link {
+  String get dsId;
   PublicKey get publicKey;
 }
 
-abstract class ClientSession extends Session {
+abstract class ClientLink extends Link {
   PrivateKey get privateKey;
   /// shortPolling is only valid in http mode
   updateSalt(String salt, [bool shortPolling = false]);
+}
+
+abstract class ServerLinkManager{
+  void addLink(ServerLink link);
+  void removeLink(ServerLink link);
+  ServerLink getLink(String dsId);
 }
 
 class StreamStatus {

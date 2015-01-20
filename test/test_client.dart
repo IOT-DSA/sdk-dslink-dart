@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dslink/http_client.dart';
 import 'package:dslink/src/crypto/pk.dart';
 import 'package:dslink/requester.dart';
+import 'package:dslink/common.dart';
 import 'dart:async';
 
 main() async {
@@ -26,8 +27,8 @@ main() async {
 //    print(update.changes);
 //  }
   
-  Stream<RequesterSubscribeUpdate> updates  = requester.subscribe('/');
-  await for (RequesterSubscribeUpdate update in updates) {
+  Stream<ValueUpdate> updates  = requester.subscribe('/conns/test-responder-8');
+  await for (ValueUpdate update in updates) {
     print(update.value);
   }
 }

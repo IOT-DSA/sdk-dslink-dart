@@ -16,7 +16,7 @@ class Link {
   final int port;
   final PrivateKey privateKey;
   
-  HttpClientLink session;
+  HttpClientLink link;
   
   
   _NodeProvider _nodeProvider;
@@ -30,8 +30,8 @@ class Link {
   }
   
   Future connect() async {
-    session = new HttpClientLink("${host}:${port}", "broker-dsa", new PrivateKey.generate(), nodeProvider: _nodeProvider);
-    await session.init();
+    link = new HttpClientLink("${host}:${port}", "broker-dsa", new PrivateKey.generate(), nodeProvider: _nodeProvider);
+    await link.init();
   }
   
   BaseNode rootNode = new BaseNode("/");

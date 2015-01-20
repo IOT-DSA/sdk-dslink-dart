@@ -56,7 +56,7 @@ class RequesterNode extends Node {
     return _listController._stream;
   }
 
-  Stream<RequesterSubscribeUpdate> _subscribe() {
+  Stream<ValueUpdate> _subscribe() {
     if (_subscribeController == null) {
       _subscribeController = new ReqSubscribeController(this);
     }

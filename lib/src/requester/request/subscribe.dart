@@ -1,42 +1,5 @@
 part of dslink.requester;
 
-class RequesterSubscribeUpdate extends RequesterUpdate {
-  String path;
-  String ts;
-  Object value;
-  Map meta;
-  RequesterSubscribeUpdate(this.path, this.value, this.ts, {this.meta});
-  String get status {
-    if (meta != null && meta['status'] is String) {
-      return meta['status'];
-    }
-    return null;
-  }
-  int get count {
-    if (meta != null && meta['count'] is int) {
-      return meta['count'];
-    }
-    return null;
-  }
-  num get sum {
-    if (meta != null && meta['sum'] is num) {
-      return meta['sum'];
-    }
-    return double.NAN;
-  }
-  num get max {
-    if (meta != null && meta['max'] is num) {
-      return meta['max'];
-    }
-    return double.NAN;
-  }
-  num get min {
-    if (meta != null && meta['min'] is num) {
-      return meta['min'];
-    }
-    return double.NAN;
-  }
-}
 class SubscribeRequest extends Request {
   final Map<String, ReqSubscribeController> subsriptions = new Map<String, ReqSubscribeController>();
 
@@ -72,7 +35,7 @@ class SubscribeRequest extends Request {
           continue; // invalid response
         }
         if (subsriptions.containsKey(path)) {
-          subsriptions[path]._controller.add(new RequesterSubscribeUpdate(path, value, ts, meta: meta));
+          subsriptions[path]._controller.add(new ValueUpdate(value, ts, meta: meta));
         }
       }
     }
@@ -136,11 +99,11 @@ class SubscribeRequest extends Request {
 class ReqSubscribeController {
   final RequesterNode node;
 
-  StreamController<RequesterSubscribeUpdate> _controller;
-  Stream<RequesterSubscribeUpdate> _stream;
+  StreamController<ValueUpdate> _controller;
+  Stream<ValueUpdate> _stream;
   HashSet _listeners;
   ReqSubscribeController(this.node) {
-    _controller = new StreamController<RequesterSubscribeUpdate>();
+    _controller = new StreamController<ValueUpdate>();
     _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
     _listeners = new HashSet();
   }
@@ -148,7 +111,7 @@ class ReqSubscribeController {
 
 
   bool _subscribing = false;
-  void _onListen(StreamSubscription<RequesterSubscribeUpdate> listener) {
+  void _onListen(StreamSubscription<ValueUpdate> listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);
       if (!_subscribing) {
@@ -158,7 +121,7 @@ class ReqSubscribeController {
     }
   }
 
-  void _onCancel(StreamSubscription<RequesterSubscribeUpdate> listener) {
+  void _onCancel(StreamSubscription<ValueUpdate> listener) {
     if (_listeners.contains(listener)) {
       _listeners.remove(listener);
       if (_listeners.isEmpty) {

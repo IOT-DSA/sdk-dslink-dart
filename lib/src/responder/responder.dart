@@ -116,7 +116,8 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
-      nodeProvider.getNode(path.path).list(this, addResponse(new Response(this, rid)));
+      var node = nodeProvider.getNode(path.path);
+      node.list(this, addResponse(new ListResponse(this, rid, node)));
     } else {
       _closeResponse(m['rid'], error: new DSError('invalid path'));
     }

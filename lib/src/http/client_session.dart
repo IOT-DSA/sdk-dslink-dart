@@ -1,7 +1,7 @@
 part of dslink.client;
 
-/// a client session for both http and ws
-class HttpClientLink implements ClientSession {
+/// a client link for both http and ws
+class HttpClientLink implements ClientLink {
 
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;

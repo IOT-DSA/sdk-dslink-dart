@@ -1,7 +1,7 @@
 part of dslink.http_server;
 
-/// a server session for both http and ws
-class HttpServerLink implements ServerSession {
+/// a server link for both http and ws
+class HttpServerLink implements ServerLink {
   final String dsId;
 
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
@@ -25,7 +25,8 @@ class HttpServerLink implements ServerSession {
 
   HttpServerLink(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
       : publicKey = new PublicKey(modulus),
-        requester = new Requester(),
+        // TODO, need a requester ready property? because client can disconnect and reconnect and change isResponder value
+      requester = new Requester(),
         responder = (nodeProvider != null) ? new Responder(nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DSRandom.instance.nextUint8();
@@ -36,7 +37,7 @@ class HttpServerLink implements ServerSession {
     return publicKey.verifyDsId(dsId);
   }
 
-  void initSession(HttpRequest request) {
+  void initLink(HttpRequest request) {
     _tempNonce = new SecretNonce.generate();
 //          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder

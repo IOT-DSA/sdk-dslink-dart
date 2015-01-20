@@ -85,12 +85,30 @@ class Node {
   void reset() {
     // TODO
   }
+  
+  // get a simple map for data listed in parent's children property
+  Map getSimpleMap() {
+    Map rslt = {};
+    if (configs.containsKey(r'$is')) {
+      rslt[r'$is'] = configs[r'$is'];
+    }
+    if (configs.containsKey(r'$type')) {
+      rslt[r'$type'] = configs[r'$type'];
+    }
+    if (configs.containsKey(r'$name')) {
+      rslt[r'$name'] = configs[r'$name'];
+    }
+    if (configs.containsKey(r'$invokable')) {
+      rslt[r'$invokable'] = configs[r'$invokable'];
+    }
+    return rslt;
+  }
 }
 
 
 /// Util class for ds node path and config/attribute path
 class Path {
-  static final RegExp invalidChar = new RegExp(r'[\.\/\\\?%\*:|"<>]');
+  static final RegExp invalidChar = new RegExp(r'[\.\\\?%\*:|"<>]');
   
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {

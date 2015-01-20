@@ -11,11 +11,11 @@ class HttpClientConnection implements ClientConnection {
   Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
   final String url;
-  final ClientSession clientSession;
+  final ClientLink clientLink;
 
   String salt;
   String saltS;
-  HttpClientConnection(this.url, this.clientSession, this.salt, this.saltS) {
+  HttpClientConnection(this.url, this.clientLink, this.salt, this.saltS) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
@@ -73,10 +73,10 @@ class HttpClientConnection implements ClientConnection {
       Uri connUri = Uri.parse('$url&');
       if (shortPoll) {
         _sendingS = true;
-        connUri = Uri.parse('$url&authS=${this.clientSession.nonce.hashSalt(saltS)}');
+        connUri = Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
       } else {
         _sending = true;
-        connUri = Uri.parse('$url&auth=${this.clientSession.nonce.hashSalt(salt)}');
+        connUri = Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
       }
       client.postUrl(connUri).then((HttpClientRequest request) {
         request.add(jsonUtf8Encoder.convert(m));
@@ -103,7 +103,7 @@ class HttpClientConnection implements ClientConnection {
       }
       if (m['salt'] is String) {
         salt = m['salt'];
-        clientSession.updateSalt(salt);
+        clientLink.updateSalt(salt);
       }
       if (m['responses'] is List) {
         // send responses to requester channel
@@ -126,7 +126,7 @@ class HttpClientConnection implements ClientConnection {
       }
       if (m['saltS'] is String) {
         saltS = m['saltS'];
-        clientSession.updateSalt(saltS, true);
+        clientLink.updateSalt(saltS, true);
       }
       if (_pendingSend && !_pendingCheck) {
         _checkSend();

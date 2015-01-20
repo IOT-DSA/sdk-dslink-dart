@@ -1,19 +1,8 @@
-import 'dart:io';
-import 'package:dslink/http_server.dart';
+library dslink.test.sampleresponder;
+
 import 'package:dslink/responder.dart';
 import 'package:dslink/common.dart';
 import 'dart:async';
-import 'package:dslink/broker.dart';
-
-void main() {
-  // load certificate
-  String certPath = Platform.script.resolve('certs').toFilePath();
-  SecureSocket.initialize(database: certPath, password: 'mypassword');
-
-  // start the server
-  var broker = new BrokerNodeProvider();
-  var server = new DsHttpServer.start(InternetAddress.ANY_IP_V4, certificateName: "self signed for dart", nodeProvider: broker, linkManager: broker);
-}
 
 class TestNodeProvider extends NodeProvider {
   TestNode onlyNode = new TestNode('/');

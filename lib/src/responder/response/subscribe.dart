@@ -35,10 +35,9 @@ class SubscribeResponse extends Response {
 class RespSubscribeController {
   final ResponderNode node;
   final SubscribeResponse response;
-  final ValueController valueController;
   StreamSubscription _listener;
-  RespSubscribeController(this.response, this.node, this.valueController) {
-    _listener = valueController.stream.listen(addValue);
+  RespSubscribeController(this.response, this.node) {
+    _listener = node.valueStream.listen(addValue);
   }
 
   Object lastValue;
@@ -48,8 +47,9 @@ class RespSubscribeController {
   num sum = double.NAN;
   num min = double.NAN;
   num max = double.NAN;
-  void addValue(RespValue v) {
+  void addValue(ValueUpdate v) {
     Object value = v.value;
+    // TODO: this is incorrect now, ignore the value, use the min max sum count in RespValue
     if (count > 0) {
       if (value is num && lastValue is num) {
         if (count == 1) {
@@ -73,6 +73,8 @@ class RespSubscribeController {
     lastValue = value;
     lastTs = v.ts;
     lastStatus = v.status;
+    // TODO, don't allow this to be called from same controller more oftern than 100ms
+    // the first response can happen ASAP, but
     response.subscriptionChanged(this);
   }
 
@@ -109,15 +111,4 @@ class RespSubscribeController {
   void destroy() {
     _listener.cancel();
   }
-}
-
-class RespValue {
-  Object value;
-  String ts;
-  String status;
-  RespValue(this.value, this.ts, [this.status]);
-}
-class ValueController {
-  final StreamController<RespValue> controller = new StreamController<RespValue>();
-  Stream<RespValue> get stream => controller.stream;
 }
