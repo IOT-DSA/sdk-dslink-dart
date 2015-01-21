@@ -2,41 +2,41 @@ part of dslink.requester;
 
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
-class RequesterNodeCache {
-  Map<String, RequesterNode> _nodes = new Map<String, RequesterNode>();
-  RequesterNodeCache();
-  RequesterNode getNode(String path, Requester requester) {
+class RemoteNodeCache {
+  Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
+  RemoteNodeCache();
+  RemoteNode getRemoteNode(String path, Requester requester) {
     if (!_nodes.containsKey(path)) {
-      _nodes[path] = new RequesterNode(path, requester);
+      _nodes[path] = new RemoteNode(path, requester);
     }
     return _nodes[path];
   }
   /// update node with a map.
-  RequesterNode updateNode(Map m) {
+  RemoteNode updateRemoteNode(Map m) {
     //TODO
     return null;
   }
 }
 
-class RequesterNode extends Node {
+class RemoteNode extends Node {
   final Requester requester;
-
+  final String remotePath;
   ListController _listController;
   ReqSubscribeController _subscribeController;
 
-  RequesterNode(String path, this.requester) : super(path);
+  RemoteNode(this.remotePath, this.requester);
 
   /// node data is not ready until all profile and mixins are updated
   bool isUpdated() {
     if (!isSelfUpdated()) {
       return false;
     }
-    if (profile is RequesterNode && !(profile as RequesterNode).isSelfUpdated()) {
+    if (profile is RemoteNode && !(profile as RemoteNode).isSelfUpdated()) {
       return false;
     }
     if (mixins != null) {
       for (Node mixin in mixins) {
-        if (mixin is RequesterNode && !mixin.isSelfUpdated()) {
+        if (mixin is RemoteNode && !mixin.isSelfUpdated()) {
           return false;
         }
       }
@@ -69,6 +69,6 @@ class RequesterNode extends Node {
 }
 
 
-class RequesterProfileNode extends RequesterNode {
+class RequesterProfileNode extends RemoteNode {
   RequesterProfileNode(String path, Requester requester) : super(path, requester);
 }

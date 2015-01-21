@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 class InvokeResponse extends Response {
-  final ResponderNode node;
+  final LocalNode node;
   InvokeResponse(Responder responder, int rid, this.node) : super(responder, rid);
 
   int _pendingInitializeLength = 0;

@@ -44,7 +44,7 @@ class SubscribeRequest extends Request {
 
   HashSet<String> _changedPaths = new HashSet<String>();
   void addSubscription(ReqSubscribeController controller) {
-    String path = controller.node.path;
+    String path = controller.node.remotePath;
     if (!subsriptions.containsKey(path)) {
       subsriptions[path] = controller;
       if (_changedPaths.contains(path)) {
@@ -56,7 +56,7 @@ class SubscribeRequest extends Request {
     }
   }
   void removeSubscription(ReqSubscribeController controller) {
-    String path = controller.node.path;
+    String path = controller.node.remotePath;
     if (subsriptions.containsKey(path)) {
       subsriptions.remove(path);
       if (_changedPaths.contains(path)) {
@@ -97,7 +97,7 @@ class SubscribeRequest extends Request {
   }
 }
 class ReqSubscribeController {
-  final RequesterNode node;
+  final RemoteNode node;
 
   StreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> _stream;

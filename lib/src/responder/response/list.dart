@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 class ListResponse extends Response {
-  final ResponderNode node;
+  final LocalNode node;
   StreamSubscription _nodeChangeListener;
   ListResponse(Responder responder, int rid, this.node) : super(responder, rid) {
     _nodeChangeListener = node.listStream.listen(changed);

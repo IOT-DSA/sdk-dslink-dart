@@ -2,7 +2,7 @@ part of dslink.common;
 
 class Node {
   /// absoulte node path from the responder root.
-  final String path;
+
 
   /// node name or custom name defined in $name
   String name;
@@ -13,7 +13,7 @@ class Node {
   List<Node> mixins;
   Map<String, String> attributes = {};
 
-  Node(this.path);
+  Node();
 
   String getAttribute(String name) {
     if (attributes.containsKey(name)) {

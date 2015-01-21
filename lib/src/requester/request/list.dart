@@ -4,12 +4,12 @@ class RequesterListUpdate extends RequesterUpdate {
   /// this is only a list of changed fields
   /// when changes is null, means everything could have been changed
   List<String> changes;
-  RequesterNode node;
+  RemoteNode node;
   RequesterListUpdate(this.node, this.changes, String streamStatus) : super(streamStatus);
 }
 
 class ListController {
-  final RequesterNode node;
+  final RemoteNode node;
   StreamController<RequesterListUpdate> _controller;
   Stream<RequesterListUpdate> _stream;
   Request _request;
@@ -72,7 +72,7 @@ class ListController {
           if (removed) {
             node.children.remove(name);
           } else if (value is Map) {
-            node.children[name] = node.requester._nodeCache.updateNode(value);
+            node.children[name] = node.requester._nodeCache.updateRemoteNode(value);
           }
         }
       }
@@ -93,7 +93,7 @@ class ListController {
       if (_request == null && node.requester.connection != null) {
         _request = node.requester._sendRequest({
           'method': 'list',
-          'path': node.path
+          'path': node.remotePath
         }, _onUpdate);
       }
     }

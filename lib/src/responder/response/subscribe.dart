@@ -33,7 +33,7 @@ class SubscribeResponse extends Response {
 }
 
 class RespSubscribeController {
-  final ResponderNode node;
+  final LocalNode node;
   final SubscribeResponse response;
   StreamSubscription _listener;
   RespSubscribeController(this.response, this.node) {
@@ -61,7 +61,7 @@ class RespSubscribeController {
         'path': node.path
       };
       if (lastValue.count == 0) {
-        
+
       } else if (lastValue.count > 1) {
         m['count'] = lastValue.count;
         if (lastValue.sum.isFinite) {

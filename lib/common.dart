@@ -78,6 +78,8 @@ abstract class ServerLinkManager{
   void addLink(ServerLink link);
   void removeLink(ServerLink link);
   ServerLink getLink(String dsId);
+  Requester getRequester(String dsId);
+  Responder getResponder(String dsId, NodeProvider nodeProvider);
 }
 
 class StreamStatus {

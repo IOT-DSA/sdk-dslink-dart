@@ -1,10 +1,11 @@
 part of dslink.broker;
 
 class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
-  final Map<String, ResponderNode> nodes = new Map<String, ResponderNode>();
-  final Map<String, RemoteLinkRoot> conns = new Map<String, RemoteLinkRoot>();
-  ResponderNode getNode(String path) {
-    ResponderNode node = nodes[path];
+  final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
+  /// connName to connection
+  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
+  LocalNode getNode(String path) {
+    LocalNode node = nodes[path];
     if (node != null) {
       return node;
     }
@@ -16,9 +17,9 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
       } else {
         connName = path.substring(7, slashPos);
       }
-      RemoteLinkRoot conn = conns[connName];
+      RemoteLinkManager conn = conns[connName];
       if (conn == null) {
-        conn = new RemoteLinkRoot('/conns/$connName');
+        conn = new RemoteLinkManager('/conns/$connName');
         conns[connName] = conn;
       }
       node = conn.getNode(path);
@@ -28,33 +29,41 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
     return node;
   }
 
-  /// server links
+  /// dsId to server links
   final Map<String, ServerLink> _links = new Map<String, ServerLink>();
 
-  final Map<ServerLink, String> _link2ConnName = new Map<ServerLink, String>();
-  final Map<String, ServerLink> _connName2Link = new Map<String, ServerLink>();
+  final Map<String, String> _id2connName = new Map<String, String>();
+  final Map<String, String> _connName2id = new Map<String, String>();
+  String getConnName(String dsId) {
+    if (_id2connName.containsKey(dsId)) {
+      return _id2connName[dsId];
+      // TODO is it possible same link get added twice?
+    } else {
+      String connName;
+      // find a connName for it
+      for (int i = 63; i >= 0; --i) {
+        connName = dsId.substring(0, dsId.length - i);
+        if (!_connName2id.containsKey(connName)) {
+          _connName2id[connName] = dsId;
+          _id2connName[dsId] = connName;
+          break;
+        }
+      }
+      return connName;
+    }
+  }
   void addLink(ServerLink link) {
     String dsId = link.dsId;
     String connName;
     // TODO update children list of /conns node
     if (_links.containsKey(dsId)) {
-      connName = _link2ConnName[link];
       // TODO is it possible same link get added twice?
     } else {
       _links[dsId] = link;
 
-      // find a connName for it
-      for (int i = 63; i >= 0; --i) {
-        connName = dsId.substring(0, dsId.length - i);
-        if (!_connName2Link.containsKey(connName)) {
-          _connName2Link[connName] = link;
-          _link2ConnName[link] = connName;
-          break;
-        }
-      }
+      connName = getConnName(dsId);
       print('new node added at /conns/$connName');
     }
-    (getNode('/conns/$connName') as RemoteLinkRoot).updateRequester(link.requester);
   }
 
   ServerLink getLink(String dsId) {
@@ -66,56 +75,99 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
       _links.remove(link.dsId);
     }
   }
-}
-class RemoteLinkRoot extends RemoteNode implements NodeProvider {
-  final Map<String, RemoteNode> nodes = new Map<String, RemoteNode>();
-  Requester _requester;
-  void updateRequester(Requester req) {
-    super.updateRequester(req);
-    nodes.forEach((k, node) {
-      if (node != this) {
-        node.updateRequester(req);
-      }
-    });
-  }
-  RemoteLinkRoot(String path) : super(path, null, '/') {
-    _linkNode = this;
-    nodes[''] = this;
-    nodes['/'] = this;
+
+  Requester getRequester(String dsId) {
+    String connName = getConnName(dsId);
+    if (conns.containsKey(connName)) {
+      return conns[connName].requester;
+    }
+    /// create the RemoteLinkManager
+    RemoteLinkNode node = getNode('/conns/$connName');
+    return node.requester;
   }
 
-  ResponderNode getNode(String fullPath) {
-    String remotePath = fullPath.replaceFirst(path, '');
-    ResponderNode node = nodes[remotePath];
+  Responder getResponder(String dsId, NodeProvider nodeProvider) {
+    return new Responder(nodeProvider);
+  }
+}
+class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
+  final Map<String, RemoteLinkNode> nodes = new Map<String, RemoteLinkNode>();
+  Requester requester;
+  final String path;
+  RemoteLinkManager(this.path) {
+    requester = new Requester(this);
+  }
+
+  LocalNode getNode(String fullPath) {
+    String rPath = fullPath.replaceFirst(path, '');
+    if (rPath == '') {
+      rPath = '/';
+    }
+    RemoteLinkNode node = nodes[rPath];
     if (node == null) {
-      node = new RemoteNode(fullPath, this, remotePath);
-      nodes[remotePath] = node;
+      node = new RemoteLinkNode(fullPath, rPath, requester, this);
+      nodes[rPath] = node;
     }
     return node;
   }
-}
-class RemoteNode extends Node implements ResponderNode {
 
-  Requester _requester;
-  void updateRequester(Requester req) {
-    _requester = req;
-    if (_valueListeners != null) {
-      if (_valueReqListener != null) {
-        _valueReqListener.cancel();
-      }
-      _valueReqListener = _requester.subscribe(remotePath).listen(_onValueUpdate);
+  RemoteNode getRemoteNode(String rPath, Requester requester) {
+    String fullPath = path + rPath;
+    if (rPath == '') {
+      rPath = '/';
     }
-    // TODO listChangeReqListener
+    RemoteLinkNode node = nodes[rPath];
+    if (node == null) {
+      node = new RemoteLinkNode(fullPath, rPath, requester, this);
+      nodes[rPath] = node;
+    }
+    return node;
   }
+
+  RemoteNode updateRemoteNode(Map m) {
+    // TODO: implement updateRemoteNode
+  }
+}
+class RemoteLinkNode extends RemoteNode implements LocalNode {
+
 
   final StreamController<String> listChangeController = new StreamController<String>();
   Stream<String> _listStream;
   Stream<String> get listStream {
     if (_listStream == null) {
-      _listStream = listChangeController.stream.asBroadcastStream();
+      _listStream = listChangeController.stream.asBroadcastStream(onListen: _onListListen, onCancel: _onListCancel);
     }
     return _listStream;
   }
+  HashSet _listListeners;
+  StreamSubscription _listReqListener;
+  void _onListListen(StreamSubscription<String> listener) {
+    if (!_listListeners.contains(listener)) {
+      _listListeners.add(listener);
+
+      if (_listReqListener == null && _linkNode.requester != null) {
+        _listReqListener = _linkNode.requester.list(remotePath).listen(_onListUpdate);
+      }
+    }
+  }
+
+  void _onListCancel(StreamSubscription<String> listener) {
+    if (_listListeners.contains(listener)) {
+      _listListeners.remove(listener);
+      if (_listListeners.isEmpty) {
+        if (_listReqListener != null) {
+          _listReqListener.cancel();
+          _listReqListener = null;
+        }
+      }
+    }
+  }
+  void _onListUpdate(RequesterListUpdate update) {
+    for (var change in update.changes) {
+      listChangeController.add(change);
+    }
+  }
+
 
   StreamController<ValueUpdate> _valueController;
   StreamController<ValueUpdate> get valueController {
@@ -139,8 +191,8 @@ class RemoteNode extends Node implements ResponderNode {
     if (!_valueListeners.contains(listener)) {
       _valueListeners.add(listener);
 
-      if (_valueReqListener == null && _linkNode._requester != null) {
-        _valueReqListener = _linkNode._requester.subscribe(remotePath).listen(_onValueUpdate);
+      if (_valueReqListener == null && _linkNode.requester != null) {
+        _valueReqListener = _linkNode.requester.subscribe(remotePath).listen(_onValueUpdate);
       }
     }
   }
@@ -161,10 +213,10 @@ class RemoteNode extends Node implements ResponderNode {
   }
 
 
+  final String path;
   /// root of the link
-  RemoteLinkRoot _linkNode;
-  final String remotePath;
-  RemoteNode(String path, this._linkNode, this.remotePath) : super(path) {
+  RemoteLinkManager _linkNode;
+  RemoteLinkNode(this.path, String remotePath, Requester requester, this._linkNode) : super(remotePath, requester) {
   }
 
   bool _listReady = false;
@@ -174,7 +226,7 @@ class RemoteNode extends Node implements ResponderNode {
 
   @override
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
-    _requester.invoke(remotePath, params).listen((update) {
+    requester.invoke(remotePath, params).listen((update) {
       // TODO fix paths in the response
       response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);
     });

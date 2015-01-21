@@ -16,18 +16,22 @@ class DsSimpleLinkManager implements ServerLinkManager{
       _links.remove(link.dsId);
     }
   }
+  
+  Requester getRequester(String dsId) {
+    return new Requester();
+  }
+  
+  Responder getResponder(String dsId, NodeProvider nodeProvider){
+    return new Responder(nodeProvider);
+  }
 }
 class DsHttpServer {
   final NodeProvider nodeProvider;
-  ServerLinkManager _links;
+  final ServerLinkManager _linkManager;
   /// to open a secure server, SecureSocket.initialize() need to be called before start()
   DsHttpServer.start(dynamic address, //
-      {int httpPort: 80, int httpsPort: 443, String certificateName, this.nodeProvider, linkManager}) {
-    if (linkManager == null){
-      _links = new DsSimpleLinkManager();
-    } else {
-      _links = linkManager;
-    }
+      {int httpPort: 80, int httpsPort: 443, String certificateName, linkManager, this.nodeProvider}) 
+      : _linkManager = (linkManager == null) ? new DsSimpleLinkManager() : linkManager{
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
         print('listen on $httpPort');
@@ -88,7 +92,7 @@ class DsHttpServer {
         }
         String str = UTF8.decode(merged);
         Map m = JSON.decode(str);
-        HttpServerLink link = _links.getLink(dsId);
+        HttpServerLink link = _linkManager.getLink(dsId);
         if (link == null) {
           String modulus = m['publicKey'];
           var bytes = Base64.decode(modulus);
@@ -96,12 +100,12 @@ class DsHttpServer {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
-          link = new HttpServerLink(dsId, new BigInteger.fromBytes(1, bytes), nodeProvider: nodeProvider);
+          link = new HttpServerLink(dsId, new BigInteger.fromBytes(1, bytes), _linkManager, nodeProvider: nodeProvider);
           if (!link.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
           }
-          _links.addLink(link);
+          _linkManager.addLink(link);
         }
         link.initLink(request);
       } catch (err) {
@@ -115,7 +119,7 @@ class DsHttpServer {
 
   }
   void _handleHttpUpdate(HttpRequest request, String dsId) {
-    HttpServerLink link = _links.getLink(dsId);
+    HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
       link._handleHttpUpdate(request);
     } else {
@@ -124,7 +128,7 @@ class DsHttpServer {
   }
 
   void _handleWsUpdate(HttpRequest request, String dsId) {
-    HttpServerLink link = _links.getLink(dsId);
+    HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
       link._handleWsUpdate(request);
     } else {

@@ -23,14 +23,15 @@ class HttpServerLink implements ServerLink {
   /// 2 salts, salt saltS
   final List<int> salts = new List<int>(2);
 
-  HttpServerLink(this.dsId, BigInteger modulus, {NodeProvider nodeProvider})
-      : publicKey = new PublicKey(modulus),
-        // TODO, need a requester ready property? because client can disconnect and reconnect and change isResponder value
-      requester = new Requester(),
-        responder = (nodeProvider != null) ? new Responder(nodeProvider) : null {
+  HttpServerLink(String id, BigInteger modulus, ServerLinkManager linkManager, {NodeProvider nodeProvider})
+      : dsId = id,
+        publicKey = new PublicKey(modulus),
+        requester = linkManager.getRequester(id),
+        responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DSRandom.instance.nextUint8();
     }
+    // TODO, need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
   /// check if public key matchs the dsId
   bool get valid {

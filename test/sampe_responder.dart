@@ -6,12 +6,12 @@ import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
   TestNode onlyNode = new TestNode('/');
-  ResponderNode getNode(String path) {
+  LocalNode getNode(String path) {
     return onlyNode;
   }
 }
 
-class TestNode extends ResponderNode {
+class TestNode extends LocalNode {
   TestNode(String path) : super(path) {
     new Timer.periodic(const Duration(seconds: 5), updateTime);
     configs[r'$is'] = 'node';

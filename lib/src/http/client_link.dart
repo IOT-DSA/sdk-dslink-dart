@@ -32,21 +32,13 @@ class HttpClientLink implements ClientLink {
   
   String _wsUpdateUri;
   String _httpUpdateUri;
-  bool _isRequester;
-  bool _isResponder;
-  NodeProvider _nodeProvider;
   String _conn;
 
-  HttpClientLink(String conn, String dsIdPrefix, PrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
+  HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
-        requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {
-    _isRequester = isRequester;
-    _isResponder = isResponder;
-    _nodeProvider = nodeProvider;
-    _conn = conn;
-  }
+        requester = isRequester ?  new Requester() : null,
+        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
         
   Future init() async {
     if (_nonce != null) {
@@ -58,8 +50,8 @@ class HttpClientLink implements ClientLink {
     HttpClientRequest request = await client.postUrl(connUri);
     Map requestJson = {
       'publicKey': privateKey.publicKey.modulusBase64,
-      'isRequester': _isRequester,
-      'isResponder': (_isResponder && _nodeProvider != null)
+      'isRequester': requester != null,
+      'isResponder': responder != null
     };
     request.add(jsonUtf8Encoder.convert(requestJson));
     HttpClientResponse response = await request.close();

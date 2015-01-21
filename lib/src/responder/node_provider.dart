@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 /// node can be subscribed or listed by multiple responder
-abstract class ResponderNode extends Node {
+abstract class LocalNode extends Node {
   final StreamController<String> listChangeController = new StreamController<String>();
   Stream<String> _listStream;
   Stream<String> get listStream {
@@ -27,7 +27,8 @@ abstract class ResponderNode extends Node {
     return _valueStream;
   }
 
-  ResponderNode(String path) : super(path);
+  final String path;
+  LocalNode(this.path);
 
   /// list and subscribe can be called on a node that doesn't exist
   /// other api like set remove, invoke, can only be applied to existing node
@@ -56,5 +57,5 @@ abstract class ResponderNode extends Node {
 /// one nodeProvider can be reused by multiple responders
 abstract class NodeProvider {
   /// get a existing node or create a dummy node for requester to listen on
-  ResponderNode getNode(String path);
+  LocalNode getNode(String path);
 }

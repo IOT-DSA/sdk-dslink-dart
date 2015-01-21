@@ -9,10 +9,11 @@ class Requester extends ConnectionHandler {
 
   final Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
-  final RequesterNodeCache _nodeCache = new RequesterNodeCache();
+  final RemoteNodeCache _nodeCache;
   SubscribeRequest _subsciption;
 
-  Requester() {
+  Requester([RemoteNodeCache nodeCache])
+      : _nodeCache = nodeCache != null ? nodeCache : new RemoteNodeCache() {
     _subsciption = new SubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
@@ -42,17 +43,17 @@ class Requester extends ConnectionHandler {
   }
 
   Stream<ValueUpdate> subscribe(String path) {
-    RequesterNode node = _nodeCache.getNode(path, this);
+    RemoteNode node = _nodeCache.getRemoteNode(path, this);
     return node._subscribe();
   }
 
   Stream<RequesterListUpdate> list(String path) {
-    RequesterNode node = _nodeCache.getNode(path, this);
+    RemoteNode node = _nodeCache.getRemoteNode(path, this);
     return node._list();
   }
 
   Stream<RequesterInvokeUpdate> invoke(String path, Map params) {
-    RequesterNode node = _nodeCache.getNode(path, this);
+    RemoteNode node = _nodeCache.getRemoteNode(path, this);
     return node._invoke(params);
   }
 
