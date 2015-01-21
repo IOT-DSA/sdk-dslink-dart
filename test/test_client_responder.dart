@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:dslink/http_client.dart';
 import 'package:dslink/src/crypto/pk.dart';
-import 'package:dslink/requester.dart';
-import 'dart:async';
-import 'test_server.dart';
+import 'sampe_responder.dart';
 
 main() async {
   String str = new File('certs/private_key.txt').readAsStringSync();

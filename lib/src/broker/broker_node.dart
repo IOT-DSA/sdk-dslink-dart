@@ -139,7 +139,6 @@ class RemoteNode extends Node implements ResponderNode {
     if (!_valueListeners.contains(listener)) {
       _valueListeners.add(listener);
 
-      _linkNode._requester.subscribe(remotePath).listen(_onValueUpdate);
       if (_valueReqListener == null && _linkNode._requester != null) {
         _valueReqListener = _linkNode._requester.subscribe(remotePath).listen(_onValueUpdate);
       }
