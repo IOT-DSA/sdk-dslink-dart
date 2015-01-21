@@ -89,14 +89,14 @@ class Responder extends ConnectionHandler {
     addToSendList(m);
   }
 
-  void updateReponse(Response response, List updates, {String status, List<TableColumn> columns}) {
+  void updateReponse(Response response, List updates, {String streamStatus, List<TableColumn> columns}) {
     if (_responses[response.rid] == response) {
       Map m = {
         'rid': response.rid
       };
-      if (status != null && status != response._streamStatus) {
-        response._streamStatus = status;
-        m['stream'] = status;
+      if (streamStatus != null && streamStatus != response._streamStatus) {
+        response._streamStatus = streamStatus;
+        m['stream'] = streamStatus;
       }
       if (columns != null) {
         m['columns'] = columns;
@@ -163,7 +163,8 @@ class Responder extends ConnectionHandler {
           }
         });
       }
-      nodeProvider.getNode(path.path).invoke(params, this, addResponse(new Response(this, rid)));
+      var node = nodeProvider.getNode(path.path);
+      node.invoke(params, this, addResponse(new InvokeResponse(this, rid, node)));
     } else {
       _closeResponse(m['rid'], error: new DSError('invalid path'));
     }

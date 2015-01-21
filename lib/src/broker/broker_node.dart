@@ -173,8 +173,12 @@ class RemoteNode extends Node implements ResponderNode {
   bool get exists => true;
 
   @override
-  Response invoke(Map params, Responder responder, Response rid) {
-    // TODO: implement invoke
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+    _requester.invoke(remotePath, params).listen((update) {
+      // TODO fix paths in the response
+      response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);
+    });
+    return response;
   }
 
   @override

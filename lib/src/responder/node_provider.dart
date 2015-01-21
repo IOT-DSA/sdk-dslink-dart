@@ -43,14 +43,14 @@ abstract class ResponderNode extends Node {
     return new RespSubscribeController(subscription, this);
   }
 
-  Response invoke(Map params, Responder responder, Response rid);
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response);
 
-  Response setAttribute(String name, String value, Responder responder, Response rid);
-  Response removeAttribute(String name, Responder responder, Response rid);
-  Response setConfig(String name, Object value, Responder responder, Response rid);
-  Response removeConfig(String name, Responder responder, Response rid);
+  Response setAttribute(String name, String value, Responder responder, Response response);
+  Response removeAttribute(String name, Responder responder, Response response);
+  Response setConfig(String name, Object value, Responder responder, Response response);
+  Response removeConfig(String name, Responder responder, Response response);
   /// set node value
-  Response setValue(Object value, Responder responder, Response rid);
+  Response setValue(Object value, Responder responder, Response response);
 }
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders

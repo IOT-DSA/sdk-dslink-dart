@@ -25,8 +25,8 @@ class TestNode extends ResponderNode {
 
   bool get exists => true;
 
-  Response invoke(Map params, Responder responder, Response response) {
-    responder.updateReponse(response, [[1, 2]], status: StreamStatus.closed, columns: [{
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+    response.updateStream([[1, 2]], streamStatus: StreamStatus.closed, columns: [{
         'name': 'v1',
         'type': 'number'
       }, {

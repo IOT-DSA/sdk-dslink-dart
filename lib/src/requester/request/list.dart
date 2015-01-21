@@ -5,7 +5,7 @@ class RequesterListUpdate extends RequesterUpdate {
   /// when changes is null, means everything could have been changed
   List<String> changes;
   RequesterNode node;
-  RequesterListUpdate(this.node, this.changes);
+  RequesterListUpdate(this.node, this.changes, String streamStatus) : super(streamStatus);
 }
 
 class ListController {
@@ -23,7 +23,7 @@ class ListController {
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
-  void _onUpdate(String status, List updates, List columns) {
+  void _onUpdate(String streamStatus, List updates, List columns) {
     if (updates != null) {
       for (Object update in updates) {
         String name;
@@ -77,11 +77,11 @@ class ListController {
         }
       }
       if (_request.streamStatus != StreamStatus.initialize) {
-        _controller.add(new RequesterListUpdate(node, changes.toList()));
+        _controller.add(new RequesterListUpdate(node, changes.toList(), streamStatus));
         changes.clear();
       }
     }
-    if (status == StreamStatus.closed) {
+    if (streamStatus == StreamStatus.closed) {
       _controller.close();
     }
   }

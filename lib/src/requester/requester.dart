@@ -1,7 +1,8 @@
 part of dslink.requester;
 
 class RequesterUpdate {
-  DSError error;
+  final String streamStatus;
+  RequesterUpdate(this.streamStatus);
 }
 
 class Requester extends ConnectionHandler {

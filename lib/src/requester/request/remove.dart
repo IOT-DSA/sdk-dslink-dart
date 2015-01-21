@@ -15,6 +15,6 @@ class RemoveController {
   }
 
   void _onUpdate(String status, List updates, List columns) {
-    completer.complete(new RequesterUpdate());
+    completer.complete(new RequesterUpdate(status));
   }
 }

@@ -98,7 +98,7 @@ class ListResponse extends Response {
         ..addAll(updateAttributes)
         ..addAll(updateChildren);
 
-    responder.updateReponse(this, updates, status: StreamStatus.open);
+    responder.updateReponse(this, updates, streamStatus: StreamStatus.open);
   }
   void _close() {
     _nodeChangeListener.cancel();
