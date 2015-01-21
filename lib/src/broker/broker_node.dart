@@ -135,6 +135,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   Stream<String> _listStream;
   Stream<String> get listStream {
     if (_listStream == null) {
+      _listListeners = new HashSet();
       _listStream = listChangeController.stream.asBroadcastStream(onListen: _onListListen, onCancel: _onListCancel);
     }
     return _listStream;
