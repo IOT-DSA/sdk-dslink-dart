@@ -2,7 +2,6 @@ library dslink.pk;
 
 import 'package:bignum/bignum.dart';
 import "package:cipher/cipher.dart";
-import "package:cipher/digests/sha384.dart";
 import "package:cipher/digests/sha256.dart";
 import "package:cipher/key_generators/rsa_key_generator.dart";
 import "package:cipher/params/key_generators/rsa_key_generator_parameters.dart";
@@ -55,7 +54,7 @@ class PublicKey {
     rsaPublicKey = new RSAPublicKey(modulus, _publicExp);
     List bytes = _bigintToUint8List(modulus);
     modulusBase64 = Base64.encode(bytes);
-    SHA384Digest sha384 = new SHA384Digest();
+    SHA256Digest sha384 = new SHA256Digest();
     modulusHash64 = Base64.encode(sha384.process(bytes));
   }
 
@@ -63,7 +62,7 @@ class PublicKey {
     return '$prefix-$modulusHash64';
   }
   bool verifyDsId(String dsId) {
-    return (dsId.length >= 64 && dsId.substring(dsId.length - 64) == modulusHash64);
+    return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == modulusHash64);
   }
 
   String encryptNonce(SecretNonce nonce) {

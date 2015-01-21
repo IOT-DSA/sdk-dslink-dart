@@ -41,7 +41,7 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
     } else {
       String connName;
       // find a connName for it
-      for (int i = 63; i >= 0; --i) {
+      for (int i = 42; i >= 0; --i) {
         connName = dsId.substring(0, dsId.length - i);
         if (!_connName2id.containsKey(connName)) {
           _connName2id[connName] = dsId;

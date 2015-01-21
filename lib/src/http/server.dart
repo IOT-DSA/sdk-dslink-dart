@@ -30,7 +30,7 @@ class DsHttpServer {
   final ServerLinkManager _linkManager;
   /// to open a secure server, SecureSocket.initialize() need to be called before start()
   DsHttpServer.start(dynamic address, //
-      {int httpPort: 80, int httpsPort: 443, String certificateName, linkManager, this.nodeProvider}) 
+      {int httpPort: 8080, int httpsPort: 8443, String certificateName, linkManager, this.nodeProvider}) 
       : _linkManager = (linkManager == null) ? new DsSimpleLinkManager() : linkManager{
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
@@ -55,7 +55,7 @@ class DsHttpServer {
     try {
       String dsId = request.uri.queryParameters['dsId'];
 
-      if (dsId == null || dsId.length < 64) {
+      if (dsId == null || dsId.length < 43) {
         request.response.close();
         return;
       }
