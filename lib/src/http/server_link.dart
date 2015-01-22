@@ -45,8 +45,8 @@ class HttpServerLink implements ServerLink {
 
     // TODO, dont use hard coded id and public key
     request.response.write(JSON.encode({
-      "id": "broker-dsa-Myd96R_4RaIAJz7iZGqIQxHO5Ud8vlHbHOb1LNinuYE",
-      "publicKey": "ALiG8HGJcbNU1EjVKlO8qbFXfAZODx63cSoKmWVBtOJWhI3_tQYe4NQ4GlO7Ego09CNtcQhr5EefS5WsCuuYjWjW7yIj1r_6YTVEx0-7UG8V69lbllJxfiogXTazaHIfotSFB1nGumDN87tt-3YAc4a9TbXjowpMkdtkTRdcc6x3vJKY1z4idjniwXCG2LzbvPbHTkYZDdXBvKf5ARF1YInNNCC_KkCaVhzeHnzbObnhvlW48Al7tyNbu1Yb4i8fjUu32qHRRIhQW2M1VyCV2pQEYkdsTr3aQxABwE-90tMU_NWN9SvlPhPljK5BU1joKnSuYW0kvANsimC78Og6-dE",
+      "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
+      "publicKey": "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": "/ws",
       "httpUri": "/http",
       "encryptedNonce": publicKey.encryptNonce(_tempNonce),

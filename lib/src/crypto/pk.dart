@@ -129,13 +129,13 @@ class PrivateKey {
   String saveToString() {
     StringBuffer sb = new StringBuffer();
     sb.write('m:\n');
-    sb.write(Base64.encode(rsaPrivateKey.modulus.toByteArray(), 44, 2));
+    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.modulus), 44, 2));
     sb.write('\ne:\n');
-    sb.write(Base64.encode(rsaPrivateKey.exponent.toByteArray(), 44, 2));
+    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.exponent), 44, 2));
     sb.write('\np:\n');
-    sb.write(Base64.encode(rsaPrivateKey.p.toByteArray(), 44, 2));
+    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.p), 44, 2));
     sb.write('\nq:\n');
-    sb.write(Base64.encode(rsaPrivateKey.q.toByteArray(), 44, 2));
+    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.q), 44, 2));
     return sb.toString();
   }
 }
@@ -221,6 +221,7 @@ class DSRandom extends SecureRandomBase {
 }
 
 /// BigInteger.toByteArray contains negative values, so we need a different version
+/// this version also remove the byte for sign, so it's not able to serialize negative number
 Uint8List _bigintToUint8List(BigInteger input) {
   var this_array = input.array;
   var i = input.t;
@@ -249,6 +250,9 @@ Uint8List _bigintToUint8List(BigInteger input) {
       if (k == 0 && (input.s & 0x80) != (d & 0x80)) ++k;
       if (k > 0 || d != input.s) r[k++] = d;
     }
+  }
+  if (r.data[0] == 0) { // have ended up with an extra zero byte, copy down.
+    return new Uint8List.fromList(r.data.sublist(1));
   }
   return new Uint8List.fromList(r.data);
 }
