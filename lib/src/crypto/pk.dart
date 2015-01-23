@@ -8,7 +8,6 @@ import "package:cipher/params/key_generators/rsa_key_generator_parameters.dart";
 import "package:cipher/random/secure_random_base.dart";
 import "package:cipher/random/block_ctr_random.dart";
 import "package:cipher/block/aes_fast.dart";
-import 'package:cipher/asymmetric/rsa.dart';
 import 'dart:typed_data';
 import '../../utils.dart';
 import 'dart:math' as Math;
@@ -34,7 +33,7 @@ class SecretNonce {
     List raw = []
         ..addAll(UTF8.encode(salt))
         ..addAll(bytes);
-    
+
     SHA256Digest sha256 = new SHA256Digest();
     return Base64.encode(sha256.process(new Uint8List.fromList(raw)));
   }
@@ -45,51 +44,51 @@ class SecretNonce {
 }
 
 class PublicKey {
-  static final BigInteger _publicExp = new BigInteger(65537);
+  static final BigInteger publicExp = new BigInteger(65537);
 
-  RSAPublicKey rsaPublicKey;
+  final BigInteger modulus;
   String modulusBase64;
   String modulusHash64;
 
-  PublicKey(BigInteger modulus) {
-    rsaPublicKey = new RSAPublicKey(modulus, _publicExp);
-    List bytes = _bigintToUint8List(modulus);
+  PublicKey(this.modulus) {
+    List bytes = bigintToUint8List(modulus);
     modulusBase64 = Base64.encode(bytes);
-    SHA256Digest sha384 = new SHA256Digest();
-    modulusHash64 = Base64.encode(sha384.process(bytes));
+    SHA256Digest sha256 = new SHA256Digest();
+    modulusHash64 = Base64.encode(sha256.process(bytes));
   }
 
-  String getDsaId(String prefix) {
-    return '$prefix-$modulusHash64';
+  String getDsId(String prefix) {
+    return '$prefix$modulusHash64';
   }
+
   bool verifyDsId(String dsId) {
     return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == modulusHash64);
   }
 
   String encryptNonce(SecretNonce nonce) {
-    var pubpar = new PublicKeyParameter<RSAPublicKey>(rsaPublicKey);
-    RSAEngine encrypt = new RSAEngine();
-    encrypt.init(true, pubpar);
-    var encrypted = encrypt.process(nonce.bytes);
+    // TODO optional security enhancement, add more bytes infront of the 16 bytes nonce
+    BigInteger A = new BigInteger.fromBytes(1, nonce.bytes);
+    BigInteger E = A.modPow(publicExp, modulus);
+    Uint8List encrypted = bigintToUint8List(E);
     return Base64.encode(encrypted);
   }
 }
 
 class PrivateKey {
   PublicKey publicKey;
-  RSAPrivateKey rsaPrivateKey;
-  AsymmetricKeyPair keyPair;
+  final BigInteger modulus;
+  final BigInteger exponent;
+  /// optional, not really needed
+  final BigInteger p, q;
 
-  PrivateKey(BigInteger modulus, BigInteger exponent, BigInteger p, BigInteger q) {
+  PrivateKey(this.modulus, this.exponent, [this.p, this.q]) {
     publicKey = new PublicKey(modulus);
-    rsaPrivateKey = new RSAPrivateKey(modulus, exponent, p, q);
-    keyPair = new AsymmetricKeyPair(publicKey.rsaPublicKey, rsaPrivateKey);
   }
 
   factory PrivateKey.generate() {
     var gen = new RSAKeyGenerator();
     var rnd = new DSRandom();
-    var rsapars = new RSAKeyGeneratorParameters(PublicKey._publicExp, 2048, 32);
+    var rsapars = new RSAKeyGeneratorParameters(PublicKey.publicExp, 2048, 32);
     var params = new ParametersWithRandom(rsapars, rnd);
     gen.init(params);
     var pair = gen.generateKeyPair();
@@ -120,23 +119,36 @@ class PrivateKey {
   }
 
   SecretNonce decryptNonce(String nonce) {
-    var privpar = new PrivateKeyParameter<RSAPrivateKey>(rsaPrivateKey);
-    RSAEngine decrypt = new RSAEngine();
-    decrypt.init(false, privpar);
-    var decrypted = decrypt.process(Base64.decode(nonce));
+    Uint8List encrypted = Base64.decode(nonce);
+    BigInteger E = new BigInteger.fromBytes(1, encrypted);
+    BigInteger D = E.modPow(exponent, modulus);
+    Uint8List decrypted = bigintToUint8List(D);
+    if (decrypted.length < 16) {
+      int nMissing = 16 - decrypted.length;
+      Uint8List d = new Uint8List(16);
+      for (int i = 0; i < decrypted.length; ++i) {
+        d[nMissing + i] = decrypted[i];
+      }
+      decrypted = d;
+    } else if (decrypted.length > 16) {
+      // shoudln't happen now, but we might want to add some random bytes before the 16 bytes to make it more secure
+      decrypted = decrypted.sublist(decrypted.length - 16);
+    }
     return new SecretNonce(decrypted);
   }
 
   String saveToString() {
     StringBuffer sb = new StringBuffer();
     sb.write('m:\n');
-    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.modulus), 44, 2));
+    sb.write(Base64.encode(bigintToUint8List(modulus), 44, 2));
     sb.write('\ne:\n');
-    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.exponent), 44, 2));
-    sb.write('\np:\n');
-    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.p), 44, 2));
-    sb.write('\nq:\n');
-    sb.write(Base64.encode(_bigintToUint8List(rsaPrivateKey.q), 44, 2));
+    sb.write(Base64.encode(bigintToUint8List(exponent), 44, 2));
+    if (p != null && q != null) {
+      sb.write('\np:\n');
+      sb.write(Base64.encode(bigintToUint8List(p), 44, 2));
+      sb.write('\nq:\n');
+      sb.write(Base64.encode(bigintToUint8List(q), 44, 2));
+    }
     return sb.toString();
   }
 }
@@ -221,9 +233,17 @@ class DSRandom extends SecureRandomBase {
   }
 }
 
+String bytes2hex(List<int> bytes) {
+  var result = new StringBuffer();
+  for (var part in bytes) {
+    result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+  }
+  return result.toString();
+}
+
 /// BigInteger.toByteArray contains negative values, so we need a different version
 /// this version also remove the byte for sign, so it's not able to serialize negative number
-Uint8List _bigintToUint8List(BigInteger input) {
+Uint8List bigintToUint8List(BigInteger input) {
   var this_array = input.array;
   var i = input.t;
   JSArray<int> r = new JSArray<int>();

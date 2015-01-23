@@ -19,7 +19,7 @@ void main() {
   var t2 = (new DateTime.now()).millisecondsSinceEpoch;
 
   print('takes ${t2-t1} ms to generate key');
-  print('dsaId: ${key.publicKey.getDsaId('my-dsa-test')}');
+  print('dsaId: ${key.publicKey.getDsId('my-dsa-test-')}');
   print('saved key:\n${key.saveToString()}');
   //test token encrypt, decrypt
   SecretNonce token = new SecretNonce.generate();
