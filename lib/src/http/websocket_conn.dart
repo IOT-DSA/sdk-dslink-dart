@@ -47,7 +47,25 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     Map m;
     if (data is List<int>) {
       try {
+        // TODO JSONUTF8Decoder
         m = JSON.decode(UTF8.decode(data));
+        print('$m');
+      } catch (err) {
+        print(err);
+        close();
+        return;
+      }
+      if (m['responses'] is List) {
+        // send responses to requester channel
+        _requesterChannel.onReceiveController.add(m['responses']);
+      }
+      if (m['requests'] is List) {
+        // send requests to responder channel
+        _responderChannel.onReceiveController.add(m['requests']);
+      }
+    } else if (data is String) {
+      try {
+        m = JSON.decode(data);
         print('$m');
       } catch (err) {
         print(err);
@@ -96,6 +114,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
   }
   void _onDone() {
+    print('socket disconnected');
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
