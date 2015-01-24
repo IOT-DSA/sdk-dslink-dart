@@ -102,13 +102,13 @@ class ReqSubscribeController {
   BroadcastStreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> get stream => _controller.stream;
   ReqSubscribeController(this.node) {
-    _controller = new BroadcastStreamController<ValueUpdate>(_onAnyListen, _onAllCancel);
+    _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel);
   }
 
 
 
   bool _subscribing = false;
-  void _onAnyListen() {
+  void _onStartListen() {
     if (!_subscribing) {
       node.requester._subsciption.addSubscription(this);
       _subscribing = true;

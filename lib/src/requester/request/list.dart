@@ -14,7 +14,7 @@ class ListController {
   Stream<RequesterListUpdate> get stream => _controller.stream;
   Request _request;
   ListController(this.node) {
-    _controller = new BroadcastStreamController<RequesterListUpdate>(_onAnyListen, _onAllCancel);
+    _controller = new BroadcastStreamController<RequesterListUpdate>(_onStartListen, _onAllCancel);
   }
   bool get initialized {
     return _request != null && _request.streamStatus != StreamStatus.initialize;
@@ -85,7 +85,7 @@ class ListController {
   }
 
 
-  void _onAnyListen() {
+  void _onStartListen() {
     if (_request == null && node.requester.connection != null) {
       _request = node.requester._sendRequest({
         'method': 'list',
