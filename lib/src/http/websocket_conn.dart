@@ -113,6 +113,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       socket.add(jsonUtf8Encoder.convert(m));
     }
   }
+
   void _onDone() {
     print('socket disconnected');
     if (!_requesterChannel.onReceiveController.isClosed) {
@@ -125,7 +126,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       _responderChannel.onReceiveController.close();
     }
     if (!_responderChannel.onDisconnectController.isCompleted) {
-      _responderChannel.onDisconnectController.complete(_requesterChannel);
+      _responderChannel.onDisconnectController.complete(_responderChannel);
     }
   }
 

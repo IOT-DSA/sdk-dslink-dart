@@ -25,8 +25,7 @@ abstract class ConnectionHandler {
         _connListener.cancel();
         _connListener = null;
       }
-      //TODO clean up
-      // send error and close all requests except the subscription and list requests
+      onDisconnected();
       _conn = null;
     }
   }

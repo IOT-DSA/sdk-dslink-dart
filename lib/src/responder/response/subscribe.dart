@@ -30,6 +30,12 @@ class SubscribeResponse extends Response {
     }
     responder.updateReponse(this, updates);
   }
+  void _close() {
+    subsriptions.forEach((path, controller){
+      controller.destroy();
+    });
+    subsriptions.clear();
+  }
 }
 
 class RespSubscribeController {

@@ -11,14 +11,6 @@ class Responder extends ConnectionHandler {
     _subscription = new SubscribeResponse(this, 0);
     _responses[0] = _subscription;
   }
-
-  void onDisconnected() {
-    // TODO close and clear all responses
-  }
-
-  void onReconnected() {
-  }
-
   Response addResponse(Response response) {
     if (response._streamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
@@ -224,5 +216,16 @@ class Responder extends ConnectionHandler {
         _responses.remove(rid);
       }
     }
+  }
+  
+  void onDisconnected() {
+    _responses.forEach((id, resp){
+      resp._close();
+    });
+    _responses.clear();
+    _responses[0] = _subscription;
+  }
+
+  void onReconnected() {
   }
 }
