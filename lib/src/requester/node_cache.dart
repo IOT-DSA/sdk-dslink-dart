@@ -53,14 +53,14 @@ class RemoteNode extends Node {
       _listController = new ListController(this);
       reset();
     }
-    return _listController._stream;
+    return _listController.stream;
   }
 
   Stream<ValueUpdate> _subscribe() {
     if (_subscribeController == null) {
       _subscribeController = new ReqSubscribeController(this);
     }
-    return _subscribeController._stream;
+    return _subscribeController.stream;
   }
 
   Stream<RequesterInvokeUpdate> _invoke(Map params) {

@@ -99,35 +99,24 @@ class SubscribeRequest extends Request {
 class ReqSubscribeController {
   final RemoteNode node;
 
-  StreamController<ValueUpdate> _controller;
-  Stream<ValueUpdate> _stream;
-  HashSet _listeners;
+  BroadcastStreamController<ValueUpdate> _controller;
+  Stream<ValueUpdate> get stream => _controller.stream;
   ReqSubscribeController(this.node) {
-    _controller = new StreamController<ValueUpdate>();
-    _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
-    _listeners = new HashSet();
+    _controller = new BroadcastStreamController<ValueUpdate>(_onAnyListen, _onAllCancel);
   }
 
 
 
   bool _subscribing = false;
-  void _onListen(StreamSubscription<ValueUpdate> listener) {
-    if (!_listeners.contains(listener)) {
-      _listeners.add(listener);
-      if (!_subscribing) {
-        node.requester._subsciption.addSubscription(this);
-        _subscribing = true;
-      }
+  void _onAnyListen() {
+    if (!_subscribing) {
+      node.requester._subsciption.addSubscription(this);
+      _subscribing = true;
     }
   }
 
-  void _onCancel(StreamSubscription<ValueUpdate> listener) {
-    if (_listeners.contains(listener)) {
-      _listeners.remove(listener);
-      if (_listeners.isEmpty) {
-        _destroy();
-      }
-    }
+  void _onAllCancel() {
+    _destroy();
   }
 
   void _destroy() {

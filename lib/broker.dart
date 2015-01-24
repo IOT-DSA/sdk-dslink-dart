@@ -4,5 +4,6 @@ import 'requester.dart';
 import 'common.dart';
 import 'dart:async';
 import 'dart:collection';
+import 'utils.dart';
 
 part 'src/broker/broker_node.dart';

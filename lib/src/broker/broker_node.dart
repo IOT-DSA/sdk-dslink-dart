@@ -131,36 +131,24 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
 class RemoteLinkNode extends RemoteNode implements LocalNode {
 
 
-  final StreamController<String> listChangeController = new StreamController<String>();
-  Stream<String> _listStream;
-  Stream<String> get listStream {
-    if (_listStream == null) {
-      _listListeners = new HashSet();
-      _listStream = listChangeController.stream.asBroadcastStream(onListen: _onListListen, onCancel: _onListCancel);
+  BroadcastStreamController<String> _listChangeController;
+  BroadcastStreamController<String> get listChangeController {
+    if (_listChangeController == null) {
+      _listChangeController = new BroadcastStreamController<String>(_onAnyListListen, _onAllListCancel);
     }
-    return _listStream;
+    return _listChangeController;
   }
-  HashSet _listListeners;
+  Stream<String> get listStream => listChangeController.stream;
   StreamSubscription _listReqListener;
-  void _onListListen(StreamSubscription<String> listener) {
-    if (!_listListeners.contains(listener)) {
-      _listListeners.add(listener);
-
-      if (_listReqListener == null && _linkNode.requester != null) {
-        _listReqListener = _linkNode.requester.list(remotePath).listen(_onListUpdate);
-      }
+  void _onAnyListListen() {
+    if (_listReqListener == null) {
+      _listReqListener = requester.list(remotePath).listen(_onListUpdate);
     }
   }
-
-  void _onListCancel(StreamSubscription<String> listener) {
-    if (_listListeners.contains(listener)) {
-      _listListeners.remove(listener);
-      if (_listListeners.isEmpty) {
-        if (_listReqListener != null) {
-          _listReqListener.cancel();
-          _listReqListener = null;
-        }
-      }
+  void _onAllListCancel() {
+    if (_listReqListener != null) {
+      _listReqListener.cancel();
+      _listReqListener = null;
     }
   }
   void _onListUpdate(RequesterListUpdate update) {
@@ -169,44 +157,25 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
   }
 
-
-  StreamController<ValueUpdate> _valueController;
-  StreamController<ValueUpdate> get valueController {
-    // lazy initialize
+  BroadcastStreamController<ValueUpdate> _valueController;
+  BroadcastStreamController<ValueUpdate> get valueController {
     if (_valueController == null) {
-      _valueController = new StreamController<ValueUpdate>();
+      _valueController = new BroadcastStreamController<ValueUpdate>(_onValueAnyListen, _onValueAllCancel);
     }
     return _valueController;
   }
-  Stream<ValueUpdate> _valueStream;
-  Stream<ValueUpdate> get valueStream {
-    if (_valueStream == null) {
-      _valueListeners = new HashSet();
-      _valueStream = valueController.stream.asBroadcastStream(onListen: _onValueListen, onCancel: _onValueCancel);
-    }
-    return _valueStream;
-  }
-  HashSet _valueListeners;
+  Stream<ValueUpdate> get valueStream => valueController.stream;
   StreamSubscription _valueReqListener;
-  void _onValueListen(StreamSubscription<ValueUpdate> listener) {
-    if (!_valueListeners.contains(listener)) {
-      _valueListeners.add(listener);
-
-      if (_valueReqListener == null && _linkNode.requester != null) {
-        _valueReqListener = _linkNode.requester.subscribe(remotePath).listen(_onValueUpdate);
-      }
+  void _onValueAnyListen() {
+    print('value listener added');
+    if (_valueReqListener == null) {
+      _valueReqListener = requester.subscribe(remotePath).listen(_onValueUpdate);
     }
   }
-
-  void _onValueCancel(StreamSubscription<ValueUpdate> listener) {
-    if (_valueListeners.contains(listener)) {
-      _valueListeners.remove(listener);
-      if (_valueListeners.isEmpty) {
-        if (_valueReqListener != null) {
-          _valueReqListener.cancel();
-          _valueReqListener = null;
-        }
-      }
+  void _onValueAllCancel() {
+    if (_valueReqListener != null) {
+      _valueReqListener.cancel();
+      _valueReqListener = null;
     }
   }
   void _onValueUpdate(ValueUpdate update) {

@@ -10,13 +10,11 @@ class RequesterListUpdate extends RequesterUpdate {
 
 class ListController {
   final RemoteNode node;
-  StreamController<RequesterListUpdate> _controller;
-  Stream<RequesterListUpdate> _stream;
+  BroadcastStreamController<RequesterListUpdate> _controller;
+  Stream<RequesterListUpdate> get stream => _controller.stream;
   Request _request;
-  final HashSet _listeners = new HashSet();
   ListController(this.node) {
-    _controller = new StreamController<RequesterListUpdate>();
-    _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
+    _controller = new BroadcastStreamController<RequesterListUpdate>(_onAnyListen, _onAllCancel);
   }
   bool get initialized {
     return _request != null && _request.streamStatus != StreamStatus.initialize;
@@ -87,25 +85,17 @@ class ListController {
   }
 
 
-  void _onListen(StreamSubscription<RequesterListUpdate> listener) {
-    if (!_listeners.contains(listener)) {
-      _listeners.add(listener);
-      if (_request == null && node.requester.connection != null) {
-        _request = node.requester._sendRequest({
-          'method': 'list',
-          'path': node.remotePath
-        }, _onUpdate);
-      }
+  void _onAnyListen() {
+    if (_request == null && node.requester.connection != null) {
+      _request = node.requester._sendRequest({
+        'method': 'list',
+        'path': node.remotePath
+      }, _onUpdate);
     }
   }
 
-  void _onCancel(StreamSubscription<RequesterListUpdate> listener) {
-    if (_listeners.contains(listener)) {
-      _listeners.remove(listener);
-      if (_listeners.isEmpty) {
-        _destroy();
-      }
-    }
+  void _onAllCancel() {
+    _destroy();
   }
 
   void _destroy() {
