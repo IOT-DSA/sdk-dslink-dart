@@ -33,9 +33,9 @@ class SecretNonce {
     List raw = []
         ..addAll(UTF8.encode(salt))
         ..addAll(bytes);
-
     SHA256Digest sha256 = new SHA256Digest();
-    return Base64.encode(sha256.process(new Uint8List.fromList(raw)));
+    var hashed = sha256.process(new Uint8List.fromList(raw));
+    return Base64.encode(hashed);
   }
 
   bool verifySalt(String salt, String hash) {
