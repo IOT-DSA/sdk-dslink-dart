@@ -3,7 +3,9 @@ part of dslink.responder;
 /// node can be subscribed or listed by multiple responder
 abstract class LocalNode extends Node {
   final StreamController<String> listChangeController = new StreamController<String>();
+
   Stream<String> _listStream;
+
   Stream<String> get listStream {
     if (_listStream == null) {
       _listStream = listChangeController.stream.asBroadcastStream();
@@ -12,6 +14,7 @@ abstract class LocalNode extends Node {
   }
 
   StreamController<ValueUpdate> _valueController;
+
   StreamController<ValueUpdate> get valueController {
     // lazy initialize
     if (_valueController == null) {
@@ -19,7 +22,9 @@ abstract class LocalNode extends Node {
     }
     return _valueController;
   }
+
   Stream<ValueUpdate> _valueStream;
+
   Stream<ValueUpdate> get valueStream {
     if (_valueStream == null) {
       _valueStream = valueController.stream.asBroadcastStream();
@@ -40,18 +45,32 @@ abstract class LocalNode extends Node {
   ListResponse list(Responder responder, ListResponse response) {
     return response;
   }
+
   RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
     return new RespSubscribeController(subscription, this);
   }
 
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response);
 
-  Response setAttribute(String name, String value, Responder responder, Response response);
-  Response removeAttribute(String name, Responder responder, Response response);
-  Response setConfig(String name, Object value, Responder responder, Response response);
-  Response removeConfig(String name, Responder responder, Response response);
+  Response setAttribute(String name, String value, Responder responder, Response response) {
+    return response;
+  }
+
+  Response removeAttribute(String name, Responder responder, Response response) {
+    return response;
+  }
+
+  Response setConfig(String name, Object value, Responder responder, Response response) {
+    return response;
+  }
+
+  Response removeConfig(String name, Responder responder, Response response) {
+    return response;
+  }
   /// set node value
-  Response setValue(Object value, Responder responder, Response response);
+  Response setValue(Object value, Responder responder, Response response) {
+    return response;
+  }
 }
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders

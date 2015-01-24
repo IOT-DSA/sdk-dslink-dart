@@ -6,6 +6,7 @@ import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
   TestNode onlyNode = new TestNode('/');
+
   LocalNode getNode(String path) {
     return onlyNode;
   }
@@ -19,6 +20,7 @@ class TestNode extends LocalNode {
   }
 
   int count = 0;
+  
   void updateTime(Timer t) {
     valueController.add(new ValueUpdate(count++, (new DateTime.now()).toUtc().toIso8601String()));
   }
@@ -35,26 +37,4 @@ class TestNode extends LocalNode {
       }]);
     return response;
   }
-
-  Response removeAttribute(String name, Responder responder, Response response) {
-    return response;
-  }
-
-  Response removeConfig(String name, Responder responder, Response response) {
-    return response;
-  }
-
-  Response setAttribute(String name, String value, Responder responder, Response response) {
-    return response;
-  }
-
-  Response setConfig(String name, Object value, Responder responder, Response response) {
-    return response;
-  }
-
-  Response setValue(Object value, Responder responder, Response response) {
-    return response;
-  }
-
-
 }
