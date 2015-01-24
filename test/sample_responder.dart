@@ -20,13 +20,14 @@ class TestNode extends LocalNode {
   }
 
   int count = 0;
-  
+
   void updateTime(Timer t) {
     valueController.add(new ValueUpdate(count++, (new DateTime.now()).toUtc().toIso8601String()));
   }
 
   bool get exists => true;
 
+  @override
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     response.updateStream([[1, 2]], streamStatus: StreamStatus.closed, columns: [{
         'name': 'v1',
