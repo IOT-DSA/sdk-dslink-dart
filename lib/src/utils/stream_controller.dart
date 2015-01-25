@@ -7,8 +7,6 @@ class BroadcastStreamController<T> implements StreamController<T> {
 
   Function _onStartListen;
   Function _onAllCancel;
-//  HashSet _listeners = new HashSet();
-  int count = 0;
 
   BroadcastStreamController([void onStartListen(), void onAllCancel()]) {
     _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
@@ -18,33 +16,15 @@ class BroadcastStreamController<T> implements StreamController<T> {
 
 
   void _onListen(StreamSubscription<T> subscription) {
-    count++;
-    if (count == 1) {
-      if (_onStartListen != null) {
-        _onStartListen();
-      }
+    if (_onStartListen != null) {
+      _onStartListen();
     }
-//    if (_listeners.isEmpty) {
-//      _listeners.add(subscription);
-//      if (_onStartListen != null) {
-//        _onStartListen();
-//      }
-//    } else {
-//      _listeners.add(subscription);
-//    }
   }
 
   void _onCancel(StreamSubscription<T> subscription) {
-    count--;
-    if (count == 0) {
-      if (_onAllCancel != null) {
-        _onAllCancel();
-      }
+    if (_onAllCancel != null) {
+      _onAllCancel();
     }
-//    _listeners.remove(subscription);
-//    if (_onAllCancel != null && _listeners.isEmpty) {
-//      _onAllCancel();
-//    }
   }
 
   void add(T t) {
