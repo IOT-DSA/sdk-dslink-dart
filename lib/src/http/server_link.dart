@@ -52,7 +52,7 @@ class HttpServerLink implements ServerLink {
       "encryptedNonce": publicKey.encryptNonce(_tempNonce),
       "salt": '0x${salts[0]}',
       "saltS": '1x${salts[1]}',
-      "min-update-interval-ms": 200
+      "updateInterval": 200
     }));
     request.response.close();
   }
