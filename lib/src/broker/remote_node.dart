@@ -36,6 +36,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
 
   RemoteNode updateRemoteNode(Map m) {
     // TODO: implement updateRemoteNode
+    return null;
   }
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
@@ -49,17 +50,20 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
   Stream<String> get listStream => listChangeController.stream;
   StreamSubscription _listReqListener;
+
   void _onStartListListen() {
     if (_listReqListener == null) {
       _listReqListener = requester.list(remotePath).listen(_onListUpdate);
     }
   }
+
   void _onAllListCancel() {
     if (_listReqListener != null) {
       _listReqListener.cancel();
       _listReqListener = null;
     }
   }
+
   void _onListUpdate(RequesterListUpdate update) {
     for (var change in update.changes) {
       listChangeController.add(change);
@@ -74,20 +78,24 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
     return _valueController;
   }
+
   Stream<ValueUpdate> get valueStream => valueController.stream;
   StreamSubscription _valueReqListener;
+
   void _onStartValueListen() {
     print('value listener added');
     if (_valueReqListener == null) {
       _valueReqListener = requester.subscribe(remotePath).listen(_onValueUpdate);
     }
   }
+
   void _onAllValueCancel() {
     if (_valueReqListener != null) {
       _valueReqListener.cancel();
       _valueReqListener = null;
     }
   }
+
   void _onValueUpdate(ValueUpdate update) {
     _valueController.add(update);
   }
@@ -95,6 +103,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   final String path;
   /// root of the link
   RemoteLinkManager _linkNode;
+
   RemoteLinkNode(this.path, String remotePath, Requester requester, this._linkNode)
       : super(remotePath, requester) {}
 
@@ -116,31 +125,37 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   @override
   Response removeAttribute(String name, Responder responder, Response rid) {
     // TODO: implement removeAttribute
+    return rid;
   }
 
   @override
   Response removeConfig(String name, Responder responder, Response rid) {
     // TODO: implement removeConfig
+    return rid;
   }
 
   @override
   Response setAttribute(String name, String value, Responder responder, Response rid) {
     // TODO: implement setAttribute
+    return rid;
   }
 
   @override
   Response setConfig(String name, Object value, Responder responder, Response rid) {
     // TODO: implement setConfig
+    return rid;
   }
 
   @override
   Response setValue(Object value, Responder responder, Response rid) {
     // TODO: implement setValue
+    return rid;
   }
 
   ListResponse list(Responder responder, ListResponse response) {
     return response;
   }
+
   RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
     return new RespSubscribeController(subscription, this);
   }

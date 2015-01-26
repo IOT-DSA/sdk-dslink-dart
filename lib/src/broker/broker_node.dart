@@ -5,11 +5,14 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
   /// connName to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
+  @override
   LocalNode getNode(String path) {
     LocalNode node = nodes[path];
+
     if (node != null) {
       return node;
     }
+
     if (path.startsWith('/conns/')) {
       int slashPos = path.indexOf('/', 7);
       String connName;
