@@ -1,8 +1,9 @@
 library dslink.responder;
 
-import 'common.dart';
-import 'dart:collection';
 import 'dart:async';
+import 'dart:collection';
+
+import 'common.dart';
 
 part 'src/responder/responder.dart';
 part 'src/responder/response.dart';
