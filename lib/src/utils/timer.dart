@@ -82,5 +82,4 @@ class DsTimer {
       _dsLoop();
     }
   }
-
 }

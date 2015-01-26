@@ -34,7 +34,6 @@ abstract class ConnectionHandler {
   void onReconnected();
   void onData(List m);
 
-
   List _toSendList = [];
 
   void addToSendList(Map m) {

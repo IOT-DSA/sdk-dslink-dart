@@ -3,9 +3,11 @@ part of dslink.responder;
 class SubscribeResponse extends Response {
   SubscribeResponse(Responder responder, int rid) : super(responder, rid);
 
-  final Map<String, RespSubscribeController> subsriptions = new Map<String, RespSubscribeController>();
+  final Map<String, RespSubscribeController> subsriptions =
+      new Map<String, RespSubscribeController>();
 
-  final LinkedHashSet<RespSubscribeController> changed = new LinkedHashSet<RespSubscribeController>();
+  final LinkedHashSet<RespSubscribeController> changed =
+      new LinkedHashSet<RespSubscribeController>();
 
   void add(String path, RespSubscribeController controller) {
     if (subsriptions[path] != null) {
@@ -31,7 +33,7 @@ class SubscribeResponse extends Response {
     responder.updateReponse(this, updates);
   }
   void _close() {
-    subsriptions.forEach((path, controller){
+    subsriptions.forEach((path, controller) {
       controller.destroy();
     });
     subsriptions.clear();
@@ -61,14 +63,8 @@ class RespSubscribeController {
   Object process() {
     Object rslt;
     if (lastValue.count > 1 || lastValue.status != null) {
-      Map m = {
-        'ts': lastValue.ts,
-        'value': lastValue.value,
-        'path': node.path
-      };
-      if (lastValue.count == 0) {
-
-      } else if (lastValue.count > 1) {
+      Map m = {'ts': lastValue.ts, 'value': lastValue.value, 'path': node.path};
+      if (lastValue.count == 0) {} else if (lastValue.count > 1) {
         m['count'] = lastValue.count;
         if (lastValue.sum.isFinite) {
           m['sum'] = lastValue.sum;

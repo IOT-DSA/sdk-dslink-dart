@@ -10,9 +10,9 @@ abstract class PlatformProvider {
 abstract class WebSocketProvider {
   final String url;
   final Map<String, String> extraHeaders;
-  
-  WebSocketProvider(this.url, {this.extraHeaders: const{}});
-  
+
+  WebSocketProvider(this.url, {this.extraHeaders: const {}});
+
   void send(String data);
   Stream<String> stream();
   Future connect();
@@ -28,14 +28,15 @@ class HttpRequest {
   final String method;
   final String body;
   final Map<String, String> headers;
-  
-  HttpRequest(this.url, {this.method: "GET", this.body, this.headers: const {}});
+
+  HttpRequest(this.url,
+      {this.method: "GET", this.body, this.headers: const {}});
 }
 
 class HttpResponse {
   final int statusCode;
   final String data;
   final Map<String, String> headers;
-  
+
   HttpResponse(this.statusCode, this.data, this.headers);
 }

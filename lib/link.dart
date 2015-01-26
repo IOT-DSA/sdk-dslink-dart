@@ -15,33 +15,33 @@ export "package:dslink/src/crypto/pk.dart" show PrivateKey;
 //  final String host;
 //  final int port;
 //  final PrivateKey privateKey;
-//  
+//
 //  HttpClientLink link;
-//  
-//  
+//
+//
 //  _NodeProvider _nodeProvider;
-//  
+//
 //  Link(this.host, this.privateKey, {this.port: 80}) {
 //    _nodeProvider = new _NodeProvider(this);
 //  }
-//  
+//
 //  void addRootNode(ResponderNode node) {
 //    rootNode.addChild(node);
 //  }
-//  
+//
 //  Future connect() async {
 //    link = new HttpClientLink("${host}:${port}", "broker-dsa", new PrivateKey.generate(), nodeProvider: _nodeProvider);
 //    await link.init();
 //  }
-//  
+//
 //  BaseNode rootNode = new BaseNode("/");
 //}
 //
 //class _NodeProvider extends NodeProvider {
 //  final Link link;
-//  
+//
 //  _NodeProvider(this.link);
-//  
+//
 //  @override
 //  ResponderNode getNode(String path) {
 //    var node = link.rootNode;
@@ -58,9 +58,9 @@ export "package:dslink/src/crypto/pk.dart" show PrivateKey;
 //class BaseNode extends ResponderNode {
 //  List<SubscribeResponse> _subscribers;
 //  Object _value;
-//  
+//
 //  BaseNode(String path) : super(path);
-//  
+//
 //  @override
 //  bool get exists => true;
 //

@@ -2,13 +2,15 @@ part of dslink.responder;
 
 class InvokeResponse extends Response {
   final LocalNode node;
-  InvokeResponse(Responder responder, int rid, this.node) : super(responder, rid);
+  InvokeResponse(Responder responder, int rid, this.node)
+      : super(responder, rid);
 
   int _pendingInitializeLength = 0;
   List _columns;
   List _updates;
   String _streamStatus = StreamStatus.initialize;
-  void updateStream(List udpates, {List columns, String streamStatus: StreamStatus.open}) {
+  void updateStream(List udpates,
+      {List columns, String streamStatus: StreamStatus.open}) {
     if (columns != null) {
       _columns = columns;
     }
@@ -28,11 +30,10 @@ class InvokeResponse extends Response {
     if (_columns != null) {
       _columns = TableColumn.serializeColumns(_columns);
     }
-    responder.updateReponse(this, _updates, streamStatus: _streamStatus, columns: _columns);
+    responder.updateReponse(this, _updates,
+        streamStatus: _streamStatus, columns: _columns);
     _columns = null;
     _updates = null;
   }
-  void _close() {
-
-  }
+  void _close() {}
 }

@@ -13,7 +13,5 @@ class Response {
   }
 
   /// close the response now, no need to send more response update
-  void _close() {
-
-  }
+  void _close() {}
 }

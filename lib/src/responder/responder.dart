@@ -71,21 +71,17 @@ class Responder extends ConnectionHandler {
       response._streamStatus = StreamStatus.closed;
       rid = response.rid;
     }
-    Map m = {
-      'rid': rid,
-      'stream': StreamStatus.closed
-    };
+    Map m = {'rid': rid, 'stream': StreamStatus.closed};
     if (error != null) {
       m['error'] = error.serialize();
     }
     addToSendList(m);
   }
 
-  void updateReponse(Response response, List updates, {String streamStatus, List<TableColumn> columns}) {
+  void updateReponse(Response response, List updates,
+      {String streamStatus, List<TableColumn> columns}) {
     if (_responses[response.rid] == response) {
-      Map m = {
-        'rid': response.rid
-      };
+      Map m = {'rid': response.rid};
       if (streamStatus != null && streamStatus != response._streamStatus) {
         response._streamStatus = streamStatus;
         m['stream'] = streamStatus;
@@ -103,7 +99,6 @@ class Responder extends ConnectionHandler {
     }
   }
 
-
   void _list(Map m) {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
@@ -120,7 +115,8 @@ class Responder extends ConnectionHandler {
       for (Object str in m['paths']) {
         Path path = Path.getValidNodePath(str);
         if (path != null && path.absolute) {
-          _subscription.add(path.path, nodeProvider.getNode(path.path).subscribe(_subscription, this));
+          _subscription.add(path.path,
+              nodeProvider.getNode(path.path).subscribe(_subscription, this));
         }
       }
       _closeResponse(m['rid']);
@@ -156,7 +152,8 @@ class Responder extends ConnectionHandler {
         });
       }
       var node = nodeProvider.getNode(path.path);
-      node.invoke(params, this, addResponse(new InvokeResponse(this, rid, node)));
+      node.invoke(
+          params, this, addResponse(new InvokeResponse(this, rid, node)));
     } else {
       _closeResponse(m['rid'], error: new DSError('invalid path'));
     }
@@ -174,14 +171,19 @@ class Responder extends ConnectionHandler {
     Object value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      nodeProvider.getNode(path.path).setValue(value, this, addResponse(new Response(this, rid)));
+      nodeProvider
+          .getNode(path.path)
+          .setValue(value, this, addResponse(new Response(this, rid)));
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).setConfig(path.name, value, this, addResponse(new Response(this, rid)));
+      nodeProvider.getNode(path.parentPath).setConfig(
+          path.name, value, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
       if (value is String) {
-        nodeProvider.getNode(path.parentPath).setAttribute(path.name, value, this, addResponse(new Response(this, rid)));
+        nodeProvider.getNode(path.parentPath).setAttribute(
+            path.name, value, this, addResponse(new Response(this, rid)));
       } else {
-        _closeResponse(m['rid'], error: new DSError('attribute value must be string'));
+        _closeResponse(m['rid'],
+            error: new DSError('attribute value must be string'));
       }
     } else {
       // shouldn't be possible to reach here
@@ -199,9 +201,12 @@ class Responder extends ConnectionHandler {
     if (path.isNode) {
       _closeResponse(m['rid'], error: new DSError('can not remove a node'));
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).removeConfig(path.name, this, addResponse(new Response(this, rid)));
+      nodeProvider
+          .getNode(path.parentPath)
+          .removeConfig(path.name, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
-      nodeProvider.getNode(path.parentPath).removeAttribute(path.name, this, addResponse(new Response(this, rid)));
+      nodeProvider.getNode(path.parentPath).removeAttribute(
+          path.name, this, addResponse(new Response(this, rid)));
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';
@@ -217,15 +222,14 @@ class Responder extends ConnectionHandler {
       }
     }
   }
-  
+
   void onDisconnected() {
-    _responses.forEach((id, resp){
+    _responses.forEach((id, resp) {
       resp._close();
     });
     _responses.clear();
     _responses[0] = _subscription;
   }
 
-  void onReconnected() {
-  }
+  void onReconnected() {}
 }

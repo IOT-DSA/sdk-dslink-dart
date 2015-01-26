@@ -3,7 +3,6 @@ part of dslink.common;
 class Node {
   /// absoulte node path from the responder root.
 
-
   /// node name or custom name defined in $name
   String name;
 
@@ -54,11 +53,11 @@ class Node {
   }
 
   Map<String, Node> children = {};
-  
+
   void addChild(Node node) {
     children[node.name] = node;
   }
-  
+
   void removeChild(dynamic input) {
     if (input is String) {
       children.remove(getChild(input));
@@ -85,7 +84,7 @@ class Node {
   void reset() {
     // TODO
   }
-  
+
   // get a simple map for data listed in parent's children property
   Map getSimpleMap() {
     Map rslt = {};
@@ -105,11 +104,10 @@ class Node {
   }
 }
 
-
 /// Util class for ds node path and config/attribute path
 class Path {
   static final RegExp invalidChar = new RegExp(r'[\.\\\?%\*:|"<>]');
-  
+
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);
@@ -119,7 +117,7 @@ class Path {
     }
     return null;
   }
-  
+
   static Path getValidNodePath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);
@@ -129,7 +127,7 @@ class Path {
     }
     return null;
   }
-  
+
   static Path getValidAttributePath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);
@@ -139,7 +137,7 @@ class Path {
     }
     return null;
   }
-  
+
   static Path getValidConfigPath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);
@@ -149,17 +147,17 @@ class Path {
     }
     return null;
   }
-  
+
   String path;
   String parentPath;
   /// root node has the name '/';
   String name;
   bool valid = true;
-  
+
   Path(this.path) {
     _parse();
   }
-  
+
   void _parse() {
     if (path == '' || path.contains(invalidChar) || path.contains('//')) {
       valid = false;
@@ -189,23 +187,23 @@ class Path {
       }
     }
   }
-  
+
   bool get absolute {
     return name == '/' || parentPath.startsWith('/');
   }
-  
+
   bool get isRoot {
     return name == '/';
   }
-  
+
   bool get isConfig {
     return name.startsWith(r'$');
   }
-  
+
   bool get isAttribute {
     return name.startsWith(r'@');
   }
-  
+
   bool get isNode {
     return !name.startsWith(r'@') && !name.startsWith(r'$');
   }

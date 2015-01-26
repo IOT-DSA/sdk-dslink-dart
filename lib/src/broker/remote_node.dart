@@ -1,6 +1,5 @@
 part of dslink.broker;
 
-
 class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   final Map<String, RemoteLinkNode> nodes = new Map<String, RemoteLinkNode>();
   Requester requester;
@@ -40,12 +39,11 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   }
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
-
-
   BroadcastStreamController<String> _listChangeController;
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
-      _listChangeController = new BroadcastStreamController<String>(_onStartListListen, _onAllListCancel);
+      _listChangeController = new BroadcastStreamController<String>(
+          _onStartListListen, _onAllListCancel);
     }
     return _listChangeController;
   }
@@ -71,7 +69,8 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   BroadcastStreamController<ValueUpdate> _valueController;
   BroadcastStreamController<ValueUpdate> get valueController {
     if (_valueController == null) {
-      _valueController = new BroadcastStreamController<ValueUpdate>(_onStartValueListen, _onAllValueCancel);
+      _valueController = new BroadcastStreamController<ValueUpdate>(
+          _onStartValueListen, _onAllValueCancel);
     }
     return _valueController;
   }
@@ -80,7 +79,8 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   void _onStartValueListen() {
     print('value listener added');
     if (_valueReqListener == null) {
-      _valueReqListener = requester.subscribe(remotePath).listen(_onValueUpdate);
+      _valueReqListener =
+          requester.subscribe(remotePath).listen(_onValueUpdate);
     }
   }
   void _onAllValueCancel() {
@@ -93,12 +93,12 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     _valueController.add(update);
   }
 
-
   final String path;
   /// root of the link
   RemoteLinkManager _linkNode;
-  RemoteLinkNode(this.path, String remotePath, Requester requester, this._linkNode) : super(remotePath, requester) {
-  }
+  RemoteLinkNode(
+      this.path, String remotePath, Requester requester, this._linkNode)
+      : super(remotePath, requester) {}
 
   bool _listReady = false;
   bool get listReady => _listReady;
@@ -106,10 +106,12 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool get exists => true;
 
   @override
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+  InvokeResponse invoke(
+      Map params, Responder responder, InvokeResponse response) {
     requester.invoke(remotePath, params).listen((update) {
       // TODO fix paths in the response
-      response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);
+      response.updateStream(update.updates,
+          streamStatus: update.streamStatus, columns: update.columns);
     });
     return response;
   }
@@ -125,12 +127,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   @override
-  Response setAttribute(String name, String value, Responder responder, Response rid) {
+  Response setAttribute(
+      String name, String value, Responder responder, Response rid) {
     // TODO: implement setAttribute
   }
 
   @override
-  Response setConfig(String name, Object value, Responder responder, Response rid) {
+  Response setConfig(
+      String name, Object value, Responder responder, Response rid) {
     // TODO: implement setConfig
   }
 
@@ -142,7 +146,8 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   ListResponse list(Responder responder, ListResponse response) {
     return response;
   }
-  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
+  RespSubscribeController subscribe(
+      SubscribeResponse subscription, Responder responder) {
     return new RespSubscribeController(subscription, this);
   }
 }

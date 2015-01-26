@@ -7,8 +7,10 @@ class HttpClientConnection implements ClientConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      _onRequestReadyCompleter.future;
 
   final String url;
   final ClientLink clientLink;
@@ -31,12 +33,9 @@ class HttpClientConnection implements ClientConnection {
       DsTimer.callLaterOnce(_checkSend);
     }
   }
-  void close() {
-
-  }
+  void close() {}
   bool _sending = false;
   bool _sendingS = false;
-
 
   void _checkSend() {
     _pendingCheck = false;
@@ -73,10 +72,12 @@ class HttpClientConnection implements ClientConnection {
       Uri connUri = Uri.parse('$url&');
       if (shortPoll) {
         _sendingS = true;
-        connUri = Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
+        connUri =
+            Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
       } else {
         _sending = true;
-        connUri = Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+        connUri =
+            Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
       }
       client.postUrl(connUri).then((HttpClientRequest request) {
         request.add(jsonUtf8Encoder.convert(m));

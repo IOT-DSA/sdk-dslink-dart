@@ -3,13 +3,13 @@ import 'dart:io';
 
 void main() {
   String rslt;
-  
+
   if (Platform.isWindows) {
     rslt = Process.runSync('getmac', []).stdout.toString();
   } else {
     rslt = Process.runSync('ifconfig', []).stdout.toString();
   }
-  
+
   // randomize the PRNG with the system mac
   DSRandom.instance.randomize(rslt);
 
@@ -29,8 +29,8 @@ void main() {
   print('original token:  ${token.toString()}');
   print('decrypted token: ${rsltToken.toString()}');
 
-
   String salt = "request 1";
   String saltHash = token.hashSalt(salt);
-  print('token hash of "$salt": $saltHash,  verified: ${rsltToken.verifySalt(salt, saltHash)}');
+  print(
+      'token hash of "$salt": $saltHash,  verified: ${rsltToken.verifySalt(salt, saltHash)}');
 }

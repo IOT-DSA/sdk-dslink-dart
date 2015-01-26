@@ -34,12 +34,15 @@ class Value {
   const Value(this.type, this.value, this.timestamp, {this.status: "ok"});
 
   factory Value.of(input) {
-    if (PRIMITIVES.keys.contains(input.runtimeType)) { // Input is primitive.
-      return new Value(PRIMITIVES[input.runtimeType], input, new DateTime.now());
+    if (PRIMITIVES.keys.contains(input.runtimeType)) {
+      // Input is primitive.
+      return new Value(
+          PRIMITIVES[input.runtimeType], input, new DateTime.now());
     } else if (input is Value) {
       return input;
     } else {
-      throw new ArgumentError.value(input, "Value.of does not support the input '${input.runtimeType}'");
+      throw new ArgumentError.value(
+          input, "Value.of does not support the input '${input.runtimeType}'");
     }
   }
 
@@ -58,17 +61,20 @@ class Value {
   }
 
   @override
-  bool operator ==(obj) => obj is Value && obj.type == type && obj.value == value && obj.timestamp == timestamp;
+  bool operator ==(obj) => obj is Value &&
+      obj.type == type &&
+      obj.value == value &&
+      obj.timestamp == timestamp;
 
   @override
   int get hashCode => hashObjects([type, value, timestamp]);
 
   @override
-  String toString() => "Value(type: ${type}, value: ${value}, timestamp: ${timestamp}, status: ${status})";
+  String toString() =>
+      "Value(type: ${type}, value: ${value}, timestamp: ${timestamp}, status: ${status})";
 
   static Value valueOf(input) => new Value.of(input);
 }
-
 
 class ValueUpdate {
   Object value;
@@ -78,7 +84,8 @@ class ValueUpdate {
   num sum = 0,
       min,
       max;
-  ValueUpdate(this.value, this.ts, {Map meta, this.status, this.count: 1, this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
+  ValueUpdate(this.value, this.ts, {Map meta, this.status, this.count: 1,
+      this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
     if (meta != null) {
       if (meta['count'] is int) {
         count = meta['count'];

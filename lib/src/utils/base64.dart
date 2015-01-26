@@ -5,7 +5,6 @@ part of dslink.utils;
 /// 2) allow byte array to have negative int -128 ~ -1
 /// 3) custom line size and custom padding space
 class Base64 {
-
   static const int PAD = 61; // '='
   static const int CR = 13; // '\r'
   static const int LF = 10; // '\n'
@@ -13,7 +12,8 @@ class Base64 {
   static const int PLUS = 43; // '+'
   static const int SLASH = 47; // '/'
 
-  static const String _encodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  static const String _encodeTable =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
   /// Lookup table used for finding Base 64 alphabet index of a given byte.
   /// -2 : Outside Base 64 alphabet.
@@ -38,7 +38,8 @@ class Base64 {
     return table;
   })();
 
-  static String encode(List<int> bytes, [int lineSize = 0, int paddingSpace = 0]) {
+  static String encode(List<int> bytes,
+      [int lineSize = 0, int paddingSpace = 0]) {
     int len = bytes.length;
     if (len == 0) {
       return "";
@@ -47,11 +48,13 @@ class Base64 {
     final int remainderLength = len.remainder(3);
     final int chunkLength = len - remainderLength;
     // Size of base output.
-    int outputLen = ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0) + paddingSpace;
+    int outputLen =
+        ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0) + paddingSpace;
     // Add extra for line separators.
     int lineSizeGroup = lineSize >> 2;
     if (lineSizeGroup > 0) {
-      outputLen += ((outputLen - 1) ~/ (lineSizeGroup << 2)) * (1 + paddingSpace);
+      outputLen +=
+          ((outputLen - 1) ~/ (lineSizeGroup << 2)) * (1 + paddingSpace);
     }
     List<int> out = new List<int>(outputLen);
 
@@ -63,7 +66,9 @@ class Base64 {
       out[j++] = SP;
     }
     while (i < chunkLength) {
-      int x = (((bytes[i++] % 256) << 16) & 0xFFFFFF) | (((bytes[i++] % 256) << 8) & 0xFFFFFF) | (bytes[i++] % 256);
+      int x = (((bytes[i++] % 256) << 16) & 0xFFFFFF) |
+          (((bytes[i++] % 256) << 8) & 0xFFFFFF) |
+          (bytes[i++] % 256);
       out[j++] = _encodeTable.codeUnitAt(x >> 18);
       out[j++] = _encodeTable.codeUnitAt((x >> 12) & 0x3F);
       out[j++] = _encodeTable.codeUnitAt((x >> 6) & 0x3F);
@@ -129,7 +134,7 @@ class Base64 {
     } else if (lenmis == 3) {
       input = '$input=';
       len += 1;
-    } else if (lenmis == 1){
+    } else if (lenmis == 1) {
       return null;
     }
 
@@ -143,8 +148,7 @@ class Base64 {
     int outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
     Uint8List out = new Uint8List(outputLen);
 
-    for (int i = 0,
-        o = 0; o < outputLen; ) {
+    for (int i = 0, o = 0; o < outputLen; ) {
       // Accumulate 4 valid 6 bit Base 64 characters into an int.
       int x = 0;
       for (int j = 4; j > 0; ) {
@@ -162,5 +166,4 @@ class Base64 {
     }
     return out;
   }
-
 }

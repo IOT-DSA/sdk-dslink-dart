@@ -2,7 +2,8 @@ part of dslink.responder;
 
 /// node can be subscribed or listed by multiple responder
 abstract class LocalNode extends Node {
-  final StreamController<String> listChangeController = new StreamController<String>();
+  final StreamController<String> listChangeController =
+      new StreamController<String>();
 
   Stream<String> _listStream;
 
@@ -46,21 +47,26 @@ abstract class LocalNode extends Node {
     return response;
   }
 
-  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
+  RespSubscribeController subscribe(
+      SubscribeResponse subscription, Responder responder) {
     return new RespSubscribeController(subscription, this);
   }
 
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response);
+  InvokeResponse invoke(
+      Map params, Responder responder, InvokeResponse response);
 
-  Response setAttribute(String name, String value, Responder responder, Response response) {
+  Response setAttribute(
+      String name, String value, Responder responder, Response response) {
     return response;
   }
 
-  Response removeAttribute(String name, Responder responder, Response response) {
+  Response removeAttribute(
+      String name, Responder responder, Response response) {
     return response;
   }
 
-  Response setConfig(String name, Object value, Responder responder, Response response) {
+  Response setConfig(
+      String name, Object value, Responder responder, Response response) {
     return response;
   }
 

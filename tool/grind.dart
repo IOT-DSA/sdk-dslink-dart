@@ -7,14 +7,9 @@ void main(List<String> args) {
 }
 
 void runTests(GrinderContext context) {
-  Tests.runCliTests(context, [
-    "api_tests.dart"
-  ]);
+  Tests.runCliTests(context, ["api_tests.dart"]);
 }
 
 void analyze(GrinderContext context) {
-  Analyzer.analyzePaths(context, [
-    "lib/link.dart",
-    "lib/link_browser.dart"
-  ]);
+  Analyzer.analyzePaths(context, ["lib/link.dart", "lib/link_browser.dart"]);
 }

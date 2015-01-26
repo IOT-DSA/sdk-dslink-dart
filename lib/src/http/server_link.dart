@@ -23,11 +23,13 @@ class HttpServerLink implements ServerLink {
   /// 2 salts, salt saltS
   final List<int> salts = new List<int>(2);
 
-  HttpServerLink(String id, BigInteger modulus, ServerLinkManager linkManager, {NodeProvider nodeProvider})
+  HttpServerLink(String id, BigInteger modulus, ServerLinkManager linkManager,
+      {NodeProvider nodeProvider})
       : dsId = id,
         publicKey = new PublicKey(modulus),
         requester = linkManager.getRequester(id),
-        responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
+        responder = (nodeProvider != null) ?
+        linkManager.getResponder(id, nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DSRandom.instance.nextUint8();
     }
@@ -46,7 +48,8 @@ class HttpServerLink implements ServerLink {
     // TODO, dont use hard coded id and public key
     request.response.write(JSON.encode({
       "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
-      "publicKey": "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
+      "publicKey":
+          "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": "/ws",
       "httpUri": "/http",
       "encryptedNonce": publicKey.encryptNonce(_tempNonce),
@@ -61,10 +64,12 @@ class HttpServerLink implements ServerLink {
     if (hash == null) {
       return false;
     }
-    if (_verifiedNonce != null && _verifiedNonce.verifySalt('${type}x${salts[type]}', hash)) {
+    if (_verifiedNonce != null &&
+        _verifiedNonce.verifySalt('${type}x${salts[type]}', hash)) {
       salts[type] += DSRandom.instance.nextUint8() + 1;
       return true;
-    } else if (_tempNonce != null && _tempNonce.verifySalt('${type}x${salts[type]}', hash)) {
+    } else if (_tempNonce != null &&
+        _tempNonce.verifySalt('${type}x${salts[type]}', hash)) {
       salts[type] += DSRandom.instance.nextUint8() + 1;
       _nonceChanged();
       return true;
@@ -81,9 +86,11 @@ class HttpServerLink implements ServerLink {
   }
   void _handleHttpUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
-      if (_connection is HttpServerConnection && _verifySalt(1, request.uri.queryParameters['authS'])) {
+      if (_connection is HttpServerConnection &&
+          _verifySalt(1, request.uri.queryParameters['authS'])) {
         // handle http short polling
-        (_connection as HttpServerConnection).handleInputS(request, '1x${salts[1]}');
+        (_connection as HttpServerConnection).handleInputS(
+            request, '1x${salts[1]}');
       } else {
         throw HttpStatus.UNAUTHORIZED;
       }

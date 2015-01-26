@@ -6,7 +6,6 @@ class RequesterUpdate {
 }
 
 class Requester extends ConnectionHandler {
-
   final Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
   final RemoteNodeCache _nodeCache;
@@ -65,15 +64,11 @@ class Requester extends ConnectionHandler {
     return new RemoveController(this, path).future;
   }
 
-
   /// close the request from requester side and notify responder
   void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
       if (request.streamStatus != StreamStatus.closed) {
-        addToSendList({
-          'method': 'close',
-          'rid': request.rid
-        });
+        addToSendList({'method': 'close', 'rid': request.rid});
       }
       _requests.remove(request.rid);
       request._close();

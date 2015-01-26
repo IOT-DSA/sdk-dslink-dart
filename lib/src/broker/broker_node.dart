@@ -3,7 +3,8 @@ part of dslink.broker;
 class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
   /// connName to connection
-  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns =
+      new Map<String, RemoteLinkManager>();
   LocalNode getNode(String path) {
     LocalNode node = nodes[path];
     if (node != null) {

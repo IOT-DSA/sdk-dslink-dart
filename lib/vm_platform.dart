@@ -10,7 +10,7 @@ import "package:dslink/platform.dart";
 
 class VMWebSocket extends WebSocketProvider {
   WebSocket _socket;
-  
+
   VMWebSocket(String url, {Map<String, String> extraHeaders})
       : super(url, extraHeaders: extraHeaders);
 
@@ -35,7 +35,7 @@ class VMWebSocket extends WebSocketProvider {
   Stream<String> stream() {
     return _socket.where((it) => it is String);
   }
-  
+
   WebSocket get realWebSocket => _socket;
 }
 
@@ -49,23 +49,23 @@ class _WebSocketHacker {
         socket.write("${key}: ${headers[key]}\r\n");
       }
       socket.write("\r\n");
-      
+
       new Future.delayed(new Duration(milliseconds: 250), () {
         completer.complete(socket);
       });
     });
-    
+
     return completer.future;
   }
-  
+
   Future<WebSocket> connect(String url, Map<String, String> extras) {
     Random random = new Random();
     Uint8List nonceData = new Uint8List(16);
-    
+
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    
+
     String nonce = Base64.encode(nonceData);
     return createSocket(url, {
       "Host": Uri.parse(url).host,
@@ -89,7 +89,8 @@ class _WebSocketHacker {
         if (split.length > 1) {
           extra = split[1].codeUnits;
         }
-        var detached = new _DetachedSocket(socket, new _HttpDetachedIncoming(sub, extra));
+        var detached = new _DetachedSocket(
+            socket, new _HttpDetachedIncoming(sub, extra));
         completer.complete(detached);
       });
       return completer.future;
@@ -106,9 +107,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   _HttpDetachedIncoming(this.subscription, this.bufferedData);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {Function onError,
-                                        void onDone(),
-                                        bool cancelOnError}) {
+      {Function onError, void onDone(), bool cancelOnError}) {
     if (subscription != null) {
       subscription
         ..onData(onData)
@@ -117,16 +116,11 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       if (bufferedData == null) {
         return subscription..resume();
       }
-      return new _HttpDetachedStreamSubscription(subscription,
-                                                 bufferedData,
-                                                 onData)
-        ..resume();
+      return new _HttpDetachedStreamSubscription(
+          subscription, bufferedData, onData)..resume();
     } else {
-      return new Stream.fromIterable(bufferedData)
-          .listen(onData,
-                  onError: onError,
-                  onDone: onDone,
-                  cancelOnError: cancelOnError);
+      return new Stream.fromIterable(bufferedData).listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
     }
   }
 }
@@ -139,9 +133,8 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
   Function _userOnData;
   bool _scheduled = false;
 
-  _HttpDetachedStreamSubscription(this._subscription,
-                                  this._injectData,
-                                  this._userOnData);
+  _HttpDetachedStreamSubscription(
+      this._subscription, this._injectData, this._userOnData);
 
   bool get isPaused => _subscription.isPaused;
 
@@ -205,7 +198,6 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
   }
 }
 
-
 class _DetachedSocket extends Stream<List<int>> implements Socket {
   final Stream<List<int>> _incoming;
   final _socket;
@@ -213,13 +205,9 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   _DetachedSocket(this._socket, this._incoming);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {Function onError,
-                                        void onDone(),
-                                        bool cancelOnError}) {
+      {Function onError, void onDone(), bool cancelOnError}) {
     return _incoming.listen(onData,
-                            onError: onError,
-                            onDone: onDone,
-                            cancelOnError: cancelOnError);
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Encoding get encoding => _socket.encoding;
@@ -268,5 +256,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
-  void set _owner(owner) { _socket._owner = owner; }
+  void set _owner(owner) {
+    _socket._owner = owner;
+  }
 }

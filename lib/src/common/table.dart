@@ -5,16 +5,13 @@ class TableColumn {
   static List serializeColumns(List list) {
     List rslts = [];
     for (Object m in list) {
-      if (m is Map){
+      if (m is Map) {
         rslts.add(m);
-      } else if (m is TableColumn){
-        Map rslt = {
-          'type': m.type,
-          'name': m.name
-        };
+      } else if (m is TableColumn) {
+        Map rslt = {'type': m.type, 'name': m.name};
         if (m.defaultValue != null) {
           rslt['default'] = m.defaultValue;
-        } 
+        }
         rslts.add(rslt);
       }
     }
@@ -28,7 +25,7 @@ class TableColumn {
         rslt.add(new TableColumn(m['name'], m['type'], m['default']));
       } else if (m is TableColumn) {
         rslt.add(m);
-      }else {
+      } else {
         // invalid column data
         return null;
       }

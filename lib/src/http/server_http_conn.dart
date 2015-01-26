@@ -7,8 +7,10 @@ class HttpServerConnection implements ServerConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      _onRequestReadyCompleter.future;
 
   HttpServerConnection() {
     _responderChannel = new PassiveChannel(this);
@@ -25,18 +27,14 @@ class HttpServerConnection implements ServerConnection {
     }
   }
 
-  void close() {
-
-  }
+  void close() {}
   /// special server command that need to be merged into message
   /// now only 3 possible value, salt, saltS, allowed
   Map _serverCommand;
   Map _serverCommandS;
   void addServerCommand(String key, Object value) {
     if (key == 'saltS') {
-      _serverCommandS = {
-        'saltS': value
-      };
+      _serverCommandS = {'saltS': value};
     } else {
       if (_serverCommand == null) {
         _serverCommand = {};
@@ -56,8 +54,7 @@ class HttpServerConnection implements ServerConnection {
       Map m;
       try {
         m = JSON.decode(UTF8.decode(merged));
-      } catch (err) {
-      }
+      } catch (err) {}
       if (m != null) {
         paseInput(m);
       }
@@ -66,14 +63,14 @@ class HttpServerConnection implements ServerConnection {
   }
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
-    input.response.headers.contentType = new ContentType("application", "json", charset: "utf-8");
+    input.response.headers.contentType = new ContentType("application", "json",
+        charset: "utf-8");
     input.response.write('{"saltS":"$saltS"}');
     input.fold([], foldList).then((List merged) {
       Map m;
       try {
         m = JSON.decode(UTF8.decode(merged));
-      } catch (err) {
-      }
+      } catch (err) {}
       input.response.close();
       if (m != null) {
         paseInput(m);
@@ -125,7 +122,8 @@ class HttpServerConnection implements ServerConnection {
     }
     if (needSend) {
       print('http send: $m');
-      _cachedInput.response.headers.contentType = new ContentType("application", "json", charset: "utf-8");
+      _cachedInput.response.headers.contentType = new ContentType(
+          "application", "json", charset: "utf-8");
       _cachedInput.response.write(JSON.encode(m));
       _cachedInput.response.close();
     }

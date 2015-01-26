@@ -1,7 +1,8 @@
 part of dslink.requester;
 
 class SubscribeRequest extends Request {
-  final Map<String, ReqSubscribeController> subsriptions = new Map<String, ReqSubscribeController>();
+  final Map<String, ReqSubscribeController> subsriptions =
+      new Map<String, ReqSubscribeController>();
 
   SubscribeRequest(Requester requester, int rid) : super(requester, rid, null);
 
@@ -35,12 +36,12 @@ class SubscribeRequest extends Request {
           continue; // invalid response
         }
         if (subsriptions.containsKey(path)) {
-          subsriptions[path]._controller.add(new ValueUpdate(value, ts, meta: meta));
+          subsriptions[path]._controller.add(
+              new ValueUpdate(value, ts, meta: meta));
         }
       }
     }
   }
-
 
   HashSet<String> _changedPaths = new HashSet<String>();
   void addSubscription(ReqSubscribeController controller) {
@@ -83,16 +84,11 @@ class SubscribeRequest extends Request {
       }
     }
     if (!toAdd.isEmpty) {
-      requester._sendRequest({
-        'method': 'subscribe',
-        'paths': toAdd
-      }, null);
+      requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
     }
     if (!toRemove.isEmpty) {
-      requester._sendRequest({
-        'method': 'unsubscribe',
-        'paths': toRemove
-      }, null);
+      requester._sendRequest(
+          {'method': 'unsubscribe', 'paths': toRemove}, null);
     }
   }
 }
@@ -102,10 +98,9 @@ class ReqSubscribeController {
   BroadcastStreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> get stream => _controller.stream;
   ReqSubscribeController(this.node) {
-    _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel);
+    _controller = new BroadcastStreamController<ValueUpdate>(
+        _onStartListen, _onAllCancel);
   }
-
-
 
   bool _subscribing = false;
   void _onStartListen() {

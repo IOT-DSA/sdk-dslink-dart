@@ -9,11 +9,12 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:cipher/digests/sha256.dart';
 
-main() async {    
+main() async {
   String str = new File('certs/private_key.txt').readAsStringSync();
   PrivateKey key = new PrivateKey.loadFromString(str);
 
-  var link = new HttpClientLink('http://localhost:8080/conn', 'test-client-', key, isRequester: true);
+  var link = new HttpClientLink(
+      'http://localhost:8080/conn', 'test-client-', key, isRequester: true);
   link.init();
   Requester requester = await link.onRequesterReady;
 
@@ -43,28 +44,28 @@ main() async {
 //      } else {
 //        print('not supported yet: $m');
 //      }
-//        
+//
 //    } catch(err){
 //      print(err);
 //    }
 //  });
-  
+
 //  var updates = requester.invoke('/conns/test-responder-8', {
 //    'msg': 'hello world'
 //  });
-//  
+//
 //  await for (var update in updates) {
 //    print(update.rows);
 //  }
-  
+
 //  Stream<RequesterListUpdate> updates = requester.list('/conns/test-responder-p');
 //
 //  await for (RequesterListUpdate update in updates) {
 //    print(update.changes);
 //  }
-  
-  Stream<ValueUpdate> updates  = requester.subscribe('/conns/test-responder-p');
-  await for (ValueUpdate update in updates) {
+
+  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-responder-p');
+  for (ValueUpdate update in updates) {
     print(update.value);
   }
 }

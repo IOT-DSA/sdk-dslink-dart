@@ -8,12 +8,8 @@ main() async {
   PrivateKey key = new PrivateKey.loadFromString(str);
 
   var link = new HttpClientLink(
-    'http://localhost:8080/conn',
-    'test-responder-',
-    key,
-    isResponder: true,
-    nodeProvider: new TestNodeProvider()
-  );
+      'http://localhost:8080/conn', 'test-responder-', key,
+      isResponder: true, nodeProvider: new TestNodeProvider());
 
   link.init();
 }

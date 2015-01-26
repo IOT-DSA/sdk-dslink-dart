@@ -36,8 +36,7 @@ abstract class ServerConnection extends Connection {
   void addServerCommand(String key, Object value);
 }
 
-abstract class ClientConnection extends Connection {
-}
+abstract class ClientConnection extends Connection {}
 
 abstract class ConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
@@ -56,9 +55,9 @@ abstract class ConnectionChannel {
 abstract class Link {
   Requester get requester;
   Responder get responder;
-  
+
   SecretNonce get nonce;
-  
+
   /// trigger when requester channel is Ready
   Future<Requester> get onRequesterReady;
 }
@@ -74,7 +73,7 @@ abstract class ClientLink extends Link {
   updateSalt(String salt, [bool shortPolling = false]);
 }
 
-abstract class ServerLinkManager{
+abstract class ServerLinkManager {
   void addLink(ServerLink link);
   void removeLink(ServerLink link);
   ServerLink getLink(String dsId);
@@ -101,12 +100,11 @@ class DSError {
   String path;
   String phase;
 
-  DSError(this.msg, {this.detail, this.type, this.path, this.phase: ErrorPhase.response});
+  DSError(this.msg,
+      {this.detail, this.type, this.path, this.phase: ErrorPhase.response});
 
   Map serialize() {
-    Map rslt = {
-      'msg': msg
-    };
+    Map rslt = {'msg': msg};
     if (type != null) {
       rslt['type'] = type;
     }

@@ -31,8 +31,8 @@ class SecretNonce {
 
   String hashSalt(String salt) {
     List raw = []
-        ..addAll(UTF8.encode(salt))
-        ..addAll(bytes);
+      ..addAll(UTF8.encode(salt))
+      ..addAll(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     var hashed = sha256.process(new Uint8List.fromList(raw));
     return Base64.encode(hashed);
@@ -62,7 +62,8 @@ class PublicKey {
   }
 
   bool verifyDsId(String dsId) {
-    return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == modulusHash64);
+    return (dsId.length >= 43 &&
+        dsId.substring(dsId.length - 43) == modulusHash64);
   }
 
   String encryptNonce(SecretNonce nonce) {
@@ -104,7 +105,8 @@ class PrivateKey {
       // > openssl genrsa -out private.pem 2048
       // > openssl rsa -text -in private.pem -out private.txt
       BigInteger modulus = new BigInteger()..fromString(m['modulus'], 16);
-      BigInteger exponent = new BigInteger()..fromString(m['privateExponent'], 16);
+      BigInteger exponent = new BigInteger()
+        ..fromString(m['privateExponent'], 16);
       BigInteger p = new BigInteger()..fromString(m['prime1'], 16);
       BigInteger q = new BigInteger()..fromString(m['prime2'], 16);
       return new PrivateKey(modulus, exponent, p, q);
@@ -153,7 +155,6 @@ class PrivateKey {
   }
 }
 
-
 /// parse key file, works for both dsa key file and openssl plain text key file
 Map _parseOpensslTextKey(String str) {
   var rslt = {};
@@ -198,10 +199,36 @@ class DSRandom extends SecureRandomBase {
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
     Math.Random r = new Math.Random();
-    final keyBytes = [r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)];
+    final keyBytes = [
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256)
+    ];
     final key = new KeyParameter(new Uint8List.fromList(keyBytes));
     r = new Math.Random((new DateTime.now()).millisecondsSinceEpoch);
-    final iv = new Uint8List.fromList([r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)]);
+    final iv = new Uint8List.fromList([
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256)
+    ]);
     final params = new ParametersWithIV(key, iv);
     _delegate.seed(params);
   }
@@ -252,7 +279,8 @@ Uint8List bigintToUint8List(BigInteger input) {
       d,
       k = 0;
   if (i-- > 0) {
-    if (p < BigInteger.BI_DB && (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
+    if (p < BigInteger.BI_DB &&
+        (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
       r[k++] = d | (input.s << (BigInteger.BI_DB - p));
     }
 
@@ -272,7 +300,8 @@ Uint8List bigintToUint8List(BigInteger input) {
       if (k > 0 || d != input.s) r[k++] = d;
     }
   }
-  if (r.data[0] == 0) { // have ended up with an extra zero byte, copy down.
+  if (r.data[0] == 0) {
+    // have ended up with an extra zero byte, copy down.
     return new Uint8List.fromList(r.data.sublist(1));
   }
   return new Uint8List.fromList(r.data);
