@@ -29,8 +29,7 @@ class HttpRequest {
   final String body;
   final Map<String, String> headers;
 
-  HttpRequest(this.url,
-      {this.method: "GET", this.body, this.headers: const {}});
+  HttpRequest(this.url, {this.method: "GET", this.body, this.headers: const {}});
 }
 
 class HttpResponse {

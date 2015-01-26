@@ -100,8 +100,7 @@ class DSError {
   String path;
   String phase;
 
-  DSError(this.msg,
-      {this.detail, this.type, this.path, this.phase: ErrorPhase.response});
+  DSError(this.msg, {this.detail, this.type, this.path, this.phase: ErrorPhase.response});
 
   Map serialize() {
     Map rslt = {'msg': msg};

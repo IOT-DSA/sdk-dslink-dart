@@ -43,11 +43,9 @@ void main() {
 void testAlgorithm() {
 
   /// Initialize connection , Client -> Server
-  Uint8List modulusHash =
-      new SHA256Digest().process(bigintToUint8List(modulus));
+  Uint8List modulusHash = new SHA256Digest().process(bigintToUint8List(modulus));
   String dsId = 'test-${Base64.encode(modulusHash)}';
-  __assertEqual(
-      dsId, 'test-pTrfpbVWb3NNAhMIXr_FpmV3oObtMVxPcNu2mDksp0M', 'dsId');
+  __assertEqual(dsId, 'test-pTrfpbVWb3NNAhMIXr_FpmV3oObtMVxPcNu2mDksp0M', 'dsId');
 
   /// Initialize connection , Server -> Client
 
@@ -59,24 +57,21 @@ void testAlgorithm() {
   /// Start Connection (http or ws), Client -> Server
   /// Decode
 
-  BigInteger decodeE = new BigInteger.fromBytes(
-      1, Base64.decode(encryptedNonce));
+  BigInteger decodeE = new BigInteger.fromBytes(1, Base64.decode(encryptedNonce));
   __assertEqual(decodeE, E, 'decoded E');
 
   BigInteger decryptedA = E.modPow(privateExp, modulus);
   __assertEqual(decryptedA, A, 'decrypted A');
 
   Uint8List decryptedNonce = bigintToUint8List(decryptedA);
-  __assertEqual(
-      bytes2hex(decryptedNonce), bytes2hex(nonceBytes), 'decrypted Nonce');
+  __assertEqual(bytes2hex(decryptedNonce), bytes2hex(nonceBytes), 'decrypted Nonce');
 
   /// Make Auth
 
   List<int> authRaw = new Uint8List.fromList([]
     ..addAll(UTF8.encode(salt))
     ..addAll(decryptedNonce));
-  __assertEqual(bytes2hex(authRaw),
-      '3078313030d26538aabf9a97bcfd8bc0dd1a727c92', 'auth raw');
+  __assertEqual(bytes2hex(authRaw), '3078313030d26538aabf9a97bcfd8bc0dd1a727c92', 'auth raw');
 
   Uint8List digest = new SHA256Digest().process(authRaw);
   String auth = Base64.encode(digest);
@@ -90,8 +85,7 @@ void testApi() {
   /// Initialize connection , Client -> Server
 
   String dsId = pubkey.getDsId('test-');
-  __assertEqual(
-      dsId, 'test-pTrfpbVWb3NNAhMIXr_FpmV3oObtMVxPcNu2mDksp0M', 'API dsId');
+  __assertEqual(dsId, 'test-pTrfpbVWb3NNAhMIXr_FpmV3oObtMVxPcNu2mDksp0M', 'API dsId');
 
   /// Initialize connection , Server -> Client
   SecretNonce nonce = new SecretNonce(nonceBytes);
@@ -102,8 +96,7 @@ void testApi() {
   /// Start Connection (http or ws), Client -> Server
   /// Decode
   SecretNonce decryptedNonce = prikey.decryptNonce(encryptedNonce);
-  __assertEqual(bytes2hex(decryptedNonce.bytes),
-      bytes2hex(nonceBytes), 'API decrypted Nonce');
+  __assertEqual(bytes2hex(decryptedNonce.bytes), bytes2hex(nonceBytes), 'API decrypted Nonce');
 
   /// Make Auth
   String auth = decryptedNonce.hashSalt(salt);

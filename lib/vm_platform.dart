@@ -89,8 +89,7 @@ class _WebSocketHacker {
         if (split.length > 1) {
           extra = split[1].codeUnits;
         }
-        var detached = new _DetachedSocket(
-            socket, new _HttpDetachedIncoming(sub, extra));
+        var detached = new _DetachedSocket(socket, new _HttpDetachedIncoming(sub, extra));
         completer.complete(detached);
       });
       return completer.future;
@@ -116,8 +115,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       if (bufferedData == null) {
         return subscription..resume();
       }
-      return new _HttpDetachedStreamSubscription(
-          subscription, bufferedData, onData)..resume();
+      return new _HttpDetachedStreamSubscription(subscription, bufferedData, onData)..resume();
     } else {
       return new Stream.fromIterable(bufferedData).listen(onData,
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -133,8 +131,7 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
   Function _userOnData;
   bool _scheduled = false;
 
-  _HttpDetachedStreamSubscription(
-      this._subscription, this._injectData, this._userOnData);
+  _HttpDetachedStreamSubscription(this._subscription, this._injectData, this._userOnData);
 
   bool get isPaused => _subscription.isPaused;
 
@@ -206,8 +203,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
       {Function onError, void onDone(), bool cancelOnError}) {
-    return _incoming.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    return _incoming.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Encoding get encoding => _socket.encoding;
@@ -228,8 +224,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void add(List<int> bytes) => _socket.add(bytes);
 
-  void addError(error, [StackTrace stackTrace]) =>
-      _socket.addError(error, stackTrace);
+  void addError(error, [StackTrace stackTrace]) => _socket.addError(error, stackTrace);
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     return _socket.addStream(stream);

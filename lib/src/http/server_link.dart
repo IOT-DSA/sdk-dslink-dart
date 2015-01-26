@@ -28,8 +28,7 @@ class HttpServerLink implements ServerLink {
       : dsId = id,
         publicKey = new PublicKey(modulus),
         requester = linkManager.getRequester(id),
-        responder = (nodeProvider != null) ?
-        linkManager.getResponder(id, nodeProvider) : null {
+        responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
       salts[i] = DSRandom.instance.nextUint8();
     }
@@ -64,12 +63,10 @@ class HttpServerLink implements ServerLink {
     if (hash == null) {
       return false;
     }
-    if (_verifiedNonce != null &&
-        _verifiedNonce.verifySalt('${type}x${salts[type]}', hash)) {
+    if (_verifiedNonce != null && _verifiedNonce.verifySalt('${type}x${salts[type]}', hash)) {
       salts[type] += DSRandom.instance.nextUint8() + 1;
       return true;
-    } else if (_tempNonce != null &&
-        _tempNonce.verifySalt('${type}x${salts[type]}', hash)) {
+    } else if (_tempNonce != null && _tempNonce.verifySalt('${type}x${salts[type]}', hash)) {
       salts[type] += DSRandom.instance.nextUint8() + 1;
       _nonceChanged();
       return true;
@@ -89,8 +86,7 @@ class HttpServerLink implements ServerLink {
       if (_connection is HttpServerConnection &&
           _verifySalt(1, request.uri.queryParameters['authS'])) {
         // handle http short polling
-        (_connection as HttpServerConnection).handleInputS(
-            request, '1x${salts[1]}');
+        (_connection as HttpServerConnection).handleInputS(request, '1x${salts[1]}');
       } else {
         throw HttpStatus.UNAUTHORIZED;
       }

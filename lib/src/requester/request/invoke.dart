@@ -3,8 +3,7 @@ part of dslink.requester;
 class RequesterInvokeUpdate extends RequesterUpdate {
   List<TableColumn> columns;
   List<List> updates;
-  RequesterInvokeUpdate(this.updates, this.columns, String streamStatus)
-      : super(streamStatus);
+  RequesterInvokeUpdate(this.updates, this.columns, String streamStatus) : super(streamStatus);
 }
 
 class InvokeController {
@@ -27,11 +26,7 @@ class InvokeController {
   InvokeController(this.node, Map params) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _stream = _controller.stream;
-    Map reqMap = {
-      'method': 'invoke',
-      'path': node.remotePath,
-      'params': params
-    };
+    Map reqMap = {'method': 'invoke', 'path': node.remotePath, 'params': params};
 // TODO update node before invoke to load columns
 //    if(!node.isUpdated()) {
 //      node._list().listen(_onNodeUpdate)
@@ -80,8 +75,7 @@ class InvokeController {
         }
         rows.add(row);
       }
-      _controller.add(
-          new RequesterInvokeUpdate(rows, _cachedColumns, streamStatus));
+      _controller.add(new RequesterInvokeUpdate(rows, _cachedColumns, streamStatus));
     }
     if (streamStatus == StreamStatus.closed) {
       _controller.close();

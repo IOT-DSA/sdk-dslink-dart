@@ -79,8 +79,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   void _onStartValueListen() {
     print('value listener added');
     if (_valueReqListener == null) {
-      _valueReqListener =
-          requester.subscribe(remotePath).listen(_onValueUpdate);
+      _valueReqListener = requester.subscribe(remotePath).listen(_onValueUpdate);
     }
   }
   void _onAllValueCancel() {
@@ -96,8 +95,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   final String path;
   /// root of the link
   RemoteLinkManager _linkNode;
-  RemoteLinkNode(
-      this.path, String remotePath, Requester requester, this._linkNode)
+  RemoteLinkNode(this.path, String remotePath, Requester requester, this._linkNode)
       : super(remotePath, requester) {}
 
   bool _listReady = false;
@@ -106,8 +104,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool get exists => true;
 
   @override
-  InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response) {
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     requester.invoke(remotePath, params).listen((update) {
       // TODO fix paths in the response
       response.updateStream(update.updates,
@@ -127,14 +124,12 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   @override
-  Response setAttribute(
-      String name, String value, Responder responder, Response rid) {
+  Response setAttribute(String name, String value, Responder responder, Response rid) {
     // TODO: implement setAttribute
   }
 
   @override
-  Response setConfig(
-      String name, Object value, Responder responder, Response rid) {
+  Response setConfig(String name, Object value, Responder responder, Response rid) {
     // TODO: implement setConfig
   }
 
@@ -146,8 +141,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   ListResponse list(Responder responder, ListResponse response) {
     return response;
   }
-  RespSubscribeController subscribe(
-      SubscribeResponse subscription, Responder responder) {
+  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
     return new RespSubscribeController(subscription, this);
   }
 }

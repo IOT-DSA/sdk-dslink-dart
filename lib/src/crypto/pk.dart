@@ -62,8 +62,7 @@ class PublicKey {
   }
 
   bool verifyDsId(String dsId) {
-    return (dsId.length >= 43 &&
-        dsId.substring(dsId.length - 43) == modulusHash64);
+    return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == modulusHash64);
   }
 
   String encryptNonce(SecretNonce nonce) {
@@ -105,8 +104,7 @@ class PrivateKey {
       // > openssl genrsa -out private.pem 2048
       // > openssl rsa -text -in private.pem -out private.txt
       BigInteger modulus = new BigInteger()..fromString(m['modulus'], 16);
-      BigInteger exponent = new BigInteger()
-        ..fromString(m['privateExponent'], 16);
+      BigInteger exponent = new BigInteger()..fromString(m['privateExponent'], 16);
       BigInteger p = new BigInteger()..fromString(m['prime1'], 16);
       BigInteger q = new BigInteger()..fromString(m['prime2'], 16);
       return new PrivateKey(modulus, exponent, p, q);
@@ -279,8 +277,7 @@ Uint8List bigintToUint8List(BigInteger input) {
       d,
       k = 0;
   if (i-- > 0) {
-    if (p < BigInteger.BI_DB &&
-        (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
+    if (p < BigInteger.BI_DB && (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
       r[k++] = d | (input.s << (BigInteger.BI_DB - p));
     }
 

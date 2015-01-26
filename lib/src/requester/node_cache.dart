@@ -69,6 +69,5 @@ class RemoteNode extends Node {
 }
 
 class RequesterProfileNode extends RemoteNode {
-  RequesterProfileNode(String path, Requester requester)
-      : super(path, requester);
+  RequesterProfileNode(String path, Requester requester) : super(path, requester);
 }

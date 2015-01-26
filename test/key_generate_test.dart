@@ -31,6 +31,5 @@ void main() {
 
   String salt = "request 1";
   String saltHash = token.hashSalt(salt);
-  print(
-      'token hash of "$salt": $saltHash,  verified: ${rsltToken.verifySalt(salt, saltHash)}');
+  print('token hash of "$salt": $saltHash,  verified: ${rsltToken.verifySalt(salt, saltHash)}');
 }

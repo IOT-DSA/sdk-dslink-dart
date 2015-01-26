@@ -7,10 +7,8 @@ class HttpServerConnection implements ServerConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter =
-      new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady =>
-      _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
   HttpServerConnection() {
     _responderChannel = new PassiveChannel(this);
@@ -63,8 +61,7 @@ class HttpServerConnection implements ServerConnection {
   }
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
-    input.response.headers.contentType = new ContentType("application", "json",
-        charset: "utf-8");
+    input.response.headers.contentType = new ContentType("application", "json", charset: "utf-8");
     input.response.write('{"saltS":"$saltS"}');
     input.fold([], foldList).then((List merged) {
       Map m;
@@ -122,8 +119,8 @@ class HttpServerConnection implements ServerConnection {
     }
     if (needSend) {
       print('http send: $m');
-      _cachedInput.response.headers.contentType = new ContentType(
-          "application", "json", charset: "utf-8");
+      _cachedInput.response.headers.contentType = new ContentType("application", "json",
+          charset: "utf-8");
       _cachedInput.response.write(JSON.encode(m));
       _cachedInput.response.close();
     }

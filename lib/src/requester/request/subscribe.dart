@@ -36,8 +36,7 @@ class SubscribeRequest extends Request {
           continue; // invalid response
         }
         if (subsriptions.containsKey(path)) {
-          subsriptions[path]._controller.add(
-              new ValueUpdate(value, ts, meta: meta));
+          subsriptions[path]._controller.add(new ValueUpdate(value, ts, meta: meta));
         }
       }
     }
@@ -87,8 +86,7 @@ class SubscribeRequest extends Request {
       requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
     }
     if (!toRemove.isEmpty) {
-      requester._sendRequest(
-          {'method': 'unsubscribe', 'paths': toRemove}, null);
+      requester._sendRequest({'method': 'unsubscribe', 'paths': toRemove}, null);
     }
   }
 }
@@ -98,8 +96,7 @@ class ReqSubscribeController {
   BroadcastStreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> get stream => _controller.stream;
   ReqSubscribeController(this.node) {
-    _controller = new BroadcastStreamController<ValueUpdate>(
-        _onStartListen, _onAllCancel);
+    _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel);
   }
 
   bool _subscribing = false;

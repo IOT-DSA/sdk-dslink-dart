@@ -13,8 +13,8 @@ main() async {
   String str = new File('certs/private_key.txt').readAsStringSync();
   PrivateKey key = new PrivateKey.loadFromString(str);
 
-  var link = new HttpClientLink(
-      'http://localhost:8080/conn', 'test-client-', key, isRequester: true);
+  var link = new HttpClientLink('http://localhost:8080/conn', 'test-client-', key,
+      isRequester: true);
   link.init();
   Requester requester = await link.onRequesterReady;
 

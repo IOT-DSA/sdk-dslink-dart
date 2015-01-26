@@ -9,8 +9,7 @@ class BroadcastStreamController<T> implements StreamController<T> {
   Function _onAllCancel;
 
   BroadcastStreamController([void onStartListen(), void onAllCancel()]) {
-    _stream = _controller.stream.asBroadcastStream(
-        onListen: _onListen, onCancel: _onCancel);
+    _stream = _controller.stream.asBroadcastStream(onListen: _onListen, onCancel: _onCancel);
     _onStartListen = onStartListen;
     _onAllCancel = onAllCancel;
   }

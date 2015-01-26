@@ -3,8 +3,8 @@ part of dslink.broker;
 class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
   /// connName to connection
-  final Map<String, RemoteLinkManager> conns =
-      new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
+
   LocalNode getNode(String path) {
     LocalNode node = nodes[path];
     if (node != null) {
@@ -32,9 +32,9 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
 
   /// dsId to server links
   final Map<String, ServerLink> _links = new Map<String, ServerLink>();
-
   final Map<String, String> _id2connName = new Map<String, String>();
   final Map<String, String> _connName2id = new Map<String, String>();
+
   String getConnName(String dsId) {
     if (_id2connName.containsKey(dsId)) {
       return _id2connName[dsId];
@@ -53,6 +53,7 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
       return connName;
     }
   }
+
   void addLink(ServerLink link) {
     String dsId = link.dsId;
     String connName;

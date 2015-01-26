@@ -1,8 +1,7 @@
 part of dslink.common;
 
 class PassiveChannel implements ConnectionChannel {
-  final StreamController<List> onReceiveController =
-      new StreamController<List>();
+  final StreamController<List> onReceiveController = new StreamController<List>();
   Stream<List> get onReceive => onReceiveController.stream;
 
   List<Function> _processors = [];
@@ -23,7 +22,6 @@ class PassiveChannel implements ConnectionChannel {
     _isReady = val;
   }
 
-  final Completer<ConnectionChannel> onDisconnectController =
-      new Completer<ConnectionChannel>();
+  final Completer<ConnectionChannel> onDisconnectController = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onDisconnected => onDisconnectController.future;
 }

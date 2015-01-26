@@ -30,13 +30,11 @@ class HttpClientLink implements ClientLink {
   String _conn;
 
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider, bool isRequester: true,
-      bool isResponder: true})
+      {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
         requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null) ? new Responder(
-            nodeProvider) : null {}
+        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
 
   Future init() async {
     if (_nonce != null) {
@@ -64,8 +62,8 @@ class HttpClientLink implements ClientLink {
     _nonce = privateKey.decryptNonce(encryptedNonce);
 
     if (serverConfig['wsUri'] is String) {
-      _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
-          .replaceFirst('http', 'ws');
+      _wsUpdateUri =
+          '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
     }
 
     if (serverConfig['httpUri'] is String) {
@@ -83,8 +81,7 @@ class HttpClientLink implements ClientLink {
   }
 
   initWebsocket() async {
-    var socket = await WebSocket.connect(
-        '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+    var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
     _connection = new WebSocketConnection(socket);
 
     if (responder != null) {
@@ -100,8 +97,7 @@ class HttpClientLink implements ClientLink {
   }
 
   initHttp() async {
-    _connection = new HttpClientConnection(
-        _httpUpdateUri, this, salts[0], salts[1]);
+    _connection = new HttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

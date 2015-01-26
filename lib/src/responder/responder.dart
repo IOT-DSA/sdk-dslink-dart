@@ -115,8 +115,8 @@ class Responder extends ConnectionHandler {
       for (Object str in m['paths']) {
         Path path = Path.getValidNodePath(str);
         if (path != null && path.absolute) {
-          _subscription.add(path.path,
-              nodeProvider.getNode(path.path).subscribe(_subscription, this));
+          _subscription.add(
+              path.path, nodeProvider.getNode(path.path).subscribe(_subscription, this));
         }
       }
       _closeResponse(m['rid']);
@@ -152,8 +152,7 @@ class Responder extends ConnectionHandler {
         });
       }
       var node = nodeProvider.getNode(path.path);
-      node.invoke(
-          params, this, addResponse(new InvokeResponse(this, rid, node)));
+      node.invoke(params, this, addResponse(new InvokeResponse(this, rid, node)));
     } else {
       _closeResponse(m['rid'], error: new DSError('invalid path'));
     }
@@ -171,19 +170,18 @@ class Responder extends ConnectionHandler {
     Object value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      nodeProvider
-          .getNode(path.path)
-          .setValue(value, this, addResponse(new Response(this, rid)));
+      nodeProvider.getNode(path.path).setValue(value, this, addResponse(new Response(this, rid)));
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).setConfig(
-          path.name, value, this, addResponse(new Response(this, rid)));
+      nodeProvider
+          .getNode(path.parentPath)
+          .setConfig(path.name, value, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
       if (value is String) {
-        nodeProvider.getNode(path.parentPath).setAttribute(
-            path.name, value, this, addResponse(new Response(this, rid)));
+        nodeProvider
+            .getNode(path.parentPath)
+            .setAttribute(path.name, value, this, addResponse(new Response(this, rid)));
       } else {
-        _closeResponse(m['rid'],
-            error: new DSError('attribute value must be string'));
+        _closeResponse(m['rid'], error: new DSError('attribute value must be string'));
       }
     } else {
       // shouldn't be possible to reach here
@@ -205,8 +203,9 @@ class Responder extends ConnectionHandler {
           .getNode(path.parentPath)
           .removeConfig(path.name, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
-      nodeProvider.getNode(path.parentPath).removeAttribute(
-          path.name, this, addResponse(new Response(this, rid)));
+      nodeProvider
+          .getNode(path.parentPath)
+          .removeAttribute(path.name, this, addResponse(new Response(this, rid)));
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';

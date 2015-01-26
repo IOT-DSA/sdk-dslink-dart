@@ -7,8 +7,7 @@ main() async {
   String str = new File('certs/private_key.txt').readAsStringSync();
   PrivateKey key = new PrivateKey.loadFromString(str);
 
-  var link = new HttpClientLink(
-      'http://localhost:8080/conn', 'test-responder-', key,
+  var link = new HttpClientLink('http://localhost:8080/conn', 'test-responder-', key,
       isResponder: true, nodeProvider: new TestNodeProvider());
 
   link.init();
