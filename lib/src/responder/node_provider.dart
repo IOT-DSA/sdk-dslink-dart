@@ -50,26 +50,28 @@ abstract class LocalNode extends Node {
     return new RespSubscribeController(subscription, this);
   }
 
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response);
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+    return response..close();
+  }
 
   Response setAttribute(String name, String value, Responder responder, Response response) {
-    return response;
+    return response..close();
   }
 
   Response removeAttribute(String name, Responder responder, Response response) {
-    return response;
+    return response..close();
   }
 
   Response setConfig(String name, Object value, Responder responder, Response response) {
-    return response;
+    return response..close();
   }
 
   Response removeConfig(String name, Responder responder, Response response) {
-    return response;
+    return response..close();
   }
   /// set node value
   Response setValue(Object value, Responder responder, Response response) {
-    return response;
+    return response..close();
   }
 }
 /// node provider for responder

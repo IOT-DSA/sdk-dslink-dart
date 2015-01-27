@@ -1,11 +1,36 @@
 part of dslink.broker;
 
-class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
+class BrokerNodeProvider extends SerializableNodeProvider implements ServerLinkManager {
+  /// map that holds all nodes
+  /// a node is not in parent node's children when real data/connection doesn't exist
+  /// but instance is still there
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
+
   /// connName to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
-  @override
+  Map rootStructure = {
+    'conns': {},
+    'defs': {},
+    'quarantine': {}
+  };
+  BrokerNodeProvider() {
+    // initialize root nodes
+    RootNode root = new RootNode('/');
+    nodes['/'] = root;
+    root.load(rootStructure, this);
+  }
+
+  bool _defsLoaded = false;
+  /// load a fixed profile map
+  void loadDefs(Map m) {
+    _defsLoaded = false;
+    (getNode('/defs') as SerializableNode).load(m, this);
+    _defsLoaded = true;
+    // TODO send requester an update about profile change
+  }
+
+  /// load a local node
   LocalNode getNode(String path) {
     LocalNode node = nodes[path];
 
@@ -27,8 +52,11 @@ class BrokerNodeProvider extends NodeProvider implements ServerLinkManager {
         conns[connName] = conn;
       }
       node = conn.getNode(path);
-    } else {
-      // TODO
+    } else if (path.startsWith('/defs/')) {
+      if (!_defsLoaded) {
+        node = new DefinitionNode(path);
+      }
+      // can't create arbitrary profile at runtime
     }
     return node;
   }
