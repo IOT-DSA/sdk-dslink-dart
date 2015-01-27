@@ -4,13 +4,13 @@ part of dslink.broker;
 /// the only change will be a global upgrade
 class DefinitionNode extends SerializableNode {
   DefinitionNode(String path) : super(path);
-  
+
   // TODO, list node of definition should get closed
 }
 
 class RootNode extends DefinitionNode {
   RootNode(String path) : super(path);
-  
+
   bool _loaded = false;
   void load(Map m, SerializableNodeProvider provider) {
     if (_loaded) {

@@ -43,8 +43,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   BroadcastStreamController<String> _listChangeController;
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
-      _listChangeController = new BroadcastStreamController<String>(
-          _onStartListListen, _onAllListCancel);
+      _listChangeController = new BroadcastStreamController<String>(_onStartListListen, _onAllListCancel);
     }
     return _listChangeController;
   }
@@ -73,8 +72,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   BroadcastStreamController<ValueUpdate> _valueController;
   BroadcastStreamController<ValueUpdate> get valueController {
     if (_valueController == null) {
-      _valueController = new BroadcastStreamController<ValueUpdate>(
-          _onStartValueListen, _onAllValueCancel);
+      _valueController = new BroadcastStreamController<ValueUpdate>(_onStartValueListen, _onAllValueCancel);
     }
     return _valueController;
   }
@@ -116,8 +114,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     requester.invoke(remotePath, params).listen((update) {
       // TODO fix paths in the response
-      response.updateStream(update.updates,
-          streamStatus: update.streamStatus, columns: update.columns);
+      response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);
     });
     return response;
   }
