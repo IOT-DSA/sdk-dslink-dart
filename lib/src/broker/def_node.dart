@@ -23,7 +23,7 @@ class RootNode extends DefinitionNode {
         attributes[key] = value;
       } else if (value is Map) {
         SerializableNode node = new SerializableNode('/$key');
-        node.load(m, provider);
+        node.load(value, provider);
         provider.nodes[node.path] = node;
         children[key] = node;
       }

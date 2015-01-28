@@ -38,7 +38,7 @@ class SerializableNode extends LocalNode {
       } else if (value is Map) {
         Node node = provider.getNode('$path/$key');
         if (node is SerializableNode) {
-          node.load(m, provider);
+          node.load(value, provider);
         }
         children[key] = node;
       }

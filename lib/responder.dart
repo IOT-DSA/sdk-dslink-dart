@@ -12,3 +12,5 @@ part 'src/responder/response/subscribe.dart';
 part 'src/responder/response/list.dart';
 part 'src/responder/response/invoke.dart';
 part 'src/responder/serializable_node.dart';
+part 'src/responder/config_setting.dart';
+part 'src/responder/permission.dart';

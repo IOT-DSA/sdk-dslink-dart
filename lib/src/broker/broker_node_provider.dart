@@ -52,11 +52,17 @@ class BrokerNodeProvider extends SerializableNodeProvider implements ServerLinkM
         conns[connName] = conn;
       }
       node = conn.getNode(path);
+      
     } else if (path.startsWith('/defs/')) {
       if (!_defsLoaded) {
         node = new DefinitionNode(path);
       }
       // can't create arbitrary profile at runtime
+    } else {
+      node = new BrokerNode(path);
+    }
+    if (node != null) {
+      nodes[path] = node;
     }
     return node;
   }
