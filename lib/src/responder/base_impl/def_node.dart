@@ -1,4 +1,4 @@
-part of dslink.broker;
+part of dslink.responder;
 
 /// definition nodes are serializable node that won't change
 /// the only change will be a global upgrade
