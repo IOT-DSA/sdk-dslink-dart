@@ -1,6 +1,6 @@
 part of dslink.broker;
 
-class BrokerNodeProvider extends SerializableNodeProvider implements ServerLinkManager {
+class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// map that holds all nodes
   /// a node is not in parent node's children when real data/connection doesn't exist
   /// but instance is still there
@@ -25,7 +25,7 @@ class BrokerNodeProvider extends SerializableNodeProvider implements ServerLinkM
   /// load a fixed profile map
   void loadDefs(Map m) {
     _defsLoaded = false;
-    (getNode('/defs') as SerializableNode).load(m, this);
+    (getNode('/defs') as LocalNodeImpl).load(m, this);
     _defsLoaded = true;
     // TODO send requester an update about profile change
   }

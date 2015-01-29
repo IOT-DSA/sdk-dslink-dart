@@ -32,6 +32,12 @@ abstract class LocalNode extends Node {
     return _valueStream;
   }
 
+  /// get a list of permission setting on this node
+  PermissionList get permissions => null;
+  /// get the permission of a responder (actually the permisison of the linked requester)
+  int getPermission(Responder responder){
+    return Permission.READ;
+  }
   final String path;
   LocalNode(this.path);
 

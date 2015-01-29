@@ -101,10 +101,23 @@ class DSError {
   String path;
   String phase;
 
-  DSError(this.msg, {this.detail, this.type, this.path, this.phase: ErrorPhase.response});
+  DSError(this.type, {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
 
+  String getMessage() {
+    if (msg != null) {
+      return msg;
+    }
+    if (type != null) {
+      // TODO, return normal case instead of camel case
+      return type;
+    }
+    return 'Error';
+  }
+  
   Map serialize() {
-    Map rslt = {'msg': msg};
+    Map rslt = {
+      'msg': msg
+    };
     if (type != null) {
       rslt['type'] = type;
     }
@@ -119,4 +132,11 @@ class DSError {
     }
     return rslt;
   }
+
+
+  static final DSError PERMISSION_DENIED = new DSError('permissionDenied');
+  static final DSError INVALID_METHOD = new DSError('invalidMethod');
+  static final DSError INVALID_PATH = new DSError('invalidPath');
+  static final DSError INVALID_PATHS = new DSError('invalidPaths');
+  static final DSError INVALID_VALUE = new DSError('invalidValue');
 }

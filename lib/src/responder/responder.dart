@@ -2,6 +2,12 @@ part of dslink.responder;
 
 /// a responder for one connection
 class Responder extends ConnectionHandler {
+  
+  /// reqId can be a dsId or a user name
+  String reqId;
+  /// list of permission group
+  List<String> groups = [];
+  
   final Map<int, Response> _responses = new Map<int, Response>();
   SubscribeResponse _subscription;
   /// caching of nodes
@@ -58,7 +64,7 @@ class Responder extends ConnectionHandler {
       }
     }
     if (m['rid'] is int) {
-      _closeResponse(m['rid'], error: new DSError('invalid request method'));
+      _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     }
   }
   /// close the response from responder side and notify requester
@@ -106,7 +112,7 @@ class Responder extends ConnectionHandler {
       var node = nodeProvider.getNode(path.path);
       node.list(this, addResponse(new ListResponse(this, rid, node)));
     } else {
-      _closeResponse(m['rid'], error: new DSError('invalid path'));
+      _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
   void _subscribe(Map m) {
@@ -121,7 +127,7 @@ class Responder extends ConnectionHandler {
       }
       _closeResponse(m['rid']);
     } else {
-      _closeResponse(m['rid'], error: new DSError('invalid paths'));
+      _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
     }
   }
   void _unsubscribe(Map m) {
@@ -135,7 +141,7 @@ class Responder extends ConnectionHandler {
       }
       _closeResponse(m['rid']);
     } else {
-      _closeResponse(m['rid'], error: new DSError('invalid paths'));
+      _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
     }
   }
   void _invoke(Map m) {
@@ -154,17 +160,17 @@ class Responder extends ConnectionHandler {
       var node = nodeProvider.getNode(path.path);
       node.invoke(params, this, addResponse(new InvokeResponse(this, rid, node)));
     } else {
-      _closeResponse(m['rid'], error: new DSError('invalid path'));
+      _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
   void _set(Map m) {
     Path path = Path.getValidPath(m['path']);
     if (path == null || path.absolute) {
-      _closeResponse(m['rid'], error: new DSError('invalid path'));
+      _closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }
     if (!m.containsKey('value')) {
-      _closeResponse(m['rid'], error: new DSError('missing value'));
+      _closeResponse(m['rid'], error: DSError.INVALID_VALUE);
       return;
     }
     Object value = m['value'];
@@ -181,7 +187,7 @@ class Responder extends ConnectionHandler {
             .getNode(path.parentPath)
             .setAttribute(path.name, value, this, addResponse(new Response(this, rid)));
       } else {
-        _closeResponse(m['rid'], error: new DSError('attribute value must be string'));
+        _closeResponse(m['rid'], error: DSError.INVALID_VALUE);
       }
     } else {
       // shouldn't be possible to reach here
@@ -192,12 +198,12 @@ class Responder extends ConnectionHandler {
   void _remove(Map m) {
     Path path = Path.getValidPath(m['path']);
     if (path == null || path.absolute) {
-      _closeResponse(m['rid'], error: new DSError('invalid path'));
+      _closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }
     int rid = m['rid'];
     if (path.isNode) {
-      _closeResponse(m['rid'], error: new DSError('can not remove a node'));
+      _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     } else if (path.isConfig) {
       nodeProvider
           .getNode(path.parentPath)
