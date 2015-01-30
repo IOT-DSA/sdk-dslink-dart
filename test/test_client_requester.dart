@@ -58,14 +58,14 @@ main() async {
 //    print(update.rows);
 //  }
 
-  Stream<RequesterListUpdate> updates = requester.list('/conns/test-responder-p');
-  requester.set('/conns/test-responder-p/@test', 'hi');
-  await for (RequesterListUpdate update in updates) {
-    print(update.changes);
-  }
-
-//  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-responder-p');
-//  for (ValueUpdate update in updates) {
-//    print(update.value);
+//  Stream<RequesterListUpdate> updates = requester.list('/conns/test-responder-p');
+//  requester.set('/conns/test-responder-p/@test', 'hi');
+//  await for (RequesterListUpdate update in updates) {
+//    print(update.changes);
 //  }
+
+  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-responder-p');
+  await for (ValueUpdate update in updates) {
+    print(update.value);
+  }
 }

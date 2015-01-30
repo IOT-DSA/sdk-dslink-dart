@@ -2,12 +2,12 @@ part of dslink.responder;
 
 /// a responder for one connection
 class Responder extends ConnectionHandler {
-  
+
   /// reqId can be a dsId or a user name
   String reqId;
   /// list of permission group
   List<String> groups = [];
-  
+
   final Map<int, Response> _responses = new Map<int, Response>();
   SubscribeResponse _subscription;
   /// caching of nodes
@@ -77,17 +77,21 @@ class Responder extends ConnectionHandler {
       response._streamStatus = StreamStatus.closed;
       rid = response.rid;
     }
-    Map m = {'rid': rid, 'stream': StreamStatus.closed};
+    Map m = {
+      'rid': rid,
+      'stream': StreamStatus.closed
+    };
     if (error != null) {
       m['error'] = error.serialize();
     }
     addToSendList(m);
   }
 
-  void updateReponse(Response response, List updates,
-      {String streamStatus, List<TableColumn> columns}) {
+  void updateReponse(Response response, List updates, {String streamStatus, List<TableColumn> columns}) {
     if (_responses[response.rid] == response) {
-      Map m = {'rid': response.rid};
+      Map m = {
+        'rid': response.rid
+      };
       if (streamStatus != null && streamStatus != response._streamStatus) {
         response._streamStatus = streamStatus;
         m['stream'] = streamStatus;
@@ -110,7 +114,7 @@ class Responder extends ConnectionHandler {
     if (path != null && path.absolute) {
       int rid = m['rid'];
       var node = nodeProvider.getNode(path.path);
-      node.list(this, addResponse(new ListResponse(this, rid, node)));
+      addResponse(new ListResponse(this, rid, node));
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
@@ -121,8 +125,7 @@ class Responder extends ConnectionHandler {
       for (Object str in m['paths']) {
         Path path = Path.getValidNodePath(str);
         if (path != null && path.absolute) {
-          _subscription.add(
-              path.path, nodeProvider.getNode(path.path).subscribe(_subscription, this));
+          _subscription.add(path.path, new RespSubscribeController(_subscription, nodeProvider.getNode(path.path)));
         }
       }
       _closeResponse(m['rid']);
@@ -178,14 +181,10 @@ class Responder extends ConnectionHandler {
     if (path.isNode) {
       nodeProvider.getNode(path.path).setValue(value, this, addResponse(new Response(this, rid)));
     } else if (path.isConfig) {
-      nodeProvider
-          .getNode(path.parentPath)
-          .setConfig(path.name, value, this, addResponse(new Response(this, rid)));
+      nodeProvider.getNode(path.parentPath).setConfig(path.name, value, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
       if (value is String) {
-        nodeProvider
-            .getNode(path.parentPath)
-            .setAttribute(path.name, value, this, addResponse(new Response(this, rid)));
+        nodeProvider.getNode(path.parentPath).setAttribute(path.name, value, this, addResponse(new Response(this, rid)));
       } else {
         _closeResponse(m['rid'], error: DSError.INVALID_VALUE);
       }
@@ -205,13 +204,9 @@ class Responder extends ConnectionHandler {
     if (path.isNode) {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     } else if (path.isConfig) {
-      nodeProvider
-          .getNode(path.parentPath)
-          .removeConfig(path.name, this, addResponse(new Response(this, rid)));
+      nodeProvider.getNode(path.parentPath).removeConfig(path.name, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
-      nodeProvider
-          .getNode(path.parentPath)
-          .removeAttribute(path.name, this, addResponse(new Response(this, rid)));
+      nodeProvider.getNode(path.parentPath).removeAttribute(path.name, this, addResponse(new Response(this, rid)));
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';

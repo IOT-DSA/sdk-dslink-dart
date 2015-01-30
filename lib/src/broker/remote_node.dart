@@ -211,16 +211,6 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     });
     return response;
   }
-
-  ListResponse list(Responder responder, ListResponse response) {
-    // this is automaticaly implemented
-    // no need to do anything else here
-    return response;
-  }
-
-  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
-    return new RespSubscribeController(subscription, this);
-  }
 }
 
 // TODO, implement special configs and attribute merging

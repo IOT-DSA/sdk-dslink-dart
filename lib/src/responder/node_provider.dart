@@ -48,14 +48,6 @@ abstract class LocalNode extends Node {
   /// whether the node is ready for returning a list response
   bool get listReady => true;
 
-  ListResponse list(Responder responder, ListResponse response) {
-    return response;
-  }
-
-  RespSubscribeController subscribe(SubscribeResponse subscription, Responder responder) {
-    return new RespSubscribeController(subscription, this);
-  }
-
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     return response..close();
   }
