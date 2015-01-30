@@ -3,12 +3,24 @@ part of dslink.broker;
 class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   final Map<String, RemoteLinkNode> nodes = new Map<String, RemoteLinkNode>();
   Requester requester;
+  Responder responder;
   final String path;
   RemoteLinkRootNode rootNode;
-  RemoteLinkManager(this.path) {
+  RemoteLinkManager(this.path, {Map rootNodeData, NodeProvider nodeProvider}) {
     requester = new Requester(this);
     rootNode = new RemoteLinkRootNode(path, '/', requester, this);
     nodes['/'] = rootNode;
+    if (rootNodeData != null) {
+      //TODO rootNode.load(rootNodeData);
+    }
+    if (nodeProvider != null) {
+      responder = new Responder(nodeProvider);
+      responder.reqId = path.substring(7);// remove /conns/
+      if (rootNodeData != null && rootNodeData.containsKey(r'$groups')) {
+        //TODO, implement this in a subclass of ConfigSetting
+        responder.groups = rootNodeData[r'$groups'];
+      }
+    }
   }
 
   LocalNode getNode(String fullPath) {
@@ -41,7 +53,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     // TODO: implement updateRemoteNode
     return null;
   }
-  
+
   PermissionList permissions;
   // TODO, implement this in rootNode and use its configs and parent node
   int getPermission(Responder responder) {
@@ -57,7 +69,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   int getPermission(Responder responder) {
     return _linkManager.getPermission(responder);
   }
-  
+
   BroadcastStreamController<String> _listChangeController;
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
@@ -139,14 +151,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response removeAttribute(String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.remove(remotePath).then((update){
+    requester.remove(remotePath).then((update) {
       response.close();
-    }).catchError((err){
+    }).catchError((err) {
       if (err is DSError) {
         response.close(err);
       } else {
         // TODO need a broker setting to disable detail
-        response.close(new DSError('internalError', detail:'$err'));
+        response.close(new DSError('internalError', detail: '$err'));
       }
     });
     return response;
@@ -154,14 +166,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response removeConfig(String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.remove(remotePath).then((update){
+    requester.remove(remotePath).then((update) {
       response.close();
-    }).catchError((err){
+    }).catchError((err) {
       if (err is DSError) {
         response.close(err);
       } else {
         // TODO need a broker setting to disable detail
-        response.close(new DSError('internalError', detail:'$err'));
+        response.close(new DSError('internalError', detail: '$err'));
       }
     });
     return response;
@@ -169,14 +181,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setAttribute(String name, String value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.set(remotePath, value).then((update){
+    requester.set(remotePath, value).then((update) {
       response.close();
-    }).catchError((err){
+    }).catchError((err) {
       if (err is DSError) {
         response.close(err);
       } else {
         // TODO need a broker setting to disable detail
-        response.close(new DSError('internalError', detail:'$err'));
+        response.close(new DSError('internalError', detail: '$err'));
       }
     });
     return response;
@@ -184,14 +196,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setConfig(String name, Object value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.set(remotePath, value).then((update){
+    requester.set(remotePath, value).then((update) {
       response.close();
-    }).catchError((err){
+    }).catchError((err) {
       if (err is DSError) {
         response.close(err);
       } else {
         // TODO need a broker setting to disable detail
-        response.close(new DSError('internalError', detail:'$err'));
+        response.close(new DSError('internalError', detail: '$err'));
       }
     });
     return response;
@@ -199,14 +211,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setValue(Object value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.set(remotePath, value).then((update){
+    requester.set(remotePath, value).then((update) {
       response.close();
-    }).catchError((err){
+    }).catchError((err) {
       if (err is DSError) {
         response.close(err);
       } else {
         // TODO need a broker setting to disable detail
-        response.close(new DSError('internalError', detail:'$err'));
+        response.close(new DSError('internalError', detail: '$err'));
       }
     });
     return response;
@@ -216,5 +228,5 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 // TODO, implement special configs and attribute merging
 class RemoteLinkRootNode extends RemoteLinkNode {
   RemoteLinkRootNode(String path, String remotePath, Requester requester, RemoteLinkManager linkManager) : super(path, remotePath, requester, linkManager);
-  
+
 }
