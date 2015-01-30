@@ -3,25 +3,35 @@ part of dslink.broker;
 class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   final Map<String, RemoteLinkNode> nodes = new Map<String, RemoteLinkNode>();
   Requester requester;
-  Responder responder;
   final String path;
   RemoteLinkRootNode rootNode;
-  RemoteLinkManager(this.path, {Map rootNodeData, NodeProvider nodeProvider}) {
+  RemoteLinkManager(this.path, [Map rootNodeData]) {
     requester = new Requester(this);
     rootNode = new RemoteLinkRootNode(path, '/', requester, this);
     nodes['/'] = rootNode;
     if (rootNodeData != null) {
       //TODO rootNode.load(rootNodeData);
     }
-    if (nodeProvider != null) {
-      responder = new Responder(nodeProvider);
+  }
+  
+  Map<String, Responder> responders;
+  /// multiple-requester is allowed, like from different browser tabs
+  /// in this case they need multiple responders on broker side.
+  Responder getResponder(NodeProvider nodeProvider, [String sessionId = '']) {
+    if (responders == null) {
+      responders = {};
+    }
+    if (responders.containsKey(sessionId)) {
+      return responders[sessionId];
+    } else {
+      var responder = new Responder(nodeProvider);
       responder.reqId = path.substring(7);// remove /conns/
-      if (rootNodeData != null && rootNodeData.containsKey(r'$groups')) {
-        //TODO, implement this in a subclass of ConfigSetting
-        responder.groups = rootNodeData[r'$groups'];
-      }
+      //TODO set permission group
+      responders[sessionId] = responder;
+      return responder;
     }
   }
+
 
   LocalNode getNode(String fullPath) {
     String rPath = fullPath.replaceFirst(path, '');

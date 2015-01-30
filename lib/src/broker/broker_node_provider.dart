@@ -48,11 +48,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       }
       RemoteLinkManager conn = conns[connName];
       if (conn == null) {
-        conn = new RemoteLinkManager('/conns/$connName', nodeProvider:this);
+        // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+        conn = new RemoteLinkManager('/conns/$connName');
         conns[connName] = conn;
       }
       node = conn.getNode(path);
-      
+
     } else if (path.startsWith('/defs/')) {
       if (!_defsLoaded) {
         node = new DefinitionNode(path);
@@ -125,13 +126,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return node._linkManager.requester;
   }
 
-  Responder getResponder(String dsId, NodeProvider nodeProvider) {
+  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']) {
     String connName = getConnName(dsId);
     if (conns.containsKey(connName)) {
-      return conns[connName].responder;
+      return conns[connName].getResponder(nodeProvider, sessionId);
     }
     /// create the RemoteLinkManager
     RemoteLinkNode node = getNode('/conns/$connName');
-    return node._linkManager.responder;
+    return node._linkManager.getResponder(nodeProvider, sessionId);
   }
 }
