@@ -12,11 +12,15 @@ class TestNodeProvider extends NodeProvider {
   }
 }
 
-class TestNode extends LocalNode {
+class TestNode extends LocalNodeImpl {
   TestNode(String path) : super(path) {
     new Timer.periodic(const Duration(seconds: 5), updateTime);
     configs[r'$is'] = 'node';
     configs[r'$test'] = 'hello world';
+    this.permissions = new PermissionList()..updatePermissions([{
+            'group': 'default',
+            'permission': 'write'
+          }]);
   }
 
   int count = 0;
@@ -29,9 +33,13 @@ class TestNode extends LocalNode {
 
   @override
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
-    response.updateStream([[1, 2]],
-        streamStatus: StreamStatus.closed,
-        columns: [{'name': 'v1', 'type': 'number'}, {'name': 'v2', 'type': 'number'}]);
+    response.updateStream([[1, 2]], streamStatus: StreamStatus.closed, columns: [{
+        'name': 'v1',
+        'type': 'number'
+      }, {
+        'name': 'v2',
+        'type': 'number'
+      }]);
     return response;
   }
 }

@@ -27,7 +27,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     _defsLoaded = false;
     (getNode('/defs') as LocalNodeImpl).load(m, this);
     _defsLoaded = true;
-    // TODO send requester an update about profile change
+    // TODO send requester an update says: all profiles changed
   }
 
   /// load a local node

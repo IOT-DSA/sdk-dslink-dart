@@ -1,9 +1,6 @@
 part of dslink.responder;
 
 class Permission {
-
-  static const List<String> names = const ['none', 'read', 'write', 'config', 'never'];
-
   /// now allowed to do anything
   static const int NONE = 0;
   /// read node
@@ -14,18 +11,36 @@ class Permission {
   static const int CONFIG = 3;
   /// something that can never happen
   static const int NEVER = 4;
+
+  static const List<String> names = const ['none', 'read', 'write', 'config', 'never'];
+  static const Map<String, int> nameParser = const {
+    'none': NONE,
+    'read': READ,
+    'write': WRITE,
+    'config': CONFIG,
+    'never': NEVER
+  };
 }
 
 class PermissionList {
   Map<String, int> idMatchs = {};
   Map<String, int> groupMatchs = {};
   int defaultPermission = Permission.NONE;
-  void updatePermissions(List data){
+  void updatePermissions(List data) {
     idMatchs.clear();
     groupMatchs.clear();
+    defaultPermission = Permission.NONE;
     for (Object obj in data) {
       if (obj is Map) {
-        
+        if (obj['id'] is String) {
+          idMatchs[obj['id']] = Permission.nameParser[obj['permission']];
+        } else if (obj['group'] is String) {
+          if (obj['group'] == 'default') {
+            defaultPermission = Permission.nameParser[obj['permission']];
+          } else {
+            groupMatchs[obj['group']] = Permission.nameParser[obj['permission']];
+          }
+        }
       }
     }
   }

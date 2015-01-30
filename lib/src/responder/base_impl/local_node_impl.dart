@@ -62,7 +62,7 @@ class LocalNodeImpl extends LocalNode {
       }
     }
     if (ps != null) {
-      ps.getPermission(responder);
+      return ps.getPermission(responder);
     }
     if (parentNode != null) {
       return parentNode.getPermission(responder);
@@ -70,12 +70,14 @@ class LocalNodeImpl extends LocalNode {
     return Permission.NONE;
   }
   
+  void updateList(String name, [int permission = Permission.READ]){
+    
+  }
   Response setAttribute(String name, String value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
       if (attributes.containsKey(name) && attributes[name] != value){
         attributes[name] = value;
-        //TODO update list stream
-        //TODO need a flag so list stream is not updated when nothing is listening
+        updateList(name);
       }
       return response..close();
     } else {
@@ -84,14 +86,24 @@ class LocalNodeImpl extends LocalNode {
   }
 
   Response removeAttribute(String name, Responder responder, Response response) {
-    return response..close();
+    if (getPermission(responder) >= Permission.WRITE) {
+      if (attributes.containsKey(name)){
+        attributes.remove(name);
+        updateList(name);
+      }
+      return response..close();
+    } else {
+      return response..close(DSError.PERMISSION_DENIED);
+    }
   }
 
   Response setConfig(String name, Object value, Responder responder, Response response) {
-    return response..close();
+    var config = Configs.getConfig(name, profile);
+    return response..close(config.setConfig(value, this, responder));
   }
 
   Response removeConfig(String name, Responder responder, Response response) {
-    return response..close();
+    var config = Configs.getConfig(name, profile);
+    return response..close(config.removeConfig(this, responder));
   }
 }

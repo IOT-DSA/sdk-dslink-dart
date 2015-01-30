@@ -21,6 +21,7 @@ class ListResponse extends Response {
     }
   }
   void processor() {
+    // TODO handle permission and permission change
     Object updateIs;
     Object updateMixin;
     List updateConfigs = [];

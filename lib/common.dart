@@ -115,8 +115,9 @@ class DSError {
   }
   
   Map serialize() {
-    Map rslt = {
-      'msg': msg
+    Map rslt = {};
+    if (msg != null) {
+      rslt['msg'] = msg;
     };
     if (type != null) {
       rslt['type'] = type;

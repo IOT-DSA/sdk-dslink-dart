@@ -137,37 +137,84 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     return response;
   }
 
-  @override
-  Response removeAttribute(String name, Responder responder, Response rid) {
-    // TODO: implement removeAttribute
-    return rid;
+  Response removeAttribute(String name, Responder responder, Response response) {
+    // TODO check permission on RemoteLinkRootNode
+    requester.remove(remotePath).then((update){
+      response.close();
+    }).catchError((err){
+      if (err is DSError) {
+        response.close(err);
+      } else {
+        // TODO need a broker setting to disable detail
+        response.close(new DSError('internalError', detail:'$err'));
+      }
+    });
+    return response;
   }
 
-  @override
-  Response removeConfig(String name, Responder responder, Response rid) {
-    // TODO: implement removeConfig
-    return rid;
+  Response removeConfig(String name, Responder responder, Response response) {
+    // TODO check permission on RemoteLinkRootNode
+    requester.remove(remotePath).then((update){
+      response.close();
+    }).catchError((err){
+      if (err is DSError) {
+        response.close(err);
+      } else {
+        // TODO need a broker setting to disable detail
+        response.close(new DSError('internalError', detail:'$err'));
+      }
+    });
+    return response;
   }
 
-  @override
-  Response setAttribute(String name, String value, Responder responder, Response rid) {
-    // TODO: implement setAttribute
-    return rid;
+  Response setAttribute(String name, String value, Responder responder, Response response) {
+    // TODO check permission on RemoteLinkRootNode
+    requester.set(remotePath, value).then((update){
+      response.close();
+    }).catchError((err){
+      if (err is DSError) {
+        response.close(err);
+      } else {
+        // TODO need a broker setting to disable detail
+        response.close(new DSError('internalError', detail:'$err'));
+      }
+    });
+    return response;
   }
 
-  @override
-  Response setConfig(String name, Object value, Responder responder, Response rid) {
-    // TODO: implement setConfig
-    return rid;
+  Response setConfig(String name, Object value, Responder responder, Response response) {
+    // TODO check permission on RemoteLinkRootNode
+    requester.set(remotePath, value).then((update){
+      response.close();
+    }).catchError((err){
+      if (err is DSError) {
+        response.close(err);
+      } else {
+        // TODO need a broker setting to disable detail
+        response.close(new DSError('internalError', detail:'$err'));
+      }
+    });
+    return response;
   }
 
-  @override
-  Response setValue(Object value, Responder responder, Response rid) {
-    // TODO: implement setValue
-    return rid;
+  Response setValue(Object value, Responder responder, Response response) {
+    // TODO check permission on RemoteLinkRootNode
+    requester.set(remotePath, value).then((update){
+      response.close();
+    }).catchError((err){
+      if (err is DSError) {
+        response.close(err);
+      } else {
+        // TODO need a broker setting to disable detail
+        response.close(new DSError('internalError', detail:'$err'));
+      }
+    });
+    return response;
   }
 
   ListResponse list(Responder responder, ListResponse response) {
+    // this is automaticaly implemented
+    // no need to do anything else here
     return response;
   }
 

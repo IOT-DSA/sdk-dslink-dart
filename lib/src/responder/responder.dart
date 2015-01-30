@@ -165,7 +165,7 @@ class Responder extends ConnectionHandler {
   }
   void _set(Map m) {
     Path path = Path.getValidPath(m['path']);
-    if (path == null || path.absolute) {
+    if (path == null || !path.absolute) {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }
