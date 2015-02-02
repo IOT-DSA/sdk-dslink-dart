@@ -95,13 +95,13 @@ class DsHttpServer {
         Map m = JSON.decode(str);
         HttpServerLink link = _linkManager.getLink(dsId);
         if (link == null) {
-          String modulus = m['publicKey'];
-          var bytes = Base64.decode(modulus);
+          String publicKeyPointStr = m['publicKey'];
+          var bytes = Base64.decode(publicKeyPointStr);
           if (bytes == null) {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
-          link = new HttpServerLink(dsId, new BigInteger.fromBytes(1, bytes), _linkManager,
+          link = new HttpServerLink(dsId, new PublicKey.fromBytes(bytes), _linkManager,
               nodeProvider: nodeProvider);
           if (!link.valid) {
             // dsId doesn't match public key

@@ -3,8 +3,8 @@ library dslink.pk;
 import 'package:bignum/bignum.dart';
 import "package:cipher/cipher.dart";
 import "package:cipher/digests/sha256.dart";
-import "package:cipher/key_generators/rsa_key_generator.dart";
-import "package:cipher/params/key_generators/rsa_key_generator_parameters.dart";
+import "package:cipher/key_generators/ec_key_generator.dart";
+import "package:cipher/params/key_generators/ec_key_generator_parameters.dart";
 import "package:cipher/random/secure_random_base.dart";
 import "package:cipher/random/block_ctr_random.dart";
 import "package:cipher/block/aes_fast.dart";
@@ -12,17 +12,45 @@ import 'dart:typed_data';
 import '../../utils.dart';
 import 'dart:math' as Math;
 import 'dart:convert';
+import 'package:cipher/ecc/ecc_base.dart';
+import 'package:cipher/ecc/ecc_fp.dart' as fp;
+
+/// hard code the EC curve data here, so the compiler don't have to register all curves
+ECDomainParameters _secp256r1 = () {
+  BigInteger q = new BigInteger("ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
+  BigInteger a = new BigInteger("ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
+  BigInteger b = new BigInteger("5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
+  BigInteger g = new BigInteger("046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5", 16);
+  BigInteger n = new BigInteger("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
+  BigInteger h = new BigInteger("1", 16);
+  BigInteger seed = new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
+  var seedBytes = seed.toByteArray();
+  
+  var curve = new fp.ECCurve(q, a, b);
+
+  return new ECDomainParametersImpl('secp256r1', curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
+}();
+
 
 class SecretNonce {
   Uint8List bytes;
 
-  SecretNonce(this.bytes);
+  ECPrivateKey ecPrivateKey;
+  ECPublicKey ecPublicKey;
 
-  SecretNonce.generate() {
-    bytes = new Uint8List(16);
-    for (int i = 0; i < 16; ++i) {
-      bytes[i] = DSRandom.instance.nextUint8();
-    }
+  ECPublicKey ecPublicKeyRemote;
+
+  SecretNonce(this.ecPublicKeyRemote, [this.ecPrivateKey, this.ecPublicKey]) {
+    var Q2 = ecPublicKeyRemote.Q * ecPrivateKey.d;
+    bytes = bigintToUint8List(Q2.x.toBigInteger());
+  }
+  factory SecretNonce.generate(PublicKey publicKeyRemote) {
+    var gen = new ECKeyGenerator();
+    var rsapars = new ECKeyGeneratorParameters(_secp256r1);
+    var params = new ParametersWithRandom(rsapars, DSRandom.instance);
+    gen.init(params);
+    var pair = gen.generateKeyPair();
+    return new SecretNonce(publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
   }
 
   String toString() {
@@ -31,8 +59,8 @@ class SecretNonce {
 
   String hashSalt(String salt) {
     List raw = []
-      ..addAll(UTF8.encode(salt))
-      ..addAll(bytes);
+        ..addAll(UTF8.encode(salt))
+        ..addAll(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     var hashed = sha256.process(new Uint8List.fromList(raw));
     return Base64.encode(hashed);
@@ -46,141 +74,70 @@ class SecretNonce {
 class PublicKey {
   static final BigInteger publicExp = new BigInteger(65537);
 
-  final BigInteger modulus;
-  String modulusBase64;
-  String modulusHash64;
+  ECPublicKey ecPublicKey;
+  String qBase64;
+  String qHash64;
 
-  PublicKey(this.modulus) {
-    List bytes = bigintToUint8List(modulus);
-    modulusBase64 = Base64.encode(bytes);
+  PublicKey(this.ecPublicKey) {
+    List bytes = ecPublicKey.Q.getEncoded(false);
+    qBase64 = Base64.encode(bytes);
     SHA256Digest sha256 = new SHA256Digest();
-    modulusHash64 = Base64.encode(sha256.process(bytes));
+    qHash64 = Base64.encode(sha256.process(bytes));
+  }
+  factory PublicKey.fromBytes(Uint8List bytes) {
+    ECPoint Q = _secp256r1.curve.decodePoint(bytes);
+    return new PublicKey(new ECPublicKey(Q, _secp256r1));
   }
 
   String getDsId(String prefix) {
-    return '$prefix$modulusHash64';
+    return '$prefix$qHash64';
   }
 
   bool verifyDsId(String dsId) {
-    return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == modulusHash64);
+    return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == qHash64);
   }
 
   String encryptNonce(SecretNonce nonce) {
-    // TODO optional security enhancement, add more bytes infront of the 16 bytes nonce
-    BigInteger A = new BigInteger.fromBytes(1, nonce.bytes);
-    BigInteger E = A.modPow(publicExp, modulus);
-    Uint8List encrypted = bigintToUint8List(E);
-    return Base64.encode(encrypted);
+    return Base64.encode(nonce.ecPublicKey.Q.getEncoded(false));
   }
 }
 
 class PrivateKey {
-  PublicKey publicKey;
-  final BigInteger modulus;
-  final BigInteger exponent;
-  /// optional, not really needed
-  final BigInteger p, q;
 
-  PrivateKey(this.modulus, this.exponent, [this.p, this.q]) {
-    publicKey = new PublicKey(modulus);
+  PublicKey publicKey;
+  ECPrivateKey ecPrivateKey;
+  ECPublicKey ecPublicKey;
+  PrivateKey(this.ecPrivateKey, [this.ecPublicKey]) {
+    if (ecPublicKey == null) {
+      ecPublicKey = new ECPublicKey(_secp256r1.G * ecPrivateKey.d, _secp256r1);
+    }
+    publicKey = new PublicKey(ecPublicKey);
   }
 
+
   factory PrivateKey.generate() {
-    var gen = new RSAKeyGenerator();
-    var rnd = new DSRandom();
-    var rsapars = new RSAKeyGeneratorParameters(PublicKey.publicExp, 2048, 32);
-    var params = new ParametersWithRandom(rsapars, rnd);
+    var gen = new ECKeyGenerator();
+    var rsapars = new ECKeyGeneratorParameters(_secp256r1);
+    var params = new ParametersWithRandom(rsapars, DSRandom.instance);
     gen.init(params);
     var pair = gen.generateKeyPair();
-    RSAPrivateKey key = pair.privateKey;
-    return new PrivateKey(key.modulus, key.exponent, key.p, key.q);
+    return new PrivateKey(pair.privateKey, pair.publicKey);
   }
 
   factory PrivateKey.loadFromString(String str) {
-    Map m = _parseOpensslTextKey(str);
-
-    if (m['publicExponent'] == ' 65537 (0x10001)') {
-      // load a plain text openssl private key generated with following commands
-      // > openssl genrsa -out private.pem 2048
-      // > openssl rsa -text -in private.pem -out private.txt
-      BigInteger modulus = new BigInteger()..fromString(m['modulus'], 16);
-      BigInteger exponent = new BigInteger()..fromString(m['privateExponent'], 16);
-      BigInteger p = new BigInteger()..fromString(m['prime1'], 16);
-      BigInteger q = new BigInteger()..fromString(m['prime2'], 16);
-      return new PrivateKey(modulus, exponent, p, q);
-    } else {
-      // load a key file generated with saveToString()
-      BigInteger modulus = new BigInteger.fromBytes(1, Base64.decode(m['m']));
-      BigInteger exponent = new BigInteger.fromBytes(1, Base64.decode(m['e']));
-      BigInteger p = new BigInteger.fromBytes(1, Base64.decode(m['p']));
-      BigInteger q = new BigInteger.fromBytes(1, Base64.decode(m['q']));
-      return new PrivateKey(modulus, exponent, p, q);
-    }
+    var d = new BigInteger.fromBytes(1, Base64.decode(str));
+    return new PrivateKey(new ECPrivateKey(d, _secp256r1));
+  }
+  String saveToString() {
+    return Base64.encode(bigintToUint8List(ecPrivateKey.d));
   }
 
   SecretNonce decryptNonce(String nonce) {
-    Uint8List encrypted = Base64.decode(nonce);
-    BigInteger E = new BigInteger.fromBytes(1, encrypted);
-    BigInteger D = E.modPow(exponent, modulus);
-    Uint8List decrypted = bigintToUint8List(D);
-    if (decrypted.length < 16) {
-      int nMissing = 16 - decrypted.length;
-      Uint8List d = new Uint8List(16);
-      for (int i = 0; i < decrypted.length; ++i) {
-        d[nMissing + i] = decrypted[i];
-      }
-      decrypted = d;
-    } else if (decrypted.length > 16) {
-      // shoudln't happen now, but we might want to add some random bytes before the 16 bytes to make it more secure
-      decrypted = decrypted.sublist(decrypted.length - 16);
-    }
-    return new SecretNonce(decrypted);
+    ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(nonce));
+    return new SecretNonce(new ECPublicKey(p, _secp256r1), ecPrivateKey, ecPublicKey);
   }
 
-  String saveToString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('m:\n');
-    sb.write(Base64.encode(bigintToUint8List(modulus), 44, 2));
-    sb.write('\ne:\n');
-    sb.write(Base64.encode(bigintToUint8List(exponent), 44, 2));
-    if (p != null && q != null) {
-      sb.write('\np:\n');
-      sb.write(Base64.encode(bigintToUint8List(p), 44, 2));
-      sb.write('\nq:\n');
-      sb.write(Base64.encode(bigintToUint8List(q), 44, 2));
-    }
-    return sb.toString();
-  }
-}
 
-/// parse key file, works for both dsa key file and openssl plain text key file
-Map _parseOpensslTextKey(String str) {
-  var rslt = {};
-  var lines = str.replaceAll('\r\n', '\n').split('\n');
-
-  for (int i = 0; i < lines.length; ++i) {
-    String line = lines[i];
-    String hex = '';
-    if (line.endsWith(':')) {
-      for (i = i + 1; i < lines.length; ++i) {
-        String data = lines[i];
-        if (!data.startsWith(' ')) {
-          if (hex.length > 0) {
-            --i;
-          }
-          break;
-        }
-        hex += data.trim();
-      }
-      rslt[line.substring(0, line.length - 1)] = hex;
-    } else if (line.contains(':')) {
-      List arr = line.split(':');
-      if (arr.length == 2) {
-        rslt[arr[0]] = arr[1];
-      }
-    }
-  }
-  return rslt;
 }
 
 /// random number generator
@@ -197,36 +154,10 @@ class DSRandom extends SecureRandomBase {
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
     Math.Random r = new Math.Random();
-    final keyBytes = [
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256)
-    ];
+    final keyBytes = [r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)];
     final key = new KeyParameter(new Uint8List.fromList(keyBytes));
     r = new Math.Random((new DateTime.now()).millisecondsSinceEpoch);
-    final iv = new Uint8List.fromList([
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256),
-      r.nextInt(256)
-    ]);
+    final iv = new Uint8List.fromList([r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)]);
     final params = new ParametersWithIV(key, iv);
     _delegate.seed(params);
   }

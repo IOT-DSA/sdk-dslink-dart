@@ -23,10 +23,9 @@ class HttpServerLink implements ServerLink {
   /// 2 salts, salt saltS
   final List<int> salts = new List<int>(2);
 
-  HttpServerLink(String id, BigInteger modulus, ServerLinkManager linkManager,
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider})
       : dsId = id,
-        publicKey = new PublicKey(modulus),
         requester = linkManager.getRequester(id),
         responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
@@ -40,7 +39,7 @@ class HttpServerLink implements ServerLink {
   }
 
   void initLink(HttpRequest request) {
-    _tempNonce = new SecretNonce.generate();
+    _tempNonce = new SecretNonce.generate(publicKey);
 //          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 

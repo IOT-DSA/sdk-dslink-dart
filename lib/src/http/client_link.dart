@@ -32,7 +32,7 @@ class HttpClientLink implements ClientLink {
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
       : privateKey = privateKey,
-        dsId = '$dsIdPrefix${privateKey.publicKey.modulusHash64}',
+        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
 
@@ -45,7 +45,7 @@ class HttpClientLink implements ClientLink {
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     HttpClientRequest request = await client.postUrl(connUri);
     Map requestJson = {
-      'publicKey': privateKey.publicKey.modulusBase64,
+      'publicKey': privateKey.publicKey.qBase64,
       'isRequester': requester != null,
       'isResponder': responder != null
     };
