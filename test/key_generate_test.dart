@@ -21,15 +21,6 @@ void main() {
   print('takes ${t2-t1} ms to generate key');
   print('dsaId: ${key.publicKey.getDsId('my-dsa-test-')}');
   print('saved key:\n${key.saveToString()}');
+  print('public key:\n${key.publicKey.qBase64}');
   //test token encrypt, decrypt
-  SecretNonce token = new SecretNonce.generate();
-  String enctyptedTokenStr = key.publicKey.encryptNonce(token);
-  var rsltToken = key.decryptNonce(enctyptedTokenStr);
-
-  print('original token:  ${token.toString()}');
-  print('decrypted token: ${rsltToken.toString()}');
-
-  String salt = "request 1";
-  String saltHash = token.hashSalt(salt);
-  print('token hash of "$salt": $saltHash,  verified: ${rsltToken.verifySalt(salt, saltHash)}');
 }

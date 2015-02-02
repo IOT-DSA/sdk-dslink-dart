@@ -12,24 +12,34 @@ class HttpServerLink implements ServerLink {
   final PublicKey publicKey;
 
   /// nonce for authentication, don't overwrite existing nonce
-  SecretNonce _tempNonce;
+  ECDH _tempNonce;
   /// nonce after user verified the public key
-  SecretNonce _verifiedNonce;
+  ECDH _verifiedNonce;
 
-  SecretNonce get nonce => _verifiedNonce;
+  ECDH get nonce => _verifiedNonce;
 
   ServerConnection _connection;
 
+  final List<String> _saltBases = new List<String>(2);
+  final List<int> _saltInc = <int>[0,0];
   /// 2 salts, salt saltS
-  final List<int> salts = new List<int>(2);
-
+  final List<String> salts = new List<String>(2);
+  void _updateSalt(int type){
+    _saltInc[type] += DSRandom.instance.nextUint16();
+    salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
+  }
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider})
       : dsId = id,
         requester = linkManager.getRequester(id),
         responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
     for (int i = 0; i < 2; ++i) {
-      salts[i] = DSRandom.instance.nextUint8();
+      List<int> bytes = new List<int>(12);
+      for (int j=0;j<12;++j) {
+        bytes[j] = DSRandom.instance.nextUint8();
+      }
+      _saltBases[i] = Base64.encode(bytes);
+      _updateSalt(i);
     }
     // TODO, need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
@@ -39,7 +49,7 @@ class HttpServerLink implements ServerLink {
   }
 
   void initLink(HttpRequest request) {
-    _tempNonce = new SecretNonce.generate(publicKey);
+    _tempNonce = new ECDH.generate(publicKey);
 //          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 
@@ -50,9 +60,9 @@ class HttpServerLink implements ServerLink {
           "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": "/ws",
       "httpUri": "/http",
-      "encryptedNonce": publicKey.encryptNonce(_tempNonce),
-      "salt": '0x${salts[0]}',
-      "saltS": '1x${salts[1]}',
+      "tempKey": publicKey.encodeECDH(_tempNonce),
+      "salt": salts[0],
+      "saltS": salts[1],
       "updateInterval": 200
     }));
     request.response.close();
@@ -62,11 +72,11 @@ class HttpServerLink implements ServerLink {
     if (hash == null) {
       return false;
     }
-    if (_verifiedNonce != null && _verifiedNonce.verifySalt('${type}x${salts[type]}', hash)) {
-      salts[type] += DSRandom.instance.nextUint8() + 1;
+    if (_verifiedNonce != null && _verifiedNonce.verifySalt(salts[type], hash)) {
+      _updateSalt(type);
       return true;
-    } else if (_tempNonce != null && _tempNonce.verifySalt('${type}x${salts[type]}', hash)) {
-      salts[type] += DSRandom.instance.nextUint8() + 1;
+    } else if (_tempNonce != null && _tempNonce.verifySalt(salts[type], hash)) {
+      _updateSalt(type);
       _nonceChanged();
       return true;
     }
@@ -85,7 +95,7 @@ class HttpServerLink implements ServerLink {
       if (_connection is HttpServerConnection &&
           _verifySalt(1, request.uri.queryParameters['authS'])) {
         // handle http short polling
-        (_connection as HttpServerConnection).handleInputS(request, '1x${salts[1]}');
+        (_connection as HttpServerConnection).handleInputS(request, salts[1]);
       } else {
         throw HttpStatus.UNAUTHORIZED;
       }
@@ -109,7 +119,7 @@ class HttpServerLink implements ServerLink {
         }
       }
     }
-    _connection.addServerCommand('salt', '0x${salts[0]}');
+    _connection.addServerCommand('salt', salts[0]);
     (_connection as HttpServerConnection).handleInput(request);
   }
 
@@ -122,7 +132,7 @@ class HttpServerLink implements ServerLink {
     }
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       _connection = new WebSocketConnection(websocket);
-      _connection.addServerCommand('salt', '0x${salts[0]}');
+      _connection.addServerCommand('salt', salts[0]);
       if (responder != null) {
         responder.connection = _connection.responderChannel;
       }

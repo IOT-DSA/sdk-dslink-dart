@@ -57,7 +57,7 @@ abstract class Link {
   Requester get requester;
   Responder get responder;
 
-  SecretNonce get nonce;
+  ECDH get nonce;
 
   /// trigger when requester channel is Ready
   Future<Requester> get onRequesterReady;

@@ -11,8 +11,8 @@ class HttpClientLink implements ClientLink {
   final Responder responder;
   final PrivateKey privateKey;
 
-  SecretNonce _nonce;
-  SecretNonce get nonce => _nonce;
+  ECDH _nonce;
+  ECDH get nonce => _nonce;
 
   Connection _connection;
 
@@ -49,6 +49,8 @@ class HttpClientLink implements ClientLink {
       'isRequester': requester != null,
       'isResponder': responder != null
     };
+    print(dsId);
+    
     request.add(jsonUtf8Encoder.convert(requestJson));
     HttpClientResponse response = await request.close();
     List<int> merged = await response.fold([], foldList);
@@ -58,8 +60,8 @@ class HttpClientLink implements ClientLink {
       //read salts
       salts[idx] = serverConfig[name];
     });
-    String encryptedNonce = serverConfig['encryptedNonce'];
-    _nonce = privateKey.decryptNonce(encryptedNonce);
+    String tempKey = serverConfig['tempKey'];
+    _nonce = privateKey.decodeECDH(tempKey);
 
     if (serverConfig['wsUri'] is String) {
       _wsUpdateUri =

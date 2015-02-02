@@ -32,7 +32,7 @@ ECDomainParameters _secp256r1 = () {
 }();
 
 
-class SecretNonce {
+class ECDH {
   Uint8List bytes;
 
   ECPrivateKey ecPrivateKey;
@@ -40,17 +40,17 @@ class SecretNonce {
 
   ECPublicKey ecPublicKeyRemote;
 
-  SecretNonce(this.ecPublicKeyRemote, [this.ecPrivateKey, this.ecPublicKey]) {
+  ECDH(this.ecPublicKeyRemote, [this.ecPrivateKey, this.ecPublicKey]) {
     var Q2 = ecPublicKeyRemote.Q * ecPrivateKey.d;
     bytes = bigintToUint8List(Q2.x.toBigInteger());
   }
-  factory SecretNonce.generate(PublicKey publicKeyRemote) {
+  factory ECDH.generate(PublicKey publicKeyRemote) {
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
     gen.init(params);
     var pair = gen.generateKeyPair();
-    return new SecretNonce(publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
+    return new ECDH(publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
   }
 
   String toString() {
@@ -97,8 +97,8 @@ class PublicKey {
     return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == qHash64);
   }
 
-  String encryptNonce(SecretNonce nonce) {
-    return Base64.encode(nonce.ecPublicKey.Q.getEncoded(false));
+  String encodeECDH(ECDH ecdh) {
+    return Base64.encode(ecdh.ecPublicKey.Q.getEncoded(false));
   }
 }
 
@@ -132,9 +132,9 @@ class PrivateKey {
     return Base64.encode(bigintToUint8List(ecPrivateKey.d));
   }
 
-  SecretNonce decryptNonce(String nonce) {
-    ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(nonce));
-    return new SecretNonce(new ECPublicKey(p, _secp256r1), ecPrivateKey, ecPublicKey);
+  ECDH decodeECDH(String key) {
+    ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(key));
+    return new ECDH(new ECPublicKey(p, _secp256r1), ecPrivateKey, ecPublicKey);
   }
 
 
