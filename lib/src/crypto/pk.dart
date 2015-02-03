@@ -43,6 +43,19 @@ class ECDH {
   ECDH(this.ecPublicKeyRemote, [this.ecPrivateKey, this.ecPublicKey]) {
     var Q2 = ecPublicKeyRemote.Q * ecPrivateKey.d;
     bytes = bigintToUint8List(Q2.x.toBigInteger());
+    if (bytes.length > 32) {
+      bytes = bytes.sublist(bytes.length-32);
+    } else if (bytes.length < 32) {
+      var newbytes = new Uint8List(32);
+      int dlen = 32 - bytes.length;
+      for (int i = 0; i < bytes.length; ++i) {
+        newbytes[i+dlen] = bytes[i];
+      }
+      for (int i = 0; i < dlen;++i){
+        newbytes[i] = 0;
+      }
+      bytes = newbytes;
+    }
   }
   factory ECDH.generate(PublicKey publicKeyRemote) {
     var gen = new ECKeyGenerator();
