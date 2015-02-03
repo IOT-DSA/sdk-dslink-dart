@@ -54,6 +54,7 @@ class HttpServerLink implements ServerLink {
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 
     // TODO, dont use hard coded id and public key
+    request.response.headers.contentType = jsonContentType;
     request.response.write(JSON.encode({
       "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
       "publicKey":

@@ -14,3 +14,7 @@ import 'dart:async';
 part 'src/http/server_http_conn.dart';
 part 'src/http/server_link.dart';
 part 'src/http/server.dart';
+
+
+
+ContentType jsonContentType = new ContentType("application", "json", charset: "utf-8");
