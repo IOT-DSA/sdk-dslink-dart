@@ -2,6 +2,7 @@ part of dslink.http_server;
 
 /// a server link for both http and ws
 class HttpServerLink implements ServerLink {
+  final bool trusted;
   final String dsId;
 
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
@@ -21,26 +22,28 @@ class HttpServerLink implements ServerLink {
   ServerConnection _connection;
 
   final List<String> _saltBases = new List<String>(2);
-  final List<int> _saltInc = <int>[0,0];
+  final List<int> _saltInc = <int>[0, 0];
   /// 2 salts, salt saltS
   final List<String> salts = new List<String>(2);
-  void _updateSalt(int type){
+  void _updateSalt(int type) {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
-  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
-      {NodeProvider nodeProvider})
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, this.trusted: false})
       : dsId = id,
         requester = linkManager.getRequester(id),
         responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
-    for (int i = 0; i < 2; ++i) {
-      List<int> bytes = new List<int>(12);
-      for (int j=0;j<12;++j) {
-        bytes[j] = DSRandom.instance.nextUint8();
+    if (!trusted) {
+      for (int i = 0; i < 2; ++i) {
+        List<int> bytes = new List<int>(12);
+        for (int j = 0; j < 12; ++j) {
+          bytes[j] = DSRandom.instance.nextUint8();
+        }
+        _saltBases[i] = Base64.encode(bytes);
+        _updateSalt(i);
       }
-      _saltBases[i] = Base64.encode(bytes);
-      _updateSalt(i);
     }
+
     // TODO, need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
   /// check if public key matchs the dsId
@@ -55,21 +58,27 @@ class HttpServerLink implements ServerLink {
 
     // TODO, dont use hard coded id and public key
     request.response.headers.contentType = jsonContentType;
-    request.response.write(JSON.encode({
+    Map respJson = {
       "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
-      "publicKey":
-          "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
+      "publicKey": "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": "/ws",
       "httpUri": "/http",
-      "tempKey": publicKey.encodeECDH(_tempNonce),
-      "salt": salts[0],
-      "saltS": salts[1],
+      
       "updateInterval": 200
-    }));
+    };
+    if (!trusted) {
+      respJson["tempKey"] = _tempNonce.encodePublicKey();
+      respJson["salt"] = salts[0];
+      respJson["saltS"] = salts[1];
+    }
+    request.response.write(JSON.encode(respJson));
     request.response.close();
   }
 
   bool _verifySalt(int type, String hash) {
+    if (trusted) {
+      return true;
+    }
     if (hash == null) {
       return false;
     }
@@ -93,8 +102,7 @@ class HttpServerLink implements ServerLink {
   }
   void _handleHttpUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
-      if (_connection is HttpServerConnection &&
-          _verifySalt(1, request.uri.queryParameters['authS'])) {
+      if (_connection is HttpServerConnection && _verifySalt(1, request.uri.queryParameters['authS'])) {
         // handle http short polling
         (_connection as HttpServerConnection).handleInputS(request, salts[1]);
       } else {

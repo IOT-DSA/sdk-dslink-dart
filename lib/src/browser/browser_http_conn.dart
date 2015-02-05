@@ -1,0 +1,137 @@
+part of dslink.browser_client;
+
+class HttpBrowserConnection implements ClientConnection {
+  PassiveChannel _responderChannel;
+  ConnectionChannel get responderChannel => _responderChannel;
+
+  PassiveChannel _requesterChannel;
+  ConnectionChannel get requesterChannel => _requesterChannel;
+
+  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+
+  final String url;
+  final ClientLink clientLink;
+
+  String salt;
+  String saltS;
+  HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS) {
+    _responderChannel = new PassiveChannel(this);
+    _requesterChannel = new PassiveChannel(this);
+    // TODO, wait for the server to send {allowed} before complete this
+    _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
+    requireSend();
+  }
+  bool _pendingCheck = false;
+  bool _pendingSend = false;
+  void requireSend() {
+    _pendingSend = true;
+    if (!_pendingCheck) {
+      _pendingCheck = true;
+      DsTimer.callLaterOnce(_checkSend);
+    }
+  }
+  void close() {}
+  bool _sending = false;
+  bool _sendingS = false;
+
+  void _checkSend() {
+    _pendingCheck = false;
+    if (_pendingSend) {
+      if (_sending == false) {
+        _send();
+      } else if (_sendingS == false) {
+        _send(true);
+      }
+    }
+  }
+  void _send([bool shortPoll = false]) {
+    _pendingSend = false;
+    // long poll should always send even it's blank
+    bool needSend = !shortPoll;
+    Map m = {};
+    if (_responderChannel.getData != null) {
+      List rslt = _responderChannel.getData();
+      if (rslt != null && rslt.length != 0) {
+        m['responses'] = rslt;
+        needSend = true;
+      }
+    }
+    if (_requesterChannel.getData != null) {
+      List rslt = _requesterChannel.getData();
+      if (rslt != null && rslt.length != 0) {
+        m['requests'] = rslt;
+        needSend = true;
+      }
+    }
+    if (needSend) {
+      print('http send: $m');
+
+      Uri connUri = Uri.parse('$url&');
+      if (shortPoll) {
+        _sendingS = true;
+        connUri = Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
+      } else {
+        _sending = true;
+        connUri = Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+      }
+      HttpRequest.request(connUri.toString(), method: 'POST', withCredentials: true, mimeType: 'application/json', sendData: JSON.encode(m)).then(//
+      (HttpRequest request) {
+        request.onLoad.listen((e) {
+          if ((request.status >= 200 && request.status < 300) || request.status == 0 || request.status == 304) {
+            if (shortPoll) {
+              _onDataS(request.responseText);
+            } else {
+              _sending = true;
+              _onData(request.responseText);
+            }
+          } else if (request.responseText != null) {
+            // TODO handle error
+          } else {
+            // TODO handle error
+          }
+        });
+      });
+    }
+  }
+  void _onData(String response) {
+    _sending = false;
+    // always send back after receiving long polling response
+    requireSend();
+    Map m;
+    try {
+      m = JSON.decode(response);
+      print('http receive: $m');
+    } catch (err) {
+      return;
+    }
+    if (m['salt'] is String) {
+      salt = m['salt'];
+      clientLink.updateSalt(salt);
+    }
+    if (m['responses'] is List) {
+      // send responses to requester channel
+      _requesterChannel.onReceiveController.add(m['responses']);
+    }
+    if (m['requests'] is List) {
+      // send requests to responder channel
+      _responderChannel.onReceiveController.add(m['requests']);
+    }
+  }
+  void _onDataS(String response) {
+    _sendingS = false;
+    Map m;
+    try {
+      m = JSON.decode(response);
+    } catch (err) {
+      return;
+    }
+    if (m['saltS'] is String) {
+      saltS = m['saltS'];
+      clientLink.updateSalt(saltS, true);
+    }
+    if (_pendingSend && !_pendingCheck) {
+      _checkSend();
+    }
+  }
+}

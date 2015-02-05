@@ -31,17 +31,34 @@ ECDomainParameters _secp256r1 = () {
   return new ECDomainParametersImpl('secp256r1', curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
 }();
 
+abstract class ECDH {
+  factory ECDH.generate(PublicKey publicKeyRemote) {
+    var gen = new ECKeyGenerator();
+    var rsapars = new ECKeyGeneratorParameters(_secp256r1);
+    var params = new ParametersWithRandom(rsapars, DSRandom.instance);
+    gen.init(params);
+    var pair = gen.generateKeyPair();
+    return new ECDHImpl(publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
+  }
+  factory ECDH(ECPublicKey ecPublicKeyRemote, ECPrivateKey ecPrivateKey, ECPublicKey ecPublicKey) {
+    return new ECDHImpl(ecPublicKeyRemote, ecPrivateKey, ecPublicKey);
+  }
+  String encodePublicKey();
 
-class ECDH {
+  String hashSalt(String salt);
+
+  bool verifySalt(String salt, String hash);
+}
+class ECDHImpl implements ECDH {
   Uint8List bytes;
 
-  ECPrivateKey ecPrivateKey;
-  ECPublicKey ecPublicKey;
+  ECPrivateKey _ecPrivateKey;
+  ECPublicKey _ecPublicKey;
 
-  ECPublicKey ecPublicKeyRemote;
+  ECPublicKey _ecPublicKeyRemote;
 
-  ECDH(this.ecPublicKeyRemote, [this.ecPrivateKey, this.ecPublicKey]) {
-    var Q2 = ecPublicKeyRemote.Q * ecPrivateKey.d;
+  ECDHImpl(this._ecPublicKeyRemote, this._ecPrivateKey, this._ecPublicKey) {
+    var Q2 = _ecPublicKeyRemote.Q * _ecPrivateKey.d;
     bytes = bigintToUint8List(Q2.x.toBigInteger());
     if (bytes.length > 32) {
       bytes = bytes.sublist(bytes.length-32);
@@ -57,19 +74,11 @@ class ECDH {
       bytes = newbytes;
     }
   }
-  factory ECDH.generate(PublicKey publicKeyRemote) {
-    var gen = new ECKeyGenerator();
-    var rsapars = new ECKeyGeneratorParameters(_secp256r1);
-    var params = new ParametersWithRandom(rsapars, DSRandom.instance);
-    gen.init(params);
-    var pair = gen.generateKeyPair();
-    return new ECDH(publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
-  }
 
-  String toString() {
-    return 'DsSecretNonce: ${Base64.encode(bytes)}';
+  String encodePublicKey() {
+    return Base64.encode(_ecPublicKey.Q.getEncoded(false));
   }
-
+  
   String hashSalt(String salt) {
     List raw = []
         ..addAll(UTF8.encode(salt))
@@ -109,10 +118,6 @@ class PublicKey {
   bool verifyDsId(String dsId) {
     return (dsId.length >= 43 && dsId.substring(dsId.length - 43) == qHash64);
   }
-
-  String encodeECDH(ECDH ecdh) {
-    return Base64.encode(ecdh.ecPublicKey.Q.getEncoded(false));
-  }
 }
 
 class PrivateKey {
@@ -145,7 +150,7 @@ class PrivateKey {
     return Base64.encode(bigintToUint8List(ecPrivateKey.d));
   }
 
-  ECDH decodeECDH(String key) {
+  ECDHImpl decodeECDH(String key) {
     ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(key));
     return new ECDH(new ECPublicKey(p, _secp256r1), ecPrivateKey, ecPublicKey);
   }
