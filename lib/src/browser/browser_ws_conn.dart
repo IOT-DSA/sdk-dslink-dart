@@ -15,9 +15,11 @@ class WebSocketConnection implements ClientConnection {
   final WebSocket socket;
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket, {this.clientLink}) {
+    socket.binaryType = 'arraybuffer';
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     socket.onMessage.listen(_onData, onDone: _onDone);
+    socket.onClose.listen(_onDone);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
   }
@@ -29,10 +31,10 @@ class WebSocketConnection implements ClientConnection {
   void _onData(MessageEvent e) {
     print('onData:');
     Map m;
-    if (e.data is List<int>) {
+    if (e.data is ByteBuffer) {
       try {
         // TODO JSONUTF8Decoder
-        m = JSON.decode(UTF8.decode(e.data));
+        m = JSON.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
         print('$m');
       } catch (err) {
         print(err);
@@ -86,12 +88,12 @@ class WebSocketConnection implements ClientConnection {
     }
     if (needSend) {
       print('send: $m');
-      //socket.add(JSON.encode(m));
-      socket.sendByteBuffer((jsonUtf8Encoder.convert(m) as TypedData).buffer);
+      Uint8List list = jsonUtf8Encoder.convert(m);
+      socket.sendTypedData(list);
     }
   }
 
-  void _onDone() {
+  void _onDone([Object o]) {
     print('socket disconnected1');
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();

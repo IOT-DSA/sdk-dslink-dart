@@ -77,20 +77,12 @@ class HttpBrowserConnection implements ClientConnection {
       }
       HttpRequest.request(connUri.toString(), method: 'POST', withCredentials: true, mimeType: 'application/json', sendData: JSON.encode(m)).then(//
       (HttpRequest request) {
-        request.onLoad.listen((e) {
-          if ((request.status >= 200 && request.status < 300) || request.status == 0 || request.status == 304) {
-            if (shortPoll) {
-              _onDataS(request.responseText);
-            } else {
-              _sending = true;
-              _onData(request.responseText);
-            }
-          } else if (request.responseText != null) {
-            // TODO handle error
-          } else {
-            // TODO handle error
-          }
-        });
+        if (shortPoll) {
+          _onDataS(request.responseText);
+        } else {
+          _sending = true;
+          _onData(request.responseText);
+        }
       });
     }
   }

@@ -37,9 +37,6 @@ class HttpClientLink implements ClientLink {
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
 
   Future init() async {
-    if (_nonce != null) {
-      return new Future.value();
-    }
 
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
@@ -75,11 +72,9 @@ class HttpClientLink implements ClientLink {
 
     if (_wsUpdateUri != null) {
       await initWebsocket();
+    }else if (_httpUpdateUri != null) {
+      await initHttp();
     }
-
-//    if (_httpUpdateUri != null) {
-//      await initHttp();
-//    }
   }
 
   initWebsocket() async {

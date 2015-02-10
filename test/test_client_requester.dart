@@ -64,7 +64,7 @@ main() async {
 //    print(update.changes);
 //  }
 
-  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-responder-s');
+  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-browser-responder-s');
   await for (ValueUpdate update in updates) {
     print(update.value);
   }

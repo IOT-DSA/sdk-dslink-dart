@@ -33,11 +33,9 @@ class BrowserUserLink implements ClientLink {
         requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
   
-  Future init() async {
+  void init() {
     
-    if (wsUpdateUri != null) {
-      await initWebsocket();
-    }
+    initWebsocket();
   
   //    if (_httpUpdateUri != null) {
   //      await initHttp();
