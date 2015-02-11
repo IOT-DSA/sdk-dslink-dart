@@ -4,7 +4,7 @@ part of dslink.http_server;
 class HttpServerLink implements ServerLink {
   final bool trusted;
   final String dsId;
-
+  final String session;
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
@@ -29,7 +29,7 @@ class HttpServerLink implements ServerLink {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
-  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, this.trusted: false})
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, this.session, this.trusted: false})
       : dsId = id,
         requester = linkManager.getRequester(id),
         responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
@@ -48,11 +48,14 @@ class HttpServerLink implements ServerLink {
   }
   /// check if public key matchs the dsId
   bool get valid {
+    if (trusted) {
+      return true;
+    }
     return publicKey.verifyDsId(dsId);
   }
 
   void initLink(HttpRequest request) {
-    _tempNonce = new ECDH.generate(publicKey);
+    
 //          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 
@@ -63,10 +66,10 @@ class HttpServerLink implements ServerLink {
       "publicKey": "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": "/ws",
       "httpUri": "/http",
-      
       "updateInterval": 200
     };
     if (!trusted) {
+      _tempNonce = new ECDH.generate(publicKey);
       respJson["tempKey"] = _tempNonce.encodePublicKey();
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
@@ -100,7 +103,7 @@ class HttpServerLink implements ServerLink {
       _connection = null;
     }
   }
-  void _handleHttpUpdate(HttpRequest request) {
+  void handleHttpUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       if (_connection is HttpServerConnection && _verifySalt(1, request.uri.queryParameters['authS'])) {
         // handle http short polling
@@ -109,9 +112,9 @@ class HttpServerLink implements ServerLink {
         throw HttpStatus.UNAUTHORIZED;
       }
     }
-    if (requester == null) {
-      throw HttpStatus.FORBIDDEN;
-    }
+//    if (requester == null) {
+//      throw HttpStatus.FORBIDDEN;
+//    }
     if (_connection != null && _connection is! HttpServerConnection) {
       _connection.close();
       _connection = null;
@@ -132,7 +135,7 @@ class HttpServerLink implements ServerLink {
     (_connection as HttpServerConnection).handleInput(request);
   }
 
-  void _handleWsUpdate(HttpRequest request) {
+  void handleWsUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }

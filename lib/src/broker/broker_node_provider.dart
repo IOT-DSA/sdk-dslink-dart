@@ -77,7 +77,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (_id2connName.containsKey(dsId)) {
       return _id2connName[dsId];
       // TODO is it possible same link get added twice?
+    } else if (dsId.length < 43) {
+      // user link
+      String connName = dsId;
+      int count = 0;
+      // find a connName for it
+      while (_connName2id.containsKey(connName)) {
+        connName = '$dsId-${count++}';
+      }
+      _connName2id[connName] = dsId;
+      _id2connName[dsId] = connName;
+      return connName;
     } else {
+      // device link
       String connName;
       // find a connName for it
       for (int i = 42; i >= 0; --i) {
@@ -93,21 +105,29 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   void addLink(ServerLink link) {
-    String dsId = link.dsId;
+    String str = link.dsId;
+    if (link.session != null) {
+      str = '$str ${link.session}';
+    }
+
     String connName;
     // TODO update children list of /conns node
-    if (_links.containsKey(dsId)) {
+    if (_links.containsKey(str)) {
       // TODO is it possible same link get added twice?
     } else {
-      _links[dsId] = link;
+      _links[str] = link;
 
-      connName = getConnName(dsId);
+      connName = getConnName(str);
       print('new node added at /conns/$connName');
     }
   }
 
-  ServerLink getLink(String dsId) {
-    return _links[dsId];
+  ServerLink getLink(String dsId, [String session]) {
+    String str = dsId;
+    if (session != null) {
+      str = '$dsId $session';
+    }
+    return _links[str];
   }
 
   void removeLink(ServerLink link) {

@@ -65,6 +65,7 @@ abstract class Link {
 
 abstract class ServerLink extends Link {
   String get dsId;
+  String get session;
   PublicKey get publicKey;
 }
 
@@ -77,7 +78,7 @@ abstract class ClientLink extends Link {
 abstract class ServerLinkManager {
   void addLink(ServerLink link);
   void removeLink(ServerLink link);
-  ServerLink getLink(String dsId);
+  ServerLink getLink(String dsId, [String session]);
   Requester getRequester(String dsId);
   Responder getResponder(String dsId, NodeProvider nodeProvider);
 }

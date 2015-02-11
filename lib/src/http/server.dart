@@ -7,7 +7,7 @@ class DsSimpleLinkManager implements ServerLinkManager {
     _links[link.dsId] = link;
   }
 
-  ServerLink getLink(String dsId) {
+  ServerLink getLink(String dsId, [String session]) {
     return _links[dsId];
   }
 
@@ -122,7 +122,7 @@ class DsHttpServer {
   void _handleHttpUpdate(HttpRequest request, String dsId) {
     HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
-      link._handleHttpUpdate(request);
+      link.handleHttpUpdate(request);
     } else {
       throw HttpStatus.UNAUTHORIZED;
     }
@@ -131,7 +131,7 @@ class DsHttpServer {
   void _handleWsUpdate(HttpRequest request, String dsId) {
     HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
-      link._handleWsUpdate(request);
+      link.handleWsUpdate(request);
     } else {
       throw HttpStatus.UNAUTHORIZED;
     }
