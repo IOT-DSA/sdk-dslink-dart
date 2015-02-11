@@ -25,11 +25,8 @@ class BrowserUserLink implements ClientLink {
   
   String wsUpdateUri;
   String httpUpdateUri;
-  String _conn;
   
-  BrowserUserLink(this._conn, PrivateKey privateKey,
-      {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true, this.wsUpdateUri, this.httpUpdateUri})
-      :
+  BrowserUserLink({NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true, this.wsUpdateUri, this.httpUpdateUri}):
         requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
   
