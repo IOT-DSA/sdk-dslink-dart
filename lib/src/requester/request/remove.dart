@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-class RemoveController {
+class RemoveController implements RequestUpdater{
   final Completer<RequesterUpdate> completer = new Completer<RequesterUpdate>();
   Future<RequesterUpdate> get future => completer.future;
   final Requester requester;
@@ -8,10 +8,10 @@ class RemoveController {
   Request _request;
   RemoveController(this.requester, this.path) {
     Map reqMap = {'method': 'remove', 'path': path};
-    _request = requester._sendRequest(reqMap, _onUpdate);
+    _request = requester._sendRequest(reqMap, this);
   }
 
-  void _onUpdate(String status, List updates, List columns) {
+  void onUpdate(String status, List updates, List columns) {
     completer.complete(new RequesterUpdate(status));
   }
 }

@@ -8,20 +8,20 @@ class RequesterListUpdate extends RequesterUpdate {
   RequesterListUpdate(this.node, this.changes, String streamStatus) : super(streamStatus);
 }
 
-class ListController {
+class ListController implements RequestUpdater {
   final RemoteNode node;
   BroadcastStreamController<RequesterListUpdate> _controller;
   Stream<RequesterListUpdate> get stream => _controller.stream;
   Request _request;
   ListController(this.node) {
-    _controller = new BroadcastStreamController<RequesterListUpdate>(_onStartListen, _onAllCancel);
+    _controller = new BroadcastStreamController<RequesterListUpdate>(onStartListen, _onAllCancel);
   }
   bool get initialized {
     return _request != null && _request.streamStatus != StreamStatus.initialize;
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
-  void _onUpdate(String streamStatus, List updates, List columns) {
+  void onUpdate(String streamStatus, List updates, List columns) {
     if (updates != null) {
       for (Object update in updates) {
         String name;
@@ -70,7 +70,8 @@ class ListController {
           if (removed) {
             node.children.remove(name);
           } else if (value is Map) {
-            node.children[name] = node.requester._nodeCache.updateRemoteNode(value);
+            // TODO, also wait for children $is
+            node.children[name] = node.requester._nodeCache.updateRemoteNode(node, name, value);
           }
         }
       }
@@ -84,10 +85,12 @@ class ListController {
     }
   }
 
-  void _onStartListen() {
-    if (_request == null && node.requester.connection != null) {
-      _request =
-          node.requester._sendRequest({'method': 'list', 'path': node.remotePath}, _onUpdate);
+  void onStartListen([bool restart = false]) {
+    if (_request == null || restart) {
+      _request = node.requester._sendRequest({
+        'method': 'list',
+        'path': node.remotePath
+      }, this);
     }
   }
 

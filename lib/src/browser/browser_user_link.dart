@@ -5,7 +5,10 @@ class BrowserUserLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
   
-  
+  String session = DSRandom.instance.nextUint16().toRadixString(16)
+      +DSRandom.instance.nextUint16().toRadixString(16)
+      +DSRandom.instance.nextUint16().toRadixString(16)
+      +DSRandom.instance.nextUint16().toRadixString(16);
   final Requester requester;
   final Responder responder;
   
@@ -28,7 +31,11 @@ class BrowserUserLink implements ClientLink {
   
   BrowserUserLink({NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true, this.wsUpdateUri, this.httpUpdateUri}):
         requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
+        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {
+          if (wsUpdateUri.startsWith('http')) {
+            wsUpdateUri = 'ws${wsUpdateUri.substring(4)}';
+          }
+        }
   
   void init() {
     
@@ -40,7 +47,7 @@ class BrowserUserLink implements ClientLink {
   }
   
   initWebsocket() async {
-    var socket = new WebSocket(wsUpdateUri);
+    var socket = new WebSocket('$wsUpdateUri?session=$session');
     _connection = new WebSocketConnection(socket);
   
     if (responder != null) {
@@ -56,7 +63,7 @@ class BrowserUserLink implements ClientLink {
   }
   
   initHttp() async {
-    _connection = new HttpBrowserConnection(httpUpdateUri, this, '', '');
+    _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '', '');
   
     if (responder != null) {
       responder.connection = _connection.responderChannel;

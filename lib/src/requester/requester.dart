@@ -1,12 +1,16 @@
 part of dslink.requester;
 
+abstract class RequestUpdater{
+  void onUpdate(String status, List updates, List columns);
+}
+
 class RequesterUpdate {
   final String streamStatus;
   RequesterUpdate(this.streamStatus);
 }
 
 class Requester extends ConnectionHandler {
-  final Map<int, Request> _requests = new Map<int, Request>();
+  Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
   final RemoteNodeCache _nodeCache;
   SubscribeRequest _subsciption;
@@ -29,7 +33,7 @@ class Requester extends ConnectionHandler {
     }
   }
   int nextRid = 1;
-  Request _sendRequest(Map m, _RequestUpdater updater) {
+  Request _sendRequest(Map m, RequestUpdater updater) {
     m['rid'] = nextRid;
     Request req;
     if (updater != null) {
@@ -80,6 +84,14 @@ class Requester extends ConnectionHandler {
   }
 
   void onReconnected() {
-    // TODO: resend subscription and list
+    var oldRequests = _requests;
+    _requests = new Map<int, Request>();
+    _requests[0] = _subsciption;
+    oldRequests.forEach((n,req){
+      if (req.updater is ListController) {
+        (req.updater as ListController).onStartListen(true);
+      }
+    });
+    //TODO resubscribe values
   }
 }

@@ -9,6 +9,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// connName to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
+  LocalNodeImpl connsNode;
   Map rootStructure = {
     'conns': {},
     'defs': {},
@@ -19,6 +20,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     RootNode root = new RootNode('/');
     nodes['/'] = root;
     root.load(rootStructure, this);
+    connsNode = nodes['/conns'];
   }
 
   bool _defsLoaded = false;
@@ -51,6 +53,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
         conn = new RemoteLinkManager('/conns/$connName');
         conns[connName] = conn;
+        nodes['/conns/$connName'] = conn.rootNode;
+        connsNode.children[connName] = conn.rootNode;
+        connsNode.updateList(connName);
       }
       node = conn.getNode(path);
 

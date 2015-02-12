@@ -20,6 +20,7 @@ class WebSocketConnection implements ClientConnection {
     _requesterChannel = new PassiveChannel(this);
     socket.onMessage.listen(_onData, onDone: _onDone);
     socket.onClose.listen(_onDone);
+    socket.onOpen.listen(_onOpen);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
   }
@@ -27,7 +28,9 @@ class WebSocketConnection implements ClientConnection {
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
-
+  void _onOpen(Event e){
+    requireSend();
+  }
   void _onData(MessageEvent e) {
     print('onData:');
     Map m;
@@ -69,6 +72,10 @@ class WebSocketConnection implements ClientConnection {
     }
   }
   void _send() {
+    if (socket.readyState != WebSocket.OPEN) {
+      return;
+    }
+    print('browser sending');
     bool needSend = false;
     Map m = {};
 

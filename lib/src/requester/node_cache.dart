@@ -12,19 +12,43 @@ class RemoteNodeCache {
     return _nodes[path];
   }
   /// update node with a map.
-  RemoteNode updateRemoteNode(Map m) {
-    //TODO
-    return null;
+  RemoteNode updateRemoteNode(RemoteNode parent, String name, Map m) {
+    String path;
+    if (parent.remotePath == '/') {
+      path = '/$name';
+    } else {
+      path = '${parent.remotePath}/$name';
+    }
+    RemoteNode rslt;
+    if (_nodes.containsKey(path)) {
+      rslt =  _nodes[path];
+    } else {
+      rslt = new RemoteNode(path, parent.requester);
+      _nodes[path] = rslt;
+      //TODO update m to the node
+    }
+    return rslt;
   }
 }
 
 class RemoteNode extends Node {
   final Requester requester;
   final String remotePath;
+  String name;
   ListController _listController;
   ReqSubscribeController _subscribeController;
 
-  RemoteNode(this.remotePath, this.requester);
+  RemoteNode(this.remotePath, this.requester) {
+    _getRawName();
+    
+  }
+  void _getRawName(){
+    if (remotePath == '/') {
+      name = '/';
+    } else {
+      name = remotePath.split('/').last;
+    }
+  }
 
   /// node data is not ready until all profile and mixins are updated
   bool isUpdated() {

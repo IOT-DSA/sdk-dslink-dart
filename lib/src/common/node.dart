@@ -80,6 +80,17 @@ class Node {
     return null;
   }
 
+  void forEachChild(void callback(String,Node)){
+    children.forEach(callback);
+    if (profile != null) {
+      profile.children.forEach((String str, Node n){
+        if (!children.containsKey(str)){
+          callback(str, n);
+        }
+      });
+    }
+  }
+  
   /// clear all configs attributes and children
   void reset() {
     // TODO

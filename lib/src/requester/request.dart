@@ -5,7 +5,7 @@ class Request {
   final Requester requester;
   final int rid;
   /// raw request callback
-  final _RequestUpdater updater;
+  final RequestUpdater updater;
   bool _isClosed = false;
   bool get isClosed => _isClosed;
 
@@ -29,14 +29,14 @@ class Request {
     if (streamStatus == StreamStatus.closed) {
       requester._requests.remove(rid);
     }
-    updater(streamStatus, updates, columns);
+    updater.onUpdate(streamStatus, updates, columns);
   }
 
   /// close the request from the client side
   void _close() {
     if (streamStatus != StreamStatus.closed) {
       streamStatus = StreamStatus.closed;
-      updater(StreamStatus.closed, null, null);
+      updater.onUpdate(StreamStatus.closed, null, null);
     }
   }
 

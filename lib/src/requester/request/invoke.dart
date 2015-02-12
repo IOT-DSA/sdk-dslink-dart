@@ -6,7 +6,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   RequesterInvokeUpdate(this.updates, this.columns, String streamStatus) : super(streamStatus);
 }
 
-class InvokeController {
+class InvokeController implements RequestUpdater{
   static List<TableColumn> getNodeColumns(RemoteNode node) {
     Object columns = node.getConfig(r'$columns');
     if (columns is! List && node.profile != null) {
@@ -32,14 +32,14 @@ class InvokeController {
 //      node._list().listen(_onNodeUpdate)
 //    } else {
     _cachedColumns = getNodeColumns(node);
-    _request = node.requester._sendRequest(reqMap, _onUpdate);
+    _request = node.requester._sendRequest(reqMap, this);
 //    }
   }
   void _onNodeUpdate(RequesterListUpdate listUpdate) {
     //TODO, close the stream when configs are loaded
   }
 
-  void _onUpdate(String streamStatus, List updates, List columns) {
+  void onUpdate(String streamStatus, List updates, List columns) {
     if (columns != null) {
       _cachedColumns = TableColumn.parseColumns(columns);
     }

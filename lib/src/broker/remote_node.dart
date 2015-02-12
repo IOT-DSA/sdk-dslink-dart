@@ -59,7 +59,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     return node;
   }
 
-  RemoteNode updateRemoteNode(Map m) {
+  RemoteNode updateRemoteNode(RemoteNode parent, String name, Map m) {
     // TODO: implement updateRemoteNode
     return null;
   }
