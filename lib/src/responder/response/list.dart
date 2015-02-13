@@ -42,7 +42,7 @@ class ListResponse extends Response {
       node.attributes.forEach((name, value) {
         updateAttributes.add([name, value]);
       });
-      node.children.forEach((name, value) {
+      node.children.forEach((name, LocalNode value) {
         updateChildren.add([name, value.getSimpleMap()]);
       });
     } else {
@@ -52,7 +52,10 @@ class ListResponse extends Response {
           if (node.configs.containsKey(change)) {
             update = [change, node.configs[change]];
           } else {
-            update = {'name': change, 'change': 'remove'};
+            update = {
+              'name': change,
+              'change': 'remove'
+            };
           }
           if (change == r'$mixin') {
             updateMixin = update;
@@ -63,14 +66,20 @@ class ListResponse extends Response {
           if (node.attributes.containsKey(change)) {
             update = [change, node.attributes[change]];
           } else {
-            update = {'name': change, 'change': 'remove'};
+            update = {
+              'name': change,
+              'change': 'remove'
+            };
           }
           updateAttributes.add(update);
         } else {
           if (node.children.containsKey(change)) {
             update = [change, node.children[change].getSimpleMap()];
           } else {
-            update = {'name': change, 'change': 'remove'};
+            update = {
+              'name': change,
+              'change': 'remove'
+            };
           }
           updateChildren.add(update);
         }
@@ -86,9 +95,9 @@ class ListResponse extends Response {
       updates.add(updateMixin);
     }
     updates
-      ..addAll(updateConfigs)
-      ..addAll(updateAttributes)
-      ..addAll(updateChildren);
+        ..addAll(updateConfigs)
+        ..addAll(updateAttributes)
+        ..addAll(updateChildren);
 
     responder.updateReponse(this, updates, streamStatus: StreamStatus.open);
   }

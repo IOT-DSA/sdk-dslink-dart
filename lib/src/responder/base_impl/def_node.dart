@@ -11,7 +11,7 @@ class DefinitionNode extends LocalNodeImpl {
 class RootNode extends DefinitionNode {
   RootNode(String path) : super(path) {
     permissions = new PermissionList();
-    
+
   }
 
   bool _loaded = false;

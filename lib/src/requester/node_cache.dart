@@ -21,11 +21,11 @@ class RemoteNodeCache {
     }
     RemoteNode rslt;
     if (_nodes.containsKey(path)) {
-      rslt =  _nodes[path];
+      rslt = _nodes[path];
     } else {
       rslt = new RemoteNode(path, parent.requester);
       _nodes[path] = rslt;
-      //TODO update m to the node
+      rslt.updateRemoteData(m, this);
     }
     return rslt;
   }
@@ -40,9 +40,9 @@ class RemoteNode extends Node {
 
   RemoteNode(this.remotePath, this.requester) {
     _getRawName();
-    
+
   }
-  void _getRawName(){
+  void _getRawName() {
     if (remotePath == '/') {
       name = '/';
     } else {
@@ -89,6 +89,30 @@ class RemoteNode extends Node {
 
   Stream<RequesterInvokeUpdate> _invoke(Map params) {
     return new InvokeController(this, params)._stream;
+  }
+
+  /// used by list api to update simple data for children
+  void updateRemoteData(Map m, RemoteNodeCache cache) {
+    String childPathPre;
+    if (remotePath == '/') {
+      childPathPre = '/';
+    } else {
+      childPathPre = '$remotePath/';
+    }
+    m.forEach((String key, value) {
+      if (key.startsWith(r'$')) {
+        configs[key] = value;
+      } else if (key.startsWith('@')) {
+        attributes[key] = value;
+      } else if (value is Map) {
+        String childPathpath;
+        Node node = cache.getRemoteNode('$childPathPre/$key', requester);
+        children[key] = node;
+        if (node is RemoteNode) {
+          node.updateRemoteData(value, cache);
+        }
+      }
+    });
   }
 }
 

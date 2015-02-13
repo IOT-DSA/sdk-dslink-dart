@@ -1,8 +1,7 @@
 part of dslink.requester;
 
 class SubscribeRequest extends Request {
-  final Map<String, ReqSubscribeController> subsriptions =
-      new Map<String, ReqSubscribeController>();
+  final Map<String, ReqSubscribeController> subsriptions = new Map<String, ReqSubscribeController>();
 
   SubscribeRequest(Requester requester, int rid) : super(requester, rid, null);
 
@@ -83,10 +82,16 @@ class SubscribeRequest extends Request {
       }
     }
     if (!toAdd.isEmpty) {
-      requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
+      requester._sendRequest({
+        'method': 'subscribe',
+        'paths': toAdd
+      }, null);
     }
     if (!toRemove.isEmpty) {
-      requester._sendRequest({'method': 'unsubscribe', 'paths': toRemove}, null);
+      requester._sendRequest({
+        'method': 'unsubscribe',
+        'paths': toRemove
+      }, null);
     }
   }
 }

@@ -6,7 +6,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   RequesterInvokeUpdate(this.updates, this.columns, String streamStatus) : super(streamStatus);
 }
 
-class InvokeController implements RequestUpdater{
+class InvokeController implements RequestUpdater {
   static List<TableColumn> getNodeColumns(RemoteNode node) {
     Object columns = node.getConfig(r'$columns');
     if (columns is! List && node.profile != null) {
@@ -26,7 +26,11 @@ class InvokeController implements RequestUpdater{
   InvokeController(this.node, Map params) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _stream = _controller.stream;
-    Map reqMap = {'method': 'invoke', 'path': node.remotePath, 'params': params};
+    Map reqMap = {
+      'method': 'invoke',
+      'path': node.remotePath,
+      'params': params
+    };
 // TODO update node before invoke to load columns
 //    if(!node.isUpdated()) {
 //      node._list().listen(_onNodeUpdate)

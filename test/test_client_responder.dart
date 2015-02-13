@@ -4,8 +4,7 @@ import 'package:dslink/src/crypto/pk.dart';
 import 'sample_responder.dart';
 
 main() async {
-  String str = new File('certs/private_key.txt').readAsStringSync();
-  PrivateKey key = new PrivateKey.loadFromString(str);
+  PrivateKey key = new PrivateKey.loadFromString('M6S41GAL0gH0I97Hhy7A2-icf8dHnxXPmYIRwem03HE');
 
   var link = new HttpClientLink('http://localhost:8080/conn', 'test-responder-', key,
       isResponder: true, nodeProvider: new TestNodeProvider());

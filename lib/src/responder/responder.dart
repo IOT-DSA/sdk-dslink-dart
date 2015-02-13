@@ -35,6 +35,9 @@ class Responder extends ConnectionHandler {
   void _onReceiveRequest(Map m) {
     if (m['method'] is String && m['rid'] is int) {
       if (_responses.containsKey(m['rid'])) {
+        if (m['method'] == 'close') {
+          _close(m);
+        }
         // when rid is invalid, nothing needs to be sent back
         return;
       }
@@ -56,9 +59,6 @@ class Responder extends ConnectionHandler {
           return;
         case 'remove':
           _remove(m);
-          return;
-        case 'close':
-          _close(m);
           return;
         default:
       }

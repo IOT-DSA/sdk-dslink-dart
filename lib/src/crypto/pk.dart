@@ -143,11 +143,21 @@ class PrivateKey {
   }
 
   factory PrivateKey.loadFromString(String str) {
-    var d = new BigInteger.fromBytes(1, Base64.decode(str));
-    return new PrivateKey(new ECPrivateKey(d, _secp256r1));
+    if (str.contains(' ')) {
+      List ss = str.split(' ');
+      var d = new BigInteger.fromBytes(1, Base64.decode(ss[0]));
+      ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
+      var Q = _secp256r1.curve.decodePoint(Base64.decode(ss[1]));
+      ECPublicKey pub = new ECPublicKey(Q, _secp256r1);
+      return new PrivateKey(pri, pub);
+    } else {
+      var d = new BigInteger.fromBytes(1, Base64.decode(str));
+      ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
+      return new PrivateKey(pri);
+    }
   }
   String saveToString() {
-    return Base64.encode(bigintToUint8List(ecPrivateKey.d));
+    return '${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}';
   }
 
   ECDHImpl decodeECDH(String key) {

@@ -34,13 +34,19 @@ class LocalNodeImpl extends LocalNode {
       attributes.clear();
       children.clear();
     }
+    String childPathPre;
+    if (path == '/') {
+      childPathPre = '/';
+    } else {
+      childPathPre = '$path/';
+    }
     m.forEach((String key, value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
-        Node node = provider.getNode('$path/$key');
+        Node node = provider.getNode('$childPathPre$key');
         if (node is LocalNodeImpl) {
           node.load(value, provider);
         }

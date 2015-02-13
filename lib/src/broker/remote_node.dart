@@ -13,7 +13,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
       //TODO rootNode.load(rootNodeData);
     }
   }
-  
+
   Map<String, Responder> responders;
   /// multiple-requester is allowed, like from different browser tabs
   /// in this case they need multiple responders on broker side.
@@ -60,7 +60,17 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   }
 
   RemoteNode updateRemoteNode(RemoteNode parent, String name, Map m) {
-    // TODO: implement updateRemoteNode
+    String path;
+    if (parent.remotePath == '/') {
+      path = '/$name';
+    } else {
+      path = '${parent.remotePath}/$name';
+    }
+    if (parent is RemoteLinkNode) {
+      RemoteLinkNode node = parent._linkManager.getRemoteNode(path, parent.requester);
+      node.updateRemoteData(m, this);
+      return node;
+    }
     return null;
   }
 

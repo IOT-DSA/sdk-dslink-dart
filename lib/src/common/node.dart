@@ -102,6 +102,7 @@ class Node {
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }
+    // TODO also check these configs from the profile
     if (configs.containsKey(r'$type')) {
       rslt[r'$type'] = configs[r'$type'];
     }
@@ -111,6 +112,10 @@ class Node {
     if (configs.containsKey(r'$invokable')) {
       rslt[r'$invokable'] = configs[r'$invokable'];
     }
+    if (configs.containsKey(r'$writable')) {
+      rslt[r'$writable'] = configs[r'$writable'];
+    }
+    // TODO add permission of current requester
     return rslt;
   }
 }

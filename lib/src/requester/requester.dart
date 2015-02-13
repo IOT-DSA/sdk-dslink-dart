@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-abstract class RequestUpdater{
+abstract class RequestUpdater {
   void onUpdate(String status, List updates, List columns);
 }
 
@@ -72,7 +72,10 @@ class Requester extends ConnectionHandler {
   void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
       if (request.streamStatus != StreamStatus.closed) {
-        addToSendList({'method': 'close', 'rid': request.rid});
+        addToSendList({
+          'method': 'close',
+          'rid': request.rid
+        });
       }
       _requests.remove(request.rid);
       request._close();
@@ -87,7 +90,7 @@ class Requester extends ConnectionHandler {
     var oldRequests = _requests;
     _requests = new Map<int, Request>();
     _requests[0] = _subsciption;
-    oldRequests.forEach((n,req){
+    oldRequests.forEach((n, req) {
       if (req.updater is ListController) {
         (req.updater as ListController).onStartListen(true);
       }
