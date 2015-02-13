@@ -133,7 +133,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   void _onStartValueListen() {
     print('value listener added');
     if (_valueReqListener == null) {
-      _valueReqListener = requester.subscribe(remotePath).listen(_onValueUpdate);
+      _valueReqListener = requester.subscribe(remotePath).listen(updateValue);
     }
   }
 
@@ -144,8 +144,19 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
   }
 
-  void _onValueUpdate(ValueUpdate update) {
-    _valueController.add(update);
+  ValueUpdate _lastValueUpdate;
+  ValueUpdate get lastValueUpdate {
+    if (_lastValueUpdate == null) {
+      _lastValueUpdate = new ValueUpdate(null, (new DateTime.now()).toIso8601String());
+    }
+    return _lastValueUpdate;
+  }
+
+  void updateValue(ValueUpdate update) {
+    _lastValueUpdate = update;
+    if (_valueController != null) {
+      _valueController.add(update);
+    }
   }
 
   final String path;

@@ -32,6 +32,20 @@ abstract class LocalNode extends Node {
     return _valueStream;
   }
 
+  ValueUpdate _lastValueUpdate;
+  ValueUpdate get lastValueUpdate {
+    if (_lastValueUpdate == null) {
+      _lastValueUpdate = new ValueUpdate(null, (new DateTime.now()).toIso8601String());
+    }
+    return _lastValueUpdate;
+  }
+
+  void updateValue(ValueUpdate update) {
+    _lastValueUpdate = update;
+    if (_valueController != null) {
+      _valueController.add(update);
+    }
+  }
   /// get a list of permission setting on this node
   PermissionList get permissions => null;
   /// get the permission of a responder (actually the permisison of the linked requester)

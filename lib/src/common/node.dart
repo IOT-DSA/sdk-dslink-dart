@@ -80,17 +80,17 @@ class Node {
     return null;
   }
 
-  void forEachChild(void callback(String,Node)){
+  void forEachChild(void callback(String, Node)) {
     children.forEach(callback);
     if (profile != null) {
-      profile.children.forEach((String str, Node n){
-        if (!children.containsKey(str)){
+      profile.children.forEach((String str, Node n) {
+        if (!children.containsKey(str)) {
           callback(str, n);
         }
       });
     }
   }
-  
+
   /// clear all configs attributes and children
   void reset() {
     // TODO
@@ -102,7 +102,6 @@ class Node {
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }
-    // TODO also check these configs from the profile
     if (configs.containsKey(r'$type')) {
       rslt[r'$type'] = configs[r'$type'];
     }

@@ -27,7 +27,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
   }
   void updateValue(String path, Object value) {
     SimpleNode node = getNode(path);
-    node.valueController.add(new ValueUpdate(value, (new DateTime.now()).toUtc().toIso8601String()));
+    node.updateValue(new ValueUpdate(value, (new DateTime.now()).toUtc().toIso8601String()));
   }
 }
 

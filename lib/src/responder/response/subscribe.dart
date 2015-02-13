@@ -43,6 +43,7 @@ class RespSubscribeController {
   final SubscribeResponse response;
   StreamSubscription _listener;
   RespSubscribeController(this.response, this.node) {
+    addValue(node.lastValueUpdate);
     _listener = node.valueStream.listen(addValue);
   }
 

@@ -26,7 +26,7 @@ class TestNode extends LocalNodeImpl {
   int count = 0;
 
   void updateTime(Timer t) {
-    valueController.add(new ValueUpdate(count++, (new DateTime.now()).toUtc().toIso8601String()));
+    updateValue(new ValueUpdate(count++, (new DateTime.now()).toUtc().toIso8601String()));
   }
 
   bool get exists => true;
