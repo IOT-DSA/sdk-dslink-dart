@@ -147,7 +147,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   ValueUpdate _lastValueUpdate;
   ValueUpdate get lastValueUpdate {
     if (_lastValueUpdate == null) {
-      _lastValueUpdate = new ValueUpdate(null, (new DateTime.now()).toIso8601String());
+      _lastValueUpdate = new ValueUpdate(null);
     }
     return _lastValueUpdate;
   }
@@ -173,6 +173,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   @override
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+    // TODO, when invoke closed without any data, also need to updateStream to close
     requester.invoke(remotePath, params).listen((update) {
       // TODO fix paths in the response
       response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);

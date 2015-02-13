@@ -27,7 +27,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
   }
   void updateValue(String path, Object value) {
     SimpleNode node = getNode(path);
-    node.updateValue(new ValueUpdate(value, (new DateTime.now()).toUtc().toIso8601String()));
+    node.updateValue(value);
   }
 }
 
@@ -56,6 +56,8 @@ class SimpleNode extends LocalNodeImpl {
           } else {
             print('$value is not a valid FunctionCallback: $_FunctionCallback');
           }
+        } else if (key == '?value') {
+          updateValue(value);
         }
       } else if (key.startsWith(r'$')) {
         configs[key] = value;
@@ -77,10 +79,11 @@ class SimpleNode extends LocalNodeImpl {
     if (invokeCallback != null) {
       Map rslt = invokeCallback(path, params);
       if (rslt != null) {
-        response.updateStream([rslt]);
+        response.updateStream([rslt], streamStatus:StreamStatus.closed);
+      } else {
+        response.close();
       }
     }
-    return response..close();
+    return response;
   }
-
 }

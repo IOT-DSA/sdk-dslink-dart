@@ -35,7 +35,7 @@ class SubscribeRequest extends Request {
           continue; // invalid response
         }
         if (subsriptions.containsKey(path)) {
-          subsriptions[path]._controller.add(new ValueUpdate(value, ts, meta: meta));
+          subsriptions[path]._controller.add(new ValueUpdate(value, ts:ts, meta: meta));
         }
       }
     }

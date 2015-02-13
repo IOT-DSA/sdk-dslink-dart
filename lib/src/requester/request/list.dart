@@ -75,6 +75,7 @@ class ListController implements RequestUpdater {
           }
         }
       }
+      node.listed = true;
       if (_request.streamStatus != StreamStatus.initialize) {
         _controller.add(new RequesterListUpdate(node, changes.toList(), streamStatus));
         changes.clear();

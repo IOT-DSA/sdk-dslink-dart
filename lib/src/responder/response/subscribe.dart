@@ -29,6 +29,7 @@ class SubscribeResponse extends Response {
       updates.add(controller.process());
     }
     responder.updateReponse(this, updates);
+    changed.clear();
   }
   void _close() {
     subsriptions.forEach((path, controller) {
@@ -50,6 +51,9 @@ class RespSubscribeController {
   ValueUpdate lastValue;
   void addValue(ValueUpdate val) {
     if (lastValue == null) {
+      if (val == null){
+        int debuga = 1;
+      }
       lastValue = val;
     } else {
       lastValue = new ValueUpdate.merge(lastValue, val);
@@ -61,6 +65,9 @@ class RespSubscribeController {
 
   Object process() {
     Object rslt;
+    if (lastValue == null) {
+      int debuga = 1;
+    }
     if (lastValue.count > 1 || lastValue.status != null) {
       Map m = {
         'ts': lastValue.ts,

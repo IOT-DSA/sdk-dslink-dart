@@ -35,16 +35,25 @@ abstract class LocalNode extends Node {
   ValueUpdate _lastValueUpdate;
   ValueUpdate get lastValueUpdate {
     if (_lastValueUpdate == null) {
-      _lastValueUpdate = new ValueUpdate(null, (new DateTime.now()).toIso8601String());
+      _lastValueUpdate = new ValueUpdate(null);
     }
     return _lastValueUpdate;
   }
 
-  void updateValue(ValueUpdate update) {
-    _lastValueUpdate = update;
-    if (_valueController != null) {
-      _valueController.add(update);
+  void updateValue(Object update) {
+    if (update is ValueUpdate) {
+      _lastValueUpdate = update;
+      if (_valueController != null) {
+        _valueController.add(_lastValueUpdate);
+      }
+    } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
+      _lastValueUpdate = new ValueUpdate(update);
+      if (_valueController != null) {
+        _valueController.add(_lastValueUpdate);
+      }
+      
     }
+  
   }
   /// get a list of permission setting on this node
   PermissionList get permissions => null;

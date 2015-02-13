@@ -34,6 +34,7 @@ class RemoteNodeCache {
 class RemoteNode extends Node {
   final Requester requester;
   final String remotePath;
+  bool listed = false;
   String name;
   ListController _listController;
   ReqSubscribeController _subscribeController;
