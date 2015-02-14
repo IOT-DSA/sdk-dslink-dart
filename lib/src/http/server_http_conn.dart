@@ -61,7 +61,7 @@ class HttpServerConnection implements ServerConnection {
   }
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
-    input.response.headers.contentType = new ContentType("application", "json", charset: "utf-8");
+    updateResponseBeforeWrite(input.response);
     input.response.write('{"saltS":"$saltS"}');
     input.fold([], foldList).then((List merged) {
       Map m;
@@ -119,8 +119,7 @@ class HttpServerConnection implements ServerConnection {
     }
     if (needSend) {
       print('http send: $m');
-      _cachedInput.response.headers.contentType = new ContentType("application", "json",
-          charset: "utf-8");
+      updateResponseBeforeWrite(_cachedInput.response);
       _cachedInput.response.write(JSON.encode(m));
       _cachedInput.response.close();
     }

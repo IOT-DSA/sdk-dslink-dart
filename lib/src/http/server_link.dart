@@ -60,7 +60,6 @@ class HttpServerLink implements ServerLink {
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 
     // TODO, dont use hard coded id and public key
-    request.response.headers.contentType = jsonContentType;
     Map respJson = {
       "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
       "publicKey": "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
@@ -74,6 +73,7 @@ class HttpServerLink implements ServerLink {
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
     }
+    updateResponseBeforeWrite(request.response);
     request.response.write(JSON.encode(respJson));
     request.response.close();
   }
