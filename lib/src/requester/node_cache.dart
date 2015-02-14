@@ -22,6 +22,7 @@ class RemoteNodeCache {
     RemoteNode rslt;
     if (_nodes.containsKey(path)) {
       rslt = _nodes[path];
+      rslt.updateRemoteData(m, this);
     } else {
       rslt = new RemoteNode(path, parent.requester);
       _nodes[path] = rslt;

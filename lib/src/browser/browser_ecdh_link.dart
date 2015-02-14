@@ -74,7 +74,7 @@ class BrowserECDHLink implements ClientLink {
     });
   }
 
-  initWebsocket() async {
+  initWebsocket() {
     var socket = new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
     _connection = new WebSocketConnection(socket);
 
@@ -90,7 +90,7 @@ class BrowserECDHLink implements ClientLink {
     }
   }
 
-  initHttp() async {
+  initHttp() {
     _connection = new HttpBrowserConnection(_httpUpdateUri, this, salts[0], salts[1]);
 
     if (responder != null) {
