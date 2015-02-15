@@ -46,7 +46,7 @@ class BrowserUserLink implements ClientLink {
   //    }
   }
   
-  initWebsocket() async {
+  initWebsocket() {
     var socket = new WebSocket('$wsUpdateUri?session=$session');
     _connection = new WebSocketConnection(socket);
   
@@ -62,7 +62,7 @@ class BrowserUserLink implements ClientLink {
     }
   }
   
-  initHttp() async {
+  initHttp() {
     _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '', '');
   
     if (responder != null) {
