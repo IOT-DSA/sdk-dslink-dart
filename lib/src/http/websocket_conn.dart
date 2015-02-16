@@ -110,7 +110,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
     if (needSend) {
       print('send: $m');
-  _stringReceivedveString){
+      if (_stringReceived){
         socket.add(JSON.encode(m));
       } else {
         socket.add(jsonUtf8Encoder.convert(m));
