@@ -42,6 +42,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand[key] = value;
     DsTimer.callLaterOnce(_send);
   }
+  bool _stringReceived = false;
   void _onData(dynamic data) {
     print('onData:');
     Map m;
@@ -72,6 +73,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         close();
         return;
       }
+      _stringReceived = true;
       if (m['responses'] is List) {
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
@@ -108,8 +110,12 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
     if (needSend) {
       print('send: $m');
-      //socket.add(JSON.encode(m));
-      socket.add(jsonUtf8Encoder.convert(m));
+  _stringReceivedveString){
+        socket.add(JSON.encode(m));
+      } else {
+        socket.add(jsonUtf8Encoder.convert(m));
+      }
+      
     }
   }
 

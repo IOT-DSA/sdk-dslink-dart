@@ -95,8 +95,9 @@ class WebSocketConnection implements ClientConnection {
     }
     if (needSend) {
       print('send: $m');
-      Uint8List list = jsonUtf8Encoder.convert(m);
-      socket.sendTypedData(list);
+//      Uint8List list = jsonUtf8Encoder.convert(m);
+//      socket.sendTypedData(list);
+      socket.send(JSON.encode(m));
     }
   }
 
