@@ -35,7 +35,7 @@ class SubscribeRequest extends Request {
           continue; // invalid response
         }
         if (subsriptions.containsKey(path)) {
-          subsriptions[path]._controller.add(new ValueUpdate(value, ts:ts, meta: meta));
+          subsriptions[path].addValue(new ValueUpdate(value, ts: ts, meta: meta));
         }
       }
     }
@@ -101,9 +101,19 @@ class ReqSubscribeController {
   BroadcastStreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> get stream => _controller.stream;
   ReqSubscribeController(this.node) {
-    _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel);
+    _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel, _onListen);
   }
 
+  ValueUpdate _lastUpdate;
+  void addValue(ValueUpdate update) {
+    _lastUpdate = update;
+    _controller.add(_lastUpdate);
+  }
+  void _onListen(callback(ValueUpdate)) {
+    if (_lastUpdate != null) {
+      callback(_lastUpdate);
+    }
+  }
   bool _subscribing = false;
   void _onStartListen() {
     if (!_subscribing) {

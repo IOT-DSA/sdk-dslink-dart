@@ -4,14 +4,9 @@ import 'package:dslink/src/crypto/pk.dart';
 import 'package:dslink/requester.dart';
 import 'package:dslink/common.dart';
 import 'dart:async';
-import 'package:cipher/digests/sha384.dart';
-import 'dart:typed_data';
-import 'dart:convert';
-import 'package:cipher/digests/sha256.dart';
 
 main() async {
-  String str = new File('certs/private_key.txt').readAsStringSync();
-  PrivateKey key = new PrivateKey.loadFromString(str);
+  PrivateKey key = new PrivateKey.loadFromString('1aEqqRYk-yf34tcLRogX145szFsdVtrpywDEPuxRQtM BGt1WHhkwCn2nWSDXHTg-IxruXLrPPUlU--0ghiBIQC7HMWWcNQGAoO03l_BQYx7_DYn0sn2gWW9wESbixzWuKg');
 
   var link = new HttpClientLink('http://localhost:8080/conn', 'test-client-', key,
       isRequester: true);
@@ -58,14 +53,18 @@ main() async {
 //    print(update.rows);
 //  }
 
-//  Stream<RequesterListUpdate> updates = requester.list('/conns/test-responder-p');
-//  requester.set('/conns/test-responder-p/@test', 'hi');
-//  await for (RequesterListUpdate update in updates) {
-//    print(update.changes);
-//  }
-
-  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-browser-responder-s');
-  await for (ValueUpdate update in updates) {
-    print(update.value);
+  Stream<RequesterListUpdate> updates = requester.list('/');
+  await for (RequesterListUpdate update1 in updates) {
+    print('update1 ${update1.changes}');
+    requester.list('/').listen((update){
+      print('update2 ${update.changes}');
+    });
   }
+
+//  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-responder-h');
+//  updates.listen((update0){
+//    print(update0.value);
+//  });
+//  
+
 }

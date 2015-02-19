@@ -51,9 +51,9 @@ abstract class LocalNode extends Node {
       if (_valueController != null) {
         _valueController.add(_lastValueUpdate);
       }
-      
+
     }
-  
+
   }
   /// get a list of permission setting on this node
   PermissionList get permissions => null;

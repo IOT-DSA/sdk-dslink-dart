@@ -4,7 +4,6 @@ import 'common.dart';
 import 'dart:io';
 import 'src/crypto/pk.dart';
 import 'utils.dart';
-import 'package:bignum/bignum.dart';
 import 'requester.dart';
 import 'responder.dart';
 import 'src/http/websocket_conn.dart';
@@ -19,7 +18,7 @@ part 'src/http/server.dart';
 
 ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
 
-void updateResponseBeforeWrite(HttpResponse response,[int statusCode = HttpStatus.OK, ContentType contentType]) {
+void updateResponseBeforeWrite(HttpResponse response, [int statusCode = HttpStatus.OK, ContentType contentType]) {
   response.statusCode = statusCode;
   response.headers.add('Access-Control-Allow-Origin', '*');
   if (contentType == null) {

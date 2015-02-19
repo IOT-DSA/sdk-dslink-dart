@@ -146,9 +146,6 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   ValueUpdate _lastValueUpdate;
   ValueUpdate get lastValueUpdate {
-    if (_lastValueUpdate == null) {
-      _lastValueUpdate = new ValueUpdate(null);
-    }
     return _lastValueUpdate;
   }
 

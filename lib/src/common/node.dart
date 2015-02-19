@@ -33,7 +33,9 @@ class Node {
     return null;
   }
 
-  Map<String, Object> configs = {};
+  Map<String, Object> configs = {
+    r'$is': 'node'
+  };
 
   Object getConfig(String name) {
     if (configs.containsKey(name)) {

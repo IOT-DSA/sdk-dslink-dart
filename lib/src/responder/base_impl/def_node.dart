@@ -3,7 +3,9 @@ part of dslink.responder;
 /// definition nodes are serializable node that won't change
 /// the only change will be a global upgrade
 class DefinitionNode extends LocalNodeImpl {
-  DefinitionNode(String path) : super(path);
+  DefinitionNode(String path) : super(path) {
+    this.configs[r'$is'] = 'def';
+  }
 
   // TODO, list node of definition should get closed
 }
@@ -11,7 +13,6 @@ class DefinitionNode extends LocalNodeImpl {
 class RootNode extends DefinitionNode {
   RootNode(String path) : super(path) {
     permissions = new PermissionList();
-
   }
 
   bool _loaded = false;

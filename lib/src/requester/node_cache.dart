@@ -4,10 +4,18 @@ part of dslink.requester;
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
   Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
-  RemoteNodeCache();
+  RemoteNodeCache() {
+    // special def that should always be empty
+    _nodes['/defs/profile/node'] = new RemoteDefNode('/defs/profile/node', null)..listed = true;
+    _nodes['/defs/profile/def'] = new RemoteDefNode('/defs/profile/def', null)..listed = true;
+  }
   RemoteNode getRemoteNode(String path, Requester requester) {
     if (!_nodes.containsKey(path)) {
-      _nodes[path] = new RemoteNode(path, requester);
+      if (path.startsWith('defs')) {
+        _nodes[path] = new RemoteDefNode(path, requester);
+      } else {
+        _nodes[path] = new RemoteNode(path, requester);
+      }
     }
     return _nodes[path];
   }
@@ -118,6 +126,6 @@ class RemoteNode extends Node {
   }
 }
 
-class RequesterProfileNode extends RemoteNode {
-  RequesterProfileNode(String path, Requester requester) : super(path, requester);
+class RemoteDefNode extends RemoteNode {
+  RemoteDefNode(String path, Requester requester) : super(path, requester);
 }

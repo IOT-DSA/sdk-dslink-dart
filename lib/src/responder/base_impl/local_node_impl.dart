@@ -75,13 +75,13 @@ class LocalNodeImpl extends LocalNode {
     }
     return Permission.NONE;
   }
-  
-  void updateList(String name, [int permission = Permission.READ]){
-    
+
+  void updateList(String name, [int permission = Permission.READ]) {
+
   }
   Response setAttribute(String name, String value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
-      if (attributes.containsKey(name) && attributes[name] != value){
+      if (attributes.containsKey(name) && attributes[name] != value) {
         attributes[name] = value;
         updateList(name);
       }
@@ -93,7 +93,7 @@ class LocalNodeImpl extends LocalNode {
 
   Response removeAttribute(String name, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
-      if (attributes.containsKey(name)){
+      if (attributes.containsKey(name)) {
         attributes.remove(name);
         updateList(name);
       }

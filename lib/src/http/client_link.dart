@@ -36,7 +36,7 @@ class HttpClientLink implements ClientLink {
         requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
 
-  Future init() async {
+  init() async {
 
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');

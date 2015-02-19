@@ -8,7 +8,10 @@ class TableColumn {
       if (m is Map) {
         rslts.add(m);
       } else if (m is TableColumn) {
-        Map rslt = {'type': m.type, 'name': m.name};
+        Map rslt = {
+          'type': m.type,
+          'name': m.name
+        };
         if (m.defaultValue != null) {
           rslt['default'] = m.defaultValue;
         }

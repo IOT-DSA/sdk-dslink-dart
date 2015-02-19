@@ -25,7 +25,7 @@ ECDomainParameters _secp256r1 = () {
   BigInteger h = new BigInteger("1", 16);
   BigInteger seed = new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
   var seedBytes = seed.toByteArray();
-  
+
   var curve = new fp.ECCurve(q, a, b);
 
   return new ECDomainParametersImpl('secp256r1', curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
@@ -61,14 +61,14 @@ class ECDHImpl implements ECDH {
     var Q2 = _ecPublicKeyRemote.Q * _ecPrivateKey.d;
     bytes = bigintToUint8List(Q2.x.toBigInteger());
     if (bytes.length > 32) {
-      bytes = bytes.sublist(bytes.length-32);
+      bytes = bytes.sublist(bytes.length - 32);
     } else if (bytes.length < 32) {
       var newbytes = new Uint8List(32);
       int dlen = 32 - bytes.length;
       for (int i = 0; i < bytes.length; ++i) {
-        newbytes[i+dlen] = bytes[i];
+        newbytes[i + dlen] = bytes[i];
       }
-      for (int i = 0; i < dlen;++i){
+      for (int i = 0; i < dlen; ++i) {
         newbytes[i] = 0;
       }
       bytes = newbytes;
@@ -78,7 +78,7 @@ class ECDHImpl implements ECDH {
   String encodePublicKey() {
     return Base64.encode(_ecPublicKey.Q.getEncoded(false));
   }
-  
+
   String hashSalt(String salt) {
     List raw = []
         ..addAll(UTF8.encode(salt))

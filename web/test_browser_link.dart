@@ -14,6 +14,6 @@ void main() {
   var link = new BrowserECDHLink('http://localhost:8080/conn', 'test-browser-responder-', key,
       isResponder: true, nodeProvider: new TestNodeProvider());
 
-  var f = link.init();
+  var f = link.connect();
   
 }

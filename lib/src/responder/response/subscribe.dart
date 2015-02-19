@@ -44,16 +44,15 @@ class RespSubscribeController {
   final SubscribeResponse response;
   StreamSubscription _listener;
   RespSubscribeController(this.response, this.node) {
-    addValue(node.lastValueUpdate);
+    if (node.lastValueUpdate != null) {
+      addValue(node.lastValueUpdate);
+    }
     _listener = node.valueStream.listen(addValue);
   }
 
   ValueUpdate lastValue;
   void addValue(ValueUpdate val) {
     if (lastValue == null) {
-      if (val == null){
-        int debuga = 1;
-      }
       lastValue = val;
     } else {
       lastValue = new ValueUpdate.merge(lastValue, val);
@@ -66,7 +65,8 @@ class RespSubscribeController {
   Object process() {
     Object rslt;
     if (lastValue == null) {
-      int debuga = 1;
+      print('warning! RespSubscribeController.process called before a value exists');
+      return 0;
     }
     if (lastValue.count > 1 || lastValue.status != null) {
       Map m = {

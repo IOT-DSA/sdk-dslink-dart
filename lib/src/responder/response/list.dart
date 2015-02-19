@@ -45,6 +45,9 @@ class ListResponse extends Response {
       node.children.forEach((name, LocalNode value) {
         updateChildren.add([name, value.getSimpleMap()]);
       });
+      if (updateIs == null) {
+        updateIs = 'node';
+      }
     } else {
       for (String change in changes) {
         Object update;

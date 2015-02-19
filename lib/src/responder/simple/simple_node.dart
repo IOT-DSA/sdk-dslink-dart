@@ -79,7 +79,7 @@ class SimpleNode extends LocalNodeImpl {
     if (invokeCallback != null) {
       Map rslt = invokeCallback(path, params);
       if (rslt != null) {
-        response.updateStream([rslt], streamStatus:StreamStatus.closed);
+        response.updateStream([rslt], streamStatus: StreamStatus.closed);
       } else {
         response.close();
       }
