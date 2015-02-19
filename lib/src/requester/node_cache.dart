@@ -6,15 +6,15 @@ class RemoteNodeCache {
   Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
   RemoteNodeCache() {
     // special def that should always be empty
-    _nodes['/defs/profile/node'] = new RemoteDefNode('/defs/profile/node', null)..listed = true;
-    _nodes['/defs/profile/def'] = new RemoteDefNode('/defs/profile/def', null)..listed = true;
+    _nodes['/defs/profile/node'] = new RemoteDefNode('/defs/profile/node')..listed = true;
+    _nodes['/defs/profile/def'] = new RemoteDefNode('/defs/profile/def')..listed = true;
   }
-  RemoteNode getRemoteNode(String path, Requester requester) {
+  RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
       if (path.startsWith('defs')) {
-        _nodes[path] = new RemoteDefNode(path, requester);
+        _nodes[path] = new RemoteDefNode(path);
       } else {
-        _nodes[path] = new RemoteNode(path, requester);
+        _nodes[path] = new RemoteNode(path);
       }
     }
     return _nodes[path];
@@ -32,7 +32,7 @@ class RemoteNodeCache {
       rslt = _nodes[path];
       rslt.updateRemoteData(m, this);
     } else {
-      rslt = new RemoteNode(path, parent.requester);
+      rslt = new RemoteNode(path);
       _nodes[path] = rslt;
       rslt.updateRemoteData(m, this);
     }
@@ -41,14 +41,13 @@ class RemoteNodeCache {
 }
 
 class RemoteNode extends Node {
-  final Requester requester;
   final String remotePath;
   bool listed = false;
   String name;
   ListController _listController;
   ReqSubscribeController _subscribeController;
 
-  RemoteNode(this.remotePath, this.requester) {
+  RemoteNode(this.remotePath) {
     _getRawName();
 
   }
@@ -82,23 +81,23 @@ class RemoteNode extends Node {
     return _listController != null && _listController.initialized;
   }
 
-  Stream<RequesterListUpdate> _list() {
+  Stream<RequesterListUpdate> _list(Requester requester) {
     if (_listController == null) {
-      _listController = new ListController(this);
+      _listController = new ListController(this, requester);
       reset();
     }
     return _listController.stream;
   }
 
-  Stream<ValueUpdate> _subscribe() {
+  Stream<ValueUpdate> _subscribe(Requester requester) {
     if (_subscribeController == null) {
-      _subscribeController = new ReqSubscribeController(this);
+      _subscribeController = new ReqSubscribeController(this, requester);
     }
     return _subscribeController.stream;
   }
 
-  Stream<RequesterInvokeUpdate> _invoke(Map params) {
-    return new InvokeController(this, params)._stream;
+  Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester) {
+    return new InvokeController(this, requester, params)._stream;
   }
 
   /// used by list api to update simple data for children
@@ -116,7 +115,7 @@ class RemoteNode extends Node {
         attributes[key] = value;
       } else if (value is Map) {
         String childPathpath;
-        Node node = cache.getRemoteNode('$childPathPre/$key', requester);
+        Node node = cache.getRemoteNode('$childPathPre/$key');
         children[key] = node;
         if (node is RemoteNode) {
           node.updateRemoteData(value, cache);
@@ -127,5 +126,5 @@ class RemoteNode extends Node {
 }
 
 class RemoteDefNode extends RemoteNode {
-  RemoteDefNode(String path, Requester requester) : super(path, requester);
+  RemoteDefNode(String path) : super(path);
 }

@@ -53,10 +53,13 @@ main() async {
 //    print(update.rows);
 //  }
 
-  Stream<RequesterListUpdate> updates = requester.list('/');
-  await for (RequesterListUpdate update1 in updates) {
-    print('update1 ${update1.changes}');
-    requester.list('/').listen((update){
+  Stream<RequesterListUpdate> updates = requester.list('/conns/locker-f/locker1');
+  await for (RequesterListUpdate update in updates) {
+    print('update ${update.changes}');
+    requester.list('/conns/locker-f/locker1').listen((update1){
+      print('update1 ${update.changes}');
+    });
+    requester.list('/conns/locker-f/locker2').listen((update1){
       print('update2 ${update.changes}');
     });
   }

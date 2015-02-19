@@ -19,11 +19,12 @@ class InvokeController implements RequestUpdater {
   }
 
   final RemoteNode node;
+  final Requester requester;
   StreamController<RequesterInvokeUpdate> _controller;
   Stream<RequesterInvokeUpdate> _stream;
   Request _request;
   List<TableColumn> _cachedColumns;
-  InvokeController(this.node, Map params) {
+  InvokeController(this.node, this.requester, Map params) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _stream = _controller.stream;
     Map reqMap = {
@@ -36,7 +37,7 @@ class InvokeController implements RequestUpdater {
 //      node._list().listen(_onNodeUpdate)
 //    } else {
     _cachedColumns = getNodeColumns(node);
-    _request = node.requester._sendRequest(reqMap, this);
+    _request = requester._sendRequest(reqMap, this);
 //    }
   }
   void _onNodeUpdate(RequesterListUpdate listUpdate) {

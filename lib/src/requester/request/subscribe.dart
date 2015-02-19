@@ -97,10 +97,11 @@ class SubscribeRequest extends Request {
 }
 class ReqSubscribeController {
   final RemoteNode node;
+  final Requester requester;
 
   BroadcastStreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> get stream => _controller.stream;
-  ReqSubscribeController(this.node) {
+  ReqSubscribeController(this.node, this.requester) {
     _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel, _onListen);
   }
 
@@ -117,7 +118,7 @@ class ReqSubscribeController {
   bool _subscribing = false;
   void _onStartListen() {
     if (!_subscribing) {
-      node.requester._subsciption.addSubscription(this);
+      requester._subsciption.addSubscription(this);
       _subscribing = true;
     }
   }
@@ -128,7 +129,7 @@ class ReqSubscribeController {
 
   void _destroy() {
     if (_subscribing != null) {
-      node.requester._subsciption.removeSubscription(this);
+      requester._subsciption.removeSubscription(this);
     }
     _controller.close();
     node._subscribeController = null;

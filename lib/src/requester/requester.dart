@@ -46,18 +46,18 @@ class Requester extends ConnectionHandler {
   }
 
   Stream<ValueUpdate> subscribe(String path) {
-    RemoteNode node = _nodeCache.getRemoteNode(path, this);
-    return node._subscribe();
+    RemoteNode node = _nodeCache.getRemoteNode(path);
+    return node._subscribe(this);
   }
 
   Stream<RequesterListUpdate> list(String path) {
-    RemoteNode node = _nodeCache.getRemoteNode(path, this);
-    return node._list();
+    RemoteNode node = _nodeCache.getRemoteNode(path);
+    return node._list(this);
   }
 
   Stream<RequesterInvokeUpdate> invoke(String path, Map params) {
-    RemoteNode node = _nodeCache.getRemoteNode(path, this);
-    return node._invoke(params);
+    RemoteNode node = _nodeCache.getRemoteNode(path);
+    return node._invoke(params, this);
   }
 
   Future<RequesterUpdate> set(String path, Object value) {

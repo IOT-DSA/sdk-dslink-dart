@@ -9,11 +9,14 @@ class RequesterListUpdate extends RequesterUpdate {
 }
 
 class ListDefListener {
-  RemoteNode node;
+  final RemoteNode node;
+  final Requester requester;
+
   StreamSubscription listener;
+
   bool ready = false;
-  ListDefListener(this.node, void callback(RequesterListUpdate)) {
-    listener = node.requester.list(node.remotePath).listen((RequesterListUpdate update) {
+  ListDefListener(this.node, this.requester, void callback(RequesterListUpdate)) {
+    listener = requester.list(node.remotePath).listen((RequesterListUpdate update) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
     });
@@ -25,10 +28,11 @@ class ListDefListener {
 
 class ListController implements RequestUpdater {
   final RemoteNode node;
+  final Requester requester;
   BroadcastStreamController<RequesterListUpdate> _controller;
   Stream<RequesterListUpdate> get stream => _controller.stream;
   Request _request;
-  ListController(this.node) {
+  ListController(this.node, this.requester) {
     _controller = new BroadcastStreamController<RequesterListUpdate>(onStartListen, _onAllCancel, _onListen);
   }
   bool get initialized {
@@ -90,7 +94,7 @@ class ListController implements RequestUpdater {
             node.children.remove(name);
           } else if (value is Map) {
             // TODO, also wait for children $is
-            node.children[name] = node.requester._nodeCache.updateRemoteNode(node, name, value);
+            node.children[name] = requester._nodeCache.updateRemoteNode(node, name, value);
           }
         }
       }
@@ -115,7 +119,7 @@ class ListController implements RequestUpdater {
     if (node.profile != null) {
       _pendingRemoveDef = true;
     }
-    node.profile = node.requester._nodeCache.getRemoteNode(str, node.requester);
+    node.profile = requester._nodeCache.getRemoteNode(str);
     if (!(node.profile as RemoteNode).listed) {
       _loadDef(node.profile);
     }
@@ -133,7 +137,7 @@ class ListController implements RequestUpdater {
       if (!path.startsWith('/')) {
         path = '${node.remotePath}/$path';
       }
-      var mixinNode = node.requester._nodeCache.getRemoteNode(path, node.requester);
+      var mixinNode = requester._nodeCache.getRemoteNode(path);
       node.mixins.add(mixinNode);
       if (_defLoaders.containsKey(path)) {
         continue;
@@ -145,7 +149,7 @@ class ListController implements RequestUpdater {
     if (node == def || _defLoaders.containsKey(def.remotePath)) {
       return;
     }
-    ListDefListener listener = new ListDefListener(def, _onDefUpdate);
+    ListDefListener listener = new ListDefListener(def, requester, _onDefUpdate);
     _defLoaders[def.remotePath] = listener;
   }
   static const List<String> _ignoreProfileProps = const [r'$is', r'$permission', r'$settings'];
@@ -195,7 +199,7 @@ class ListController implements RequestUpdater {
 
   void onStartListen([bool restart = false]) {
     if (_request == null || restart) {
-      _request = node.requester._sendRequest({
+      _request = requester._sendRequest({
         'method': 'list',
         'path': node.remotePath
       }, this);
@@ -218,7 +222,7 @@ class ListController implements RequestUpdater {
 
   void _destroy() {
     if (_request != null) {
-      node.requester.closeRequest(_request);
+      requester.closeRequest(_request);
       _request = null;
     }
     _controller.close();

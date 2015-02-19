@@ -7,7 +7,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   RemoteLinkRootNode rootNode;
   RemoteLinkManager(this.path, [Map rootNodeData]) {
     requester = new Requester(this);
-    rootNode = new RemoteLinkRootNode(path, '/', requester, this);
+    rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
     if (rootNodeData != null) {
       //TODO rootNode.load(rootNodeData);
@@ -40,20 +40,20 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     RemoteLinkNode node = nodes[rPath];
     if (node == null) {
-      node = new RemoteLinkNode(fullPath, rPath, requester, this);
+      node = new RemoteLinkNode(fullPath, rPath, this);
       nodes[rPath] = node;
     }
     return node;
   }
 
-  RemoteNode getRemoteNode(String rPath, Requester requester) {
+  RemoteNode getRemoteNode(String rPath) {
     String fullPath = path + rPath;
     if (rPath == '') {
       rPath = '/';
     }
     RemoteLinkNode node = nodes[rPath];
     if (node == null) {
-      node = new RemoteLinkNode(fullPath, rPath, requester, this);
+      node = new RemoteLinkNode(fullPath, rPath, this);
       nodes[rPath] = node;
     }
     return node;
@@ -67,7 +67,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
       path = '${parent.remotePath}/$name';
     }
     if (parent is RemoteLinkNode) {
-      RemoteLinkNode node = parent._linkManager.getRemoteNode(path, parent.requester);
+      RemoteLinkNode node = parent._linkManager.getRemoteNode(path);
       node.updateRemoteData(m, this);
       return node;
     }
@@ -102,7 +102,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   void _onStartListListen() {
     if (_listReqListener == null) {
-      _listReqListener = requester.list(remotePath).listen(_onListUpdate);
+      _listReqListener = _linkManager.requester.list(remotePath).listen(_onListUpdate);
     }
   }
 
@@ -133,7 +133,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   void _onStartValueListen() {
     print('value listener added');
     if (_valueReqListener == null) {
-      _valueReqListener = requester.subscribe(remotePath).listen(updateValue);
+      _valueReqListener = _linkManager.requester.subscribe(remotePath).listen(updateValue);
     }
   }
 
@@ -160,18 +160,17 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   /// root of the link
   RemoteLinkManager _linkManager;
 
-  RemoteLinkNode(this.path, String remotePath, Requester requester, this._linkManager)
-      : super(remotePath, requester) {}
+  RemoteLinkNode(this.path, String remotePath, this._linkManager)
+      : super(remotePath) {}
 
   bool _listReady = false;
   bool get listReady => _listReady;
 
   bool get exists => true;
 
-  @override
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     // TODO, when invoke closed without any data, also need to updateStream to close
-    requester.invoke(remotePath, params).listen((update) {
+    _linkManager.requester.invoke(remotePath, params).listen((update) {
       // TODO fix paths in the response
       response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);
     });
@@ -180,7 +179,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response removeAttribute(String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.remove(remotePath).then((update) {
+    _linkManager.requester.remove(remotePath).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -195,7 +194,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response removeConfig(String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.remove(remotePath).then((update) {
+    _linkManager.requester.remove(remotePath).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -210,7 +209,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setAttribute(String name, String value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.set(remotePath, value).then((update) {
+    _linkManager.requester.set(remotePath, value).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -225,7 +224,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setConfig(String name, Object value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.set(remotePath, value).then((update) {
+    _linkManager.requester.set(remotePath, value).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -240,7 +239,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setValue(Object value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    requester.set(remotePath, value).then((update) {
+    _linkManager.requester.set(remotePath, value).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -256,6 +255,6 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
 // TODO, implement special configs and attribute merging
 class RemoteLinkRootNode extends RemoteLinkNode {
-  RemoteLinkRootNode(String path, String remotePath, Requester requester, RemoteLinkManager linkManager) : super(path, remotePath, requester, linkManager);
+  RemoteLinkRootNode(String path, String remotePath, RemoteLinkManager linkManager) : super(path, remotePath, linkManager);
 
 }
