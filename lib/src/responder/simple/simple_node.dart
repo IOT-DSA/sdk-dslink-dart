@@ -29,6 +29,25 @@ class SimpleNodeProvider extends NodeProviderImpl {
     SimpleNode node = getNode(path);
     node.updateValue(value);
   }
+  void addNode(String path, Map m) {
+    if (path == '/' || !path.startsWith('/')) return;
+    SimpleNode node = getNode(path);
+    node.load(m, this);
+    
+    Path p = new Path(path);
+    SimpleNode pnode = getNode(p.parentPath);
+    pnode.children[p.name] = node;
+    pnode.updateList(p.name);
+  }
+  void removeNode(String path) {
+    if (path == '/' || !path.startsWith('/')) return;
+    SimpleNode node = getNode(path);
+    // TODO update node's list status
+    Path p = new Path(path);
+    SimpleNode pnode = getNode(p.parentPath);
+    pnode.children.remove(p.name);
+    pnode.updateList(p.name);
+  }
 }
 
 class SimpleNode extends LocalNodeImpl {
