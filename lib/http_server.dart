@@ -18,14 +18,11 @@ part 'src/http/server.dart';
 
 ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
 
-void updateResponseBeforeRead(HttpResponse response) {
+void updateResponseBeforeWrite(HttpResponse response, [int statusCode = HttpStatus.OK, ContentType contentType]) {
+  response.statusCode = statusCode;
   response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
   response.headers.add('Access-Control-Allow-Headers', "Content-Type");
   response.headers.add('Access-Control-Allow-Origin', '*');
-}
-
-void updateResponseBeforeWrite(HttpResponse response, [int statusCode = HttpStatus.OK, ContentType contentType]) {
-  response.statusCode = statusCode;
   if (contentType == null) {
     contentType = _jsonContentType;
   }

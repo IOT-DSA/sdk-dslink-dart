@@ -84,7 +84,6 @@ class DsHttpServer {
   }
 
   void _handleConn(HttpRequest request, String dsId) {
-    updateResponseBeforeRead(request.response);
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
@@ -121,7 +120,6 @@ class DsHttpServer {
     });
   }
   void _handleHttpUpdate(HttpRequest request, String dsId) {
-    updateResponseBeforeRead(request.response);
     HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
       link.handleHttpUpdate(request);
