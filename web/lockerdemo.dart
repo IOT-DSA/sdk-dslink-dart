@@ -18,6 +18,14 @@ void main() {
     return {};
   }
 
+  Map openLocker2(String path, Map params) {
+    if (params['value'] is bool) {
+      nodeProvider.updateValue('${path}ed', params['value']);
+    }
+    
+    return {};
+  }
+  
   nodeProvider.init({
     'locker1': {
       r'$is':'locker',
@@ -34,7 +42,8 @@ void main() {
       r'$is':'locker',
       'open': { // an action to open the door
         r'$invokable': 'read',
-        '?invoke': openLocker
+        r'$params':[{"name":"value","type":"bool"}],
+        '?invoke': openLocker2
         
       },
       'opened': { // the open status value

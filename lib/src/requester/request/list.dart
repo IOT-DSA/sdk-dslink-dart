@@ -110,6 +110,9 @@ class ListController implements RequestUpdater {
 
   Map<String, ListDefListener> _defLoaders = new Map<String, ListDefListener>();
   void loadProfile(String str) {
+    if (str == 'node') {
+      return;
+    }
     if (!str.startsWith('/')) {
       str = '/defs/profile/$str';
     }
