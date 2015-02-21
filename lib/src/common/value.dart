@@ -71,6 +71,17 @@ class Value {
 }
 
 class ValueUpdate {
+  static final String TIME_ZONE = (){
+    int timeZoneOffset = (new DateTime.now()).timeZoneOffset.inMinutes;
+    String s = '+';
+    if (timeZoneOffset < 0) {
+      timeZoneOffset = -timeZoneOffset;
+      s = '-';
+    }
+    int hh = timeZoneOffset ~/60;
+    int mm = timeZoneOffset % 60;
+    return "$s${hh<10?'0':''}$hh:${mm<10?'0':''}$mm";
+  }();
   Object value;
   String ts;
   String status;
@@ -80,7 +91,7 @@ class ValueUpdate {
       max;
   ValueUpdate(this.value, {this.ts, Map meta, this.status, this.count: 1, this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
     if (ts == null) {
-      ts = (new DateTime.now()).toIso8601String();
+      ts = '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
     }
     if (meta != null) {
       if (meta['count'] is int) {
