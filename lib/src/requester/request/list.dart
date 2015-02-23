@@ -224,10 +224,16 @@ class ListController implements RequestUpdater {
   }
 
   void _destroy() {
+    _defLoaders.forEach((str, listener) {
+      listener.cancel();
+    });
+    _defLoaders.clear();
+    
     if (_request != null) {
       requester.closeRequest(_request);
       _request = null;
     }
+    
     _controller.close();
     node._listController = null;
   }
