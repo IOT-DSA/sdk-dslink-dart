@@ -121,11 +121,6 @@ class Node {
   }
 }
 
-
-abstract class DefNode {
-  bool get defReady;
-}
-
 /// Util class for ds node path and config/attribute path
 class Path {
   static final RegExp invalidChar = new RegExp(r'[\.\\\?%\*:|"<>]');

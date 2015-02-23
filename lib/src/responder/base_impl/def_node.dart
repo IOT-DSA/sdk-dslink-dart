@@ -4,13 +4,11 @@ part of dslink.responder;
 /// the only change will be a global upgrade
 class DefinitionNode extends LocalNodeImpl {
   DefinitionNode(String path) : super(path) {
-    this.configs[r'$is'] = 'def';
+    this.configs[r'$is'] = 'static';
   }
-
-  // TODO, list node of definition should get closed
 }
 
-class RootNode extends DefinitionNode {
+class RootNode extends LocalNodeImpl {
   RootNode(String path) : super(path) {
     permissions = new PermissionList();
   }

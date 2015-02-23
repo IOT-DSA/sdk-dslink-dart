@@ -28,6 +28,8 @@ class LocalNodeImpl extends LocalNode {
   }
 
   bool _loaded = false;
+  bool get loaded => _loaded;
+  
   void load(Map m, NodeProviderImpl provider) {
     if (_loaded) {
       configs.clear();

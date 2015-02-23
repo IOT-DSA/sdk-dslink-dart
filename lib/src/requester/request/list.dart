@@ -122,8 +122,8 @@ class ListController implements RequestUpdater {
     if (node.profile != null) {
       _pendingRemoveDef = true;
     }
-    node.profile = requester._nodeCache.getRemoteNode(str);
-    if (!(node.profile as RemoteNode).listed) {
+    node.profile = requester._nodeCache.getDefNode(str);
+    if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _loadDef(node.profile);
     }
 

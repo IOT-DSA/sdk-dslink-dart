@@ -4,8 +4,9 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   final Map<String, RemoteLinkNode> nodes = new Map<String, RemoteLinkNode>();
   Requester requester;
   final String path;
+  final BrokerNodeProvider broker;
   RemoteLinkRootNode rootNode;
-  RemoteLinkManager(this.path, [Map rootNodeData]) {
+  RemoteLinkManager(this.broker, this.path, [Map rootNodeData]) {
     requester = new Requester(this);
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
@@ -58,7 +59,16 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return node;
   }
-
+  Node getDefNode(String rPath) {
+    // reuse local broker node and doesn't reload it
+    if (rPath.startsWith('/defs/') && broker.nodes.containsKey(rPath)) {
+      LocalNode node = broker.nodes[rPath];
+      if (node is LocalNodeImpl && node.loaded) {
+        return node;
+      }
+    }
+    return getRemoteNode(rPath);
+  }
   RemoteNode updateRemoteNode(RemoteNode parent, String name, Map m) {
     String path;
     if (parent.remotePath == '/') {

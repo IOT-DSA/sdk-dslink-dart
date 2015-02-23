@@ -51,7 +51,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkManager conn = conns[connName];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-        conn = new RemoteLinkManager('/conns/$connName');
+        conn = new RemoteLinkManager(this, '/conns/$connName');
         conns[connName] = conn;
         nodes['/conns/$connName'] = conn.rootNode;
         connsNode.children[connName] = conn.rootNode;
