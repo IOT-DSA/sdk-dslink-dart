@@ -16,6 +16,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
+  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  
   final ClientLink clientLink;
 
   final WebSocket socket;
@@ -42,7 +45,8 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand[key] = value;
     DsTimer.callLaterOnce(_send);
   }
-  bool _stringReceived = false;
+  //TODO, let connection choose which mode to use, before the first response comes in 
+  bool _useStringFormat = false;
   void _onData(dynamic data) {
     print('onData:');
     Map m;
@@ -73,7 +77,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         close();
         return;
       }
-      _stringReceived = true;
+      _useStringFormat = true;
+      if (m['salt'] is String) {
+        clientLink.updateSalt(m['salt']);
+      }
       if (m['responses'] is List) {
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
@@ -110,7 +117,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
     if (needSend) {
       print('send: $m');
-      if (_stringReceived){
+      if (_useStringFormat){
         socket.add(JSON.encode(m));
       } else {
         socket.add(jsonUtf8Encoder.convert(m));
@@ -132,6 +139,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
     if (!_responderChannel.onDisconnectController.isCompleted) {
       _responderChannel.onDisconnectController.complete(_responderChannel);
+    }
+    if (!_onDisconnectedCompleter.isCompleted) {
+      _onDisconnectedCompleter.complete(this);
     }
   }
 

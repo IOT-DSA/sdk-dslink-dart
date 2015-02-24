@@ -22,7 +22,11 @@ class HttpClientLink implements ClientLink {
   final List<String> salts = new List<String>(2);
 
   updateSalt(String salt, [bool shortPolling = false]) {
-    // TODO: implement updateSalt
+    if (shortPolling) {
+      salts[1] = salt;
+    } else {
+      salts[0] = salt;
+    }
   }
 
   String _wsUpdateUri;
@@ -70,11 +74,8 @@ class HttpClientLink implements ClientLink {
       _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
     }
 
-    if (_wsUpdateUri != null) {
-      await initWebsocket();
-    }else if (_httpUpdateUri != null) {
-      await initHttp();
-    }
+    initWebsocket();
+    // initHttp();
   }
 
   initWebsocket() async {
@@ -88,7 +89,9 @@ class HttpClientLink implements ClientLink {
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
-        _onRequesterReadyCompleter.complete(requester);
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
       });
     }
   }
@@ -103,7 +106,9 @@ class HttpClientLink implements ClientLink {
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
-        _onRequesterReadyCompleter.complete(requester);
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
       });
     }
   }

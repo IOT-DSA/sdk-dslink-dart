@@ -27,6 +27,8 @@ abstract class Connection {
   /// trigger when requester channel is Ready
   Future<ConnectionChannel> get onRequesterReady;
 
+  Future<Connection> get onDisconnected;
+  
   /// notify the connection channel need to send data
   void requireSend();
   /// close the connection

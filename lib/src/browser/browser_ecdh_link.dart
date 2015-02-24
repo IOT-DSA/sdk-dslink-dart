@@ -25,7 +25,11 @@ class BrowserECDHLink implements ClientLink {
   final List<String> salts = new List<String>(2);
 
   updateSalt(String salt, [bool shortPolling = false]) {
-    // TODO: implement updateSalt
+    if (shortPolling) {
+      salts[1] = salt;
+    } else {
+      salts[0] = salt;
+    }
   }
 
   String _wsUpdateUri;
@@ -65,11 +69,8 @@ class BrowserECDHLink implements ClientLink {
         _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
 
-      if (_wsUpdateUri != null) {
-        initWebsocket();
-      } else if (_httpUpdateUri != null) {
-        initHttp();
-      }
+      initWebsocket();
+      // initHttp();
 
     });
   }
@@ -85,7 +86,9 @@ class BrowserECDHLink implements ClientLink {
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
-        _onRequesterReadyCompleter.complete(requester);
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
       });
     }
   }
@@ -100,7 +103,9 @@ class BrowserECDHLink implements ClientLink {
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
-        _onRequesterReadyCompleter.complete(requester);
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
       });
     }
   }

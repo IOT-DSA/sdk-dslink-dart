@@ -10,6 +10,9 @@ class HttpServerConnection implements ServerConnection {
   Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
+  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  
   HttpServerConnection() {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
@@ -62,7 +65,7 @@ class HttpServerConnection implements ServerConnection {
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
     updateResponseBeforeWrite(input.response);
-    input.response.write('{"saltS":"$saltS"}');
+    
     input.fold([], foldList).then((List merged) {
       Map m;
       try {
@@ -73,6 +76,7 @@ class HttpServerConnection implements ServerConnection {
         paseInput(m);
       }
     });
+    input.response.write('{"saltS":"$saltS"}');
   }
   void paseInput(Map m) {
     if (m['responses'] is List) {

@@ -19,9 +19,6 @@ class BrowserUserLink implements ClientLink {
     'saltS': 1,
   };
 
-  /// 2 salts, salt and saltS
-  final List<String> salts = const ['', ''];
-
   updateSalt(String salt, [bool shortPolling = false]) {
     // TODO: implement updateSalt
   }
@@ -38,12 +35,8 @@ class BrowserUserLink implements ClientLink {
   }
 
   void init() {
-
     initWebsocket();
-
-    //    if (_httpUpdateUri != null) {
-    //      await initHttp();
-    //    }
+    //initHttp();
   }
 
   initWebsocket() {
@@ -57,13 +50,16 @@ class BrowserUserLink implements ClientLink {
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
-        _onRequesterReadyCompleter.complete(requester);
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
       });
     }
+    _connection.onDisconnected.then((connection){initHttp();});
   }
 
   initHttp() {
-    _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '', '');
+    _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '0', '0');
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;
@@ -72,7 +68,10 @@ class BrowserUserLink implements ClientLink {
     if (requester != null) {
       _connection.onRequesterReady.then((channel) {
         requester.connection = channel;
-        _onRequesterReadyCompleter.complete(requester);
+        if (!_onRequesterReadyCompleter.isCompleted) {
+          _onRequesterReadyCompleter.complete(requester);
+        }
+        
       });
     }
   }

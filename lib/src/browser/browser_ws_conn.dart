@@ -10,6 +10,9 @@ class WebSocketConnection implements ClientConnection {
   Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
+  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  
   final ClientLink clientLink;
 
   final WebSocket socket;
@@ -43,6 +46,9 @@ class WebSocketConnection implements ClientConnection {
         print(err);
         close();
         return;
+      }
+      if (m['salt'] is String) {
+        clientLink.updateSalt(m['salt']);
       }
       if (m['responses'] is List) {
         // send responses to requester channel
@@ -114,6 +120,9 @@ class WebSocketConnection implements ClientConnection {
     }
     if (!_responderChannel.onDisconnectController.isCompleted) {
       _responderChannel.onDisconnectController.complete(_responderChannel);
+    }
+    if (!_onDisconnectedCompleter.isCompleted) {
+      _onDisconnectedCompleter.complete(this);
     }
   }
 

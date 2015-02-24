@@ -31,7 +31,11 @@ abstract class ConnectionHandler {
   }
 
   void onDisconnected();
-  void onReconnected();
+  void onReconnected() {
+    if (_pendingSend) {
+      _conn.sendWhenReady(_doSend);
+    }
+  }
   void onData(List m);
 
   List _toSendList = [];

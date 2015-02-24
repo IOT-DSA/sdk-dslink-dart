@@ -104,13 +104,19 @@ class HttpServerLink implements ServerLink {
     }
   }
   void handleHttpUpdate(HttpRequest request) {
-    if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
-      if (_connection is HttpServerConnection && _verifySalt(1, request.uri.queryParameters['authS'])) {
+    String saltS = request.uri.queryParameters['authS'];
+    if (saltS != null) {
+      if (_connection is HttpServerConnection && _verifySalt(1, saltS)) {
         // handle http short polling
         (_connection as HttpServerConnection).handleInputS(request, salts[1]);
+        return;
       } else {
         throw HttpStatus.UNAUTHORIZED;
       }
+    }
+
+    if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
+        throw HttpStatus.UNAUTHORIZED;
     }
 //    if (requester == null) {
 //      throw HttpStatus.FORBIDDEN;

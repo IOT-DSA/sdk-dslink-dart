@@ -231,5 +231,7 @@ class Responder extends ConnectionHandler {
     _responses[0] = _subscription;
   }
 
-  void onReconnected() {}
+  void onReconnected() {
+    super.onReconnected();
+  }
 }

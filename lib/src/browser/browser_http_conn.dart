@@ -10,6 +10,9 @@ class HttpBrowserConnection implements ClientConnection {
   Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
+  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  
   final String url;
   final ClientLink clientLink;
 
@@ -65,13 +68,15 @@ class HttpBrowserConnection implements ClientConnection {
       }
     }
     if (needSend) {
-      print('http send: $m');
+     
 
       Uri connUri = Uri.parse('$url&');
       if (shortPoll) {
+        print('http sendS: $m');
         _sendingS = true;
         connUri = Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
       } else {
+        print('http send: $m');
         _sending = true;
         connUri = Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
       }

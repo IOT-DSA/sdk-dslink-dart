@@ -87,6 +87,7 @@ class Requester extends ConnectionHandler {
   }
 
   void onReconnected() {
+    super.onReconnected();
     var oldRequests = _requests;
     _requests = new Map<int, Request>();
     _requests[0] = _subsciption;

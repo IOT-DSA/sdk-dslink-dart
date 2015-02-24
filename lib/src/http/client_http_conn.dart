@@ -10,6 +10,9 @@ class HttpClientConnection implements ClientConnection {
   Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
 
+  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  
   final String url;
   final ClientLink clientLink;
 
