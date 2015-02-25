@@ -41,7 +41,7 @@ class BrowserUserLink implements ClientLink {
 
   initWebsocket() {
     var socket = new WebSocket('$wsUpdateUri?session=$session');
-    _connection = new WebSocketConnection(socket);
+    _connection = new WebSocketConnection(socket, this);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

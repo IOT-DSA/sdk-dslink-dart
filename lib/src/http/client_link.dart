@@ -80,7 +80,7 @@ class HttpClientLink implements ClientLink {
 
   initWebsocket() async {
     var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _connection = new WebSocketConnection(socket);
+    _connection = new WebSocketConnection(socket, clientLink:this);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

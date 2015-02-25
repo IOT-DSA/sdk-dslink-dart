@@ -77,7 +77,7 @@ class BrowserECDHLink implements ClientLink {
 
   initWebsocket() {
     var socket = new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _connection = new WebSocketConnection(socket);
+    _connection = new WebSocketConnection(socket, this);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

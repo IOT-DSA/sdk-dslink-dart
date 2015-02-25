@@ -78,7 +78,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         return;
       }
       _useStringFormat = true;
-      if (m['salt'] is String) {
+      if (m['salt'] is String && clientLink != null) {
         clientLink.updateSalt(m['salt']);
       }
       if (m['responses'] is List) {
