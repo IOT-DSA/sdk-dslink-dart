@@ -53,18 +53,24 @@ main() async {
 //    print(update.rows);
 //  }
 
-  Stream<RequesterListUpdate> updates = requester.list('/conns/locker-f/locker1');
-  await for (RequesterListUpdate update in updates) {
-    print('update ${update.changes}');
-    requester.list('/conns/locker-f/locker1').listen((update1){
-      print('update1 ${update.changes}');
-    });
-    requester.list('/conns/locker-f/locker2').listen((update1){
-      print('update2 ${update.changes}');
-    });
-  }
+//  Stream<RequesterListUpdate> updates = requester.list('/conns/locker-f/locker1');
+//  await for (RequesterListUpdate update in updates) {
+//    print('update ${update.changes}');
+//    requester.list('/conns/locker-f/locker1').listen((update1){
+//      print('update1 ${update.changes}');
+//    });
+//    requester.list('/conns/locker-f/locker2').listen((update1){
+//      print('update2 ${update.changes}');
+//    });
+//  }
 
-//  Stream<ValueUpdate> updates = requester.subscribe('/conns/test-responder-h');
+  Stream<RequesterListUpdate> updates = requester.list('/conns/responder-V/test');
+  await for (RequesterListUpdate update in updates) {
+    print('is: ${update.node.children['incremental'].configs[r"$is"]}');
+    print('type: ${update.node.children['incremental'].configs[r"$type"]}');
+  }
+  
+//  Stream<ValueUpdate> updates = requester.subscribe('/conns/responder-p/test/incremental');
 //  updates.listen((update0){
 //    print(update0.value);
 //  });
