@@ -90,6 +90,10 @@ class DsHttpServer {
           // invalid connection request
           request.response.close();
           return;
+        } else if (merged.length == 0) {
+          updateResponseBeforeWrite(request.response);
+          request.response.close();
+          return;
         }
         String str = UTF8.decode(merged);
         Map m = JSON.decode(str);
