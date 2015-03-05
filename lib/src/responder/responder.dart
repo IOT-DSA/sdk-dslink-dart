@@ -63,7 +63,7 @@ class Responder extends ConnectionHandler {
         default:
       }
     }
-    if (m['rid'] is int) {
+    if (m['rid'] is int && m['method'] != 'close') {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     }
   }
