@@ -50,9 +50,11 @@ class InvokeController implements RequestUpdater {
       _cachedColumns = TableColumn.parseColumns(columns);
     }
     if (_cachedColumns == null) {
-      _controller.close();
-      _request.close();
-      return;
+      _cachedColumns = [];
+      // TODO, treat this as bug?
+//      _controller.close();
+//      _request.close();
+//      return;
     }
     List<List> rows = [];
     if (updates != null) {

@@ -100,7 +100,6 @@ class Requester extends ConnectionHandler {
   }
 
   void onReconnected() {
-    print('aa');
     super.onReconnected();
 
     _requests.forEach((n, req) {
