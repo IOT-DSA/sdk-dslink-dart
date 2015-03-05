@@ -44,7 +44,8 @@ class InvokeController implements RequestUpdater {
     //TODO, close the stream when configs are loaded
   }
 
-  void onUpdate(String streamStatus, List updates, List columns) {
+  void onUpdate(String streamStatus, List updates, List columns, [DSError error]) {
+    // TODO implement error
     if (columns != null) {
       _cachedColumns = TableColumn.parseColumns(columns);
     }

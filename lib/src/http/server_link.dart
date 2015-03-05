@@ -73,7 +73,7 @@ class HttpServerLink implements ServerLink {
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
     }
-    updateResponseBeforeWrite(request.response);
+    updateResponseBeforeWrite(request);
     request.response.write(JSON.encode(respJson));
     request.response.close();
   }

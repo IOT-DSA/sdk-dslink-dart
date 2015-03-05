@@ -3,8 +3,12 @@ part of dslink.requester;
 class SubscribeRequest extends Request {
   final Map<String, ReqSubscribeController> subsriptions = new Map<String, ReqSubscribeController>();
 
-  SubscribeRequest(Requester requester, int rid) : super(requester, rid, null);
+  SubscribeRequest(Requester requester, int rid) : super(requester, rid, null, null);
 
+  @override
+  void resend() {
+    // don't resend
+  }
   @override
   void _update(Map m) {
     List updates = m['updates'];

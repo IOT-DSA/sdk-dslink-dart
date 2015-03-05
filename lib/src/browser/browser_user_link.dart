@@ -59,7 +59,7 @@ class BrowserUserLink implements ClientLink {
   }
 
   initHttp() {
-    _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '0', '0');
+    _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '0', '0', true);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

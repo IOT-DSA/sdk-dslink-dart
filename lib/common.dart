@@ -143,4 +143,5 @@ class DSError {
   static final DSError INVALID_PATH = new DSError('invalidPath');
   static final DSError INVALID_PATHS = new DSError('invalidPaths');
   static final DSError INVALID_VALUE = new DSError('invalidValue');
+  static final DSError DISCONNECTED = new DSError('disconnected', phase:ErrorPhase.request);
 }

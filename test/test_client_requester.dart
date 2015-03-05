@@ -10,7 +10,7 @@ main() async {
 
   var link = new HttpClientLink('http://localhost:8080/conn', 'test-client-', key,
       isRequester: true);
-  link.init();
+  link.connect();
   Requester requester = await link.onRequesterReady;
 
 //  stdin.listen((data){
@@ -64,10 +64,9 @@ main() async {
 //    });
 //  }
 
-  Stream<RequesterListUpdate> updates = requester.list('/conns/responder-V/test');
+  Stream<RequesterListUpdate> updates = requester.list('/conns/locker-a');
   await for (RequesterListUpdate update in updates) {
-    print('is: ${update.node.children['incremental'].configs[r"$is"]}');
-    print('type: ${update.node.children['incremental'].configs[r"$type"]}');
+    print(update.changes);
   }
   
 //  Stream<ValueUpdate> updates = requester.subscribe('/conns/responder-p/test/incremental');

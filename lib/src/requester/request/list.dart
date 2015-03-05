@@ -40,7 +40,8 @@ class ListController implements RequestUpdater {
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
-  void onUpdate(String streamStatus, List updates, List columns) {
+  void onUpdate(String streamStatus, List updates, List columns, [DSError error]) {
+    // TODO implement error handling
     if (updates != null) {
       for (Object update in updates) {
         String name;
@@ -200,8 +201,8 @@ class ListController implements RequestUpdater {
     _pendingRemoveDef = false;
   }
 
-  void onStartListen([bool restart = false]) {
-    if (_request == null || restart) {
+  void onStartListen() {
+    if (_request == null) {
       _request = requester._sendRequest({
         'method': 'list',
         'path': node.remotePath

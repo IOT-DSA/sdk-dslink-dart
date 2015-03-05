@@ -64,7 +64,7 @@ class HttpServerConnection implements ServerConnection {
   }
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
-    updateResponseBeforeWrite(input.response);
+    updateResponseBeforeWrite(input);
     
     input.fold([], foldList).then((List merged) {
       Map m;
@@ -123,7 +123,7 @@ class HttpServerConnection implements ServerConnection {
     }
     if (needSend) {
       print('http send: $m');
-      updateResponseBeforeWrite(_cachedInput.response);
+      updateResponseBeforeWrite(_cachedInput);
       _cachedInput.response.write(JSON.encode(m));
       _cachedInput.response.close();
     }

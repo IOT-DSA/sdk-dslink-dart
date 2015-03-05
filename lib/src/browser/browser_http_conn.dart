@@ -15,10 +15,10 @@ class HttpBrowserConnection implements ClientConnection {
   
   final String url;
   final ClientLink clientLink;
-
+  final bool withCredentials;
   String salt;
   String saltS;
-  HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS) {
+  HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS, [this.withCredentials=false]) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
@@ -80,7 +80,7 @@ class HttpBrowserConnection implements ClientConnection {
         _sending = true;
         connUri = Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
       }
-      HttpRequest.request(connUri.toString(), method: 'POST', withCredentials: true, mimeType: 'application/json', sendData: JSON.encode(m)).then(//
+      HttpRequest.request(connUri.toString(), method: 'POST', withCredentials: withCredentials, mimeType: 'application/json', sendData: JSON.encode(m)).then(//
       (HttpRequest request) {
         if (shortPoll) {
           _onDataS(request.responseText);

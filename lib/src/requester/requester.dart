@@ -1,7 +1,7 @@
 part of dslink.requester;
 
 abstract class RequestUpdater {
-  void onUpdate(String status, List updates, List columns);
+  void onUpdate(String status, List updates, List columns, DSError error);
 }
 
 class RequesterUpdate {
@@ -33,11 +33,18 @@ class Requester extends ConnectionHandler {
     }
   }
   int nextRid = 1;
+  
+  // TODO need a new design for short polling and long polling
+  int lastSentId = -1;
+  void onSent(bool sent) {
+    lastSentId = nextRid - 1;
+  }
+  
   Request _sendRequest(Map m, RequestUpdater updater) {
     m['rid'] = nextRid;
     Request req;
     if (updater != null) {
-      req = new Request(this, nextRid, updater);
+      req = new Request(this, nextRid, updater, m);
       _requests[nextRid] = req;
     }
     addToSendList(m);
@@ -83,18 +90,21 @@ class Requester extends ConnectionHandler {
   }
 
   void onDisconnected() {
-    // TODO: close pending requests, except subscription and list
+    var newRequests = new Map<int, Request>();;
+    newRequests[0] = _subsciption;
+    _requests.forEach((n, req) {
+      if (req.rid != 0 && req.rid <= lastSentId && req.updater is! ListController) {
+        req._close(DSError.DISCONNECTED);
+      }
+    });
   }
 
   void onReconnected() {
+    print('aa');
     super.onReconnected();
-    var oldRequests = _requests;
-    _requests = new Map<int, Request>();
-    _requests[0] = _subsciption;
-    oldRequests.forEach((n, req) {
-      if (req.updater is ListController) {
-        (req.updater as ListController).onStartListen(true);
-      }
+
+    _requests.forEach((n, req) {
+      req.resend();
     });
     //TODO resubscribe values
   }

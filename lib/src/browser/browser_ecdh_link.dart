@@ -91,6 +91,7 @@ class BrowserECDHLink implements ClientLink {
         }
       });
     }
+    _connection.onDisconnected.then((connection){initHttp();});
   }
 
   initHttp() {

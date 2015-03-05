@@ -79,20 +79,25 @@ class HttpClientLink implements ClientLink {
   }
 
   initWebsocket() async {
-    var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _connection = new WebSocketConnection(socket, clientLink:this);
+    try {
+      var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      _connection = new WebSocketConnection(socket, clientLink:this);
 
-    if (responder != null) {
-      responder.connection = _connection.responderChannel;
-    }
+      if (responder != null) {
+        responder.connection = _connection.responderChannel;
+      }
 
-    if (requester != null) {
-      _connection.onRequesterReady.then((channel) {
-        requester.connection = channel;
-        if (!_onRequesterReadyCompleter.isCompleted) {
-          _onRequesterReadyCompleter.complete(requester);
-        }
-      });
+      if (requester != null) {
+        _connection.onRequesterReady.then((channel) {
+          requester.connection = channel;
+          if (!_onRequesterReadyCompleter.isCompleted) {
+            _onRequesterReadyCompleter.complete(requester);
+          }
+        });
+      }
+      _connection.onDisconnected.then((connection){initHttp();});
+    } catch (error) {
+      initHttp();
     }
   }
 

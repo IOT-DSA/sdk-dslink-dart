@@ -16,7 +16,8 @@ class SetController implements RequestUpdater {
     _request = requester._sendRequest(reqMap, this);
   }
 
-  void onUpdate(String status, List updates, List columns) {
+  void onUpdate(String status, List updates, List columns, [DSError error]) {
+    // TODO implement error
     completer.complete(new RequesterUpdate(status));
   }
 }

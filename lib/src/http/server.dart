@@ -91,7 +91,7 @@ class DsHttpServer {
           request.response.close();
           return;
         } else if (merged.length == 0) {
-          updateResponseBeforeWrite(request.response);
+          updateResponseBeforeWrite(request);
           request.response.close();
           return;
         }
