@@ -48,6 +48,15 @@ class SimpleNodeProvider extends NodeProviderImpl {
     pnode.children.remove(p.name);
     pnode.updateList(p.name);
   }
+  
+  final Map<String, _FunctionCallback> _functions = {};
+  void registerFunction(String name, _FunctionCallback fun) {
+    _functions[name] = fun;
+  }
+  final Map<String, _FunctionCallback> _profileFunctions = {};
+  void registerFunctionByProfile(String profile, _FunctionCallback fun) {
+    _profileFunctions[profile] = fun;
+  }
 }
 
 class SimpleNode extends LocalNodeImpl {
@@ -91,6 +100,17 @@ class SimpleNode extends LocalNodeImpl {
         }
       }
     });
+    if (invokeCallback == null && this.getConfig(r'$invokable') != null && provider is SimpleNodeProvider) {
+      // search it in registered function
+      String function = this.configs[r'$function'];
+      if (function != null) {
+        invokeCallback = provider._functions[function];
+      }
+      // search it for profile
+      if (invokeCallback == null) {
+        invokeCallback = provider._profileFunctions[configs[r'$is']];
+      }
+    }
     _loaded = true;
   }
 
