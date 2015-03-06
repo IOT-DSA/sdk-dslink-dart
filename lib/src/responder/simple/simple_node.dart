@@ -25,6 +25,10 @@ class SimpleNodeProvider extends NodeProviderImpl {
       root.load(m, this);
     }
   }
+  Map save(){
+    SimpleNode root = getNode("/");
+    return root.save();
+  }
   void updateValue(String path, Object value) {
     SimpleNode node = getNode(path);
     node.updateValue(value);
@@ -113,7 +117,26 @@ class SimpleNode extends LocalNodeImpl {
     }
     _loaded = true;
   }
+  Map save(){
+    Map rslt = {};
+    configs.forEach((str, val){
+      rslt[str] = val;
+    });
+    attributes.forEach((str, val){
+      rslt[str] = val;
+    });
+    
+    if (_lastValueUpdate != null && _lastValueUpdate.value != null) {
+      rslt['?value'] = _lastValueUpdate.value;
+    }
+    
+    children.forEach((str, Node node) {
+      if (node is SimpleNode)
+      rslt[str] = node.save();
+    });
 
+    return rslt;
+  }
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     if (invokeCallback != null) {
       Map rslt = invokeCallback(path, params);

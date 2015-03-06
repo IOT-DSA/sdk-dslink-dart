@@ -9,7 +9,7 @@ void main() {
 
     Map openLocker(String path, Map params) {
       nodeProvider.updateValue('${path}ed', true);
-      return {};
+      return {"value":"a"};
     }
 
     Map openLocker2(String path, Map params) {
@@ -17,15 +17,17 @@ void main() {
         nodeProvider.updateValue('${path}ed', params['value']);
       }
       
-      return {};
+      return {"value":"a"};
     }
     
+    nodeProvider.registerFunction('openLocker', openLocker);
+    nodeProvider.registerFunction('changeLocker', openLocker2);
     nodeProvider.init({
       'locker1': {
         r'$is':'locker',
         'open': { // an action to open the door
           r'$invokable': 'read',
-          '?invoke': openLocker
+          r'$function': 'openLocker'
         },
         'opened': { // the open status value
           r'$type': 'bool',
@@ -37,7 +39,7 @@ void main() {
         'open': { // an action to open the door
           r'$invokable': 'read',
           r'$params':[{"name":"value","type":"bool"}],
-          '?invoke': openLocker2
+          r'$function': 'changeLocker'
           
         },
         'opened': { // the open status value
@@ -53,7 +55,7 @@ void main() {
         'open': { // an action to open the door
           r'$invokable': 'read',
           r'$params':[{"name":"value","type":"bool"}],
-          '?invoke': openLocker
+          r'$function': 'openLocker'
           
         },
         'opened': { // the open status value

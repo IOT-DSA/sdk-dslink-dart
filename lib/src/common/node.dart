@@ -82,6 +82,16 @@ class Node {
     return null;
   }
 
+  Object get(String name) {
+    if (name.startsWith(r'$')) {
+      return getConfig(name);
+    }
+    if (name.startsWith('@')) {
+      return getAttribute(name);
+    }
+    return getChild(name);
+  }
+  
   void forEachChild(void callback(String, Node)) {
     children.forEach(callback);
     if (profile != null) {
