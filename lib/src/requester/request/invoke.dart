@@ -2,10 +2,42 @@ part of dslink.requester;
 
 class RequesterInvokeUpdate extends RequesterUpdate {
   List<TableColumn> columns;
-  List<List> rows;
-  // raw update
   List updates;
-  RequesterInvokeUpdate(this.rows, this.updates, this.columns, String streamStatus) : super(streamStatus);
+
+  RequesterInvokeUpdate(this.updates, this.columns, String streamStatus) : super(streamStatus);
+
+  List<List> _rows;
+  List<List> get rows {
+    if (_rows == null) {
+      _rows = [];
+      for (Object obj in updates) {
+        List row;
+        if (obj is List) {
+          if (obj.length < columns.length) {
+            row = obj.toList();
+            for (int i = obj.length; i < columns.length; ++i) {
+              row.add(columns[i].defaultValue);
+            }
+          } else if (obj.length > columns.length) {
+            row = obj.sublist(0, columns.length);
+          } else {
+            row = obj;
+          }
+        } else if (obj is Map) {
+          row = [];
+          for (TableColumn column in columns) {
+            if (obj.containsKey(column.name)) {
+              row.add(obj[column.name]);
+            } else {
+              row.add(column.defaultValue);
+            }
+          }
+        }
+        _rows.add(row);
+      }
+    }
+    return _rows;
+  }
 }
 
 class InvokeController implements RequestUpdater {
@@ -53,39 +85,9 @@ class InvokeController implements RequestUpdater {
     }
     if (_cachedColumns == null) {
       _cachedColumns = [];
-      // TODO, treat this as bug?
-//      _controller.close();
-//      _request.close();
-//      return;
     }
-    List<List> rows = [];
     if (updates != null) {
-      for (Object obj in updates) {
-        List row;
-        if (obj is List) {
-          if (obj.length < _cachedColumns.length) {
-            row = obj.toList();
-            for (int i = obj.length; i < _cachedColumns.length; ++i) {
-              row.add(_cachedColumns[i].defaultValue);
-            }
-          } else if (obj.length > _cachedColumns.length) {
-            row = obj.sublist(0, _cachedColumns.length);
-          } else {
-            row = obj;
-          }
-        } else if (obj is Map) {
-          row = [];
-          for (TableColumn column in _cachedColumns) {
-            if (obj.containsKey(column.name)) {
-              row.add(obj[column.name]);
-            } else {
-              row.add(column.defaultValue);
-            }
-          }
-        }
-        rows.add(row);
-      }
-      _controller.add(new RequesterInvokeUpdate(rows, updates, _cachedColumns, streamStatus));
+      _controller.add(new RequesterInvokeUpdate(updates, _cachedColumns, streamStatus));
     }
     if (streamStatus == StreamStatus.closed) {
       _controller.close();
