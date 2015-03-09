@@ -75,6 +75,7 @@ abstract class ClientLink extends Link {
   PrivateKey get privateKey;
   /// shortPolling is only valid in http mode
   updateSalt(String salt, [bool shortPolling = false]);
+  void connect();
 }
 
 abstract class ServerLinkManager {

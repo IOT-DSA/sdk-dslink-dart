@@ -34,7 +34,7 @@ class BrowserUserLink implements ClientLink {
     }
   }
 
-  void init() {
+  void connect() {
     initWebsocket();
     //initHttp();
   }
