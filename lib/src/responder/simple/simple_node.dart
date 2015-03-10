@@ -1,6 +1,6 @@
 part of dslink.responder;
 
-typedef Map _FunctionCallback(String path, Map params);
+typedef Object _FunctionCallback(String path, Map params);
 
 class SimpleNodeProvider extends NodeProviderImpl {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
@@ -139,8 +139,10 @@ class SimpleNode extends LocalNodeImpl {
   }
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     if (invokeCallback != null) {
-      Map rslt = invokeCallback(path, params);
-      if (rslt != null) {
+      Object rslt = invokeCallback(path, params);
+      if (rslt is List) {
+        response.updateStream(rslt, streamStatus: StreamStatus.closed);
+      } else if (rslt is Map) {
         response.updateStream([rslt], streamStatus: StreamStatus.closed);
       } else {
         response.close();
