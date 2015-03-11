@@ -72,6 +72,9 @@ class ListController implements RequestUpdater {
         }
         if (name.startsWith(r'$')) {
           if (name == r'$is') {
+            node.children.clear();
+            node.attributes.clear();
+            node.configs.clear();
             loadProfile(value);
           } else if (name == r'$mixin') {
             loadMixin(value);

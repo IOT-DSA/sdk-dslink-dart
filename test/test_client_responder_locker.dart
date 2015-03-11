@@ -49,20 +49,20 @@ void main() {
       }
     });
     
-    // add locker at runtime
-    nodeProvider.addNode('/locker3', {
-        r'$is':'locker',
-        'open': { // an action to open the door
-          r'$invokable': 'read',
-          r'$params':[{"name":"value","type":"bool"}],
-          r'$function': 'openLocker'
-          
-        },
-        'opened': { // the open status value
-          r'$type': 'bool',
-          '?value': false
-        }
-      });
-    
+//    // add locker at runtime
+//    nodeProvider.addNode('/locker3', {
+//        r'$is':'locker',
+//        'open': { // an action to open the door
+//          r'$invokable': 'read',
+//          r'$params':[{"name":"value","type":"bool"}],
+//          r'$function': 'openLocker'
+//          
+//        },
+//        'opened': { // the open status value
+//          r'$type': 'bool',
+//          '?value': false
+//        }
+//      });
+//    
     var link = new HttpClientLink('http://localhost:8080/conn', 'locker-', key, isResponder: true, nodeProvider: nodeProvider)..connect();
 }
