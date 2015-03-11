@@ -1,5 +1,7 @@
 part of dslink.responder;
 
+typedef void OnInvokeClosed(InvokeResponse);
+
 class InvokeResponse extends Response {
   final LocalNode node;
   InvokeResponse(Responder responder, int rid, this.node) : super(responder, rid);
@@ -32,5 +34,10 @@ class InvokeResponse extends Response {
     _columns = null;
     _updates = null;
   }
-  void _close() {}
+  OnInvokeClosed onClose;
+  void _close() {
+    if (onClose != null) {
+      onClose(this);
+    }
+  }
 }
