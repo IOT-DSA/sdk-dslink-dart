@@ -61,7 +61,7 @@ class LocalNodeImpl extends LocalNode {
   /// get the permission of a responder on this node;
   int getPermission(Responder responder) {
     PermissionList ps = permissions;
-    if (ps == null) {
+    if (ps == null && mixins != null) {
       for (var node in mixins) {
         if ((node as LocalNode).permissions != null) {
           ps = (node as LocalNode).permissions;
@@ -75,7 +75,8 @@ class LocalNodeImpl extends LocalNode {
     if (parentNode != null) {
       return parentNode.getPermission(responder);
     }
-    return Permission.NONE;
+    // TODO default permission should be NONE
+    return Permission.WRITE;
   }
 
   void updateList(String name, [int permission = Permission.READ]) {
@@ -113,5 +114,15 @@ class LocalNodeImpl extends LocalNode {
   Response removeConfig(String name, Responder responder, Response response) {
     var config = Configs.getConfig(name, profile);
     return response..close(config.removeConfig(this, responder));
+  }
+  
+  Response setValue(Object value, Responder responder, Response response) {
+    if (getPermission(responder) >= Permission.WRITE && this.getConfig(r'$writable') == 'write') {
+      updateValue(value);
+      // TODO check value type
+      return response..close();
+    } else {
+      return response..close(DSError.PERMISSION_DENIED);
+    }
   }
 }

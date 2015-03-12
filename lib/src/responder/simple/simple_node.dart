@@ -2,6 +2,11 @@ part of dslink.responder;
 
 typedef Object _FunctionCallback(String path, Map params);
 
+class SimpleTableResult {
+  List columns;
+  List rows;
+  SimpleTableResult([this.rows, this.columns]);
+}
 class SimpleNodeProvider extends NodeProviderImpl {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
@@ -144,6 +149,8 @@ class SimpleNode extends LocalNodeImpl {
         response.updateStream(rslt, streamStatus: StreamStatus.closed);
       } else if (rslt is Map) {
         response.updateStream([rslt], streamStatus: StreamStatus.closed);
+      } else if (rslt is SimpleTableResult) {
+        response.updateStream(rslt.rows, columns: rslt.columns,  streamStatus: StreamStatus.closed);
       } else {
         response.close();
       }
