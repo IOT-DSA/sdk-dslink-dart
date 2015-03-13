@@ -182,7 +182,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     // TODO, when invoke closed without any data, also need to updateStream to close
     _linkManager.requester.invoke(remotePath, params).listen((RequesterInvokeUpdate update) {
       // TODO fix paths in the response
-      response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.columns);
+      response.updateStream(update.updates, streamStatus: update.streamStatus, columns: update.rawColumns);
     });
     return response;
   }

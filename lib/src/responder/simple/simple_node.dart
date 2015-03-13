@@ -7,6 +7,47 @@ class SimpleTableResult {
   List rows;
   SimpleTableResult([this.rows, this.columns]);
 }
+class AsyncTableResult {
+  InvokeResponse response;
+  List columns;
+  List rows;
+  String status = StreamStatus.initialize;
+  AsyncTableResult([this.columns]);
+  void update(List rows, [String stat]) {
+    if (this.rows == null) {
+      this.rows = rows;
+    } else {
+      this.rows.addAll(rows);
+    }
+    if (stat != null) {
+      status = stat;
+    }
+    write();
+  }
+
+  void write([InvokeResponse resp]) {
+    
+    if (resp != null) {
+      if (response == null) {
+        response = resp;
+      } else {
+        print('warning, can not use same AsyncTableResult twice');
+      }
+    }
+    if (response != null && (rows != null || status == StreamStatus.closed)) {
+      response.updateStream(rows, columns: columns, streamStatus: status);
+      rows = null;
+      columns = null;
+    }
+  }
+  void close() {
+    if (response != null) {
+      response.close();
+    } else {
+      status = StreamStatus.closed;
+    }
+  }
+}
 class SimpleNodeProvider extends NodeProviderImpl {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
@@ -30,7 +71,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
       root.load(m, this);
     }
   }
-  Map save(){
+  Map save() {
     SimpleNode root = getNode("/");
     return root.save();
   }
@@ -42,7 +83,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);
     node.load(m, this);
-    
+
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
     pnode.children[p.name] = node;
@@ -57,7 +98,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     pnode.children.remove(p.name);
     pnode.updateList(p.name);
   }
-  
+
   final Map<String, _FunctionCallback> _functions = {};
   void registerFunction(String name, _FunctionCallback fun) {
     _functions[name] = fun;
@@ -109,7 +150,9 @@ class SimpleNode extends LocalNodeImpl {
         }
       }
     });
-    if (invokeCallback == null && this.getConfig(r'$invokable') != null && provider is SimpleNodeProvider) {
+    if (invokeCallback == null &&
+        this.getConfig(r'$invokable') != null &&
+        provider is SimpleNodeProvider) {
       // search it in registered function
       String function = this.configs[r'$function'];
       if (function != null) {
@@ -122,27 +165,27 @@ class SimpleNode extends LocalNodeImpl {
     }
     _loaded = true;
   }
-  Map save(){
+  Map save() {
     Map rslt = {};
-    configs.forEach((str, val){
+    configs.forEach((str, val) {
       rslt[str] = val;
     });
-    attributes.forEach((str, val){
+    attributes.forEach((str, val) {
       rslt[str] = val;
     });
-    
+
     if (_lastValueUpdate != null && _lastValueUpdate.value != null) {
       rslt['?value'] = _lastValueUpdate.value;
     }
-    
+
     children.forEach((str, Node node) {
-      if (node is SimpleNode)
-      rslt[str] = node.save();
+      if (node is SimpleNode) rslt[str] = node.save();
     });
 
     return rslt;
   }
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+  InvokeResponse invoke(
+      Map params, Responder responder, InvokeResponse response) {
     if (invokeCallback != null) {
       Object rslt = invokeCallback(path, params);
       if (rslt is List) {
@@ -150,7 +193,11 @@ class SimpleNode extends LocalNodeImpl {
       } else if (rslt is Map) {
         response.updateStream([rslt], streamStatus: StreamStatus.closed);
       } else if (rslt is SimpleTableResult) {
-        response.updateStream(rslt.rows, columns: rslt.columns,  streamStatus: StreamStatus.closed);
+        response.updateStream(rslt.rows,
+            columns: rslt.columns, streamStatus: StreamStatus.closed);
+      } else if (rslt is AsyncTableResult) {
+        rslt.write(response);
+        return response;
       } else {
         response.close();
       }

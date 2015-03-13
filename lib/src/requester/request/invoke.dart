@@ -1,10 +1,11 @@
 part of dslink.requester;
 
 class RequesterInvokeUpdate extends RequesterUpdate {
+  List rawColumns;
   List<TableColumn> columns;
   List updates;
 
-  RequesterInvokeUpdate(this.updates, this.columns, String streamStatus) : super(streamStatus);
+  RequesterInvokeUpdate(this.updates, this.rawColumns, this.columns, String streamStatus) : super(streamStatus);
 
   List<List> _rows;
   List<List> get rows {
@@ -87,7 +88,7 @@ class InvokeController implements RequestUpdater {
       _cachedColumns = [];
     }
     if (updates != null) {
-      _controller.add(new RequesterInvokeUpdate(updates, _cachedColumns, streamStatus));
+      _controller.add(new RequesterInvokeUpdate(updates, columns, _cachedColumns, streamStatus));
     }
     if (streamStatus == StreamStatus.closed) {
       _controller.close();

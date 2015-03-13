@@ -18,7 +18,7 @@ class Responder extends ConnectionHandler {
     _responses[0] = _subscription;
   }
   Response addResponse(Response response) {
-    if (response._streamStatus != StreamStatus.closed) {
+    if (response._sentStreamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
     }
     return response;
@@ -74,7 +74,7 @@ class Responder extends ConnectionHandler {
         // this response is no longer valid
         return;
       }
-      response._streamStatus = StreamStatus.closed;
+      response._sentStreamStatus = StreamStatus.closed;
       rid = response.rid;
     }
     Map m = {
@@ -92,8 +92,8 @@ class Responder extends ConnectionHandler {
       Map m = {
         'rid': response.rid
       };
-      if (streamStatus != null && streamStatus != response._streamStatus) {
-        response._streamStatus = streamStatus;
+      if (streamStatus != null && streamStatus != response._sentStreamStatus) {
+        response._sentStreamStatus = streamStatus;
         m['stream'] = streamStatus;
       }
       if (columns != null) {
@@ -103,7 +103,7 @@ class Responder extends ConnectionHandler {
         m['updates'] = updates;
       }
       addToSendList(m);
-      if (response._streamStatus == StreamStatus.closed) {
+      if (response._sentStreamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
       }
     }
