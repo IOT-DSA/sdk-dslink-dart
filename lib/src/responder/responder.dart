@@ -151,17 +151,17 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
-      Map params = {};
-      if (m['params'] is Map) {
-        (m['params'] as Map).forEach((key, value) {
-          // only allow primitive types in parameters
-          if (value is! List && value is! Map) {
-            params[key] = value;
-          }
-        });
-      }
+//      Map params = {};
+//      if (m['params'] is Map) {
+//        (m['params'] as Map).forEach((key, value) {
+//          // only allow primitive types in parameters
+//          if (value is! List && value is! Map) {
+//            params[key] = value;
+//          }
+//        });
+//      }
       var node = nodeProvider.getNode(path.path);
-      node.invoke(params, this, addResponse(new InvokeResponse(this, rid, node)));
+      node.invoke(m['params'], this, addResponse(new InvokeResponse(this, rid, node)));
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }

@@ -207,7 +207,7 @@ class Path {
       name = path.substring(1);
     } else {
       parentPath = path.substring(0, pos);
-      name = path.substring(0, pos + 1);
+      name = path.substring(pos + 1);
       if (parentPath.contains(r'/$') || parentPath.contains('/@')) {
         // parent path can't be attribute or config
         valid = false;

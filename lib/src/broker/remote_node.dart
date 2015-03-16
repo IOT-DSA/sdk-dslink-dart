@@ -69,7 +69,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return getRemoteNode(rPath);
   }
-  RemoteNode updateRemoteNode(RemoteNode parent, String name, Map m) {
+  RemoteNode updateRemoteChildNode(RemoteNode parent, String name, Map m) {
     String path;
     if (parent.remotePath == '/') {
       path = '/$name';
@@ -78,7 +78,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     if (parent is RemoteLinkNode) {
       RemoteLinkNode node = parent._linkManager.getRemoteNode(path);
-      node.updateRemoteData(m, this);
+      node.updateRemoteChildData(m, this);
       return node;
     }
     return null;
@@ -219,7 +219,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setAttribute(String name, String value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    _linkManager.requester.set(remotePath, value).then((update) {
+    _linkManager.requester.set('$remotePath/$name', value).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -234,7 +234,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   Response setConfig(String name, Object value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
-    _linkManager.requester.set(remotePath, value).then((update) {
+    _linkManager.requester.set('$remotePath/$name', value).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {
@@ -260,6 +260,24 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       }
     });
     return response;
+  }
+  
+  Map _lastChildData;
+  void updateRemoteChildData(Map m, RemoteNodeCache cache) {
+    _lastChildData = m;
+    super.updateRemoteChildData(m, cache);
+  }
+  /// get simple map should return all configs returned by remoteNode
+  Map getSimpleMap() {
+    Map m = super.getSimpleMap();
+    if (_lastChildData != null) {
+      _lastChildData.forEach((String key, value) {
+        if (key.startsWith(r'$')) {
+          m[key] = this.configs[key];
+        }
+      });
+    }
+    return m;
   }
 }
 

@@ -23,7 +23,7 @@ class RemoteNodeCache {
     return getRemoteNode(path);
   }
   /// update node with a map.
-  RemoteNode updateRemoteNode(RemoteNode parent, String name, Map m) {
+  RemoteNode updateRemoteChildNode(RemoteNode parent, String name, Map m) {
     String path;
     if (parent.remotePath == '/') {
       path = '/$name';
@@ -33,11 +33,11 @@ class RemoteNodeCache {
     RemoteNode rslt;
     if (_nodes.containsKey(path)) {
       rslt = _nodes[path];
-      rslt.updateRemoteData(m, this);
+      rslt.updateRemoteChildData(m, this);
     } else {
       rslt = new RemoteNode(path);
       _nodes[path] = rslt;
-      rslt.updateRemoteData(m, this);
+      rslt.updateRemoteChildData(m, this);
     }
     return rslt;
   }
@@ -104,7 +104,7 @@ class RemoteNode extends Node {
   }
 
   /// used by list api to update simple data for children
-  void updateRemoteData(Map m, RemoteNodeCache cache) {
+  void updateRemoteChildData(Map m, RemoteNodeCache cache) {
     String childPathPre;
     if (remotePath == '/') {
       childPathPre = '/';
@@ -121,7 +121,7 @@ class RemoteNode extends Node {
         Node node = cache.getRemoteNode('$childPathPre/$key');
         children[key] = node;
         if (node is RemoteNode) {
-          node.updateRemoteData(value, cache);
+          node.updateRemoteChildData(value, cache);
         }
       }
     });

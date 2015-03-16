@@ -98,7 +98,7 @@ class ListController implements RequestUpdater {
             node.children.remove(name);
           } else if (value is Map) {
             // TODO, also wait for children $is
-            node.children[name] = requester._nodeCache.updateRemoteNode(node, name, value);
+            node.children[name] = requester._nodeCache.updateRemoteChildNode(node, name, value);
           }
         }
       }
@@ -214,12 +214,14 @@ class ListController implements RequestUpdater {
   }
   void _onListen(callback(RequesterListUpdate)) {
     if (_ready && _request != null) {
-      List changes = []
-          ..addAll(node.configs.keys)
-          ..addAll(node.attributes.keys)
-          ..addAll(node.children.keys);
-      RequesterListUpdate update = new RequesterListUpdate(node, changes, _request.streamStatus);
-      callback(update);
+      DsTimer.callLater((){
+        List changes = []
+            ..addAll(node.configs.keys)
+            ..addAll(node.attributes.keys)
+            ..addAll(node.children.keys);
+        RequesterListUpdate update = new RequesterListUpdate(node, changes, _request.streamStatus);
+        callback(update);
+      });
     }
   }
 

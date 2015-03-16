@@ -9,7 +9,6 @@ class InvokeResponse extends Response {
   int _pendingInitializeLength = 0;
   List _columns;
   List _updates;
-  String _sentStreamStatus = StreamStatus.initialize;
   String _sendingStreamStatus = StreamStatus.initialize;
   void updateStream(List udpates, {List columns, String streamStatus: StreamStatus.open}) {
     if (columns != null) {
@@ -36,6 +35,13 @@ class InvokeResponse extends Response {
     _updates = null;
     // TODO  if (_streamStatus == StreamStatus.closed)
   }
+  
+  /// close the request from responder side and also notify the requester
+  void close([DSError err = null]) {
+    _sendingStreamStatus = StreamStatus.closed;
+    responder.addProcessor(processor);
+  }
+  
   OnInvokeClosed onClose;
   void _close() {
     if (onClose != null) {
