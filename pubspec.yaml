@@ -7,7 +7,6 @@ dependencies:
   cipher: ">=0.7.1"
 dev_dependencies:
   scheduled_test: ">=0.11.6 <0.12.0"
-  grinder: ">=0.6.3 <0.7.0"
   browser: any
 environment:
   sdk: ">=1.9.0-dev"
