@@ -1,4 +1,4 @@
-part of dslink.http_server;
+part of dslink.server;
 
 class HttpServerConnection implements ServerConnection {
   PassiveChannel _responderChannel;
@@ -7,12 +7,14 @@ class HttpServerConnection implements ServerConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      _onRequestReadyCompleter.future;
 
   Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
   Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
-  
+
   HttpServerConnection() {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
@@ -65,7 +67,7 @@ class HttpServerConnection implements ServerConnection {
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
     updateResponseBeforeWrite(input);
-    
+
     input.fold([], foldList).then((List merged) {
       Map m;
       try {

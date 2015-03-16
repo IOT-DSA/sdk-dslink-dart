@@ -14,10 +14,12 @@ class RootNode extends LocalNodeImpl {
   }
 
   bool _loaded = false;
+
   void load(Map m, NodeProviderImpl provider) {
     if (_loaded) {
       throw 'root node can not be initialized twice';
     }
+
     m.forEach((String key, value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;

@@ -6,8 +6,10 @@ class RemoteNodeCache {
   Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
   RemoteNodeCache() {
     // special def that should always be empty
-    _nodes['/defs/profile/node'] = new RemoteDefNode('/defs/profile/node')..listed = true;
-    _nodes['/defs/profile/static'] = new RemoteDefNode('/defs/profile/static')..listed = true;
+    _nodes['/defs/profile/node'] = new RemoteDefNode('/defs/profile/node')
+      ..listed = true;
+    _nodes['/defs/profile/static'] = new RemoteDefNode('/defs/profile/static')
+      ..listed = true;
   }
   RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
@@ -52,7 +54,6 @@ class RemoteNode extends Node {
 
   RemoteNode(this.remotePath) {
     _getRawName();
-
   }
   void _getRawName() {
     if (remotePath == '/') {
@@ -128,6 +129,6 @@ class RemoteNode extends Node {
   }
 }
 
-class RemoteDefNode extends RemoteNode{
+class RemoteDefNode extends RemoteNode {
   RemoteDefNode(String path) : super(path);
 }

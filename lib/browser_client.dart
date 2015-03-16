@@ -1,4 +1,5 @@
 library dslink.browser_client;
+
 import 'dart:async';
 import 'dart:html';
 import 'dart:convert';
@@ -9,7 +10,6 @@ import 'requester.dart';
 import 'responder.dart';
 import 'src/crypto/pk.dart';
 
-//TODO
 part 'src/browser/browser_user_link.dart';
 part 'src/browser/browser_ecdh_link.dart';
 part 'src/browser/browser_http_conn.dart';

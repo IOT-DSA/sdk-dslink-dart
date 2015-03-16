@@ -34,14 +34,16 @@ class HttpClientLink implements ClientLink {
   String _conn;
 
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
+      {NodeProvider nodeProvider, bool isRequester: true,
+      bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
+        responder = (isResponder && nodeProvider != null)
+            ? new Responder(nodeProvider)
+            : null {}
 
   connect() async {
-
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     HttpClientRequest request = await client.postUrl(connUri);
@@ -51,7 +53,7 @@ class HttpClientLink implements ClientLink {
       'isResponder': responder != null
     };
     print(dsId);
-    
+
     request.add(jsonUtf8Encoder.convert(requestJson));
     HttpClientResponse response = await request.close();
     List<int> merged = await response.fold([], foldList);
@@ -65,8 +67,8 @@ class HttpClientLink implements ClientLink {
     _nonce = privateKey.decodeECDH(tempKey);
 
     if (serverConfig['wsUri'] is String) {
-      _wsUpdateUri =
-          '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
+      _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
+          .replaceFirst('http', 'ws');
     }
 
     if (serverConfig['httpUri'] is String) {
@@ -80,8 +82,9 @@ class HttpClientLink implements ClientLink {
 
   initWebsocket() async {
     try {
-      var socket = await WebSocket.connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-      _connection = new WebSocketConnection(socket, clientLink:this);
+      var socket = await WebSocket
+          .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      _connection = new WebSocketConnection(socket, clientLink: this);
 
       if (responder != null) {
         responder.connection = _connection.responderChannel;
@@ -95,14 +98,17 @@ class HttpClientLink implements ClientLink {
           }
         });
       }
-      _connection.onDisconnected.then((connection){initHttp();});
+      _connection.onDisconnected.then((connection) {
+        initHttp();
+      });
     } catch (error) {
       initHttp();
     }
   }
 
   initHttp() async {
-    _connection = new HttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
+    _connection =
+        new HttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

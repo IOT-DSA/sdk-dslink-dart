@@ -6,7 +6,7 @@ abstract class ConnectionHandler {
   StreamSubscription _beforeSendListener;
   ConnectionChannel get connection => _conn;
 
-  void set connection(ConnectionChannel conn) {
+  set connection(ConnectionChannel conn) {
     if (_connListener != null) {
       _connListener.cancel();
       _connListener = null;
@@ -57,6 +57,7 @@ abstract class ConnectionHandler {
     if (!_processors.contains(processor)) {
       _processors.add(processor);
     }
+
     if (!_pendingSend && _conn != null) {
       _conn.sendWhenReady(_doSend);
       _pendingSend = true;

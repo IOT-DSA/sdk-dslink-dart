@@ -7,12 +7,15 @@ class SimpleTableResult {
   List rows;
   SimpleTableResult([this.rows, this.columns]);
 }
+
 class AsyncTableResult {
   InvokeResponse response;
   List columns;
   List rows;
   String status = StreamStatus.initialize;
+
   AsyncTableResult([this.columns]);
+
   void update(List rows, [String stat]) {
     if (this.rows == null) {
       this.rows = rows;
@@ -26,7 +29,6 @@ class AsyncTableResult {
   }
 
   void write([InvokeResponse resp]) {
-    
     if (resp != null) {
       if (response == null) {
         response = resp;
@@ -40,6 +42,7 @@ class AsyncTableResult {
       columns = null;
     }
   }
+
   void close() {
     if (response != null) {
       response.close();
@@ -48,6 +51,7 @@ class AsyncTableResult {
     }
   }
 }
+
 class SimpleNodeProvider extends NodeProviderImpl {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
@@ -65,20 +69,24 @@ class SimpleNodeProvider extends NodeProviderImpl {
       root.load(m, this);
     }
   }
+
   void init([Map m]) {
     SimpleNode root = getNode("/");
     if (m != null) {
       root.load(m, this);
     }
   }
+
   Map save() {
     SimpleNode root = getNode("/");
     return root.save();
   }
+
   void updateValue(String path, Object value) {
     SimpleNode node = getNode(path);
     node.updateValue(value);
   }
+
   void addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);
@@ -89,6 +97,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     pnode.children[p.name] = node;
     pnode.updateList(p.name);
   }
+
   void removeNode(String path) {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);
@@ -100,10 +109,13 @@ class SimpleNodeProvider extends NodeProviderImpl {
   }
 
   final Map<String, _FunctionCallback> _functions = {};
+
   void registerFunction(String name, _FunctionCallback fun) {
     _functions[name] = fun;
   }
+
   final Map<String, _FunctionCallback> _profileFunctions = {};
+
   void registerFunctionByProfile(String profile, _FunctionCallback fun) {
     _profileFunctions[profile] = fun;
   }
@@ -165,6 +177,7 @@ class SimpleNode extends LocalNodeImpl {
     }
     _loaded = true;
   }
+
   Map save() {
     Map rslt = {};
     configs.forEach((str, val) {
@@ -184,8 +197,8 @@ class SimpleNode extends LocalNodeImpl {
 
     return rslt;
   }
-  InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response) {
+
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     if (invokeCallback != null) {
       Object rslt = invokeCallback(path, params);
       if (rslt is List) {

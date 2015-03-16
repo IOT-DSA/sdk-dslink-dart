@@ -1,9 +1,11 @@
 part of dslink.requester;
 
 class SubscribeRequest extends Request {
-  final Map<String, ReqSubscribeController> subsriptions = new Map<String, ReqSubscribeController>();
+  final Map<String, ReqSubscribeController> subsriptions =
+      new Map<String, ReqSubscribeController>();
 
-  SubscribeRequest(Requester requester, int rid) : super(requester, rid, null, null);
+  SubscribeRequest(Requester requester, int rid)
+      : super(requester, rid, null, null);
 
   @override
   void resend() {
@@ -39,7 +41,8 @@ class SubscribeRequest extends Request {
           continue; // invalid response
         }
         if (subsriptions.containsKey(path)) {
-          subsriptions[path].addValue(new ValueUpdate(value, ts: ts, meta: meta));
+          subsriptions[path]
+              .addValue(new ValueUpdate(value, ts: ts, meta: meta));
         }
       }
     }
@@ -86,16 +89,11 @@ class SubscribeRequest extends Request {
       }
     }
     if (!toAdd.isEmpty) {
-      requester._sendRequest({
-        'method': 'subscribe',
-        'paths': toAdd
-      }, null);
+      requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
     }
     if (!toRemove.isEmpty) {
-      requester._sendRequest({
-        'method': 'unsubscribe',
-        'paths': toRemove
-      }, null);
+      requester._sendRequest(
+          {'method': 'unsubscribe', 'paths': toRemove}, null);
     }
   }
 }
@@ -106,7 +104,8 @@ class ReqSubscribeController {
   BroadcastStreamController<ValueUpdate> _controller;
   Stream<ValueUpdate> get stream => _controller.stream;
   ReqSubscribeController(this.node, this.requester) {
-    _controller = new BroadcastStreamController<ValueUpdate>(_onStartListen, _onAllCancel, _onListen);
+    _controller = new BroadcastStreamController<ValueUpdate>(
+        _onStartListen, _onAllCancel, _onListen);
   }
 
   ValueUpdate _lastUpdate;

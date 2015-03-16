@@ -7,10 +7,7 @@ class RemoveController implements RequestUpdater {
   final String path;
   Request _request;
   RemoveController(this.requester, this.path) {
-    Map reqMap = {
-      'method': 'remove',
-      'path': path
-    };
+    Map reqMap = {'method': 'remove', 'path': path};
     _request = requester._sendRequest(reqMap, this);
   }
 

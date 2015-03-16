@@ -7,12 +7,14 @@ class WebSocketConnection implements ClientConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      _onRequestReadyCompleter.future;
 
   Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
   Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
-  
+
   final ClientLink clientLink;
 
   final WebSocket socket;
@@ -127,7 +129,8 @@ class WebSocketConnection implements ClientConnection {
   }
 
   void close() {
-    if (socket.readyState == WebSocket.OPEN || socket.readyState == WebSocket.CONNECTING) {
+    if (socket.readyState == WebSocket.OPEN ||
+        socket.readyState == WebSocket.CONNECTING) {
       socket.close();
     }
     _onDone();

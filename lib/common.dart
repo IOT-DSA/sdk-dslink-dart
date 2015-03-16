@@ -28,7 +28,7 @@ abstract class Connection {
   Future<ConnectionChannel> get onRequesterReady;
 
   Future<Connection> get onDisconnected;
-  
+
   /// notify the connection channel need to send data
   void requireSend();
   /// close the connection
@@ -105,7 +105,8 @@ class DSError {
   String path;
   String phase;
 
-  DSError(this.type, {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
+  DSError(this.type,
+      {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
 
   String getMessage() {
     if (msg != null) {
@@ -117,12 +118,13 @@ class DSError {
     }
     return 'Error';
   }
-  
+
   Map serialize() {
     Map rslt = {};
     if (msg != null) {
       rslt['msg'] = msg;
-    };
+    }
+    ;
     if (type != null) {
       rslt['type'] = type;
     }
@@ -138,11 +140,11 @@ class DSError {
     return rslt;
   }
 
-
   static final DSError PERMISSION_DENIED = new DSError('permissionDenied');
   static final DSError INVALID_METHOD = new DSError('invalidMethod');
   static final DSError INVALID_PATH = new DSError('invalidPath');
   static final DSError INVALID_PATHS = new DSError('invalidPaths');
   static final DSError INVALID_VALUE = new DSError('invalidValue');
-  static final DSError DISCONNECTED = new DSError('disconnected', phase:ErrorPhase.request);
+  static final DSError DISCONNECTED =
+      new DSError('disconnected', phase: ErrorPhase.request);
 }

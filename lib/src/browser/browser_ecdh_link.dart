@@ -16,10 +16,7 @@ class BrowserECDHLink implements ClientLink {
 
   Connection _connection;
 
-  static const Map<String, int> saltNameMap = const {
-    'salt': 0,
-    'saltS': 1,
-  };
+  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
 
   /// 2 salts, salt and saltS
   final List<String> salts = new List<String>(2);
@@ -36,14 +33,17 @@ class BrowserECDHLink implements ClientLink {
   String _httpUpdateUri;
   String _conn;
 
-  BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey, {NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true})
+  BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
+      {NodeProvider nodeProvider, bool isRequester: true,
+      bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {}
+        responder = (isResponder && nodeProvider != null)
+            ? new Responder(nodeProvider)
+            : null {}
 
   void connect() {
-
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
 
     Map requestJson = {
@@ -51,7 +51,13 @@ class BrowserECDHLink implements ClientLink {
       'isRequester': requester != null,
       'isResponder': responder != null
     };
-    HttpRequest.request(connUri.toString(), method: 'POST', withCredentials: false, mimeType: 'application/json', sendData: JSON.encode(requestJson)).then((HttpRequest request) {
+    HttpRequest
+        .request(connUri.toString(),
+            method: 'POST',
+            withCredentials: false,
+            mimeType: 'application/json',
+            sendData: JSON.encode(requestJson))
+        .then((HttpRequest request) {
       Map serverConfig = JSON.decode(request.responseText);
       saltNameMap.forEach((name, idx) {
         //read salts
@@ -61,12 +67,14 @@ class BrowserECDHLink implements ClientLink {
       _nonce = privateKey.decodeECDH(tempKey);
 
       if (serverConfig['wsUri'] is String) {
-        _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'.replaceFirst('http', 'ws');
+        _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
+            .replaceFirst('http', 'ws');
       }
 
       if (serverConfig['httpUri'] is String) {
         // TODO implement http
-        _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
+        _httpUpdateUri =
+            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
 
       initWebsocket();
@@ -76,7 +84,8 @@ class BrowserECDHLink implements ClientLink {
   }
 
   initWebsocket() {
-    var socket = new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+    var socket =
+        new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
     _connection = new WebSocketConnection(socket, this);
 
     if (responder != null) {
@@ -91,11 +100,14 @@ class BrowserECDHLink implements ClientLink {
         }
       });
     }
-    _connection.onDisconnected.then((connection){initHttp();});
+    _connection.onDisconnected.then((connection) {
+      initHttp();
+    });
   }
 
   initHttp() {
-    _connection = new HttpBrowserConnection(_httpUpdateUri, this, salts[0], salts[1]);
+    _connection =
+        new HttpBrowserConnection(_httpUpdateUri, this, salts[0], salts[1]);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

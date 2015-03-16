@@ -38,7 +38,8 @@ class Base64 {
     return table;
   })();
 
-  static String encode(List<int> bytes, [int lineSize = 0, int paddingSpace = 0]) {
+  static String encode(List<int> bytes,
+      [int lineSize = 0, int paddingSpace = 0]) {
     int len = bytes.length;
     if (len == 0) {
       return "";
@@ -47,11 +48,13 @@ class Base64 {
     final int remainderLength = len.remainder(3);
     final int chunkLength = len - remainderLength;
     // Size of base output.
-    int outputLen = ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0) + paddingSpace;
+    int outputLen =
+        ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0) + paddingSpace;
     // Add extra for line separators.
     int lineSizeGroup = lineSize >> 2;
     if (lineSizeGroup > 0) {
-      outputLen += ((outputLen - 1) ~/ (lineSizeGroup << 2)) * (1 + paddingSpace);
+      outputLen +=
+          ((outputLen - 1) ~/ (lineSizeGroup << 2)) * (1 + paddingSpace);
     }
     List<int> out = new List<int>(outputLen);
 
@@ -145,10 +148,10 @@ class Base64 {
     int outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
     Uint8List out = new Uint8List(outputLen);
 
-    for (int i = 0, o = 0; o < outputLen; ) {
+    for (int i = 0, o = 0; o < outputLen;) {
       // Accumulate 4 valid 6 bit Base 64 characters into an int.
       int x = 0;
-      for (int j = 4; j > 0; ) {
+      for (int j = 4; j > 0;) {
         int c = _decodeTable[input.codeUnitAt(i++)];
         if (c >= 0) {
           x = ((x << 6) & 0xFFFFFF) | c;

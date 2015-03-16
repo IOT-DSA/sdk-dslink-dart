@@ -36,7 +36,7 @@ class Request {
     }
     updater.onUpdate(streamStatus, updates, columns, null);
   }
-  
+
   /// close the request and finish data
   void _close([DSError error]) {
     if (streamStatus != StreamStatus.closed) {

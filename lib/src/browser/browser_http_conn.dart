@@ -7,18 +7,21 @@ class HttpBrowserConnection implements ClientConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      _onRequestReadyCompleter.future;
 
   Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
   Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
-  
+
   final String url;
   final ClientLink clientLink;
   final bool withCredentials;
   String salt;
   String saltS;
-  HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS, [this.withCredentials=false]) {
+  HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS,
+      [this.withCredentials = false]) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
@@ -68,20 +71,26 @@ class HttpBrowserConnection implements ClientConnection {
       }
     }
     if (needSend) {
-     
-
       Uri connUri = Uri.parse('$url&');
       if (shortPoll) {
         print('http sendS: $m');
         _sendingS = true;
-        connUri = Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
+        connUri =
+            Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
       } else {
         print('http send: $m');
         _sending = true;
-        connUri = Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+        connUri =
+            Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
       }
-      HttpRequest.request(connUri.toString(), method: 'POST', withCredentials: withCredentials, mimeType: 'application/json', sendData: JSON.encode(m)).then(//
-      (HttpRequest request) {
+      HttpRequest
+          .request(connUri.toString(),
+              method: 'POST',
+              withCredentials: withCredentials,
+              mimeType: 'application/json',
+              sendData: JSON.encode(m))
+          .then(//
+              (HttpRequest request) {
         if (shortPoll) {
           _onDataS(request.responseText);
         } else {

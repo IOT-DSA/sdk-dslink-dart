@@ -5,7 +5,8 @@ class RequesterListUpdate extends RequesterUpdate {
   /// when changes is null, means everything could have been changed
   List<String> changes;
   RemoteNode node;
-  RequesterListUpdate(this.node, this.changes, String streamStatus) : super(streamStatus);
+  RequesterListUpdate(this.node, this.changes, String streamStatus)
+      : super(streamStatus);
 }
 
 class ListDefListener {
@@ -15,8 +16,11 @@ class ListDefListener {
   StreamSubscription listener;
 
   bool ready = false;
-  ListDefListener(this.node, this.requester, void callback(RequesterListUpdate)) {
-    listener = requester.list(node.remotePath).listen((RequesterListUpdate update) {
+  ListDefListener(
+      this.node, this.requester, void callback(RequesterListUpdate)) {
+    listener = requester
+        .list(node.remotePath)
+        .listen((RequesterListUpdate update) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
     });
@@ -33,14 +37,16 @@ class ListController implements RequestUpdater {
   Stream<RequesterListUpdate> get stream => _controller.stream;
   Request _request;
   ListController(this.node, this.requester) {
-    _controller = new BroadcastStreamController<RequesterListUpdate>(onStartListen, _onAllCancel, _onListen);
+    _controller = new BroadcastStreamController<RequesterListUpdate>(
+        onStartListen, _onAllCancel, _onListen);
   }
   bool get initialized {
     return _request != null && _request.streamStatus != StreamStatus.initialize;
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
-  void onUpdate(String streamStatus, List updates, List columns, [DSError error]) {
+  void onUpdate(String streamStatus, List updates, List columns,
+      [DSError error]) {
     // TODO implement error handling
     if (updates != null) {
       for (Object update in updates) {
@@ -98,7 +104,8 @@ class ListController implements RequestUpdater {
             node.children.remove(name);
           } else if (value is Map) {
             // TODO, also wait for children $is
-            node.children[name] = requester._nodeCache.updateRemoteChildNode(node, name, value);
+            node.children[name] =
+                requester._nodeCache.updateRemoteChildNode(node, name, value);
           }
         }
       }
@@ -120,7 +127,8 @@ class ListController implements RequestUpdater {
     if (!str.startsWith('/')) {
       str = '/defs/profile/$str';
     }
-    if (node.profile is RemoteNode && (node.profile as RemoteNode).remotePath == str) {
+    if (node.profile is RemoteNode &&
+        (node.profile as RemoteNode).remotePath == str) {
       return;
     }
     if (node.profile != null) {
@@ -130,7 +138,6 @@ class ListController implements RequestUpdater {
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _loadDef(node.profile);
     }
-
   }
   String _lastMixin;
   void loadMixin(String str) {
@@ -156,12 +163,18 @@ class ListController implements RequestUpdater {
     if (node == def || _defLoaders.containsKey(def.remotePath)) {
       return;
     }
-    ListDefListener listener = new ListDefListener(def, requester, _onDefUpdate);
+    ListDefListener listener =
+        new ListDefListener(def, requester, _onDefUpdate);
     _defLoaders[def.remotePath] = listener;
   }
-  static const List<String> _ignoreProfileProps = const [r'$is', r'$permission', r'$settings'];
+  static const List<String> _ignoreProfileProps = const [
+    r'$is',
+    r'$permission',
+    r'$settings'
+  ];
   void _onDefUpdate(RequesterListUpdate update) {
-    changes.addAll(update.changes.where((str) => !_ignoreProfileProps.contains(str)));
+    changes.addAll(
+        update.changes.where((str) => !_ignoreProfileProps.contains(str)));
     if (update.streamStatus == StreamStatus.closed) {
       if (_defLoaders.containsKey(update.node.remotePath)) {
         _defLoaders.remove(update.node.remotePath);
@@ -184,7 +197,8 @@ class ListController implements RequestUpdater {
 
     if (_ready) {
       if (_request.streamStatus != StreamStatus.initialize) {
-        _controller.add(new RequesterListUpdate(node, changes.toList(), _request.streamStatus));
+        _controller.add(new RequesterListUpdate(
+            node, changes.toList(), _request.streamStatus));
         changes.clear();
       }
       if (_request.streamStatus == StreamStatus.closed) {
@@ -206,20 +220,19 @@ class ListController implements RequestUpdater {
 
   void onStartListen() {
     if (_request == null) {
-      _request = requester._sendRequest({
-        'method': 'list',
-        'path': node.remotePath
-      }, this);
+      _request = requester._sendRequest(
+          {'method': 'list', 'path': node.remotePath}, this);
     }
   }
   void _onListen(callback(RequesterListUpdate)) {
     if (_ready && _request != null) {
-      DsTimer.callLater((){
+      DsTimer.callLater(() {
         List changes = []
-            ..addAll(node.configs.keys)
-            ..addAll(node.attributes.keys)
-            ..addAll(node.children.keys);
-        RequesterListUpdate update = new RequesterListUpdate(node, changes, _request.streamStatus);
+          ..addAll(node.configs.keys)
+          ..addAll(node.attributes.keys)
+          ..addAll(node.children.keys);
+        RequesterListUpdate update =
+            new RequesterListUpdate(node, changes, _request.streamStatus);
         callback(update);
       });
     }
@@ -234,12 +247,12 @@ class ListController implements RequestUpdater {
       listener.cancel();
     });
     _defLoaders.clear();
-    
+
     if (_request != null) {
       requester.closeRequest(_request);
       _request = null;
     }
-    
+
     _controller.close();
     node._listController = null;
   }

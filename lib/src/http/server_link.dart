@@ -1,4 +1,4 @@
-part of dslink.http_server;
+part of dslink.server;
 
 /// a server link for both http and ws
 class HttpServerLink implements ServerLink {
@@ -29,10 +29,13 @@ class HttpServerLink implements ServerLink {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
-  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, this.session, this.trusted: false})
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
+      {NodeProvider nodeProvider, this.session, this.trusted: false})
       : dsId = id,
         requester = linkManager.getRequester(id),
-        responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider) : null {
+        responder = (nodeProvider != null)
+            ? linkManager.getResponder(id, nodeProvider)
+            : null {
     if (!trusted) {
       for (int i = 0; i < 2; ++i) {
         List<int> bytes = new List<int>(12);
@@ -55,14 +58,15 @@ class HttpServerLink implements ServerLink {
   }
 
   void initLink(HttpRequest request) {
-    
+
 //          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
 //          isResponder: m['isRequester'] == true // if client is requester, then server is responder
 
     // TODO, dont use hard coded id and public key
     Map respJson = {
       "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
-      "publicKey": "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
+      "publicKey":
+          "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": "/ws",
       "httpUri": "/http",
       "updateInterval": 200
@@ -85,7 +89,8 @@ class HttpServerLink implements ServerLink {
     if (hash == null) {
       return false;
     }
-    if (_verifiedNonce != null && _verifiedNonce.verifySalt(salts[type], hash)) {
+    if (_verifiedNonce != null &&
+        _verifiedNonce.verifySalt(salts[type], hash)) {
       _updateSalt(type);
       return true;
     } else if (_tempNonce != null && _tempNonce.verifySalt(salts[type], hash)) {
@@ -116,7 +121,7 @@ class HttpServerLink implements ServerLink {
     }
 
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
-        throw HttpStatus.UNAUTHORIZED;
+      throw HttpStatus.UNAUTHORIZED;
     }
 //    if (requester == null) {
 //      throw HttpStatus.FORBIDDEN;

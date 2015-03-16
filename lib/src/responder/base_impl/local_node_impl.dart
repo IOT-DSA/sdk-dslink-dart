@@ -1,6 +1,5 @@
 part of dslink.responder;
 
-
 abstract class NodeProviderImpl extends NodeProvider {
   Map<String, LocalNode> get nodes;
 }
@@ -29,7 +28,7 @@ class LocalNodeImpl extends LocalNode {
 
   bool _loaded = false;
   bool get loaded => _loaded;
-  
+
   void load(Map m, NodeProviderImpl provider) {
     if (_loaded) {
       configs.clear();
@@ -79,10 +78,9 @@ class LocalNodeImpl extends LocalNode {
     return Permission.WRITE;
   }
 
-  void updateList(String name, [int permission = Permission.READ]) {
-
-  }
-  Response setAttribute(String name, String value, Responder responder, Response response) {
+  void updateList(String name, [int permission = Permission.READ]) {}
+  Response setAttribute(
+      String name, String value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
       if (attributes.containsKey(name) && attributes[name] != value) {
         attributes[name] = value;
@@ -94,7 +92,8 @@ class LocalNodeImpl extends LocalNode {
     }
   }
 
-  Response removeAttribute(String name, Responder responder, Response response) {
+  Response removeAttribute(
+      String name, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
       if (attributes.containsKey(name)) {
         attributes.remove(name);
@@ -106,7 +105,8 @@ class LocalNodeImpl extends LocalNode {
     }
   }
 
-  Response setConfig(String name, Object value, Responder responder, Response response) {
+  Response setConfig(
+      String name, Object value, Responder responder, Response response) {
     var config = Configs.getConfig(name, profile);
     return response..close(config.setConfig(value, this, responder));
   }
@@ -115,9 +115,10 @@ class LocalNodeImpl extends LocalNode {
     var config = Configs.getConfig(name, profile);
     return response..close(config.removeConfig(this, responder));
   }
-  
+
   Response setValue(Object value, Responder responder, Response response) {
-    if (getPermission(responder) >= Permission.WRITE && this.getConfig(r'$writable') == 'write') {
+    if (getPermission(responder) >= Permission.WRITE &&
+        this.getConfig(r'$writable') == 'write') {
       updateValue(value);
       // TODO check value type
       return response..close();

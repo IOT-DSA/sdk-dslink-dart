@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dslink/http_server.dart';
+import 'package:dslink/server.dart';
 import 'package:dslink/broker.dart';
 
 void main() {

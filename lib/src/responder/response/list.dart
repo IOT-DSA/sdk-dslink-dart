@@ -3,7 +3,8 @@ part of dslink.responder;
 class ListResponse extends Response {
   final LocalNode node;
   StreamSubscription _nodeChangeListener;
-  ListResponse(Responder responder, int rid, this.node) : super(responder, rid) {
+  ListResponse(Responder responder, int rid, this.node)
+      : super(responder, rid) {
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
       responder.addProcessor(processor);
@@ -55,10 +56,7 @@ class ListResponse extends Response {
           if (node.configs.containsKey(change)) {
             update = [change, node.configs[change]];
           } else {
-            update = {
-              'name': change,
-              'change': 'remove'
-            };
+            update = {'name': change, 'change': 'remove'};
           }
           if (change == r'$mixin') {
             updateMixin = update;
@@ -69,20 +67,14 @@ class ListResponse extends Response {
           if (node.attributes.containsKey(change)) {
             update = [change, node.attributes[change]];
           } else {
-            update = {
-              'name': change,
-              'change': 'remove'
-            };
+            update = {'name': change, 'change': 'remove'};
           }
           updateAttributes.add(update);
         } else {
           if (node.children.containsKey(change)) {
             update = [change, node.children[change].getSimpleMap()];
           } else {
-            update = {
-              'name': change,
-              'change': 'remove'
-            };
+            update = {'name': change, 'change': 'remove'};
           }
           updateChildren.add(update);
         }
@@ -98,9 +90,9 @@ class ListResponse extends Response {
       updates.add(updateMixin);
     }
     updates
-        ..addAll(updateConfigs)
-        ..addAll(updateAttributes)
-        ..addAll(updateChildren);
+      ..addAll(updateConfigs)
+      ..addAll(updateAttributes)
+      ..addAll(updateChildren);
 
     responder.updateReponse(this, updates, streamStatus: StreamStatus.open);
   }

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dslink/http_client.dart';
+import 'package:dslink/client.dart';
 import 'package:dslink/src/crypto/pk.dart';
 import 'package:dslink/requester.dart';
 import 'package:dslink/common.dart';
@@ -27,13 +27,13 @@ main() async {
 //      }
 //    }
 //  });
-//  
+//
 //  new Timer.periodic(new Duration(seconds:1), (t){
 //    if (count > 0)
 //    print('received count: $count   sum: $sum');
 //  });
-  
-  
+
+
 //  stdin.listen((data){
 //    try {
 //      Map m = JSON.decode(UTF8.decode(data));
@@ -89,11 +89,11 @@ main() async {
 //  await for (RequesterListUpdate update in updates) {
 //    print(update.changes);
 //  }
-  
+
 //  Stream<ValueUpdate> updates = requester.subscribe('/conns/responder-p/test/incremental');
 //  updates.listen((update0){
 //    print(update0.value);
 //  });
-//  
+//
 
 }

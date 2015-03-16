@@ -12,7 +12,14 @@ class Permission {
   /// something that can never happen
   static const int NEVER = 4;
 
-  static const List<String> names = const ['none', 'read', 'write', 'config', 'never'];
+  static const List<String> names = const [
+    'none',
+    'read',
+    'write',
+    'config',
+    'never'
+  ];
+
   static const Map<String, int> nameParser = const {
     'none': NONE,
     'read': READ,
@@ -26,6 +33,7 @@ class PermissionList {
   Map<String, int> idMatchs = {};
   Map<String, int> groupMatchs = {};
   int defaultPermission = Permission.NONE;
+
   void updatePermissions(List data) {
     idMatchs.clear();
     groupMatchs.clear();
@@ -38,16 +46,19 @@ class PermissionList {
           if (obj['group'] == 'default') {
             defaultPermission = Permission.nameParser[obj['permission']];
           } else {
-            groupMatchs[obj['group']] = Permission.nameParser[obj['permission']];
+            groupMatchs[obj['group']] =
+                Permission.nameParser[obj['permission']];
           }
         }
       }
     }
   }
+
   int getPermission(Responder responder) {
     if (idMatchs.containsKey(responder.reqId)) {
       return idMatchs[responder.reqId];
     }
+
     int rslt = Permission.NEVER;
     for (String group in responder.groups) {
       if (groupMatchs.containsKey(group)) {
@@ -58,6 +69,7 @@ class PermissionList {
         }
       }
     }
+
     if (rslt == Permission.NEVER) {
       return defaultPermission;
     }

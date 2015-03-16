@@ -5,7 +5,10 @@ class BrowserUserLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
-  String session = DSRandom.instance.nextUint16().toRadixString(16) + DSRandom.instance.nextUint16().toRadixString(16) + DSRandom.instance.nextUint16().toRadixString(16) + DSRandom.instance.nextUint16().toRadixString(16);
+  String session = DSRandom.instance.nextUint16().toRadixString(16) +
+      DSRandom.instance.nextUint16().toRadixString(16) +
+      DSRandom.instance.nextUint16().toRadixString(16) +
+      DSRandom.instance.nextUint16().toRadixString(16);
   final Requester requester;
   final Responder responder;
 
@@ -14,10 +17,7 @@ class BrowserUserLink implements ClientLink {
 
   Connection _connection;
 
-  static const Map<String, int> saltNameMap = const {
-    'salt': 0,
-    'saltS': 1,
-  };
+  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
 
   updateSalt(String salt, [bool shortPolling = false]) {
     // TODO: implement updateSalt
@@ -26,9 +26,12 @@ class BrowserUserLink implements ClientLink {
   String wsUpdateUri;
   String httpUpdateUri;
 
-  BrowserUserLink({NodeProvider nodeProvider, bool isRequester: true, bool isResponder: true, this.wsUpdateUri, this.httpUpdateUri})
+  BrowserUserLink({NodeProvider nodeProvider, bool isRequester: true,
+      bool isResponder: true, this.wsUpdateUri, this.httpUpdateUri})
       : requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null) ? new Responder(nodeProvider) : null {
+        responder = (isResponder && nodeProvider != null)
+            ? new Responder(nodeProvider)
+            : null {
     if (wsUpdateUri.startsWith('http')) {
       wsUpdateUri = 'ws${wsUpdateUri.substring(4)}';
     }
@@ -55,11 +58,14 @@ class BrowserUserLink implements ClientLink {
         }
       });
     }
-    _connection.onDisconnected.then((connection){initHttp();});
+    _connection.onDisconnected.then((connection) {
+      initHttp();
+    });
   }
 
   initHttp() {
-    _connection = new HttpBrowserConnection('$httpUpdateUri?session=$session', this, '0', '0', true);
+    _connection = new HttpBrowserConnection(
+        '$httpUpdateUri?session=$session', this, '0', '0', true);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;
@@ -71,14 +77,12 @@ class BrowserUserLink implements ClientLink {
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
         }
-        
       });
     }
   }
 }
 
 class DummyECDH implements ECDH {
-
   const DummyECDH();
   String encodePublicKey() {
     return '';

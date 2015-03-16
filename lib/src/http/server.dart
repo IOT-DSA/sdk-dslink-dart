@@ -1,4 +1,4 @@
-part of dslink.http_server;
+part of dslink.server;
 
 class DsSimpleLinkManager implements ServerLinkManager {
   final Map<String, HttpServerLink> _links = new Map<String, HttpServerLink>();
@@ -30,9 +30,11 @@ class DsHttpServer {
   final ServerLinkManager _linkManager;
   /// to open a secure server, SecureSocket.initialize() need to be called before start()
   DsHttpServer.start(dynamic address, //
-      {int httpPort: 8080, int httpsPort: 8443, String certificateName, linkManager,
-      this.nodeProvider})
-      : _linkManager = (linkManager == null) ? new DsSimpleLinkManager() : linkManager {
+      {int httpPort: 8080, int httpsPort: 8443, String certificateName,
+      linkManager, this.nodeProvider})
+      : _linkManager = (linkManager == null)
+          ? new DsSimpleLinkManager()
+          : linkManager {
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
         print('listen on $httpPort');
@@ -43,7 +45,9 @@ class DsHttpServer {
     }
 
     if (httpsPort > 0 && certificateName != null) {
-      HttpServer.bindSecure(address, httpsPort, certificateName: certificateName).then((server) {
+      HttpServer
+          .bindSecure(address, httpsPort, certificateName: certificateName)
+          .then((server) {
         print('listen on $httpsPort');
         server.listen(_handleRqeuest);
       }).catchError((Object err) {
@@ -105,7 +109,8 @@ class DsHttpServer {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
-          link = new HttpServerLink(dsId, new PublicKey.fromBytes(bytes), _linkManager,
+          link = new HttpServerLink(
+              dsId, new PublicKey.fromBytes(bytes), _linkManager,
               nodeProvider: nodeProvider);
           if (!link.valid) {
             // dsId doesn't match public key

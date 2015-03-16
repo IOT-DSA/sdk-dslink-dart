@@ -33,9 +33,7 @@ class Node {
     return null;
   }
 
-  Map<String, Object> configs = {
-    r'$is': 'node'
-  };
+  Map<String, Object> configs = {r'$is': 'node'};
 
   Object getConfig(String name) {
     if (configs.containsKey(name)) {
@@ -91,7 +89,7 @@ class Node {
     }
     return getChild(name);
   }
-  
+
   void forEachChild(void callback(String, Node)) {
     children.forEach(callback);
     if (profile != null) {

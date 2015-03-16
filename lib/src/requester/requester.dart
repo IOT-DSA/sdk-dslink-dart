@@ -33,13 +33,13 @@ class Requester extends ConnectionHandler {
     }
   }
   int nextRid = 1;
-  
+
   // TODO need a new design for short polling and long polling
   int lastSentId = -1;
   void onSent(bool sent) {
     lastSentId = nextRid - 1;
   }
-  
+
   Request _sendRequest(Map m, RequestUpdater updater) {
     m['rid'] = nextRid;
     Request req;
@@ -79,10 +79,7 @@ class Requester extends ConnectionHandler {
   void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
       if (request.streamStatus != StreamStatus.closed) {
-        addToSendList({
-          'method': 'close',
-          'rid': request.rid
-        });
+        addToSendList({'method': 'close', 'rid': request.rid});
       }
       _requests.remove(request.rid);
       request._close();
@@ -90,10 +87,13 @@ class Requester extends ConnectionHandler {
   }
 
   void onDisconnected() {
-    var newRequests = new Map<int, Request>();;
+    var newRequests = new Map<int, Request>();
+    ;
     newRequests[0] = _subsciption;
     _requests.forEach((n, req) {
-      if (req.rid != 0 && req.rid <= lastSentId && req.updater is! ListController) {
+      if (req.rid != 0 &&
+          req.rid <= lastSentId &&
+          req.updater is! ListController) {
         req._close(DSError.DISCONNECTED);
       }
     });

@@ -4,13 +4,15 @@ typedef void OnInvokeClosed(InvokeResponse);
 
 class InvokeResponse extends Response {
   final LocalNode node;
-  InvokeResponse(Responder responder, int rid, this.node) : super(responder, rid);
+  InvokeResponse(Responder responder, int rid, this.node)
+      : super(responder, rid);
 
   int _pendingInitializeLength = 0;
   List _columns;
   List _updates;
   String _sendingStreamStatus = StreamStatus.initialize;
-  void updateStream(List udpates, {List columns, String streamStatus: StreamStatus.open}) {
+  void updateStream(List udpates,
+      {List columns, String streamStatus: StreamStatus.open}) {
     if (columns != null) {
       _columns = columns;
     }
@@ -30,18 +32,19 @@ class InvokeResponse extends Response {
     if (_columns != null) {
       _columns = TableColumn.serializeColumns(_columns);
     }
-    responder.updateReponse(this, _updates, streamStatus: _sendingStreamStatus, columns: _columns);
+    responder.updateReponse(this, _updates,
+        streamStatus: _sendingStreamStatus, columns: _columns);
     _columns = null;
     _updates = null;
     // TODO  if (_streamStatus == StreamStatus.closed)
   }
-  
+
   /// close the request from responder side and also notify the requester
   void close([DSError err = null]) {
     _sendingStreamStatus = StreamStatus.closed;
     responder.addProcessor(processor);
   }
-  
+
   OnInvokeClosed onClose;
   void _close() {
     if (onClose != null) {

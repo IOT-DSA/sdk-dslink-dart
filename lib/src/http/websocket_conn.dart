@@ -13,12 +13,14 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => _onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> _onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      _onRequestReadyCompleter.future;
 
   Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
   Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
-  
+
   final ClientLink clientLink;
 
   final WebSocket socket;
@@ -45,7 +47,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand[key] = value;
     DsTimer.callLaterOnce(_send);
   }
-  //TODO, let connection choose which mode to use, before the first response comes in 
+  //TODO, let connection choose which mode to use, before the first response comes in
   bool _useStringFormat = false;
   void _onData(dynamic data) {
     print('onData:');
@@ -117,12 +119,11 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
     if (needSend) {
       print('send: $m');
-      if (_useStringFormat){
+      if (_useStringFormat) {
         socket.add(JSON.encode(m));
       } else {
         socket.add(jsonUtf8Encoder.convert(m));
       }
-      
     }
   }
 
@@ -146,7 +147,8 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void close() {
-    if (socket.readyState == WebSocket.OPEN || socket.readyState == WebSocket.CONNECTING) {
+    if (socket.readyState == WebSocket.OPEN ||
+        socket.readyState == WebSocket.CONNECTING) {
       socket.close();
     }
     _onDone();

@@ -1,4 +1,4 @@
-import 'package:dslink/http_client.dart';
+import 'package:dslink/client.dart';
 import 'package:dslink/src/crypto/pk.dart';
 import 'package:dslink/responder.dart';
 
@@ -16,10 +16,10 @@ void main() {
       if (params['value'] is bool) {
         nodeProvider.updateValue('${path}ed', params['value']);
       }
-      
+
       return {"value":"a"};
     }
-    
+
     nodeProvider.registerFunction('openLocker', openLocker);
     nodeProvider.registerFunction('changeLocker', openLocker2);
     nodeProvider.init({
@@ -40,7 +40,7 @@ void main() {
           r'$invokable': 'read',
           r'$params':[{"name":"value","type":"bool"}],
           r'$function': 'changeLocker'
-          
+
         },
         'opened': { // the open status value
           r'$type': 'bool',
@@ -48,7 +48,7 @@ void main() {
         }
       }
     });
-    
+
 //    // add locker at runtime
 //    nodeProvider.addNode('/locker3', {
 //        r'$is':'locker',
@@ -56,13 +56,13 @@ void main() {
 //          r'$invokable': 'read',
 //          r'$params':[{"name":"value","type":"bool"}],
 //          r'$function': 'openLocker'
-//          
+//
 //        },
 //        'opened': { // the open status value
 //          r'$type': 'bool',
 //          '?value': false
 //        }
 //      });
-//    
+//
     var link = new HttpClientLink('http://localhost:8080/conn', 'locker-', key, isResponder: true, nodeProvider: nodeProvider)..connect();
 }

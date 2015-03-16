@@ -8,11 +8,7 @@ class SetController implements RequestUpdater {
   final Object value;
   Request _request;
   SetController(this.requester, this.path, this.value) {
-    Map reqMap = {
-      'method': 'set',
-      'path': path,
-      'value': value
-    };
+    Map reqMap = {'method': 'set', 'path': path, 'value': value};
     _request = requester._sendRequest(reqMap, this);
   }
 

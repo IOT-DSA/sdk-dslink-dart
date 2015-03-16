@@ -1,6 +1,12 @@
 part of dslink.common;
 
 class TableColumn {
+  String type;
+  String name;
+  Object defaultValue;
+
+  TableColumn(this.name, this.type, [this.defaultValue]);
+
   /// convert tableColumns into List of Map
   static List serializeColumns(List list) {
     List rslts = [];
@@ -8,10 +14,7 @@ class TableColumn {
       if (m is Map) {
         rslts.add(m);
       } else if (m is TableColumn) {
-        Map rslt = {
-          'type': m.type,
-          'name': m.name
-        };
+        Map rslt = {'type': m.type, 'name': m.name};
         if (m.defaultValue != null) {
           rslt['default'] = m.defaultValue;
         }
@@ -35,10 +38,6 @@ class TableColumn {
     }
     return rslt;
   }
-  String type;
-  String name;
-  Object defaultValue;
-  TableColumn(this.name, this.type, [this.defaultValue]);
 }
 
 class Table {

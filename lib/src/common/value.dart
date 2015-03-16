@@ -36,11 +36,13 @@ class Value {
   factory Value.of(input) {
     if (PRIMITIVES.keys.contains(input.runtimeType)) {
       // Input is primitive.
-      return new Value(PRIMITIVES[input.runtimeType], input, new DateTime.now());
+      return new Value(
+          PRIMITIVES[input.runtimeType], input, new DateTime.now());
     } else if (input is Value) {
       return input;
     } else {
-      throw new ArgumentError.value(input, "Value.of does not support the input '${input.runtimeType}'");
+      throw new ArgumentError.value(
+          input, "Value.of does not support the input '${input.runtimeType}'");
     }
   }
 
@@ -59,29 +61,34 @@ class Value {
   }
 
   @override
-  bool operator ==(obj) => obj is Value && obj.type == type && obj.value == value && obj.timestamp == timestamp;
+  bool operator ==(obj) => obj is Value &&
+      obj.type == type &&
+      obj.value == value &&
+      obj.timestamp == timestamp;
 
   @override
   int get hashCode => hashObjects([type, value, timestamp]);
 
   @override
-  String toString() => "Value(type: ${type}, value: ${value}, timestamp: ${timestamp}, status: ${status})";
+  String toString() =>
+      "Value(type: ${type}, value: ${value}, timestamp: ${timestamp}, status: ${status})";
 
   static Value valueOf(input) => new Value.of(input);
 }
 
 class ValueUpdate {
-  static final String TIME_ZONE = (){
+  static final String TIME_ZONE = () {
     int timeZoneOffset = (new DateTime.now()).timeZoneOffset.inMinutes;
     String s = '+';
     if (timeZoneOffset < 0) {
       timeZoneOffset = -timeZoneOffset;
       s = '-';
     }
-    int hh = timeZoneOffset ~/60;
+    int hh = timeZoneOffset ~/ 60;
     int mm = timeZoneOffset % 60;
     return "$s${hh<10?'0':''}$hh:${mm<10?'0':''}$mm";
   }();
+
   Object value;
   String ts;
   String status;
@@ -89,10 +96,13 @@ class ValueUpdate {
   num sum = 0,
       min,
       max;
-  ValueUpdate(this.value, {this.ts, Map meta, this.status, this.count: 1, this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
+
+  ValueUpdate(this.value, {this.ts, Map meta, this.status, this.count: 1,
+    this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
     if (ts == null) {
       ts = '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
     }
+
     if (meta != null) {
       if (meta['count'] is int) {
         count = meta['count'];
@@ -112,6 +122,7 @@ class ValueUpdate {
         min = meta['min'];
       }
     }
+
     if (value is num && count == 1) {
       if (sum != sum) sum = value;
       if (max != max) max = value;

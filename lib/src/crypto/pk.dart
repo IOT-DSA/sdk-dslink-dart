@@ -17,18 +17,26 @@ import 'package:cipher/ecc/ecc_fp.dart' as fp;
 
 /// hard code the EC curve data here, so the compiler don't have to register all curves
 ECDomainParameters _secp256r1 = () {
-  BigInteger q = new BigInteger("ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
-  BigInteger a = new BigInteger("ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
-  BigInteger b = new BigInteger("5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
-  BigInteger g = new BigInteger("046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5", 16);
-  BigInteger n = new BigInteger("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
+  BigInteger q = new BigInteger(
+      "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
+  BigInteger a = new BigInteger(
+      "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
+  BigInteger b = new BigInteger(
+      "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
+  BigInteger g = new BigInteger(
+      "046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
+      16);
+  BigInteger n = new BigInteger(
+      "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
   BigInteger h = new BigInteger("1", 16);
-  BigInteger seed = new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
+  BigInteger seed =
+      new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
   var seedBytes = seed.toByteArray();
 
   var curve = new fp.ECCurve(q, a, b);
 
-  return new ECDomainParametersImpl('secp256r1', curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
+  return new ECDomainParametersImpl(
+      'secp256r1', curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
 }();
 
 abstract class ECDH {
@@ -38,9 +46,11 @@ abstract class ECDH {
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
     gen.init(params);
     var pair = gen.generateKeyPair();
-    return new ECDHImpl(publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
+    return new ECDHImpl(
+        publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
   }
-  factory ECDH(ECPublicKey ecPublicKeyRemote, ECPrivateKey ecPrivateKey, ECPublicKey ecPublicKey) {
+  factory ECDH(ECPublicKey ecPublicKeyRemote, ECPrivateKey ecPrivateKey,
+      ECPublicKey ecPublicKey) {
     return new ECDHImpl(ecPublicKeyRemote, ecPrivateKey, ecPublicKey);
   }
   String encodePublicKey();
@@ -81,8 +91,8 @@ class ECDHImpl implements ECDH {
 
   String hashSalt(String salt) {
     List raw = []
-        ..addAll(UTF8.encode(salt))
-        ..addAll(bytes);
+      ..addAll(UTF8.encode(salt))
+      ..addAll(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     var hashed = sha256.process(new Uint8List.fromList(raw));
     return Base64.encode(hashed);
@@ -121,7 +131,6 @@ class PublicKey {
 }
 
 class PrivateKey {
-
   PublicKey publicKey;
   ECPrivateKey ecPrivateKey;
   ECPublicKey ecPublicKey;
@@ -131,7 +140,6 @@ class PrivateKey {
     }
     publicKey = new PublicKey(ecPublicKey);
   }
-
 
   factory PrivateKey.generate() {
     var gen = new ECKeyGenerator();
@@ -164,8 +172,6 @@ class PrivateKey {
     ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(key));
     return new ECDH(new ECPublicKey(p, _secp256r1), ecPrivateKey, ecPublicKey);
   }
-
-
 }
 
 /// random number generator
@@ -182,10 +188,36 @@ class DSRandom extends SecureRandomBase {
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
     Math.Random r = new Math.Random();
-    final keyBytes = [r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)];
+    final keyBytes = [
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256)
+    ];
     final key = new KeyParameter(new Uint8List.fromList(keyBytes));
     r = new Math.Random((new DateTime.now()).millisecondsSinceEpoch);
-    final iv = new Uint8List.fromList([r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256)]);
+    final iv = new Uint8List.fromList([
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256),
+      r.nextInt(256)
+    ]);
     final params = new ParametersWithIV(key, iv);
     _delegate.seed(params);
   }
@@ -206,7 +238,7 @@ class DSRandom extends SecureRandomBase {
     final bytes = new Uint8List.fromList(utf);
 
     final out = new Uint8List(16);
-    for (var offset = 0; offset < bytes.lengthInBytes; ) {
+    for (var offset = 0; offset < bytes.lengthInBytes;) {
       var len = _aes.processBlock(bytes, offset, out, 0);
       offset += len;
     }
@@ -236,7 +268,8 @@ Uint8List bigintToUint8List(BigInteger input) {
       d,
       k = 0;
   if (i-- > 0) {
-    if (p < BigInteger.BI_DB && (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
+    if (p < BigInteger.BI_DB &&
+        (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
       r[k++] = d | (input.s << (BigInteger.BI_DB - p));
     }
 

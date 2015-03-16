@@ -7,14 +7,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   /// connName to connection
-  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns =
+      new Map<String, RemoteLinkManager>();
 
   LocalNodeImpl connsNode;
-  Map rootStructure = {
-    'conns': {},
-    'defs': {},
-    'quarantine': {}
-  };
+  Map rootStructure = {'conns': {}, 'defs': {}, 'quarantine': {}};
   BrokerNodeProvider() {
     // initialize root nodes
     RootNode root = new RootNode('/');
@@ -58,7 +55,6 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         connsNode.updateList(connName);
       }
       node = conn.getNode(path);
-
     } else if (path.startsWith('/defs/')) {
       if (!_defsLoaded) {
         node = new DefinitionNode(path);
@@ -151,7 +147,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return node._linkManager.requester;
   }
 
-  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']) {
+  Responder getResponder(String dsId, NodeProvider nodeProvider,
+      [String sessionId = '']) {
     String connName = getConnName(dsId);
     if (conns.containsKey(connName)) {
       return conns[connName].getResponder(nodeProvider, sessionId);

@@ -1,4 +1,4 @@
-import 'package:dslink/http_client.dart';
+import 'package:dslink/client.dart';
 import 'package:dslink/src/crypto/pk.dart';
 import 'sample_responder.dart';
 
