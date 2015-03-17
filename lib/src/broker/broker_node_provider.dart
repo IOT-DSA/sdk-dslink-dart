@@ -123,7 +123,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
   }
 
-  ServerLink getLink(String dsId, [String session]) {
+  ServerLink getLink(String dsId, [String session = '']) {
     String str = dsId;
     if (session != null) {
       str = '$dsId $session';

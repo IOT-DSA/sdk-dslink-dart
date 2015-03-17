@@ -7,7 +7,7 @@ class DsSimpleLinkManager implements ServerLinkManager {
     _links[link.dsId] = link;
   }
 
-  ServerLink getLink(String dsId, [String session]) {
+  ServerLink getLink(String dsId, [String session = '']) {
     return _links[dsId];
   }
 
@@ -21,7 +21,7 @@ class DsSimpleLinkManager implements ServerLinkManager {
     return new Requester();
   }
 
-  Responder getResponder(String dsId, NodeProvider nodeProvider) {
+  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']) {
     return new Responder(nodeProvider);
   }
 }

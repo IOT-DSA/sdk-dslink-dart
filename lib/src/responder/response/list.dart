@@ -63,7 +63,7 @@ class ListResponse extends Response {
           } else {
             updateConfigs.add(update);
           }
-        } else if (change.startsWith(r'a')) {
+        } else if (change.startsWith(r'@')) {
           if (node.attributes.containsKey(change)) {
             update = [change, node.attributes[change]];
           } else {

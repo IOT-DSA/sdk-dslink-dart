@@ -29,13 +29,11 @@ class HttpServerLink implements ServerLink {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
-  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
-      {NodeProvider nodeProvider, this.session, this.trusted: false})
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, String sessionId, this.trusted: false})
       : dsId = id,
+        session = sessionId,
         requester = linkManager.getRequester(id),
-        responder = (nodeProvider != null)
-            ? linkManager.getResponder(id, nodeProvider)
-            : null {
+        responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider, sessionId) : null {
     if (!trusted) {
       for (int i = 0; i < 2; ++i) {
         List<int> bytes = new List<int>(12);
