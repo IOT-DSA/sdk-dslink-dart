@@ -11,23 +11,26 @@ class InvokeResponse extends Response {
   List _columns;
   List _updates;
   String _sendingStreamStatus = StreamStatus.initialize;
-  void updateStream(List udpates,
-      {List columns, String streamStatus: StreamStatus.open}) {
+  void updateStream(List updates, {List columns, String streamStatus: StreamStatus.open}) {
     if (columns != null) {
       _columns = columns;
     }
+
     if (_updates == null) {
-      _updates = udpates;
+      _updates = updates;
     } else {
-      _updates.addAll(udpates);
+      _updates.addAll(updates);
     }
+
     if (_sendingStreamStatus == StreamStatus.initialize) {
       // in case stream can't return all restult all at once, count the length of initilize
-      _pendingInitializeLength += udpates.length;
+      _pendingInitializeLength += updates.length;
     }
+
     _sendingStreamStatus = streamStatus;
     responder.addProcessor(processor);
   }
+
   void processor() {
     if (_columns != null) {
       _columns = TableColumn.serializeColumns(_columns);

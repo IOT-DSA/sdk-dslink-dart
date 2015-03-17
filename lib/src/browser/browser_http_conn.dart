@@ -2,17 +2,21 @@ part of dslink.browser_client;
 
 class HttpBrowserConnection implements ClientConnection {
   PassiveChannel _responderChannel;
+
   ConnectionChannel get responderChannel => _responderChannel;
 
   PassiveChannel _requesterChannel;
+
   ConnectionChannel get requesterChannel => _requesterChannel;
 
   Completer<ConnectionChannel> _onRequestReadyCompleter =
-      new Completer<ConnectionChannel>();
+  new Completer<ConnectionChannel>();
+
   Future<ConnectionChannel> get onRequesterReady =>
-      _onRequestReadyCompleter.future;
+  _onRequestReadyCompleter.future;
 
   Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+
   Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
 
   final String url;
@@ -20,16 +24,19 @@ class HttpBrowserConnection implements ClientConnection {
   final bool withCredentials;
   String salt;
   String saltS;
+
   HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS,
-      [this.withCredentials = false]) {
+                        [this.withCredentials = false]) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
     requireSend();
   }
+
   bool _pendingCheck = false;
   bool _pendingSend = false;
+
   void requireSend() {
     _pendingSend = true;
     if (!_pendingCheck) {
@@ -37,7 +44,10 @@ class HttpBrowserConnection implements ClientConnection {
       DsTimer.callLaterOnce(_checkSend);
     }
   }
-  void close() {}
+
+  void close() {
+  }
+
   bool _sending = false;
   bool _sendingS = false;
 
@@ -51,6 +61,7 @@ class HttpBrowserConnection implements ClientConnection {
       }
     }
   }
+
   void _send([bool shortPoll = false]) {
     _pendingSend = false;
     // long poll should always send even it's blank
@@ -76,30 +87,31 @@ class HttpBrowserConnection implements ClientConnection {
         print('http sendS: $m');
         _sendingS = true;
         connUri =
-            Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
+        Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
       } else {
         print('http send: $m');
         _sending = true;
         connUri =
-            Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+        Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
       }
       HttpRequest
-          .request(connUri.toString(),
-              method: 'POST',
-              withCredentials: withCredentials,
-              mimeType: 'application/json',
-              sendData: JSON.encode(m))
-          .then(//
-              (HttpRequest request) {
-        if (shortPoll) {
-          _onDataS(request.responseText);
-        } else {
-          _sending = true;
-          _onData(request.responseText);
-        }
-      });
+      .request(connUri.toString(),
+      method: 'POST',
+      withCredentials: withCredentials,
+      mimeType: 'application/json',
+      sendData: JSON.encode(m))
+      .then(//
+          (HttpRequest request) {
+          if (shortPoll) {
+            _onDataS(request.responseText);
+          } else {
+            _sending = true;
+            _onData(request.responseText);
+          }
+        });
     }
   }
+
   void _onData(String response) {
     _sending = false;
     // always send back after receiving long polling response
@@ -124,6 +136,7 @@ class HttpBrowserConnection implements ClientConnection {
       _responderChannel.onReceiveController.add(m['requests']);
     }
   }
+
   void _onDataS(String response) {
     _sendingS = false;
     Map m;

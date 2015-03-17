@@ -2,22 +2,27 @@ part of dslink.browser_client;
 
 class WebSocketConnection implements ClientConnection {
   PassiveChannel _responderChannel;
+
   ConnectionChannel get responderChannel => _responderChannel;
 
   PassiveChannel _requesterChannel;
+
   ConnectionChannel get requesterChannel => _requesterChannel;
 
   Completer<ConnectionChannel> _onRequestReadyCompleter =
-      new Completer<ConnectionChannel>();
+  new Completer<ConnectionChannel>();
+
   Future<ConnectionChannel> get onRequesterReady =>
-      _onRequestReadyCompleter.future;
+  _onRequestReadyCompleter.future;
 
   Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
+
   Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
 
   final ClientLink clientLink;
 
   final WebSocket socket;
+
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket, this.clientLink) {
     socket.binaryType = 'arraybuffer';
@@ -33,15 +38,17 @@ class WebSocketConnection implements ClientConnection {
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
+
   void _onOpen(Event e) {
     requireSend();
   }
+
   void _onData(MessageEvent e) {
     print('onData:');
     Map m;
     if (e.data is ByteBuffer) {
       try {
-        // TODO JSONUTF8Decoder
+        // TODO(rick): JSONUtf8Decoder
         m = JSON.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
         print('$m');
       } catch (err) {
@@ -49,13 +56,16 @@ class WebSocketConnection implements ClientConnection {
         close();
         return;
       }
+
       if (m['salt'] is String) {
         clientLink.updateSalt(m['salt']);
       }
+
       if (m['responses'] is List) {
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
       }
+
       if (m['requests'] is List) {
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
@@ -69,23 +79,27 @@ class WebSocketConnection implements ClientConnection {
         close();
         return;
       }
+
       if (m['responses'] is List) {
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
       }
+
       if (m['requests'] is List) {
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
       }
     }
   }
+
   void _send() {
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }
     print('browser sending');
     bool needSend = false;
-    Map m = {};
+    Map m = {
+    };
 
     if (_responderChannel.getData != null) {
       List rslt = _responderChannel.getData();
@@ -111,18 +125,23 @@ class WebSocketConnection implements ClientConnection {
 
   void _onDone([Object o]) {
     print('socket disconnected1');
+
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
+
     if (!_requesterChannel.onDisconnectController.isCompleted) {
       _requesterChannel.onDisconnectController.complete(_requesterChannel);
     }
+
     if (!_responderChannel.onReceiveController.isClosed) {
       _responderChannel.onReceiveController.close();
     }
+
     if (!_responderChannel.onDisconnectController.isCompleted) {
       _responderChannel.onDisconnectController.complete(_responderChannel);
     }
+
     if (!_onDisconnectedCompleter.isCompleted) {
       _onDisconnectedCompleter.complete(this);
     }
@@ -130,7 +149,7 @@ class WebSocketConnection implements ClientConnection {
 
   void close() {
     if (socket.readyState == WebSocket.OPEN ||
-        socket.readyState == WebSocket.CONNECTING) {
+    socket.readyState == WebSocket.CONNECTING) {
       socket.close();
     }
     _onDone();

@@ -61,6 +61,7 @@ class InvokeController implements RequestUpdater {
   Stream<RequesterInvokeUpdate> _stream;
   Request _request;
   List<TableColumn> _cachedColumns;
+
   InvokeController(this.node, this.requester, Map params) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _stream = _controller.stream;
@@ -77,6 +78,7 @@ class InvokeController implements RequestUpdater {
     _request = requester._sendRequest(reqMap, this);
 //    }
   }
+
   void _onNodeUpdate(RequesterListUpdate listUpdate) {
     //TODO, close the stream when configs are loaded
   }
@@ -87,13 +89,16 @@ class InvokeController implements RequestUpdater {
     if (columns != null) {
       _cachedColumns = TableColumn.parseColumns(columns);
     }
+
     if (_cachedColumns == null) {
       _cachedColumns = [];
     }
+
     if (updates != null) {
       _controller.add(new RequesterInvokeUpdate(
           updates, columns, _cachedColumns, streamStatus));
     }
+
     if (streamStatus == StreamStatus.closed) {
       _controller.close();
     }
