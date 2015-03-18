@@ -122,12 +122,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       _listReqListener.cancel();
       _listReqListener = null;
     }
+    _listReady = false;
   }
 
   void _onListUpdate(RequesterListUpdate update) {
     for (var change in update.changes) {
       listChangeController.add(change);
     }
+    _listReady = true;
   }
 
   BroadcastStreamController<ValueUpdate> _valueController;
