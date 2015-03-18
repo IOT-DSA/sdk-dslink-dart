@@ -157,6 +157,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       _valueReqListener.cancel();
       _valueReqListener = null;
     }
+    _valueReady = false;
   }
 
   ValueUpdate _lastValueUpdate;
@@ -169,6 +170,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     if (_valueController != null) {
       _valueController.add(update);
     }
+    _valueReady = true;
   }
 
   final String path;
@@ -179,8 +181,13 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       : super(remotePath) {}
 
   bool _listReady = false;
+  /// whether broker is already listing, can send data directly for new list request
   bool get listReady => _listReady;
 
+  bool _valueReady = false;
+  /// whether broker is already subscribing, can send value directly for new subscribe request
+  bool get valueReady => _valueReady;
+  
   bool get exists => true;
 
   InvokeResponse invoke(
