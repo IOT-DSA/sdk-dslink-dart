@@ -28,7 +28,6 @@ class LinkProvider {
       Map defaultNodes, NodeProvider nodeProvider}) {
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
-    argp.addOption('configs', abbr: 'c', defaultsTo: 'dslink.config');
     //argp.addOption('key', abbr: 'k', defaultsTo: '.dslink.key');
     //argp.addOption('nodes', abbr: 'n', defaultsTo: 'dslink.json');
     argp.addFlag('help');
@@ -46,23 +45,39 @@ class LinkProvider {
       print(helpStr);
       return;
     }
+
+    // load configs
+    File configFile = new File.fromUri(Uri.parse('dslink.json'));
+    Map dslinkJson;
+    Object getConfig(String key) {
+      if (dslinkJson != null && dslinkJson['configs'] is Map && 
+          dslinkJson['configs'][key] is Map &&
+          dslinkJson['configs'][key].containsKey('value')) {
+        return dslinkJson['configs'][key]['value'];
+      }
+      return null;
+    }
+    try {
+      String configStr = configFile.readAsStringSync();
+      dslinkJson = JSON.decode(configStr);
+    } catch (err) {}
+    if (dslinkJson == null) {
+      print('Invalid dslink.json');
+      return;
+    }
+    
+
+    String overwriteBroker = getConfig('broker');
+    if (overwriteBroker != null) {
+      brokerUrl = overwriteBroker;
+    }
     if (!brokerUrl.startsWith('http')) {
       brokerUrl = 'http://$brokerUrl';
     }
 
-    // load configs
-    File configFile = new File.fromUri(Uri.parse(opts['configs']));
-    Map configs;
-    try {
-      String configStr = configFile.readAsStringSync();
-      configs = JSON.decode(configStr);
-    } catch (err) {}
-    if (configs == null || configs['key'] == null) {
-      print('Invalid configs\n$helpStr');
-      return;
-    }
-    
-    File keyFile = new File.fromUri(Uri.parse(configs['key']));
+
+
+    File keyFile = new File.fromUri(Uri.parse(getConfig('key')));
     String key;
     PrivateKey prikey;
     try {
@@ -92,7 +107,7 @@ class LinkProvider {
         registerFunctions(functionMap);
       }
       nodeProvider = provider;
-      _nodesFile = new File.fromUri(Uri.parse(configs['nodes']));
+      _nodesFile = new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
       try {
         String nodesStr = _nodesFile.readAsStringSync();
@@ -123,7 +138,7 @@ class LinkProvider {
       provider.registerFunction(key, f);
     });
     provider.nodes.forEach((path, node) {
-      if (node is SimpleNode){
+      if (node is SimpleNode) {
         node.updateFunction(provider);
       }
     });
