@@ -28,13 +28,14 @@ class LinkProvider {
       Map defaultNodes, NodeProvider nodeProvider}) {
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
-    argp.addOption('key', abbr: 'k', defaultsTo: '.dslink.key');
-    argp.addOption('nodes', abbr: 'n', defaultsTo: 'dslink.json');
+    argp.addOption('configs', abbr: 'c', defaultsTo: 'dslink.config');
+    //argp.addOption('key', abbr: 'k', defaultsTo: '.dslink.key');
+    //argp.addOption('nodes', abbr: 'n', defaultsTo: 'dslink.json');
     argp.addFlag('help');
     ArgResults opts = argp.parse(args);
 
     String helpStr =
-        'usage:\n$command --broker brokerUrl [--key keyFile] [--nodes nodesFile]';
+        'usage:\n$command --broker brokerUrl [--config configFile]';
 
     if (opts['help'] == true) {
       print(helpStr);
@@ -49,7 +50,19 @@ class LinkProvider {
       brokerUrl = 'http://$brokerUrl';
     }
 
-    File keyFile = new File.fromUri(Uri.parse(opts['key']));
+    // load configs
+    File configFile = new File.fromUri(Uri.parse(opts['configs']));
+    Map configs;
+    try {
+      String configStr = configFile.readAsStringSync();
+      configs = JSON.decode(configStr);
+    } catch (err) {}
+    if (configs == null || configs['key'] == null) {
+      print('Invalid configs\n$helpStr');
+      return;
+    }
+    
+    File keyFile = new File.fromUri(Uri.parse(configs['key']));
     String key;
     PrivateKey prikey;
     try {
@@ -79,7 +92,7 @@ class LinkProvider {
         registerFunctions(functionMap);
       }
       nodeProvider = provider;
-      _nodesFile = new File.fromUri(Uri.parse(opts['nodes']));
+      _nodesFile = new File.fromUri(Uri.parse(configs['nodes']));
       Map loadedNodesData;
       try {
         String nodesStr = _nodesFile.readAsStringSync();
