@@ -64,6 +64,7 @@ class InvokeController implements RequestUpdater {
 
   InvokeController(this.node, this.requester, Map params) {
     _controller = new StreamController<RequesterInvokeUpdate>();
+    _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
     Map reqMap = {
       'method': 'invoke',
@@ -79,6 +80,11 @@ class InvokeController implements RequestUpdater {
 //    }
   }
 
+  void _onUnsubscribe(obj){
+    if (_request != null && _request.streamStatus != StreamStatus.closed){
+      _request.close();
+    }
+  }
   void _onNodeUpdate(RequesterListUpdate listUpdate) {
     //TODO, close the stream when configs are loaded
   }

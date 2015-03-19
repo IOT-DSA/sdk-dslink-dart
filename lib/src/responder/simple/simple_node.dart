@@ -162,9 +162,12 @@ class SimpleNode extends LocalNodeImpl {
         }
       }
     });
+    updateFunction(provider);
+    _loaded = true;
+  }
+  void updateFunction(SimpleNodeProvider provider){
     if (invokeCallback == null &&
-        this.getConfig(r'$invokable') != null &&
-        provider is SimpleNodeProvider) {
+        this.getConfig(r'$invokable') != null) {
       // search it in registered function
       String function = this.configs[r'$function'];
       if (function != null) {
@@ -175,7 +178,6 @@ class SimpleNode extends LocalNodeImpl {
         invokeCallback = provider._profileFunctions[configs[r'$is']];
       }
     }
-    _loaded = true;
   }
 
   Map save() {
