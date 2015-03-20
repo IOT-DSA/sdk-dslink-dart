@@ -52,7 +52,7 @@ class HttpClientLink implements ClientLink {
       'isRequester': requester != null,
       'isResponder': responder != null
     };
-    print(dsId);
+    printDebug(dsId);
 
     request.add(jsonUtf8Encoder.convert(requestJson));
     HttpClientResponse response = await request.close();

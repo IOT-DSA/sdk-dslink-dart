@@ -44,15 +44,15 @@ class WebSocketConnection implements ClientConnection {
   }
 
   void _onData(MessageEvent e) {
-    print('onData:');
+    printDebug('onData:');
     Map m;
     if (e.data is ByteBuffer) {
       try {
         // TODO(rick): JSONUtf8Decoder
         m = JSON.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
-        print('$m');
+        printDebug('$m');
       } catch (err) {
-        print(err);
+        printError(err);
         close();
         return;
       }
@@ -73,9 +73,9 @@ class WebSocketConnection implements ClientConnection {
     } else if (e.data is String) {
       try {
         m = JSON.decode(e.data);
-        print('$m');
+        printDebug('$m');
       } catch (err) {
-        print(err);
+        printError(err);
         close();
         return;
       }
@@ -96,7 +96,7 @@ class WebSocketConnection implements ClientConnection {
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }
-    print('browser sending');
+    printDebug('browser sending');
     bool needSend = false;
     Map m = {
     };
@@ -116,7 +116,7 @@ class WebSocketConnection implements ClientConnection {
       }
     }
     if (needSend) {
-      print('send: $m');
+      printDebug('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
       socket.send(JSON.encode(m));
@@ -124,7 +124,7 @@ class WebSocketConnection implements ClientConnection {
   }
 
   void _onDone([Object o]) {
-    print('socket disconnected1');
+    printDebug('socket disconnected');
 
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();

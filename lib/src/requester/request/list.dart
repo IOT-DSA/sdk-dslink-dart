@@ -181,7 +181,7 @@ class ListController implements RequestUpdater {
       }
     }
     _onDefUpdated();
-    print('_onDefUpdated');
+    printDebug('_onDefUpdated');
   }
   bool _ready = false;
   void _onDefUpdated() {
@@ -210,7 +210,7 @@ class ListController implements RequestUpdater {
       }
     } else {
       // TODO remove this debug code
-      print(_defLoaders.keys);
+      printDebug(_defLoaders.keys);
     }
   }
   bool _pendingRemoveDef = false;

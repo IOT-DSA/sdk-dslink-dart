@@ -33,7 +33,7 @@ class AsyncTableResult {
       if (response == null) {
         response = resp;
       } else {
-        print('warning, can not use same AsyncTableResult twice');
+        printWarning('warning, can not use same AsyncTableResult twice');
       }
     }
     if (response != null && (rows != null || status == StreamStatus.closed)) {
@@ -144,7 +144,7 @@ class SimpleNode extends LocalNodeImpl {
           if (value is _FunctionCallback) {
             invokeCallback = value;
           } else {
-            print('$value is not a valid FunctionCallback: $_FunctionCallback');
+            printWarning('$value is not a valid FunctionCallback: $_FunctionCallback');
           }
         } else if (key == '?value') {
           updateValue(value);

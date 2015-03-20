@@ -28,11 +28,22 @@ class LinkProvider {
       Map defaultNodes, NodeProvider nodeProvider}) {
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
+    argp.addOption('log', defaultsTo: 'notice');
     //argp.addOption('key', abbr: 'k', defaultsTo: '.dslink.key');
     //argp.addOption('nodes', abbr: 'n', defaultsTo: 'dslink.json');
     argp.addFlag('help');
+
+    if (args.length == 0) {
+      // for debugging
+      args = ['-b', 'localhost:8080/conn', '--log', 'debug'];
+    }
+
     ArgResults opts = argp.parse(args);
 
+    String log = opts['log'];
+    updateLogLevel(log);
+
+    
     String helpStr =
         'usage:\n$command --broker brokerUrl [--config configFile]';
 
@@ -47,10 +58,11 @@ class LinkProvider {
     }
 
     // load configs
-    File configFile = new File.fromUri(Uri.parse('dslink.json'));
+    File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
     Map dslinkJson;
     Object getConfig(String key) {
-      if (dslinkJson != null && dslinkJson['configs'] is Map && 
+      if (dslinkJson != null &&
+          dslinkJson['configs'] is Map &&
           dslinkJson['configs'][key] is Map &&
           dslinkJson['configs'][key].containsKey('value')) {
         return dslinkJson['configs'][key]['value'];
@@ -58,14 +70,13 @@ class LinkProvider {
       return null;
     }
     try {
-      String configStr = configFile.readAsStringSync();
+      String configStr = dslinkFile.readAsStringSync();
       dslinkJson = JSON.decode(configStr);
     } catch (err) {}
     if (dslinkJson == null) {
-      print('Invalid dslink.json');
+      printError('Invalid dslink.json');
       return;
     }
-    
 
     String overwriteBroker = getConfig('broker');
     if (overwriteBroker != null) {
@@ -74,8 +85,6 @@ class LinkProvider {
     if (!brokerUrl.startsWith('http')) {
       brokerUrl = 'http://$brokerUrl';
     }
-
-
 
     File keyFile = new File.fromUri(Uri.parse(getConfig('key')));
     String key;
@@ -94,7 +103,7 @@ class LinkProvider {
       } else {
         macs = Process.runSync('ifconfig', []).stdout.toString();
       }
-      // randomize the PRNG with the system mac
+      // randomize the PRNG with the system mac (as well as timestamp)
       DSRandom.instance.randomize(macs);
       prikey = new PrivateKey.generate();
       key = prikey.saveToString();

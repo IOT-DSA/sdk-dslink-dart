@@ -84,12 +84,12 @@ class HttpBrowserConnection implements ClientConnection {
     if (needSend) {
       Uri connUri = Uri.parse('$url&');
       if (shortPoll) {
-        print('http sendS: $m');
+        printDebug('http sendS: $m');
         _sendingS = true;
         connUri =
         Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
       } else {
-        print('http send: $m');
+        printDebug('http send: $m');
         _sending = true;
         connUri =
         Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
@@ -119,7 +119,7 @@ class HttpBrowserConnection implements ClientConnection {
     Map m;
     try {
       m = JSON.decode(response);
-      print('http receive: $m');
+      printDebug('http receive: $m');
     } catch (err) {
       return;
     }

@@ -67,7 +67,7 @@ class RespSubscribeController {
   Object process() {
     Object rslt;
     if (lastValue == null) {
-      print(
+      printWarning(
           'warning! RespSubscribeController.process called before a value exists');
       return 0;
     }

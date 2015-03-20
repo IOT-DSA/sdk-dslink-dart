@@ -119,7 +119,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _links[str] = link;
 
       connName = getConnName(str);
-      print('new node added at /conns/$connName');
+      printLog('new node added at /conns/$connName');
     }
   }
 

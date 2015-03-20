@@ -145,7 +145,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   StreamSubscription _valueReqListener;
 
   void _onStartValueListen() {
-    print('value listener added');
+    printDebug('value listener added');
     if (_valueReqListener == null) {
       _valueReqListener =
           _linkManager.requester.subscribe(remotePath).listen(updateValue);

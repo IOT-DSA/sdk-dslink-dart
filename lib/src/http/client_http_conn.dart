@@ -70,7 +70,7 @@ class HttpClientConnection implements ClientConnection {
       }
     }
     if (needSend) {
-      print('http send: $m');
+      printDebug('http send: $m');
       HttpClient client = new HttpClient();
       Uri connUri = Uri.parse('$url&');
       if (shortPoll) {
@@ -101,7 +101,7 @@ class HttpClientConnection implements ClientConnection {
       Map m;
       try {
         m = JSON.decode(UTF8.decode(merged));
-        print('http receive: $m');
+        printDebug('http receive: $m');
       } catch (err) {
         return;
       }

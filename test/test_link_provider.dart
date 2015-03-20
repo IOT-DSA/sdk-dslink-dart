@@ -2,10 +2,6 @@ import 'package:dslink/client.dart';
 
 
 main(List<String> args){
-  if (args.length == 0) {
-    // for debugging
-    args = ['-b','localhost:8080/conn'];
-  }
   Map defaultNodes = {
     'add': {
       r'$invokable': 'read',

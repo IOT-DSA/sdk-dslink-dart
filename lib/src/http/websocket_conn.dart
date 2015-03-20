@@ -50,15 +50,15 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   //TODO, let connection choose which mode to use, before the first response comes in
   bool _useStringFormat = false;
   void _onData(dynamic data) {
-    print('onData:');
+    printDebug('onData:');
     Map m;
     if (data is List<int>) {
       try {
         // TODO JSONUTF8Decoder
         m = JSON.decode(UTF8.decode(data));
-        print('$m');
+        printDebug('$m');
       } catch (err) {
-        print(err);
+        printError(err);
         close();
         return;
       }
@@ -73,9 +73,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     } else if (data is String) {
       try {
         m = JSON.decode(data);
-        print('$m');
+        printDebug('$m');
       } catch (err) {
-        print(err);
+        printError(err);
         close();
         return;
       }
@@ -118,7 +118,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     }
     if (needSend) {
-      print('send: $m');
+      printDebug('send: $m');
       if (_useStringFormat) {
         socket.add(JSON.encode(m));
       } else {
@@ -128,7 +128,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void _onDone() {
-    print('socket disconnected1');
+    printDebug('socket disconnected');
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }

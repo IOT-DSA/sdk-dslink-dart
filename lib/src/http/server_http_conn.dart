@@ -124,7 +124,7 @@ class HttpServerConnection implements ServerConnection {
       }
     }
     if (needSend) {
-      print('http send: $m');
+      printDebug('http send: $m');
       updateResponseBeforeWrite(_cachedInput);
       _cachedInput.response.write(JSON.encode(m));
       _cachedInput.response.close();
