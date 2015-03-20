@@ -39,7 +39,9 @@ class InvokeResponse extends Response {
         streamStatus: _sendingStreamStatus, columns: _columns);
     _columns = null;
     _updates = null;
-    // TODO  if (_streamStatus == StreamStatus.closed)
+    if (_sentStreamStatus == StreamStatus.closed) {
+      _close();
+    }
   }
 
   /// close the request from responder side and also notify the requester
