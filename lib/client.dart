@@ -52,7 +52,6 @@ class LinkProvider {
     String log = opts['log'];
     updateLogLevel(log);
 
-
     String helpStr = 'usage: $command --broker url [--config file]';
 
     if (opts['help'] == true) {
@@ -72,9 +71,9 @@ class LinkProvider {
 
     Object getConfig(String key) {
       if (dslinkJson != null &&
-      dslinkJson['configs'] is Map &&
-      dslinkJson['configs'][key] is Map &&
-      dslinkJson['configs'][key].containsKey('value')) {
+        dslinkJson['configs'] is Map &&
+        dslinkJson['configs'][key] is Map &&
+        dslinkJson['configs'][key].containsKey('value')) {
         return dslinkJson['configs'][key]['value'];
       }
       return null;
@@ -96,14 +95,16 @@ class LinkProvider {
     }
 
     String overwriteBroker = getConfig('broker');
+
     if (overwriteBroker != null) {
       brokerUrl = overwriteBroker;
     }
+
     if (!brokerUrl.startsWith('http')) {
       brokerUrl = 'http://$brokerUrl';
     }
 
-    File keyFile = new File.fromUri(Uri.parse(getConfig('key')));
+    File keyFile = getConfig('key') != null ? new File(".dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
     String key;
     PrivateKey prikey;
 
@@ -160,7 +161,7 @@ class LinkProvider {
 
   void save() {
     if (_nodesFile != null && provider != null) {
-      _nodesFile.writeAsString(JSON.encode(provider.save()));
+      _nodesFile.writeAsStringSync(JSON.encode(provider.save()));
     }
   }
 
