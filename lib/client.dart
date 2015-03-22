@@ -23,9 +23,18 @@ class LinkProvider {
   SimpleNodeProvider provider;
 
   File _nodesFile;
-  LinkProvider(List<String> args, String prefix, {bool isRequester: false,
-      String command: 'dart link.dart', bool isResponder: true, Map functionMap,
-      Map defaultNodes, NodeProvider nodeProvider}) {
+
+  LinkProvider(
+    List<String> args,
+    String prefix,
+    {
+      bool isRequester: false,
+      String command: 'link',
+      bool isResponder: true,
+      Map functionMap,
+      Map defaultNodes,
+      NodeProvider nodeProvider
+    }) {
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
     argp.addOption('log', defaultsTo: 'notice');
@@ -43,14 +52,14 @@ class LinkProvider {
     String log = opts['log'];
     updateLogLevel(log);
 
-    
-    String helpStr =
-        'usage:\n$command --broker brokerUrl [--config configFile]';
+
+    String helpStr = 'usage: $command --broker url [--config file]';
 
     if (opts['help'] == true) {
       print(helpStr);
       return;
     }
+
     String brokerUrl = opts['broker'];
     if (brokerUrl == null) {
       print(helpStr);
@@ -60,22 +69,30 @@ class LinkProvider {
     // load configs
     File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
     Map dslinkJson;
+
     Object getConfig(String key) {
       if (dslinkJson != null &&
-          dslinkJson['configs'] is Map &&
-          dslinkJson['configs'][key] is Map &&
-          dslinkJson['configs'][key].containsKey('value')) {
+      dslinkJson['configs'] is Map &&
+      dslinkJson['configs'][key] is Map &&
+      dslinkJson['configs'][key].containsKey('value')) {
         return dslinkJson['configs'][key]['value'];
       }
       return null;
     }
-    try {
-      String configStr = dslinkFile.readAsStringSync();
-      dslinkJson = JSON.decode(configStr);
-    } catch (err) {}
-    if (dslinkJson == null) {
-      printError('Invalid dslink.json');
-      return;
+
+    if (dslinkFile.existsSync()) {
+      try {
+        String configStr = dslinkFile.readAsStringSync();
+        dslinkJson = JSON.decode(configStr);
+      } catch (err) {
+      }
+
+      if (dslinkJson == null) {
+        printError('Invalid dslink.json');
+        return;
+      }
+    } else {
+      dslinkJson = {};
     }
 
     String overwriteBroker = getConfig('broker');
@@ -89,10 +106,12 @@ class LinkProvider {
     File keyFile = new File.fromUri(Uri.parse(getConfig('key')));
     String key;
     PrivateKey prikey;
+
     try {
       key = keyFile.readAsStringSync();
       prikey = new PrivateKey.loadFromString(key);
-    } catch (err) {}
+    } catch (err) {
+    }
 
     if (key == null || key.length != 131) {
       // 43 bytes d, 87 bytes Q, 1 space
@@ -107,7 +126,7 @@ class LinkProvider {
       DSRandom.instance.randomize(macs);
       prikey = new PrivateKey.generate();
       key = prikey.saveToString();
-      keyFile.writeAsString(key);
+      keyFile.writeAsStringSync(key);
     }
 
     if (nodeProvider == null) {
@@ -118,10 +137,13 @@ class LinkProvider {
       nodeProvider = provider;
       _nodesFile = new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
+
       try {
         String nodesStr = _nodesFile.readAsStringSync();
         loadedNodesData = JSON.decode(nodesStr);
-      } catch (err) {}
+      } catch (err) {
+      }
+
       if (loadedNodesData != null) {
         provider.init(loadedNodesData);
       } else if (defaultNodes != null) {
@@ -129,19 +151,19 @@ class LinkProvider {
       }
     }
 
-    link = new HttpClientLink(brokerUrl, prefix, prikey,
-        isRequester: isRequester,
-        isResponder: isResponder,
-        nodeProvider: nodeProvider);
+    link = new HttpClientLink(brokerUrl, prefix, prikey, isRequester: isRequester, isResponder: isResponder, nodeProvider: nodeProvider);
   }
+
   void connect() {
     if (link != null) link.connect();
   }
+
   void save() {
     if (_nodesFile != null && provider != null) {
       _nodesFile.writeAsString(JSON.encode(provider.save()));
     }
   }
+
   void registerFunctions(Map map) {
     map.forEach((String key, Function f) {
       provider.registerFunction(key, f);
