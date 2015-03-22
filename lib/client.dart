@@ -104,7 +104,7 @@ class LinkProvider {
       brokerUrl = 'http://$brokerUrl';
     }
 
-    File keyFile = getConfig('key') != null ? new File(".dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
+    File keyFile = getConfig('key') == null ? new File(".dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
     String key;
     PrivateKey prikey;
 
