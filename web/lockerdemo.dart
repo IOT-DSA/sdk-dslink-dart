@@ -77,10 +77,10 @@ void main() {
 
 void initUI() {
   // update label
-  nodeProvider.getNode('/locker1/opened').valueStream.listen((ValueUpdate update) {
+  nodeProvider.getNode('/locker1/opened').subscribe((ValueUpdate update) {
     document.querySelector('#opentext1').text = update.value == true ? 'Opened' : 'Closed';
   });
-  nodeProvider.getNode('/locker2/opened').valueStream.listen((ValueUpdate update) {
+  nodeProvider.getNode('/locker2/opened').subscribe((ValueUpdate update) {
     document.querySelector('#opentext2').text = update.value == true ? 'Opened' : 'Closed';
   });
   // buttons

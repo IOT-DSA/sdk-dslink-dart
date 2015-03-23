@@ -93,11 +93,16 @@ class RemoteNode extends Node {
     return _listController.stream;
   }
 
-  Stream<ValueUpdate> _subscribe(Requester requester) {
+  void _subscribe(Requester requester, callback(ValueUpdate), int cacheLevel) {
     if (_subscribeController == null) {
       _subscribeController = new ReqSubscribeController(this, requester);
     }
-    return _subscribeController.stream;
+    _subscribeController.listen(callback, cacheLevel);
+  }
+  void _unsubscribe(Requester requester, callback(ValueUpdate)) {
+    if (_subscribeController != null) {
+      _subscribeController.unlisten(callback);
+    }
   }
 
   Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester) {

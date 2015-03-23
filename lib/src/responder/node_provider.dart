@@ -13,24 +13,16 @@ abstract class LocalNode extends Node {
     }
     return _listStream;
   }
-
-  StreamController<ValueUpdate> _valueController;
-
-  StreamController<ValueUpdate> get valueController {
-    // lazy initialize
-    if (_valueController == null) {
-      _valueController = new StreamController<ValueUpdate>();
-    }
-    return _valueController;
+  
+  Map<Function, int> callbacks = new Map<Function, int>();
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]){
+    callbacks[callback] = cachelevel;
+    return new RespSubscribeListener(this, callback);
   }
-
-  Stream<ValueUpdate> _valueStream;
-
-  Stream<ValueUpdate> get valueStream {
-    if (_valueStream == null) {
-      _valueStream = valueController.stream.asBroadcastStream();
+  void unsubscribe(callback(ValueUpdate)){
+    if (callbacks.containsKey(callback)){
+      callbacks.remove(callback);
     }
-    return _valueStream;
   }
 
   ValueUpdate _lastValueUpdate;
@@ -44,16 +36,18 @@ abstract class LocalNode extends Node {
   void updateValue(Object update) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
-      if (_valueController != null) {
-        _valueController.add(_lastValueUpdate);
-      }
+      callbacks.forEach((callback, cachelevel){
+        callback(_lastValueUpdate);
+      });
     } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
       _lastValueUpdate = new ValueUpdate(update);
-      if (_valueController != null) {
-        _valueController.add(_lastValueUpdate);
-      }
+      callbacks.forEach((callback, cachelevel){
+        callback(_lastValueUpdate);
+      });
     }
   }
+  
+  
   /// get a list of permission setting on this node
   PermissionList get permissions => null;
   /// get the permission of a responder (actually the permisison of the linked requester)

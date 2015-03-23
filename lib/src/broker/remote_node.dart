@@ -132,45 +132,40 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     _listReady = true;
   }
 
-  BroadcastStreamController<ValueUpdate> _valueController;
-  BroadcastStreamController<ValueUpdate> get valueController {
-    if (_valueController == null) {
-      _valueController = new BroadcastStreamController<ValueUpdate>(
-          _onStartValueListen, _onAllValueCancel);
-    }
-    return _valueController;
+  Map<Function, int> callbacks = new Map<Function, int>();
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]){
+    callbacks[callback] = cachelevel;
+    var rslt = new RespSubscribeListener(this, callback);
+    _linkManager.requester.subscribe(remotePath, updateValue, cachelevel);
+    return rslt;
   }
-
-  Stream<ValueUpdate> get valueStream => valueController.stream;
-  StreamSubscription _valueReqListener;
-
-  void _onStartValueListen() {
-    printDebug('value listener added');
-    if (_valueReqListener == null) {
-      _valueReqListener =
-          _linkManager.requester.subscribe(remotePath).listen(updateValue);
+  void unsubscribe(callback(ValueUpdate)){
+    if (callbacks.containsKey(callback)){
+      callbacks.remove(callback);
+    }
+    if (callbacks.isEmpty) {
+      _linkManager.requester.unsubscribe(remotePath, updateValue);
+      _valueReady = false;
     }
   }
-
-  void _onAllValueCancel() {
-    if (_valueReqListener != null) {
-      _valueReqListener.cancel();
-      _valueReqListener = null;
-    }
-    _valueReady = false;
-  }
-
+  
   ValueUpdate _lastValueUpdate;
   ValueUpdate get lastValueUpdate {
     return _lastValueUpdate;
   }
 
-  void updateValue(ValueUpdate update) {
-    _lastValueUpdate = update;
-    if (_valueController != null) {
-      _valueController.add(update);
+  void updateValue(Object update) {
+    if (update is ValueUpdate) {
+      _lastValueUpdate = update;
+      callbacks.forEach((callback, cachelevel){
+        callback(_lastValueUpdate);
+      });
+    } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
+      _lastValueUpdate = new ValueUpdate(update);
+      callbacks.forEach((callback, cachelevel){
+        callback(_lastValueUpdate);
+      });
     }
-    _valueReady = true;
   }
 
   final String path;

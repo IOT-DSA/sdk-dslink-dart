@@ -33,7 +33,8 @@ class Requester extends ConnectionHandler {
     }
   }
   int nextRid = 1;
-
+  int nextSid = 1;
+  
   // TODO need a new design for short polling and long polling
   int lastSentId = -1;
   void onSent(bool sent) {
@@ -52,10 +53,15 @@ class Requester extends ConnectionHandler {
     return req;
   }
 
-  Stream<ValueUpdate> subscribe(String path) {
+  ReqSubscribeListener subscribe(String path, callback(ValueUpdate), [int cacheLevel = 1]) {
     RemoteNode node = _nodeCache.getRemoteNode(path);
-    return node._subscribe(this);
+    node._subscribe(this, callback, cacheLevel);
+    return new ReqSubscribeListener(this, path, callback);
   }
+  void unsubscribe(String path, callback(ValueUpdate)) {
+     RemoteNode node = _nodeCache.getRemoteNode(path);
+     node._unsubscribe(this, callback);
+   }
 
   Stream<RequesterListUpdate> list(String path) {
     RemoteNode node = _nodeCache.getRemoteNode(path);

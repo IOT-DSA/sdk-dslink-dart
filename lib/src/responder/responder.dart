@@ -118,11 +118,28 @@ class Responder extends ConnectionHandler {
   void _subscribe(Map m) {
     if (m['paths'] is List) {
       int rid = m['rid'];
-      for (Object str in m['paths']) {
-        Path path = Path.getValidNodePath(str);
+      for (Object p in m['paths']) {
+        String pathstr;
+        int cacheLevel = 1;
+        int sid = -1;
+        if (p is Map) {
+          if (p['path'] is String) {
+            pathstr = p['path'];
+          } else {
+            continue;
+          }
+          if (p['sid'] is int){
+            sid = p['sid'];
+          } else {
+            continue;
+          }
+          if (p['cache'] is int){
+            cacheLevel = p['cache'];
+          }
+        }
+        Path path = Path.getValidNodePath(pathstr);
         if (path != null && path.absolute) {
-          _subscription.add(path.path, new RespSubscribeController(
-              _subscription, nodeProvider.getNode(path.path)));
+          _subscription.add(path.path, nodeProvider.getNode(path.path), sid, cacheLevel);
         }
       }
       _closeResponse(m['rid']);
@@ -131,13 +148,13 @@ class Responder extends ConnectionHandler {
     }
   }
   void _unsubscribe(Map m) {
-    if (m['paths'] is List) {
+    if (m['sids'] is List) {
       int rid = m['rid'];
-      for (Object str in m['paths']) {
-        Path path = Path.getValidNodePath(str);
-        if (path != null && path.absolute) {
-          _subscription.remove(path.path);
+      for (Object sid in m['sids']) {
+        if (sid is int) {
+          _subscription.remove(sid);
         }
+        
       }
       _closeResponse(m['rid']);
     } else {

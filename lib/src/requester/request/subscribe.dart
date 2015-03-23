@@ -1,8 +1,45 @@
 part of dslink.requester;
 
+class ReqSubscribeListener implements StreamSubscription {
+  Function callback;
+  Requester requester;
+  String path;
+  ReqSubscribeListener(this.requester, this.path, this.callback);
+  Future cancel(){
+    if (callback != null) {
+      requester.unsubscribe(path, callback);
+      callback = null;
+    }
+    return null;
+  }
+  // TODO  define a custom class to replace StreamSubscription
+  Future asFuture([futureValue]) {
+    return null;
+  }
+
+  bool get isPaused => false;
+
+  void onData(void handleData(data)) {
+  }
+
+  void onDone(void handleDone()) {
+  }
+
+  void onError(Function handleError) {
+  }
+
+  void pause([Future resumeSignal]) {
+  }
+
+  void resume() {
+  }
+}
 class SubscribeRequest extends Request {
   final Map<String, ReqSubscribeController> subsriptions =
       new Map<String, ReqSubscribeController>();
+
+  final Map<int, ReqSubscribeController> subsriptionids =
+      new Map<int, ReqSubscribeController>();
 
   SubscribeRequest(Requester requester, int rid)
       : super(requester, rid, null, null);
@@ -17,31 +54,43 @@ class SubscribeRequest extends Request {
     if (updates is List) {
       for (Object update in updates) {
         String path;
+        int sid = -1;
+        ;
         Object value;
         String ts;
         Map meta;
         if (update is Map) {
-          if (update['path'] is String && update['ts'] is String) {
+          if (update['ts'] is String) {
             path = update['path'];
             ts = update['ts'];
-          } else {
-            continue; // invalid response
+            if (update['path'] is String) {
+              path = update['path'];
+            } else if (update['sid'] is int) {
+              sid = update['sid'];
+            } else {
+              continue; // invalid response
+            }
           }
           value = update['value'];
           meta = update;
         } else if (update is List && update.length > 2) {
-          if (update.length > 0 && update[0] is String) {
+          if (update[0] is String) {
             path = update[0];
-            value = update[1];
-            ts = update[2];
+          } else if (update[0] is int) {
+            sid = update[0];
           } else {
             continue; // invalid response
           }
+          value = update[1];
+          ts = update[2];
         } else {
           continue; // invalid response
         }
-        if (subsriptions.containsKey(path)) {
+        if (path != null && subsriptions.containsKey(path)) {
           subsriptions[path]
+              .addValue(new ValueUpdate(value, ts: ts, meta: meta));
+        } else if (sid > -1 && subsriptionids.containsKey(sid)) {
+          subsriptionids[sid]
               .addValue(new ValueUpdate(value, ts: ts, meta: meta));
         }
       }
@@ -49,43 +98,42 @@ class SubscribeRequest extends Request {
   }
 
   HashSet<String> _changedPaths = new HashSet<String>();
-  void addSubscription(ReqSubscribeController controller) {
+  void addSubscription(ReqSubscribeController controller, int level) {
     String path = controller.node.remotePath;
-    if (!subsriptions.containsKey(path)) {
-      subsriptions[path] = controller;
-      if (_changedPaths.contains(path)) {
-        _changedPaths.remove(path);
-      } else {
-        requester.addProcessor(_sendSubscriptionReuests);
-        _changedPaths.add(path);
-      }
-    }
+    subsriptions[path] = controller;
+    subsriptionids[controller.sid] = controller;
+    requester.addProcessor(_sendSubscriptionReuests);
+    _changedPaths.add(path);
   }
   void removeSubscription(ReqSubscribeController controller) {
     String path = controller.node.remotePath;
     if (subsriptions.containsKey(path)) {
+      toRemove.add(subsriptions[path].sid);
       subsriptions.remove(path);
-      if (_changedPaths.contains(path)) {
-        _changedPaths.remove(path);
-      } else {
-        requester.addProcessor(_sendSubscriptionReuests);
-        _changedPaths.add(path);
-      }
+      subsriptionids.remove(controller.sid);
+      requester.addProcessor(_sendSubscriptionReuests);
+    } else if (subsriptionids.containsKey(controller.sid)) {
+      printError(
+          'error, unexpected remoteSubscription in the requester, sid:${controller.sid}');
     }
   }
+  List toRemove = [];
   void _sendSubscriptionReuests() {
     if (requester.connection == null) {
       return;
     }
     List toAdd = [];
-    List toRemove = [];
+    
     HashSet<String> processingPaths = _changedPaths;
     _changedPaths = new HashSet<String>();
     for (String path in processingPaths) {
       if (subsriptions.containsKey(path)) {
-        toAdd.add(path);
-      } else {
-        toRemove.add(path);
+        ReqSubscribeController sub = subsriptions[path];
+        Map m = {'path': path, 'sid': sub.sid};
+        if (sub.maxCache > 1) {
+          m['cache'] = sub.maxCache;
+        }
+        toAdd.add(m);
       }
     }
     if (!toAdd.isEmpty) {
@@ -93,7 +141,8 @@ class SubscribeRequest extends Request {
     }
     if (!toRemove.isEmpty) {
       requester._sendRequest(
-          {'method': 'unsubscribe', 'paths': toRemove}, null);
+          {'method': 'unsubscribe', 'sids': toRemove}, null);
+      toRemove = [];
     }
   }
 }
@@ -101,40 +150,69 @@ class ReqSubscribeController {
   final RemoteNode node;
   final Requester requester;
 
-  BroadcastStreamController<ValueUpdate> _controller;
-  Stream<ValueUpdate> get stream => _controller.stream;
+  Map<Function, int> callbacks = new Map<Function, int>();
+  int maxCache = 0;
+  int sid;
   ReqSubscribeController(this.node, this.requester) {
-    _controller = new BroadcastStreamController<ValueUpdate>(
-        _onStartListen, _onAllCancel, _onListen);
+    sid = requester.nextSid++;
   }
 
-  ValueUpdate _lastUpdate;
-  void addValue(ValueUpdate update) {
-    _lastUpdate = update;
-    _controller.add(_lastUpdate);
-  }
-  void _onListen(callback(ValueUpdate)) {
+  void listen(callback(ValueUpdate), int cacheLevel) {
+    if (cacheLevel < 1) cacheLevel = 1;
+    if (cacheLevel > 1000000) cacheLevel = 1000000;
+    if (cacheLevel > maxCache) {
+      maxCache = cacheLevel;
+      requester._subsciption.addSubscription(this, maxCache);
+    }
+
+    if (callbacks.containsKey(callback)) {
+      if (callbacks[callback] == maxCache && cacheLevel < maxCache) {
+        callbacks[callback] = cacheLevel;
+        updateCacheLevel();
+      } else {
+        callbacks[callback] = cacheLevel;
+      }
+    } else {
+      callbacks[callback] = cacheLevel;
+    }
+
     if (_lastUpdate != null) {
       callback(_lastUpdate);
     }
   }
-  bool _subscribing = false;
-  void _onStartListen() {
-    if (!_subscribing) {
-      requester._subsciption.addSubscription(this);
-      _subscribing = true;
+  void unlisten(callback(ValueUpdate)) {
+    if (callbacks.containsKey(callback)) {
+      int cacheLevel = callbacks.remove(callback);
+      if (callbacks.isEmpty) {
+        _destroy();
+      } else if (cacheLevel == maxCache && maxCache > 1) {
+        updateCacheLevel();
+      }
     }
   }
-
-  void _onAllCancel() {
-    _destroy();
+  void updateCacheLevel() {
+    int maxCacheLevel = 1;
+    callbacks.forEach((callback, level) {
+      if (level > maxCacheLevel) {
+        maxCacheLevel = level;
+      }
+    });
+    if (maxCacheLevel != maxCache) {
+      maxCache = maxCacheLevel;
+      requester._subsciption.addSubscription(this, maxCache);
+    }
+  }
+  ValueUpdate _lastUpdate;
+  void addValue(ValueUpdate update) {
+    _lastUpdate = update;
+    for (Function callback in callbacks.keys.toList()) {
+      callback(_lastUpdate);
+    };
   }
 
   void _destroy() {
-    if (_subscribing != null) {
-      requester._subsciption.removeSubscription(this);
-    }
-    _controller.close();
+    requester._subsciption.removeSubscription(this);
+    callbacks.clear();
     node._subscribeController = null;
   }
 }

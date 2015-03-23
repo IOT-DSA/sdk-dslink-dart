@@ -15,7 +15,7 @@ const int _LOG_WARNING = 30;
 const int _LOG_INFO = 40;
 const int _LOG_DEBUG = 50;
 
-int _LOG_LEVEL = _LOG_INFO;
+int _LOG_LEVEL = _LOG_DEBUG;
 
 const Map<String, int> _debugLevelMap = const {
   'none': _LOG_NONE,
