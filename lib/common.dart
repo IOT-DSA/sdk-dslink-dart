@@ -81,9 +81,9 @@ abstract class ClientLink extends Link {
 abstract class ServerLinkManager {
   void addLink(ServerLink link);
   void removeLink(ServerLink link);
-  ServerLink getLink(String dsId, [String session = '']);
+  ServerLink getLink(String dsId, [String sessionId = '']);
   Requester getRequester(String dsId);
-  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId]);
+  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']);
 }
 
 class StreamStatus {

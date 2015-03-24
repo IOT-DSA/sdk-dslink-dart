@@ -7,7 +7,7 @@ class DsSimpleLinkManager implements ServerLinkManager {
     _links[link.dsId] = link;
   }
 
-  ServerLink getLink(String dsId, [String session = '']) {
+  ServerLink getLink(String dsId, [String sessionId = '']) {
     return _links[dsId];
   }
 
