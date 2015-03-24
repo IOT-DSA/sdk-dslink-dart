@@ -25,35 +25,34 @@ class HttpClientConnection implements ClientConnection {
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
-    requireSend();
+    _sendL();
   }
   bool _pendingCheck = false;
-  bool _pendingSend = false;
+  bool _pendingSendS = false;
   void requireSend() {
-    _pendingSend = true;
+    _pendingSendS = true;
     if (!_pendingCheck) {
       _pendingCheck = true;
       DsTimer.callLaterOnce(_checkSend);
     }
   }
+
   void close() {}
   bool _sending = false;
   bool _sendingS = false;
 
   void _checkSend() {
     _pendingCheck = false;
-    if (_pendingSend) {
-      if (_sending == false) {
-        _send();
-      } else if (_sendingS == false) {
-        _send(true);
+    if (_pendingSendS) {
+      if (_sendingS == false) {
+        _sendS();
       }
     }
   }
-  void _send([bool shortPoll = false]) {
-    _pendingSend = false;
+  void _sendS() {
+    _pendingSendS = false;
     // long poll should always send even it's blank
-    bool needSend = !shortPoll;
+    bool needSend = false;
     Map m = {};
     if (_responderChannel.getData != null) {
       List rslt = _responderChannel.getData();
@@ -71,33 +70,32 @@ class HttpClientConnection implements ClientConnection {
     }
     if (needSend) {
       printDebug('http send: $m');
+      _sendingS = true;
       HttpClient client = new HttpClient();
-      Uri connUri = Uri.parse('$url&');
-      if (shortPoll) {
-        _sendingS = true;
-        connUri =
-            Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
-      } else {
-        _sending = true;
-        connUri =
-            Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
-      }
+      Uri connUri =
+          Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
+
       client.postUrl(connUri).then((HttpClientRequest request) {
         request.add(jsonUtf8Encoder.convert(m));
-        if (shortPoll) {
-          request.close().then(_onDataS);
-        } else {
-          _sending = true;
-          request.close().then(_onData);
-        }
+        request.close().then(_onDataS);
       });
     }
+  }
+  static List<int> _fixedLongPollData = jsonUtf8Encoder.convert({});
+  void _sendL() {
+    HttpClient client = new HttpClient();
+    Uri connUri =
+        Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+    client.postUrl(connUri).then((HttpClientRequest request) {
+      request.add(_fixedLongPollData);
+      request.close().then(_onData);
+    });
   }
   void _onData(HttpClientResponse response) {
     response.fold([], foldList).then((List<int> merged) {
       _sending = false;
       // always send back after receiving long polling response
-      requireSend();
+      _sendL();
       Map m;
       try {
         m = JSON.decode(UTF8.decode(merged));
@@ -132,7 +130,7 @@ class HttpClientConnection implements ClientConnection {
         saltS = m['saltS'];
         clientLink.updateSalt(saltS, true);
       }
-      if (_pendingSend && !_pendingCheck) {
+      if (_pendingSendS && !_pendingCheck) {
         _checkSend();
       }
     });
