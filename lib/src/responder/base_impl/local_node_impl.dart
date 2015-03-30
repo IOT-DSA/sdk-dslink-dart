@@ -78,7 +78,9 @@ class LocalNodeImpl extends LocalNode {
     return Permission.WRITE;
   }
 
-  void updateList(String name, [int permission = Permission.READ]) {}
+  void updateList(String name, [int permission = Permission.READ]) {
+    listChangeController.add(name);
+  }
   Response setAttribute(
       String name, String value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {

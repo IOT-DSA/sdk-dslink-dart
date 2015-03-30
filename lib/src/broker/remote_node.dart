@@ -133,14 +133,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   Map<Function, int> callbacks = new Map<Function, int>();
-  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]){
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]) {
     callbacks[callback] = cachelevel;
     var rslt = new RespSubscribeListener(this, callback);
     _linkManager.requester.subscribe(remotePath, updateValue, cachelevel);
     return rslt;
   }
-  void unsubscribe(callback(ValueUpdate)){
-    if (callbacks.containsKey(callback)){
+  void unsubscribe(callback(ValueUpdate)) {
+    if (callbacks.containsKey(callback)) {
       callbacks.remove(callback);
     }
     if (callbacks.isEmpty) {
@@ -148,7 +148,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       _valueReady = false;
     }
   }
-  
+
   ValueUpdate _lastValueUpdate;
   ValueUpdate get lastValueUpdate {
     return _lastValueUpdate;
@@ -157,12 +157,12 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   void updateValue(Object update) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
-      callbacks.forEach((callback, cachelevel){
+      callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
     } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
       _lastValueUpdate = new ValueUpdate(update);
-      callbacks.forEach((callback, cachelevel){
+      callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
     }
@@ -182,7 +182,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool _valueReady = false;
   /// whether broker is already subscribing, can send value directly for new subscribe request
   bool get valueReady => _valueReady;
-  
+
   bool get exists => true;
 
   InvokeResponse invoke(
@@ -194,8 +194,10 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       // TODO fix paths in the response
       response.updateStream(update.updates,
           streamStatus: update.streamStatus, columns: update.rawColumns);
+    }, onDone: () {
+      response.close();
     });
-    response.onClose = (InvokeResponse rsp){
+    response.onClose = (InvokeResponse rsp) {
       sub.cancel();
     };
     return response;
