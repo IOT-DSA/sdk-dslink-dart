@@ -1,6 +1,6 @@
 part of dslink.responder;
 
-typedef Object _FunctionCallback(String path, Map params);
+typedef SimpleNode _NodeFactory(String path);
 
 class SimpleTableResult {
   List columns;
@@ -63,11 +63,11 @@ class SimpleNodeProvider extends NodeProviderImpl {
     nodes[path] = node;
     return node;
   }
-  SimpleNodeProvider([Map m]) {
-    SimpleNode root = getNode("/");
-    if (m != null) {
-      root.load(m, this);
+  SimpleNodeProvider([Map m, Map profiles]) {
+    if (profiles != null){
+      _registerProfiles(profiles);
     }
+    init(m);
   }
 
   void init([Map m]) {
@@ -89,43 +89,55 @@ class SimpleNodeProvider extends NodeProviderImpl {
 
   void addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return;
-    SimpleNode node = getNode(path);
-    node.load(m, this);
-
+    
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
+    
+    
+    SimpleNode node = pnode.onLoadChild(p.name, m, this);
+    if (node == null){
+      String profile = m[r'$is'];
+      if (_profileFactories.containsKey(profile)) {
+        node = _profileFactories[profile](path);
+      } else {
+        node = getNode(path);
+      }
+    }
+    nodes[path] = node;
+    node.load(m, this);
+    
+    node.onCreated();
     pnode.children[p.name] = node;
+    pnode.onChildAdded(p.name, node);
     pnode.updateList(p.name);
   }
 
   void removeNode(String path) {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);
-    // TODO update node's list status
+    node.onRemoving();
+    node.removed = true;
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
     pnode.children.remove(p.name);
+    pnode.onChildRemoved(p.name, node);
     pnode.updateList(p.name);
   }
-
-  final Map<String, _FunctionCallback> _functions = {};
-
-  void registerFunction(String name, _FunctionCallback fun) {
-    _functions[name] = fun;
-  }
-
-  final Map<String, _FunctionCallback> _profileFunctions = {};
-
-  void registerFunctionByProfile(String profile, _FunctionCallback fun) {
-    _profileFunctions[profile] = fun;
+  
+  Map<String, _NodeFactory> _profileFactories = new Map<String, _NodeFactory>();
+  void _registerProfiles(Map m) {
+    m.forEach((key,val) {
+      if (key is String && val is _NodeFactory) {
+        _profileFactories[key] = val;
+      }
+    });
   }
 }
 
 class SimpleNode extends LocalNodeImpl {
   SimpleNode(String path) : super(path);
 
-  _FunctionCallback invokeCallback;
-
+  bool removed = false;
   void load(Map m, NodeProviderImpl provider) {
     if (_loaded) {
       configs.clear();
@@ -140,13 +152,7 @@ class SimpleNode extends LocalNodeImpl {
     }
     m.forEach((String key, value) {
       if (key.startsWith('?')) {
-        if (key == '?invoke') {
-          if (value is _FunctionCallback) {
-            invokeCallback = value;
-          } else {
-            printWarning('$value is not a valid FunctionCallback: $_FunctionCallback');
-          }
-        } else if (key == '?value') {
+        if (key == '?value') {
           updateValue(value);
         }
       } else if (key.startsWith(r'$')) {
@@ -154,31 +160,18 @@ class SimpleNode extends LocalNodeImpl {
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
-        String childPathpath;
-        Node node = provider.getNode('$childPathPre$key');
-        children[key] = node;
-        if (node is LocalNodeImpl) {
-          node.load(value, provider);
-        }
+        String childPathpath = '$childPathPre$key';
+        (provider as SimpleNodeProvider).addNode(childPathpath, value);
+//        Node node = provider.getNode('$childPathPre$key');
+//        children[key] = node;
+//        if (node is LocalNodeImpl) {
+//          node.load(value, provider);
+//        }
       }
     });
-    updateFunction(provider);
     _loaded = true;
   }
-  void updateFunction(SimpleNodeProvider provider){
-    if (invokeCallback == null &&
-        this.getConfig(r'$invokable') != null) {
-      // search it in registered function
-      String function = this.configs[r'$function'];
-      if (function != null) {
-        invokeCallback = provider._functions[function];
-      }
-      // search it for profile
-      if (invokeCallback == null) {
-        invokeCallback = provider._profileFunctions[configs[r'$is']];
-      }
-    }
-  }
+
 
   Map save() {
     Map rslt = {};
@@ -199,24 +192,46 @@ class SimpleNode extends LocalNodeImpl {
 
     return rslt;
   }
-
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
-    if (invokeCallback != null) {
-      Object rslt = invokeCallback(path, params);
-      if (rslt is List) {
-        response.updateStream(rslt, streamStatus: StreamStatus.closed);
-      } else if (rslt is Map) {
-        response.updateStream([rslt], streamStatus: StreamStatus.closed);
-      } else if (rslt is SimpleTableResult) {
-        response.updateStream(rslt.rows,
-            columns: rslt.columns, streamStatus: StreamStatus.closed);
-      } else if (rslt is AsyncTableResult) {
-        rslt.write(response);
-        return response;
-      } else {
-        response.close();
-      }
+    Object rslt = onInvoke(params);
+    if (rslt is List) {
+      response.updateStream(rslt, streamStatus: StreamStatus.closed);
+    } else if (rslt is Map) {
+      response.updateStream([rslt], streamStatus: StreamStatus.closed);
+    } else if (rslt is SimpleTableResult) {
+      response.updateStream(rslt.rows,
+          columns: rslt.columns, streamStatus: StreamStatus.closed);
+    } else if (rslt is AsyncTableResult) {
+      rslt.write(response);
+      return response;
+    } else {
+      response.close();
     }
     return response;
   }
+  
+  Object onInvoke(Map params){
+    return null;
+  }
+  /// after node is created
+  void onCreated(){
+    
+  }
+  /// before node get removed
+  void onRemoving(){
+    
+  }
+  /// after child node is removed
+  void onChildRemoved(String name, Node node){
+    
+  }
+  /// after child node is created
+  void onChildAdded(String name, Node node){
+    
+  }
+  /// override default node creation logic for children
+  SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider){
+    return null;
+  }
+
 }

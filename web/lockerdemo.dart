@@ -8,27 +8,31 @@ import 'package:dslink/common.dart';
 // this can be replaced with other authentication method if it's implemented in broker
 PrivateKey key = new PrivateKey.loadFromString('J7wbaV2z-HDVDau2WrOf6goPgbZnj0xamPid1MNOuVc BC7EZK44i85VUr5LleLsLP-Bu6MkK2IbZWVHXBaUQlRKmfkT_488BW-KwOgoize4gaRVF1i0NarPeLgCXM6pGrE');
 
-SimpleNodeProvider nodeProvider = new SimpleNodeProvider();
+SimpleNodeProvider nodeProvider;
 
-
-void main() {
-
-  Map openLocker(String path, Map params) {
+class OpenLockerAction extends SimpleNode{
+  OpenLockerAction(String path) : super(path);
+  Object onInvoke(Map params){
     nodeProvider.updateValue('${path}ed', true);
-    return {};
+    return {"value":"a"};
   }
-
-  Map openLocker2(String path, Map params) {
+}
+class ChangeLocker extends SimpleNode{
+  ChangeLocker(String path) : super(path);
+  Object onInvoke(Map params){
     if (params['value'] is bool) {
       nodeProvider.updateValue('${path}ed', params['value']);
     }
-    return {};
+    return {"value":"a"};
   }
-  
-  nodeProvider.registerFunction('openLocker', openLocker);
-  nodeProvider.registerFunction('changeLocker', openLocker2);
-  
-  nodeProvider.init({
+}
+
+void main() {
+  Map profiles = {
+      'openLocker':(String path) {return new OpenLockerAction(path);},
+      'changeLocker':(String path) {return new ChangeLocker(path);},
+    };
+    nodeProvider = new SimpleNodeProvider({
     'locker1': {
       r'$is':'locker',
       'open': { // an action to open the door
@@ -53,7 +57,7 @@ void main() {
         '?value': false
       }
     }
-  });
+  }, profiles);
   
   // add locker at runtime
   nodeProvider.addNode('/locker3', {

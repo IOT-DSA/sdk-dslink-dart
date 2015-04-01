@@ -31,8 +31,8 @@ class LinkProvider {
       bool isRequester: false,
       String command: 'link',
       bool isResponder: true,
-      Map functionMap,
       Map defaultNodes,
+      Map profiles,
       NodeProvider nodeProvider
     }) {
     ArgParser argp = new ArgParser();
@@ -131,10 +131,7 @@ class LinkProvider {
     }
 
     if (nodeProvider == null) {
-      provider = new SimpleNodeProvider();
-      if (functionMap != null) {
-        registerFunctions(functionMap);
-      }
+      provider = new SimpleNodeProvider(null, profiles);
       nodeProvider = provider;
       _nodesFile = getConfig('nodes') == null ? new File("dslink.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
@@ -163,16 +160,5 @@ class LinkProvider {
     if (_nodesFile != null && provider != null) {
       _nodesFile.writeAsStringSync(JSON.encode(provider.save()));
     }
-  }
-
-  void registerFunctions(Map map) {
-    map.forEach((String key, Function f) {
-      provider.registerFunction(key, f);
-    });
-    provider.nodes.forEach((path, node) {
-      if (node is SimpleNode) {
-        node.updateFunction(provider);
-      }
-    });
   }
 }

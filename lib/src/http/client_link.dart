@@ -53,31 +53,36 @@ class HttpClientLink implements ClientLink {
       'isResponder': responder != null
     };
     printDebug(dsId);
+    try {
+      request.add(jsonUtf8Encoder.convert(requestJson));
+      HttpClientResponse response = await request.close();
+      List<int> merged = await response.fold([], foldList);
+      String rslt = UTF8.decode(merged);
+      Map serverConfig = JSON.decode(rslt);
+      saltNameMap.forEach((name, idx) {
+        //read salts
+        salts[idx] = serverConfig[name];
+      });
+      String tempKey = serverConfig['tempKey'];
+      _nonce = privateKey.decodeECDH(tempKey);
 
-    request.add(jsonUtf8Encoder.convert(requestJson));
-    HttpClientResponse response = await request.close();
-    List<int> merged = await response.fold([], foldList);
-    String rslt = UTF8.decode(merged);
-    Map serverConfig = JSON.decode(rslt);
-    saltNameMap.forEach((name, idx) {
-      //read salts
-      salts[idx] = serverConfig[name];
-    });
-    String tempKey = serverConfig['tempKey'];
-    _nonce = privateKey.decodeECDH(tempKey);
+      if (serverConfig['wsUri'] is String) {
+        _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
+            .replaceFirst('http', 'ws');
+      }
 
-    if (serverConfig['wsUri'] is String) {
-      _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
-          .replaceFirst('http', 'ws');
+      if (serverConfig['httpUri'] is String) {
+        // TODO implement http
+        _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
+      }
+
+      initWebsocket();
+      //initHttp();
+      
+    } catch (err) {
+      
     }
 
-    if (serverConfig['httpUri'] is String) {
-      // TODO implement http
-      _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
-    }
-
-    initWebsocket();
-    // initHttp();
   }
 
   initWebsocket() async {
@@ -99,13 +104,15 @@ class HttpClientLink implements ClientLink {
         });
       }
       _connection.onDisconnected.then((connection) {
-        initHttp();
+        initWebsocketAgain();
       });
     } catch (error) {
       initHttp();
     }
   }
-
+  void initWebsocketAgain(){
+    
+  }
   initHttp() async {
     _connection =
         new HttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
@@ -122,5 +129,9 @@ class HttpClientLink implements ClientLink {
         }
       });
     }
+  }
+  
+  void reconnect(){
+   
   }
 }

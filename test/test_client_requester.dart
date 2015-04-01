@@ -13,11 +13,10 @@ main() async {
   link.connect();
   Requester requester = await link.onRequesterReady;
 
-  var c;
-  c = requester.subscribe('/conns/locker-a/locker1/opened',(ValueUpdate update0){
-    print(update0.value);
-    c.cancel();
-  });
 
+  // configure
+  requester.set(r'/site1/011/$name', 'box1');
+  
+  
 
 }
