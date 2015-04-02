@@ -7,6 +7,13 @@ class TableColumn {
 
   TableColumn(this.name, this.type, [this.defaultValue]);
 
+  Map getData(){
+    Map rslt = {'type': type, 'name': name};
+    if (defaultValue != null) {
+      rslt['default'] = defaultValue;
+    }
+    return rslt;
+  }
   /// convert tableColumns into List of Map
   static List serializeColumns(List list) {
     List rslts = [];
@@ -14,11 +21,7 @@ class TableColumn {
       if (m is Map) {
         rslts.add(m);
       } else if (m is TableColumn) {
-        Map rslt = {'type': m.type, 'name': m.name};
-        if (m.defaultValue != null) {
-          rslt['default'] = m.defaultValue;
-        }
-        rslts.add(rslt);
+        rslts.add(m.getData());
       }
     }
     return rslts;
@@ -27,8 +30,12 @@ class TableColumn {
   static List<TableColumn> parseColumns(List list) {
     List<TableColumn> rslt = <TableColumn>[];
     for (Object m in list) {
-      if (m is Map && m['name'] is String && m['type'] is String) {
-        rslt.add(new TableColumn(m['name'], m['type'], m['default']));
+      if (m is Map && m['name'] is String) {
+        String type = 'string';
+        if (m['type'] is String){
+          type = m['type'];
+        }
+        rslt.add(new TableColumn(m['name'], type, m['default']));
       } else if (m is TableColumn) {
         rslt.add(m);
       } else {
