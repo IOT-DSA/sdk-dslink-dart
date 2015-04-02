@@ -1,0 +1,49 @@
+{
+  "name": "test-link_provider",
+  "version": "0.0.1",
+  "description": "An example dslink to illustrate the usage of a dart dslink",
+  "author": {
+    "name": "Rick Zhou",
+    "email": "z.zhou@dglogik.com"
+  },
+  "contributors": [
+    {
+      "name": "Kenneth Endfinger",
+      "email": "kaendfinger@gmail.com"
+    }
+  ],
+  "main": "test_link_provider.dart",
+  "engines": {
+    "dart": ">=1.9.0"
+  },
+  "getDependencies": [
+    "pub get"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IOT-DSA/sdk-dslink-dart"
+  },
+  "bugs": {
+    "url": "https://github.com/IOT-DSA/sdk-dslink-dart/issues"
+  },
+  "keywords": [
+    "test"
+  ],
+  "configs": {
+    "broker": {
+      "type": "url",
+      "required": false
+    },
+    "nodes": {
+      "type": "path",
+      "value": "ds_nodes.json",
+      "required": true
+    },
+    "key": {
+      "type": "path",
+      "value": ".dslink.key",
+      "required": true
+    }
+  },
+  "license": "Apache"
+}
