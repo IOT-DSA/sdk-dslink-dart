@@ -21,10 +21,10 @@ class HttpServerLink implements ServerLink {
 
   ServerConnection _connection;
 
-  final List<String> _saltBases = new List<String>(2);
-  final List<int> _saltInc = <int>[0, 0];
-  /// 2 salts, salt saltS
-  final List<String> salts = new List<String>(2);
+  final List<String> _saltBases = new List<String>(3);
+  final List<int> _saltInc = <int>[0, 0, 0];
+  /// 3 salts, salt saltS saltL
+  final List<String> salts = new List<String>(3);
   void _updateSalt(int type) {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
@@ -35,7 +35,7 @@ class HttpServerLink implements ServerLink {
         requester = linkManager.getRequester(id),
         responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider, sessionId) : null {
     if (!trusted) {
-      for (int i = 0; i < 2; ++i) {
+      for (int i = 0; i < 3; ++i) {
         List<int> bytes = new List<int>(12);
         for (int j = 0; j < 12; ++j) {
           bytes[j] = DSRandom.instance.nextUint8();
@@ -74,6 +74,7 @@ class HttpServerLink implements ServerLink {
       respJson["tempKey"] = _tempNonce.encodePublicKey();
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
+      respJson["saltL"] = salts[2];
     }
     updateResponseBeforeWrite(request);
     request.response.write(JSON.encode(respJson));
@@ -118,7 +119,7 @@ class HttpServerLink implements ServerLink {
       }
     }
 
-    if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
+    if (!_verifySalt(2, request.uri.queryParameters['authL'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
 //    if (requester == null) {
@@ -140,7 +141,7 @@ class HttpServerLink implements ServerLink {
         }
       }
     }
-    _connection.addServerCommand('salt', salts[0]);
+    _connection.addServerCommand('saltL', salts[2]);
     (_connection as HttpServerConnection).handleInput(request);
   }
 

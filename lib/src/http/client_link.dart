@@ -16,17 +16,13 @@ class HttpClientLink implements ClientLink {
 
   Connection _connection;
 
-  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
+  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1, 'saltL': 2,};
 
   /// 2 salts, salt and saltS
-  final List<String> salts = new List<String>(2);
+  final List<String> salts = new List<String>(3);
 
-  updateSalt(String salt, [bool shortPolling = false]) {
-    if (shortPolling) {
-      salts[1] = salt;
-    } else {
-      salts[0] = salt;
-    }
+  updateSalt(String salt, [int saltId = 0]) {
+    salts[saltId] = salt;
   }
 
   String _wsUpdateUri;
@@ -115,7 +111,7 @@ class HttpClientLink implements ClientLink {
   }
   initHttp() async {
     _connection =
-        new HttpClientConnection(_httpUpdateUri, this, salts[0], salts[1]);
+        new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
     if (responder != null) {
       responder.connection = _connection.responderChannel;

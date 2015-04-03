@@ -22,10 +22,10 @@ class HttpBrowserConnection implements ClientConnection {
   final String url;
   final ClientLink clientLink;
   final bool withCredentials;
-  String salt;
+  String saltL;
   String saltS;
 
-  HttpBrowserConnection(this.url, this.clientLink, this.salt, this.saltS,
+  HttpBrowserConnection(this.url, this.clientLink, this.saltL, this.saltS,
                         [this.withCredentials = false]) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
@@ -92,7 +92,7 @@ class HttpBrowserConnection implements ClientConnection {
         printDebug('http send: $m');
         _sending = true;
         connUri =
-        Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+        Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
       }
       HttpRequest
       .request(connUri.toString(),
@@ -123,9 +123,9 @@ class HttpBrowserConnection implements ClientConnection {
     } catch (err) {
       return;
     }
-    if (m['salt'] is String) {
-      salt = m['salt'];
-      clientLink.updateSalt(salt);
+    if (m['saltL'] is String) {
+      saltL = m['saltL'];
+      clientLink.updateSalt(saltL, 2);
     }
     if (m['responses'] is List) {
       // send responses to requester channel
@@ -147,7 +147,7 @@ class HttpBrowserConnection implements ClientConnection {
     }
     if (m['saltS'] is String) {
       saltS = m['saltS'];
-      clientLink.updateSalt(saltS, true);
+      clientLink.updateSalt(saltS, 1);
     }
     if (_pendingSend && !_pendingCheck) {
       _checkSend();

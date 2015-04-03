@@ -20,9 +20,9 @@ class HttpClientConnection implements ClientConnection {
   final String url;
   final ClientLink clientLink;
 
-  String salt;
+  String saltL;
   String saltS;
-  HttpClientConnection(this.url, this.clientLink, this.salt, this.saltS) {
+  HttpClientConnection(this.url, this.clientLink, this.saltL, this.saltS) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     // TODO, wait for the server to send {allowed} before complete this
@@ -56,7 +56,7 @@ class HttpClientConnection implements ClientConnection {
   void _sendL() {
     HttpClient client = new HttpClient();
     Uri connUri =
-        Uri.parse('$url&auth=${this.clientLink.nonce.hashSalt(salt)}');
+        Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
     client.postUrl(connUri).then((HttpClientRequest request) {
       request.add(_fixedLongPollData);
       request.close().then(_onData).catchError(_onDataError);
@@ -96,9 +96,9 @@ class HttpClientConnection implements ClientConnection {
       } catch (err) {
         return;
       }
-      if (m['salt'] is String) {
-        salt = m['salt'];
-        clientLink.updateSalt(salt);
+      if (m['saltL'] is String) {
+        saltL = m['saltL'];
+        clientLink.updateSalt(saltL, 2);
       }
       _sendL();
       if (m['responses'] is List) {
@@ -187,7 +187,7 @@ class HttpClientConnection implements ClientConnection {
       }
       if (m['saltS'] is String) {
         saltS = m['saltS'];
-        clientLink.updateSalt(saltS, true);
+        clientLink.updateSalt(saltS, 1);
       }
       if (_pendingSendS && !_pendingCheck) {
         _checkSend();

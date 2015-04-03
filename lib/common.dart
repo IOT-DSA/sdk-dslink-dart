@@ -74,7 +74,8 @@ abstract class ServerLink extends Link {
 abstract class ClientLink extends Link {
   PrivateKey get privateKey;
   /// shortPolling is only valid in http mode
-  updateSalt(String salt, [bool shortPolling = false]);
+  /// saltId: 0 salt, 1:saltS, 2:saltL
+  updateSalt(String salt, [int saltId = 0]);
   void connect();
 }
 

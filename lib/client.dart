@@ -94,12 +94,6 @@ class LinkProvider {
       dslinkJson = {};
     }
 
-    String overwriteBroker = getConfig('broker');
-
-    if (overwriteBroker != null) {
-      brokerUrl = overwriteBroker;
-    }
-
     if (!brokerUrl.startsWith('http')) {
       brokerUrl = 'http://$brokerUrl';
     }

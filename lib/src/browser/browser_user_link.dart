@@ -19,7 +19,7 @@ class BrowserUserLink implements ClientLink {
 
   static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
 
-  updateSalt(String salt, [bool shortPolling = false]) {
+  updateSalt(String salt, [int saltId = 0]) {
     // TODO: implement updateSalt
   }
 
