@@ -145,24 +145,35 @@ class HttpServerLink implements ServerLink {
     (_connection as HttpServerConnection).handleInput(request);
   }
 
+  
   void handleWsUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
-    if (_connection != null) {
-      _connection.close();
-    }
+
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
-      _connection = new WebSocketConnection(websocket);
-      _connection.addServerCommand('salt', salts[0]);
-      if (responder != null) {
-        responder.connection = _connection.responderChannel;
-      }
-      if (requester != null) {
-        requester.connection = _connection.requesterChannel;
-        if (!_onRequesterReadyCompleter.isCompleted) {
-          _onRequesterReadyCompleter.complete(requester);
+      WebSocketConnection wsconnection = new WebSocketConnection(websocket);
+      wsconnection.addServerCommand('salt', salts[0]);
+      
+      wsconnection.onRequesterReady.then((channel){
+        if (_connection != null) {
+          _connection.close();
         }
+        _connection = wsconnection;
+        if (responder != null) {
+          responder.connection = _connection.responderChannel;
+        }
+        if (requester != null) {
+          requester.connection = _connection.requesterChannel;
+          if (!_onRequesterReadyCompleter.isCompleted) {
+            _onRequesterReadyCompleter.complete(requester);
+          }
+        }
+      });
+      if (_connection is! HttpServerConnection) {
+        // work around for backward compatibility
+        // TODO remove this when all client send blank data to initialize ws
+        wsconnection.onRequestReadyCompleter.complete(wsconnection.requesterChannel);;
       }
     });
   }

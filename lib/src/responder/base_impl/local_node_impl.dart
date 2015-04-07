@@ -84,7 +84,7 @@ class LocalNodeImpl extends LocalNode {
   Response setAttribute(
       String name, String value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
-      if (attributes.containsKey(name) && attributes[name] != value) {
+      if (!attributes.containsKey(name) || attributes[name] != value) {
         attributes[name] = value;
         updateList(name);
       }

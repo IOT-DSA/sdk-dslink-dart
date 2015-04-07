@@ -58,6 +58,13 @@ class DsTimer {
     callback();
   }
 
+  static void cancel(Function callback) {
+    if (_callbacks.contains(callback)) {
+      _callbacks.remove(callback);
+    }
+  }
+  
+  
   static LinkedList<TimerFunctions> _pendingTimer = new LinkedList<TimerFunctions>();
   static Map<int, TimerFunctions> _pendingTimerMap = new Map<int, TimerFunctions>();
   static Map<Function, TimerFunctions> _functionsMap = new Map<Function, TimerFunctions>();
@@ -104,12 +111,8 @@ class DsTimer {
   }
   
   static int _lastTimeRun = -1;
-  static void callOnceBefore(Function callback, int ms) {
+  static void timerOnceBefore(Function callback, int ms) {
     int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms)/50).ceil();
-    if (desiredTime <= _lastTimeRun){
-      callLaterOnce(callback);
-      return;
-    }
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
       if (existTf.ts <= desiredTime) {
@@ -118,16 +121,16 @@ class DsTimer {
         existTf.remove(callback);
       }
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime);
-    tf.add(callback);
-    _functionsMap[callback] = tf;
-  }
-  static void callOnceAfter(Function callback, int ms) {
-    int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms)/50).ceil();
     if (desiredTime <= _lastTimeRun){
       callLaterOnce(callback);
       return;
     }
+    TimerFunctions tf = _getTimerFunctions(desiredTime);
+    tf.add(callback);
+    _functionsMap[callback] = tf;
+  }
+  static void timerOnceAfter(Function callback, int ms) {
+    int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms)/50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
       if (existTf.ts >= desiredTime) {
@@ -136,13 +139,20 @@ class DsTimer {
         existTf.remove(callback);
       }
     }
+    if (desiredTime <= _lastTimeRun){
+      callLaterOnce(callback);
+      return;
+    }
     TimerFunctions tf = _getTimerFunctions(desiredTime);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
-  static void cancel(Function callback) {
-    if (_callbacks.contains(callback)) {
-      _callbacks.remove(callback);
+  
+  static void timerCancel(Function callback) {
+    if (_functionsMap.containsKey(callback)) {
+      // TODO what if timerCancel is called from another timer of group?
+      TimerFunctions existTf = _functionsMap[callback];
+      existTf.remove(callback);
     }
   }
   static bool _pending = false;

@@ -6,12 +6,12 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   final String path;
   final BrokerNodeProvider broker;
   RemoteLinkRootNode rootNode;
-  RemoteLinkManager(this.broker, this.path, [Map rootNodeData]) {
+  RemoteLinkManager(this.broker, this.path, NodeProviderImpl brokerProvider, [Map rootNodeData]) {
     requester = new Requester(this);
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
     if (rootNodeData != null) {
-      //TODO rootNode.load(rootNodeData);
+      rootNode.load(rootNodeData, brokerProvider);
     }
   }
 
@@ -300,9 +300,3 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 }
 
-// TODO, implement special configs and attribute merging
-class RemoteLinkRootNode extends RemoteLinkNode {
-  RemoteLinkRootNode(
-      String path, String remotePath, RemoteLinkManager linkManager)
-      : super(path, remotePath, linkManager);
-}

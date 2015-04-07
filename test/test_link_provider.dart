@@ -2,6 +2,7 @@ import 'package:dslink/client.dart';
 import 'package:dslink/utils.dart';
 import 'package:dslink/responder.dart';
 import 'dart:math' as Math;
+import 'dart:async';
 
 LinkProvider link;
 int lastNum;
@@ -24,7 +25,8 @@ class AddNodeAction extends SimpleNode {
       }
     });
     link.save(); // save json
-    return null;
+    
+    return new SimpleTableResult([['0'],['1']], [{"name":"name"}]);
   }
 }
 
@@ -45,12 +47,18 @@ class RngNode extends SimpleNode {
   static Math.Random rng = new  Math.Random();
   
   void onCreated() {
-    DsTimer.callOnceAfter(updateRng, 1000);
+    DsTimer.timerOnceAfter(updateRng, 1000);
+  }
+  void onRemoving(){
+    
+  }
+  void onChildAdded(String name, SimpleNode node){
+    
   }
   void updateRng() {
     if (!removed) {
       updateValue(rng.nextDouble());
-      DsTimer.callOnceAfter(updateRng, 1000);
+      DsTimer.timerOnceAfter(updateRng, 1000);
     }
   }
 }
@@ -60,6 +68,8 @@ main(List<String> args){
   Map defaultNodes = {
     'add': {
       r'$is': 'addNodeAction',
+r'$params':{"name":{"type":"string"},"source":{"type":"string"},"destination":{"type":"string"},"queueSize":{"type":"string"},"pem":{"type":"string"},"filePrefix":{"type":"string"},"copyToPath":{"type":"string"}},
+      //r'$columns':[{'name':'name','type':'string'}],
       r'$invokable': 'read',
       r'$lastNum':0
     }
@@ -71,6 +81,7 @@ main(List<String> args){
     'removeSelfAction': (String path){return new RemoveSelfAction(path);},
     'rng': (String path){return new RngNode(path);}
   };
+  
   link = new LinkProvider(args, 'quicklink-', defaultNodes:defaultNodes, profiles:profiles);
   if (link.link == null) {
     // initialization failed

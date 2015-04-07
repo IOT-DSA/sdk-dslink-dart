@@ -87,10 +87,14 @@ class RemoteNode extends Node {
 
   Stream<RequesterListUpdate> _list(Requester requester) {
     if (_listController == null) {
-      _listController = new ListController(this, requester);
+      _listController = createListController(requester);
       reset();
     }
     return _listController.stream;
+  }
+  /// need a factory function for children class to override
+  ListController createListController(Requester requester) {
+   return new ListController(this, requester);
   }
 
   void _subscribe(Requester requester, callback(ValueUpdate), int cacheLevel) {

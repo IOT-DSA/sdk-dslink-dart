@@ -35,13 +35,13 @@ class ListController implements RequestUpdater {
   final Requester requester;
   BroadcastStreamController<RequesterListUpdate> _controller;
   Stream<RequesterListUpdate> get stream => _controller.stream;
-  Request _request;
+  Request request;
   ListController(this.node, this.requester) {
     _controller = new BroadcastStreamController<RequesterListUpdate>(
         onStartListen, _onAllCancel, _onListen);
   }
   bool get initialized {
-    return _request != null && _request.streamStatus != StreamStatus.initialize;
+    return request != null && request.streamStatus != StreamStatus.initialize;
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
@@ -105,17 +105,17 @@ class ListController implements RequestUpdater {
           } else if (value is Map) {
             // TODO, also wait for children $is
             node.children[name] =
-                requester._nodeCache.updateRemoteChildNode(node, name, value);
+                requester.nodeCache.updateRemoteChildNode(node, name, value);
           }
         }
       }
-      if (_request.streamStatus != StreamStatus.initialize) {
+      if (request.streamStatus != StreamStatus.initialize) {
         node.listed = true;
       }
       if (_pendingRemoveDef) {
         _checkRemoveDef();
       }
-      _onDefUpdated();
+      onDefUpdated();
     }
   }
 
@@ -134,7 +134,7 @@ class ListController implements RequestUpdater {
     if (node.profile != null) {
       _pendingRemoveDef = true;
     }
-    node.profile = requester._nodeCache.getDefNode(str);
+    node.profile = requester.nodeCache.getDefNode(str);
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _loadDef(node.profile);
     }
@@ -151,7 +151,7 @@ class ListController implements RequestUpdater {
       if (!path.startsWith('/')) {
         path = '${node.remotePath}/$path';
       }
-      var mixinNode = requester._nodeCache.getRemoteNode(path);
+      var mixinNode = requester.nodeCache.getRemoteNode(path);
       node.mixins.add(mixinNode);
       if (_defLoaders.containsKey(path)) {
         continue;
@@ -180,11 +180,11 @@ class ListController implements RequestUpdater {
         _defLoaders.remove(update.node.remotePath);
       }
     }
-    _onDefUpdated();
+    onDefUpdated();
     printDebug('_onDefUpdated');
   }
   bool _ready = false;
-  void _onDefUpdated() {
+  void onDefUpdated() {
     if (!_ready) {
       _ready = true;
       for (ListDefListener listener in _defLoaders.values) {
@@ -196,12 +196,12 @@ class ListController implements RequestUpdater {
     }
 
     if (_ready) {
-      if (_request.streamStatus != StreamStatus.initialize) {
+      if (request.streamStatus != StreamStatus.initialize) {
         _controller.add(new RequesterListUpdate(
-            node, changes.toList(), _request.streamStatus));
+            node, changes.toList(), request.streamStatus));
         changes.clear();
       }
-      if (_request.streamStatus == StreamStatus.closed) {
+      if (request.streamStatus == StreamStatus.closed) {
         _controller.close();
         for (ListDefListener listener in _defLoaders) {
           listener.cancel();
@@ -219,20 +219,20 @@ class ListController implements RequestUpdater {
   }
 
   void onStartListen() {
-    if (_request == null) {
-      _request = requester._sendRequest(
+    if (request == null) {
+      request = requester._sendRequest(
           {'method': 'list', 'path': node.remotePath}, this);
     }
   }
   void _onListen(callback(RequesterListUpdate)) {
-    if (_ready && _request != null) {
+    if (_ready && request != null) {
       DsTimer.callLater(() {
         List changes = []
           ..addAll(node.configs.keys)
           ..addAll(node.attributes.keys)
           ..addAll(node.children.keys);
         RequesterListUpdate update =
-            new RequesterListUpdate(node, changes, _request.streamStatus);
+            new RequesterListUpdate(node, changes, request.streamStatus);
         callback(update);
       });
     }
@@ -248,9 +248,9 @@ class ListController implements RequestUpdater {
     });
     _defLoaders.clear();
 
-    if (_request != null) {
-      requester.closeRequest(_request);
-      _request = null;
+    if (request != null) {
+      requester.closeRequest(request);
+      request = null;
     }
 
     _controller.close();

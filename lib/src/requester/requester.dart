@@ -12,11 +12,12 @@ class RequesterUpdate {
 class Requester extends ConnectionHandler {
   Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
-  final RemoteNodeCache _nodeCache;
+  final RemoteNodeCache nodeCache;
+  
   SubscribeRequest _subsciption;
 
-  Requester([RemoteNodeCache nodeCache])
-      : _nodeCache = nodeCache != null ? nodeCache : new RemoteNodeCache() {
+  Requester([RemoteNodeCache cache])
+      : nodeCache = cache != null ? cache : new RemoteNodeCache() {
     _subsciption = new SubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
@@ -54,22 +55,22 @@ class Requester extends ConnectionHandler {
   }
 
   ReqSubscribeListener subscribe(String path, callback(ValueUpdate), [int cacheLevel = 1]) {
-    RemoteNode node = _nodeCache.getRemoteNode(path);
+    RemoteNode node = nodeCache.getRemoteNode(path);
     node._subscribe(this, callback, cacheLevel);
     return new ReqSubscribeListener(this, path, callback);
   }
   void unsubscribe(String path, callback(ValueUpdate)) {
-     RemoteNode node = _nodeCache.getRemoteNode(path);
+     RemoteNode node = nodeCache.getRemoteNode(path);
      node._unsubscribe(this, callback);
    }
 
   Stream<RequesterListUpdate> list(String path) {
-    RemoteNode node = _nodeCache.getRemoteNode(path);
+    RemoteNode node = nodeCache.getRemoteNode(path);
     return node._list(this);
   }
 
   Stream<RequesterInvokeUpdate> invoke(String path, Map params) {
-    RemoteNode node = _nodeCache.getRemoteNode(path);
+    RemoteNode node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this);
   }
 

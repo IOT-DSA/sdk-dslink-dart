@@ -12,8 +12,8 @@ class HttpClientConnection implements ClientConnection {
   Future<ConnectionChannel> get onRequesterReady =>
       _onRequestReadyCompleter.future;
 
-  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
-  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+  Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   bool connectedOnce = false;
   
@@ -39,7 +39,10 @@ class HttpClientConnection implements ClientConnection {
     }
   }
 
-  void close() {}
+  void close() {
+    //TODO
+    
+  }
   bool _sending = false;
   bool _sendingS = false;
 
@@ -59,17 +62,17 @@ class HttpClientConnection implements ClientConnection {
         Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
     client.postUrl(connUri).then((HttpClientRequest request) {
       request.add(_fixedLongPollData);
-      request.close().then(_onData).catchError(_onDataError);
-    });
+      request.close().then(_onData).catchError(_onDataErrorL);
+    }, onError:_onDataErrorL);
   }
-  void _onDataError(Object err) {
+  void _onDataErrorL(Object err) {
     printDebug('http long error:$err');
     if (!connectedOnce) {
       _onDone();
       return;
     } else if (!_done){
       _needRetryL = true;
-      DsTimer.callOnceBefore(retry, retryDelay*1000);
+      DsTimer.timerOnceBefore(retry, retryDelay*1000);
     }
   }
   bool _needRetryL = false;
@@ -81,6 +84,7 @@ class HttpClientConnection implements ClientConnection {
     if (response.statusCode != 200){
       printDebug('http long response.statusCode:${response.statusCode}');
       if (response.statusCode == HttpStatus.UNAUTHORIZED){
+        _authError = true;
         _onDone();
         return;
       }
@@ -142,7 +146,7 @@ class HttpClientConnection implements ClientConnection {
         _lastRequestS = jsonUtf8Encoder.convert(m); 
         request.add(_lastRequestS);
         request.close().then(_onDataS).catchError(_onDataErrorS);
-      });
+      }, onError:_onDataErrorS);
     }
   }
   
@@ -153,7 +157,7 @@ class HttpClientConnection implements ClientConnection {
       return;
     } else if (!_done){
       _needRetryS = true;
-      DsTimer.callOnceBefore(retry, retryDelay*1000);
+      DsTimer.timerOnceBefore(retry, retryDelay*1000);
     }
   }
   List<int> _lastRequestS;
@@ -173,6 +177,7 @@ class HttpClientConnection implements ClientConnection {
     if (response.statusCode != 200){
        printDebug('http short response.statusCode:${response.statusCode}');
        if (response.statusCode == HttpStatus.UNAUTHORIZED){
+         _authError = true;
          _onDone();
        }
      }
@@ -207,6 +212,7 @@ class HttpClientConnection implements ClientConnection {
   
   bool _done = false;
   int retryDelay = 1;
+  bool _authError = false;
   void _onDone() {
     _done = true;
     printDebug('http disconnected');
@@ -223,7 +229,7 @@ class HttpClientConnection implements ClientConnection {
       _responderChannel.onDisconnectController.complete(_responderChannel);
     }
     if (!_onDisconnectedCompleter.isCompleted) {
-      _onDisconnectedCompleter.complete(this);
+      _onDisconnectedCompleter.complete(_authError);
     }
   }
 }

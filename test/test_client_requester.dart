@@ -15,8 +15,8 @@ main() async {
 
 
   // configure
-  requester.set(r'/site1/011/$name', 'box1');
+  //requester.set(r'/site1/011/$name', 'box1');
   
-  
+  requester.set(r'/conns/quicklink-2/@a', 'hello');
 
 }

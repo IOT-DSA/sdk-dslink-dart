@@ -13,26 +13,25 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter =
+  Completer<ConnectionChannel> onRequestReadyCompleter =
       new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onRequesterReady =>
-      _onRequestReadyCompleter.future;
+      onRequestReadyCompleter.future;
 
-  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
-  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+  Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   final ClientLink clientLink;
 
   final WebSocket socket;
-  
   
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket, {this.clientLink}) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     socket.listen(_onData, onDone: _onDone);
+    socket.add(fixedBlankData);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
-    _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
   }
 
   void requireSend() {
@@ -52,6 +51,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   //TODO, let connection choose which mode to use, before the first response comes in
   bool _useStringFormat = false;
   void _onData(dynamic data) {
+    if (!onRequestReadyCompleter.isCompleted) {
+      onRequestReadyCompleter.complete(_requesterChannel);
+    }
     printDebug('onData:');
     Map m;
     if (data is List<int>) {
@@ -144,7 +146,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       _responderChannel.onDisconnectController.complete(_responderChannel);
     }
     if (!_onDisconnectedCompleter.isCompleted) {
-      _onDisconnectedCompleter.complete(this);
+      _onDisconnectedCompleter.complete(false);
     }
   }
 

@@ -15,9 +15,8 @@ class HttpBrowserConnection implements ClientConnection {
   Future<ConnectionChannel> get onRequesterReady =>
   _onRequestReadyCompleter.future;
 
-  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
-
-  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+  Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   final String url;
   final ClientLink clientLink;

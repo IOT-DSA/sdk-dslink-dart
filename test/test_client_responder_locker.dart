@@ -50,7 +50,7 @@ void main() {
       r'$is':'locker',
       'open': { // an action to open the door
         r'$invokable': 'read',
-        r'$params':[{"name":"value","type":"bool"}],
+        r'$params':[{"name":"value","type":"bool","default":true}],
         r'$is': 'changeLocker'
 
       },

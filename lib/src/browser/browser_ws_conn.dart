@@ -15,9 +15,8 @@ class WebSocketConnection implements ClientConnection {
   Future<ConnectionChannel> get onRequesterReady =>
   _onRequestReadyCompleter.future;
 
-  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
-
-  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+  Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   final ClientLink clientLink;
 
@@ -40,6 +39,7 @@ class WebSocketConnection implements ClientConnection {
   }
 
   void _onOpen(Event e) {
+    socket.sendString('{}');
     requireSend();
   }
 
@@ -123,6 +123,7 @@ class WebSocketConnection implements ClientConnection {
     }
   }
 
+  bool _authError = false;
   void _onDone([Object o]) {
     printDebug('socket disconnected');
 
@@ -143,7 +144,7 @@ class WebSocketConnection implements ClientConnection {
     }
 
     if (!_onDisconnectedCompleter.isCompleted) {
-      _onDisconnectedCompleter.complete(this);
+      _onDisconnectedCompleter.complete(_authError);
     }
   }
 

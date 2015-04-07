@@ -15,7 +15,8 @@ part 'src/common/value.dart';
 part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
 
-JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
+final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
+final List<int> fixedBlankData = jsonUtf8Encoder.convert({});
 
 List foldList(List a, List b) {
   return a..addAll(b);
@@ -27,7 +28,8 @@ abstract class Connection {
   /// trigger when requester channel is Ready
   Future<ConnectionChannel> get onRequesterReady;
 
-  Future<Connection> get onDisconnected;
+  /// return true if it's authentication error
+  Future<bool> get onDisconnected;
 
   /// notify the connection channel need to send data
   void requireSend();
@@ -82,7 +84,7 @@ abstract class ClientLink extends Link {
 abstract class ServerLinkManager {
   void addLink(ServerLink link);
   void removeLink(ServerLink link);
-  ServerLink getLink(String dsId, [String sessionId = '']);
+  ServerLink getLink(String dsId, {String sessionId:'', String deviceId});
   Requester getRequester(String dsId);
   Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']);
 }

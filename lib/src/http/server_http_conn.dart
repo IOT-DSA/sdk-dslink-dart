@@ -12,8 +12,8 @@ class HttpServerConnection implements ServerConnection {
   Future<ConnectionChannel> get onRequesterReady =>
       _onRequestReadyCompleter.future;
 
-  Completer<Connection> _onDisconnectedCompleter = new Completer<Connection>();
-  Future<Connection> get onDisconnected => _onDisconnectedCompleter.future;
+  Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+  Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   HttpServerConnection() {
     _responderChannel = new PassiveChannel(this);

@@ -19,7 +19,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     root.load(rootStructure, this);
     connsNode = nodes['/conns'];
   }
-
+  
   bool _defsLoaded = false;
   /// load a fixed profile map
   void loadDefs(Map m) {
@@ -27,6 +27,35 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     (getNode('/defs') as LocalNodeImpl).load(m, this);
     _defsLoaded = true;
     // TODO send requester an update says: all profiles changed
+  }
+  Map _pendingDevices = {};
+  void loadConns() {
+    // loadConns from file
+    File connsFile = new File("conns.json");
+    try {
+      String data = connsFile.readAsStringSync();
+      Map m = JSON.decode(data);
+      m.forEach((String name, Map m){
+        RemoteLinkRootNode node = getNode('/conns/$name');
+        node.load(m, this);
+        if (node.configs[r'$$dsId'] is String) {
+          _id2connName[node.configs[r'$$dsId']] = name;
+          _connName2id[name] = node.configs[r'$$dsId'];
+        } else if (node.configs[r'$$deviceId'] is String) {
+          _pendingDevices[node.configs[r'$$deviceId']] = name;
+        }
+      });
+    } catch (err) {
+    }
+  }
+  Map saveConns() {
+    Map m = {};
+    this.conns.forEach((String name, RemoteLinkManager manager){
+      m[name] = manager.rootNode.serialize(false);
+    });
+    File connsFile = new File("conns.json");
+    connsFile.writeAsString(JSON.encode(m));
+    return m;
   }
 
   /// load a local node
@@ -48,10 +77,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkManager conn = conns[connName];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-        conn = new RemoteLinkManager(this, '/conns/$connName');
+        conn = new RemoteLinkManager(this, '/conns/$connName', this);
         conns[connName] = conn;
         nodes['/conns/$connName'] = conn.rootNode;
         connsNode.children[connName] = conn.rootNode;
+        conn.rootNode.parentNode = connsNode;
         connsNode.updateList(connName);
       }
       node = conn.getNode(path);
@@ -101,6 +131,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           break;
         }
       }
+      DsTimer.timerOnceAfter(saveConns, 3000);
       return connName;
     }
   }
@@ -119,11 +150,18 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _links[str] = link;
 
       connName = getConnName(str);
+      getNode('/conns/$connName').configs[r'$$dsId'] = link.dsId;
       printLog('new node added at /conns/$connName');
     }
   }
-
-  ServerLink getLink(String dsId, [String sessionId = '']) {
+  /// [deviceId] is not a secure method of create link, only use it in https
+  ServerLink getLink(String dsId, {String sessionId:'', String deviceId}) {
+    if (deviceId != null && _pendingDevices.containsKey(deviceId)){
+      _id2connName[dsId] = _pendingDevices[deviceId];
+      _connName2id[_pendingDevices[deviceId]] = dsId;
+      _pendingDevices.remove(deviceId);
+      DsTimer.timerOnceAfter(saveConns, 3000);
+    }
     String str = dsId;
     if (sessionId != null && sessionId != '') {
       str = '$dsId sessionId';
