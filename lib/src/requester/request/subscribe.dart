@@ -46,7 +46,16 @@ class SubscribeRequest extends Request {
 
   @override
   void resend() {
-    // don't resend
+    requester.addProcessor(_sendSubscriptionReuests);
+  }
+  
+  @override
+  void _close([DSError error]) {
+    if (subsriptions.isNotEmpty){
+      subsriptions.forEach((String path, ReqSubscribeController controller) {
+        _changedPaths.add(path);
+      });
+    }
   }
   @override
   void _update(Map m) {

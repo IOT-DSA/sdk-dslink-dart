@@ -47,7 +47,8 @@ class RngNode extends SimpleNode {
   static Math.Random rng = new  Math.Random();
   
   void onCreated() {
-    DsTimer.timerOnceAfter(updateRng, 1000);
+    updateValue(rng.nextDouble());
+    //DsTimer.timerOnceAfter(updateRng, 1000);
   }
   void onRemoving(){
     

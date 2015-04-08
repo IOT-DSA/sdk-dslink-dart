@@ -37,7 +37,7 @@ class Requester extends ConnectionHandler {
   int nextSid = 1;
   
   // TODO need a new design for short polling and long polling
-  int lastSentId = -1;
+  int lastSentId = 0;
   void onSent(bool sent) {
     lastSentId = nextRid - 1;
   }
@@ -98,12 +98,14 @@ class Requester extends ConnectionHandler {
     ;
     newRequests[0] = _subsciption;
     _requests.forEach((n, req) {
-      if (req.rid != 0 &&
-          req.rid <= lastSentId &&
+      if (req.rid <= lastSentId &&
           req.updater is! ListController) {
         req._close(DSError.DISCONNECTED);
+      } else {
+        newRequests[req.rid] = req;
       }
     });
+    _requests = newRequests;
   }
 
   void onReconnected() {
@@ -112,6 +114,5 @@ class Requester extends ConnectionHandler {
     _requests.forEach((n, req) {
       req.resend();
     });
-    //TODO resubscribe values
   }
 }
