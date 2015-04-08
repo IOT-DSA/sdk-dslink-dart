@@ -122,9 +122,16 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } else {
       // device link
       String connName;
-      // find a connName for it
-      for (int i = 42; i >= 0; --i) {
+      
+      // find a connName for it, keep append characters until find a new name
+      int i = 43;
+      if (dsId == '') i = 42;
+      for (; i >= 0; --i) {
         connName = dsId.substring(0, dsId.length - i);
+        if (i == 43 && connName.length > 1 && connName.endsWith('-')) {
+          // remove the last - in the name;
+          connName = connName.substring(0, connName.length-1);
+        }
         if (!_connName2id.containsKey(connName)) {
           _connName2id[connName] = dsId;
           _id2connName[dsId] = connName;
