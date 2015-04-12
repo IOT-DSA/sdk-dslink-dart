@@ -56,14 +56,20 @@ class HttpClientConnection implements ClientConnection {
   }
 
   static List<int> _fixedLongPollData = jsonUtf8Encoder.convert({});
-  void _sendL() {
+  _sendL() async {
     HttpClient client = new HttpClient();
-    Uri connUri =
-        Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
-    client.postUrl(connUri).then((HttpClientRequest request) {
+    HttpClientResponse resp;
+    try {
+      Uri connUri =
+          Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
+      HttpClientRequest request = await client.postUrl(connUri);
       request.add(_fixedLongPollData);
-      request.close().then(_onData).catchError(_onDataErrorL);
-    }, onError:_onDataErrorL);
+      resp = await request.close();
+    } catch (err) {
+      _onDataErrorL(err);
+      return;
+    }
+    _onDataL(resp);
   }
   void _onDataErrorL(Object err) {
     printDebug('http long error:$err');
@@ -73,6 +79,9 @@ class HttpClientConnection implements ClientConnection {
     } else if (!_done){
       _needRetryL = true;
       DsTimer.timerOnceBefore(retry, retryDelay*1000);
+      if (retryDelay < 60) {
+        retryDelay ++;
+      }
     }
   }
   bool _needRetryL = false;
@@ -80,7 +89,7 @@ class HttpClientConnection implements ClientConnection {
     _needRetryL = false;
     _sendL();
   }
-  void _onData(HttpClientResponse response) {
+  void _onDataL(HttpClientResponse response) {
     if (response.statusCode != 200){
       printDebug('http long response.statusCode:${response.statusCode}');
       if (response.statusCode == HttpStatus.UNAUTHORIZED){
@@ -116,9 +125,8 @@ class HttpClientConnection implements ClientConnection {
     });
   }
   
-  void _sendS() {
+  _sendS() async{
     _pendingSendS = false;
-    // long poll should always send even it's blank
     bool needSend = false;
     Map m = {};
     if (_responderChannel.getData != null) {
@@ -135,18 +143,25 @@ class HttpClientConnection implements ClientConnection {
         needSend = true;
       }
     }
+    
     if (needSend) {
+      HttpClientResponse resp;
       printDebug('http send: $m');
-      _sendingS = true;
-      HttpClient client = new HttpClient();
-      Uri connUri =
-          Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
+      try{
+        _sendingS = true;
+        HttpClient client = new HttpClient();
+        Uri connUri =
+            Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
 
-      client.postUrl(connUri).then((HttpClientRequest request) {
+        HttpClientRequest request = await client.postUrl(connUri);
         _lastRequestS = jsonUtf8Encoder.convert(m); 
         request.add(_lastRequestS);
-        request.close().then(_onDataS).catchError(_onDataErrorS);
-      }, onError:_onDataErrorS);
+        resp = await request.close();
+      } catch(err) {
+        _onDataErrorS(err);
+        return;
+      }
+      _onDataS(resp);
     }
   }
   

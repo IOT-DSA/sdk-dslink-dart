@@ -37,8 +37,9 @@ class WebSocketConnection implements ClientConnection {
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
-
+  bool _opened = false;
   void _onOpen(Event e) {
+    _opened = true;
     socket.sendString('{}');
     requireSend();
   }

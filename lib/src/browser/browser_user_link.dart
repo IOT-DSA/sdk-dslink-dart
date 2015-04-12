@@ -15,7 +15,8 @@ class BrowserUserLink implements ClientLink {
   final ECDH nonce = const DummyECDH();
   PrivateKey privateKey;
 
-  Connection _connection;
+  WebSocketConnection _wsConnection;
+  HttpBrowserConnection _httpConnection;
 
   static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
 
@@ -38,47 +39,70 @@ class BrowserUserLink implements ClientLink {
   }
 
   void connect() {
-    initWebsocket();
+    initWebsocket(false);
     //initHttp();
   }
 
-  initWebsocket() {
+  int _wsDelay = 1;
+  initWebsocket([bool reconnect = true]) {
+    if (reconnect && _httpConnection == null) {
+      initHttp();
+    }
     var socket = new WebSocket('$wsUpdateUri?session=$session');
-    _connection = new WebSocketConnection(socket, this);
+    _wsConnection = new WebSocketConnection(socket, this);
 
     if (responder != null) {
-      responder.connection = _connection.responderChannel;
+      responder.connection = _wsConnection.responderChannel;
     }
 
     if (requester != null) {
-      _connection.onRequesterReady.then((channel) {
+      _wsConnection.onRequesterReady.then((channel) {
         requester.connection = channel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
         }
       });
     }
-    _connection.onDisconnected.then((connection) {
-      initHttp();
+    _wsConnection.onDisconnected.then((connection) {
+      if (_wsConnection._opened) {
+        _wsDelay = 1;
+        initWebsocket(false);
+      } else if (reconnect) {
+        DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
+        if (_wsDelay < 60) _wsDelay++;
+      } else {
+        initHttp();
+        _wsDelay = 5;
+        DsTimer.timerOnceAfter(initWebsocket, 5000);
+      }
     });
   }
 
   initHttp() {
-    _connection = new HttpBrowserConnection(
+    _httpConnection = new HttpBrowserConnection(
         '$httpUpdateUri?session=$session', this, '0', '0', true);
 
     if (responder != null) {
-      responder.connection = _connection.responderChannel;
+      responder.connection = _httpConnection.responderChannel;
     }
 
     if (requester != null) {
-      _connection.onRequesterReady.then((channel) {
+      _httpConnection.onRequesterReady.then((channel) {
         requester.connection = channel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
         }
       });
     }
+    _httpConnection.onDisconnected.then((bool authFailed) {
+      _httpConnection = null;
+      if (authFailed) {
+        DsTimer.timerCancel(initWebsocket);
+        connect();
+      } else {
+        // reconnection of websocket should handle this case
+      }
+    });
   }
 }
 

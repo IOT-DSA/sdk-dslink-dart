@@ -14,8 +14,8 @@ class HttpClientLink implements ClientLink {
   ECDH _nonce;
   ECDH get nonce => _nonce;
 
-  Connection _wsConnection;
-  Connection _httpConnection;
+  WebSocketConnection _wsConnection;
+  HttpClientConnection _httpConnection;
 
   static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1, 'saltL': 2,};
 
@@ -76,57 +76,27 @@ class HttpClientLink implements ClientLink {
         _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
 
-      initWebsocket();
+      initWebsocket(false);
       _connDelay = 1;
       _wsDelay = 1;
       //initHttp();
       
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
-      if (_connDelay < 60)_wsDelay++;
+      if (_connDelay < 60)_connDelay++;
     }
   }
 
-  initWebsocket() async {
-    try {
-      var socket = await WebSocket
-          .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-      _wsConnection = new WebSocketConnection(socket, clientLink: this);
-
-      if (responder != null) {
-        responder.connection = _wsConnection.responderChannel;
-      }
-
-      if (requester != null) {
-        _wsConnection.onRequesterReady.then((channel) {
-          requester.connection = channel;
-          if (!_onRequesterReadyCompleter.isCompleted) {
-            _onRequesterReadyCompleter.complete(requester);
-          }
-        });
-      }
-      _wsConnection.onDisconnected.then((connection) {
-        initWebsocketAfterDisconnect();
-      });
-    } catch (error) {
-      initHttp();
-      _wsDelay = 5;
-      DsTimer.timerOnceAfter(initWebsocketAfterDisconnect, 5000);
-    }
-  }
   int _wsDelay = 1;
-  initWebsocketAfterDisconnect() async {
-    if (_httpConnection == null) {
+  initWebsocket([bool reconnect = true]) async {
+    if(reconnect && _httpConnection == null) {
       initHttp();
     }
     try {
       var socket = await WebSocket
           .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
       _wsConnection = new WebSocketConnection(socket, clientLink: this);
-      _wsDelay = 1;
-      if (_httpConnection != null) {
-        _httpConnection.close();
-      }
+
       if (responder != null) {
         responder.connection = _wsConnection.responderChannel;
       }
@@ -140,16 +110,20 @@ class HttpClientLink implements ClientLink {
         });
       }
       _wsConnection.onDisconnected.then((connection) {
-        initWebsocketAfterDisconnect();
+        initWebsocket();
       });
     } catch (error) {
       printDebug(error);
-      DsTimer.timerOnceAfter(initWebsocketAfterDisconnect, _wsDelay*1000);
-      if (_wsDelay < 60)_wsDelay++;
+      if (reconnect) {
+         DsTimer.timerOnceAfter(initWebsocket, _wsDelay*1000);
+         if (_wsDelay < 60)_wsDelay++;
+      } else {
+        initHttp();
+         _wsDelay = 5;
+         DsTimer.timerOnceAfter(initWebsocket, 5000);
+      }
+     
     }
-  }
-  void attachWsResponderRequester() {
-    
   }
   
   initHttp() async {
@@ -171,7 +145,7 @@ class HttpClientLink implements ClientLink {
     _httpConnection.onDisconnected.then((bool authFailed){
       _httpConnection = null;
       if (authFailed) {
-        DsTimer.timerCancel(initWebsocketAfterDisconnect);
+        DsTimer.timerCancel(initWebsocket);
         connect();
       } else {
         // reconnection of websocket should handle this case

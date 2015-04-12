@@ -14,7 +14,8 @@ class BrowserECDHLink implements ClientLink {
   ECDH _nonce;
   ECDH get nonce => _nonce;
 
-  Connection _connection;
+  WebSocketConnection _wsConnection;
+  HttpBrowserConnection _httpConnection;
 
   static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,'saltL': 2,};
 
@@ -39,21 +40,22 @@ class BrowserECDHLink implements ClientLink {
             ? new Responder(nodeProvider)
             : null {}
 
-  void connect() {
+  int _connDelay = 1;
+  connect() async{
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
-
-    Map requestJson = {
-      'publicKey': privateKey.publicKey.qBase64,
-      'isRequester': requester != null,
-      'isResponder': responder != null
-    };
-    HttpRequest
-        .request(connUri.toString(),
-            method: 'POST',
-            withCredentials: false,
-            mimeType: 'application/json',
-            sendData: JSON.encode(requestJson))
-        .then((HttpRequest request) {
+    printDebug('connecting: $connUri');
+    try {
+      Map requestJson = {
+        'publicKey': privateKey.publicKey.qBase64,
+        'isRequester': requester != null,
+        'isResponder': responder != null
+      };
+      HttpRequest request = await HttpRequest
+          .request(connUri.toString(),
+              method: 'POST',
+              withCredentials: false,
+              mimeType: 'application/json',
+              sendData: JSON.encode(requestJson));
       Map serverConfig = JSON.decode(request.responseText);
       saltNameMap.forEach((name, idx) {
         //read salts
@@ -73,49 +75,78 @@ class BrowserECDHLink implements ClientLink {
             '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
 
-      initWebsocket();
+      initWebsocket(false);
+      _connDelay = 1;
+      _wsDelay = 1;
       // initHttp();
 
-    });
+    } catch (err) {
+      DsTimer.timerOnceAfter(connect, _connDelay * 1000);
+      if (_connDelay < 60)_connDelay++;
+    }
   }
 
-  initWebsocket() {
+  int _wsDelay = 1;
+  initWebsocket([bool reconnect = true]) {
+    if (reconnect && _httpConnection == null) {
+      initHttp();
+    }
     var socket =
         new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _connection = new WebSocketConnection(socket, this);
+    _wsConnection = new WebSocketConnection(socket, this);
 
     if (responder != null) {
-      responder.connection = _connection.responderChannel;
+      responder.connection = _wsConnection.responderChannel;
     }
 
     if (requester != null) {
-      _connection.onRequesterReady.then((channel) {
+      _wsConnection.onRequesterReady.then((channel) {
         requester.connection = channel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
         }
       });
     }
-    _connection.onDisconnected.then((connection) {
-      initHttp();
+    _wsConnection.onDisconnected.then((connection) {
+      if (_wsConnection._opened){
+        _wsDelay = 1;
+        initWebsocket(false);
+      } else if (reconnect){
+        DsTimer.timerOnceAfter(initWebsocket, _wsDelay*1000);
+        if (_wsDelay < 60)_wsDelay++;
+      } else {
+        initHttp();
+        _wsDelay = 5;
+        DsTimer.timerOnceAfter(initWebsocket, 5000);
+      }
     });
   }
+ 
 
   initHttp() {
-    _connection =
-        new HttpBrowserConnection(_httpUpdateUri, this, salts[0], salts[1]);
+    _httpConnection =
+        new HttpBrowserConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
     if (responder != null) {
-      responder.connection = _connection.responderChannel;
+      responder.connection = _httpConnection.responderChannel;
     }
 
     if (requester != null) {
-      _connection.onRequesterReady.then((channel) {
+      _httpConnection.onRequesterReady.then((channel) {
         requester.connection = channel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
         }
       });
     }
+    _httpConnection.onDisconnected.then((bool authFailed){
+      _httpConnection = null;
+      if (authFailed) {
+        DsTimer.timerCancel(initWebsocket);
+        connect();
+      } else {
+        // reconnection of websocket should handle this case
+      }
+    });
   }
 }
