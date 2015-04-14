@@ -25,14 +25,8 @@ void updateResponseBeforeWrite(HttpRequest request, [int statusCode = HttpStatus
   response.statusCode = statusCode;
   response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
   response.headers.add('Access-Control-Allow-Headers', "Content-Type");
-  var uri = request.uri;
-
-  if (uri.scheme == 'https') {
-    response.headers.add('Access-Control-Allow-Origin', 'https://${uri.host}${uri.port != null ? ":${uri.port}":""}');
-  } else {
-    response.headers.add('Access-Control-Allow-Origin', '*');
-  }
-
+  response.headers.add('Access-Control-Allow-Origin', request.headers['origin']);
+ 
   if (contentType == null) {
     contentType = _jsonContentType;
   }
