@@ -155,10 +155,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // TODO is it possible same link get added twice?
     } else {
       _links[str] = link;
-
-      connName = getConnName(str);
-      getNode('/conns/$connName').configs[r'$$dsId'] = link.dsId;
-      printLog('new node added at /conns/$connName');
+      if (link.session == null){
+        // don't create node for requester node with session
+        connName = getConnName(str);
+        getNode('/conns/$connName').configs[r'$$dsId'] = link.dsId;
+        printLog('new node added at /conns/$connName');
+      }
     }
   }
   /// [deviceId] is not a secure method of create link, only use it in https
