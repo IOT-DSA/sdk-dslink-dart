@@ -91,6 +91,7 @@ class DsHttpServer {
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
+          updateResponseBeforeWrite(request);
           // invalid connection request
           request.response.close();
           return;
@@ -120,6 +121,7 @@ class DsHttpServer {
         }
         link.initLink(request);
       } catch (err) {
+        updateResponseBeforeWrite(request);
         if (err is int) {
           // TODO need protection because changing statusCode itself can throw
           request.response.statusCode = err;

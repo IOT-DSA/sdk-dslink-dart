@@ -30,7 +30,7 @@ void updateResponseBeforeWrite(HttpRequest request, [int statusCode = HttpStatus
   if (uri.scheme == 'https') {
     response.headers.add('Access-Control-Allow-Origin', 'https://${uri.host}${uri.port != null ? ":${uri.port}":""}');
   } else {
-    response.headers.add('Access-Control-Allow-Origin', request.headers['origin']);
+    response.headers.add('Access-Control-Allow-Origin', '*');
   }
 
   if (contentType == null) {
