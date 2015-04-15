@@ -32,15 +32,15 @@ class ListResponse extends Response {
     List updateChildren = [];
     
     if (node.disconnected != null) {
-      responder.updateReponse(this, [[r'$disconnected',node.disconnected]], streamStatus: StreamStatus.open);
+      responder.updateReponse(this, [[r'$disconnectedTs',node.disconnected]], streamStatus: StreamStatus.open);
       _disconnectSent = true;
       changes.clear();
       return;
-    } else if (_disconnectSent && !changes.contains(r'$disconnected')) {
+    } else if (_disconnectSent && !changes.contains(r'$disconnectedTs')) {
       _disconnectSent = false;
-      updateConfigs.add({'name':r'$disconnected', 'change': 'remove'});
-      if (node.configs.containsKey(r'$disconnected')) {
-        node.configs.remove(r'$disconnected');
+      updateConfigs.add({'name':r'$disconnectedTs', 'change': 'remove'});
+      if (node.configs.containsKey(r'$disconnectedTs')) {
+        node.configs.remove(r'$disconnectedTs');
       }
     }
     // TODO handle permission and permission change

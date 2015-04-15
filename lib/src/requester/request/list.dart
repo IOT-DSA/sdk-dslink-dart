@@ -46,15 +46,15 @@ class ListController implements RequestUpdater {
   String disconnectTs;
   void onDisconnect() {
     disconnectTs = ValueUpdate.getTs();
-    node.configs[r'$disconnected'] = disconnectTs;
+    node.configs[r'$disconnectedTs'] = disconnectTs;
     _controller.add(new RequesterListUpdate(
-        node, [r'$disconnected'], request.streamStatus));
+        node, [r'$disconnectedTs'], request.streamStatus));
   }
   void onReconnect() {
     if (disconnectTs != null) {
-      node.configs.remove(r'$disconnected');
+      node.configs.remove(r'$disconnectedTs');
       disconnectTs = null;
-      changes.add(r'$disconnected');
+      changes.add(r'$disconnectedTs');
     }
   }
   
