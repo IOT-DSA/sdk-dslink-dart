@@ -18,7 +18,13 @@ class HttpBrowserConnection implements ClientConnection {
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
-  bool connectedOnce = false;
+  bool _connectedOnce = false;
+  void connected(){
+    if (_connectedOnce) return;
+    _connectedOnce = true;
+    _responderChannel.updateConnect();
+    _requesterChannel.updateConnect();
+  }
 
   final String url;
   final ClientLink clientLink;
@@ -77,7 +83,7 @@ class HttpBrowserConnection implements ClientConnection {
   }
   void _onDataErrorL(Object err) {
     printDebug('http long error:$err');
-    if (!connectedOnce) {
+    if (!_connectedOnce) {
       _onDone();
       return;
     } else if (!_done) {
@@ -136,7 +142,7 @@ class HttpBrowserConnection implements ClientConnection {
 
   void _onDataErrorS(Object err) {
     printDebug('http short error:$err');
-    if (!connectedOnce) {
+    if (!_connectedOnce) {
       _onDone();
       return;
     } else if (!_done) {
@@ -164,7 +170,7 @@ class HttpBrowserConnection implements ClientConnection {
   }
 
   void _onDataL(String response) {
-    connectedOnce = true;
+    connected();
     _sendingL = false;
     // always send back after receiving long polling response
     requireSend();
@@ -189,7 +195,7 @@ class HttpBrowserConnection implements ClientConnection {
     }
   }
   void _onDataS(String response) {
-    connectedOnce = true;
+    connected();
     _sendingS = false;
     // always send back after receiving long polling response
     Map m;

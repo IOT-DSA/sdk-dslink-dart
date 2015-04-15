@@ -16,7 +16,12 @@ abstract class ConnectionHandler {
     _connListener = _conn.onReceive.listen(onData);
     _conn.onDisconnected.then(_onDisconnected);
     // resend all requests after a connection
-    onReconnected();
+    if (_conn.connected) {
+      onReconnected();
+    } else {
+      _conn.onConnected.then((conn)=>onReconnected());
+    }
+    
   }
 
   void _onDisconnected(ConnectionChannel conn) {
@@ -33,7 +38,7 @@ abstract class ConnectionHandler {
   void onDisconnected();
   void onReconnected() {
     if (_pendingSend) {
-      _conn.sendWhenReady(_doSend);
+      _conn.sendWhenReady(doSend);
     }
   }
   void onData(List m);
@@ -43,7 +48,7 @@ abstract class ConnectionHandler {
   void addToSendList(Map m) {
     _toSendList.add(m);
     if (!_pendingSend && _conn != null) {
-      _conn.sendWhenReady(_doSend);
+      _conn.sendWhenReady(doSend);
       _pendingSend = true;
     }
   }
@@ -59,7 +64,7 @@ abstract class ConnectionHandler {
     }
 
     if (!_pendingSend && _conn != null) {
-      _conn.sendWhenReady(_doSend);
+      _conn.sendWhenReady(doSend);
       _pendingSend = true;
     }
   }
@@ -67,7 +72,7 @@ abstract class ConnectionHandler {
   bool _pendingSend = false;
 
   /// gather all the changes from
-  List _doSend() {
+  List doSend() {
     _pendingSend = false;
     var processors = _processors;
     _processors = [];

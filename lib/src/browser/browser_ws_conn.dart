@@ -40,6 +40,8 @@ class WebSocketConnection implements ClientConnection {
   bool _opened = false;
   void _onOpen(Event e) {
     _opened = true;
+    _responderChannel.updateConnect();
+    _requesterChannel.updateConnect();
     socket.sendString('{}');
     requireSend();
   }

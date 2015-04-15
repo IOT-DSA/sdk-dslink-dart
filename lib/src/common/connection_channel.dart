@@ -9,7 +9,7 @@ class PassiveChannel implements ConnectionChannel {
 
   final Connection conn;
 
-  PassiveChannel(this.conn) {}
+  PassiveChannel(this.conn, [this.connected = false]) {}
 
   Function getData;
   void sendWhenReady(List getData()) {
@@ -23,6 +23,17 @@ class PassiveChannel implements ConnectionChannel {
     _isReady = val;
   }
 
+  bool connected = true;
+  
   final Completer<ConnectionChannel> onDisconnectController = new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onDisconnected => onDisconnectController.future;
+  
+  final Completer<ConnectionChannel> onConnectController = new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onConnected => onConnectController.future;
+  
+  void updateConnect(){
+    if (connected) return;
+    connected = true;
+    onConnectController.complete(this);
+  }
 }

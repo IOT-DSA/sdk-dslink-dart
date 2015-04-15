@@ -27,8 +27,8 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket, {this.clientLink}) {
-    _responderChannel = new PassiveChannel(this);
-    _requesterChannel = new PassiveChannel(this);
+    _responderChannel = new PassiveChannel(this, true);
+    _requesterChannel = new PassiveChannel(this, true);
     socket.listen(_onData, onDone: _onDone);
     socket.add(fixedBlankData);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this

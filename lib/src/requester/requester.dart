@@ -40,10 +40,11 @@ class Requester extends ConnectionHandler {
   
   // TODO need a new design for short polling and long polling
   int lastSentId = 0;
-  void onSent(bool sent) {
+  List doSend(){
+    List rslt = super.doSend();
     lastSentId = nextRid - 1;
+    return rslt;
   }
-
   Request _sendRequest(Map m, RequestUpdater updater) {
     m['rid'] = nextRid;
     Request req;
@@ -94,8 +95,11 @@ class Requester extends ConnectionHandler {
       request._close();
     }
   }
-
+  bool _connected = false;
   void onDisconnected() {
+    if (!_connected) return;
+    _connected = false;
+    
     var newRequests = new Map<int, Request>();
     ;
     newRequests[0] = _subsciption;
@@ -112,6 +116,9 @@ class Requester extends ConnectionHandler {
   }
 
   void onReconnected() {
+    if (_connected) return;
+    _connected = true;
+    
     super.onReconnected();
 
     _requests.forEach((n, req) {
