@@ -6,8 +6,11 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   final String path;
   final BrokerNodeProvider broker;
   RemoteLinkRootNode rootNode;
+  
+  String disconnected = ValueUpdate.getTs();
+  
   RemoteLinkManager(this.broker, this.path, NodeProviderImpl brokerProvider, [Map rootNodeData]) {
-    requester = new Requester(this);
+    requester = new RemoteRequester(this);
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
     if (rootNodeData != null) {
@@ -178,7 +181,8 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool _listReady = false;
   /// whether broker is already listing, can send data directly for new list request
   bool get listReady => _listReady;
-
+  String get disconnected => _linkManager.disconnected;
+  
   bool _valueReady = false;
   /// whether broker is already subscribing, can send value directly for new subscribe request
   bool get valueReady => _valueReady;
@@ -298,5 +302,6 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
     return m;
   }
+
 }
 

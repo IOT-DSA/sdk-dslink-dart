@@ -12,7 +12,10 @@ class ValueUpdate {
     int mm = timeZoneOffset % 60;
     return "$s${hh<10?'0':''}$hh:${mm<10?'0':''}$mm";
   }();
-
+  
+  static String getTs() {
+    return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
+  }
   Object value;
   String ts;
   String status;
@@ -24,7 +27,7 @@ class ValueUpdate {
   ValueUpdate(this.value, {this.ts, Map meta, this.status, this.count: 1,
     this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
     if (ts == null) {
-      ts = '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
+      ts = getTs();
     }
 
     if (meta != null) {

@@ -2,6 +2,8 @@ part of dslink.requester;
 
 abstract class RequestUpdater {
   void onUpdate(String status, List updates, List columns, DSError error);
+  void onDisconnect();
+  void onReconnect();
 }
 
 class RequesterUpdate {
@@ -103,6 +105,7 @@ class Requester extends ConnectionHandler {
         req._close(DSError.DISCONNECTED);
       } else {
         newRequests[req.rid] = req;
+        req.updater.onDisconnect();
       }
     });
     _requests = newRequests;
@@ -112,6 +115,7 @@ class Requester extends ConnectionHandler {
     super.onReconnected();
 
     _requests.forEach((n, req) {
+      req.updater.onReconnect();
       req.resend();
     });
   }

@@ -109,4 +109,9 @@ class InvokeController implements RequestUpdater {
       _controller.close();
     }
   }
+  
+  void onDisconnect() {
+  }
+  void onReconnect() {
+  }
 }

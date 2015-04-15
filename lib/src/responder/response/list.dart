@@ -8,6 +8,8 @@ class ListResponse extends Response {
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
       responder.addProcessor(processor);
+    } else if (node.disconnected != null) {
+      responder.addProcessor(processor);
     }
   }
 
@@ -21,7 +23,13 @@ class ListResponse extends Response {
       changes.add(key);
     }
   }
+  bool _disconnectSent = false;
   void processor() {
+    if (node.disconnected != null) {
+      responder.updateReponse(this, [[r'$disconnected',node.disconnected]], streamStatus: StreamStatus.open);
+      _disconnectSent = true;
+      return;
+    }
     // TODO handle permission and permission change
     Object updateIs;
     Object updateMixin;
@@ -80,7 +88,12 @@ class ListResponse extends Response {
         }
       }
     }
+    if (_disconnectSent && !changes.contains(r'$disconnected')) {
+      _disconnectSent = false;
+      updateConfigs.add({'name':r'$disconnected', 'change': 'remove'});
+    }
     changes.clear();
+
 
     List updates = [];
     if (updateIs != null) {

@@ -43,7 +43,21 @@ class ListController implements RequestUpdater {
   bool get initialized {
     return request != null && request.streamStatus != StreamStatus.initialize;
   }
-
+  String disconnectTs;
+  void onDisconnect() {
+    disconnectTs = ValueUpdate.getTs();
+    node.configs[r'$disconnected'] = disconnectTs;
+    _controller.add(new RequesterListUpdate(
+        node, [r'$disconnected'], request.streamStatus));
+  }
+  void onReconnect() {
+    if (disconnectTs != null) {
+      node.configs.remove(r'$disconnected');
+      disconnectTs = null;
+      changes.add(r'$disconnected');
+    }
+  }
+  
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
   void onUpdate(String streamStatus, List updates, List columns,
       [DSError error]) {

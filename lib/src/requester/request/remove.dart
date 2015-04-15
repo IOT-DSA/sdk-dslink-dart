@@ -15,4 +15,8 @@ class RemoveController implements RequestUpdater {
     // TODO implement error
     completer.complete(new RequesterUpdate(status));
   }
+  void onDisconnect() {
+  }
+  void onReconnect() {
+  }
 }

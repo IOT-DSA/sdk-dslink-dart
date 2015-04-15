@@ -34,6 +34,24 @@ class ReqSubscribeListener implements StreamSubscription {
   void resume() {
   }
 }
+
+/// only a place holder for reconnect and disconnect
+/// real logic is in SubscribeRequest itself
+class SubscribeController implements RequestUpdater {
+  SubscribeRequest request;
+  SubscribeController();
+  void onDisconnect() {
+    // TODO: implement onDisconnect
+  }
+
+  void onReconnect() {
+    // TODO: implement onReconnect
+  }
+
+  void onUpdate(String status, List updates, List columns, DSError error) {
+    // do nothing
+  }
+}
 class SubscribeRequest extends Request {
   final Map<String, ReqSubscribeController> subsriptions =
       new Map<String, ReqSubscribeController>();
@@ -42,7 +60,9 @@ class SubscribeRequest extends Request {
       new Map<int, ReqSubscribeController>();
 
   SubscribeRequest(Requester requester, int rid)
-      : super(requester, rid, null, null);
+      : super(requester, rid, new SubscribeController(), null) {
+    (updater as SubscribeController).request = this;
+  }
 
   @override
   void resend() {

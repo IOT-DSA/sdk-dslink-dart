@@ -63,6 +63,7 @@ abstract class LocalNode extends Node {
 
   /// whether the node is ready for returning a list response
   bool get listReady => true;
+  String get disconnected => null;
   bool get valueReady => true;
   
   InvokeResponse invoke(

@@ -10,7 +10,7 @@ void main(List<String> args) {
 
   // start the server
   var broker = new BrokerNodeProvider();
-  var server = new DsHttpServer.start(InternetAddress.ANY_IP_V4, httpPort:8088,
+  var server = new DsHttpServer.start(InternetAddress.ANY_IP_V4, httpPort:8080,
       certificateName: "self signed for dart", nodeProvider: broker, linkManager: broker);
   
   if (args.contains('--broker') || args.contains('-b')) {
