@@ -25,17 +25,26 @@ class ListResponse extends Response {
   }
   bool _disconnectSent = false;
   void processor() {
-    if (node.disconnected != null) {
-      responder.updateReponse(this, [[r'$disconnected',node.disconnected]], streamStatus: StreamStatus.open);
-      _disconnectSent = true;
-      return;
-    }
-    // TODO handle permission and permission change
     Object updateIs;
     Object updateMixin;
     List updateConfigs = [];
     List updateAttributes = [];
     List updateChildren = [];
+    
+    if (node.disconnected != null) {
+      responder.updateReponse(this, [[r'$disconnected',node.disconnected]], streamStatus: StreamStatus.open);
+      _disconnectSent = true;
+      changes.clear();
+      return;
+    } else if (_disconnectSent && !changes.contains(r'$disconnected')) {
+      _disconnectSent = false;
+      updateConfigs.add({'name':r'$disconnected', 'change': 'remove'});
+      if (node.configs.containsKey(r'$disconnected')) {
+        node.configs.remove(r'$disconnected');
+      }
+    }
+    // TODO handle permission and permission change
+
     if (initialResponse || changes.contains(r'$is')) {
       initialResponse = false;
       node.configs.forEach((name, value) {
@@ -88,10 +97,7 @@ class ListResponse extends Response {
         }
       }
     }
-    if (_disconnectSent && !changes.contains(r'$disconnected')) {
-      _disconnectSent = false;
-      updateConfigs.add({'name':r'$disconnected', 'change': 'remove'});
-    }
+
     changes.clear();
 
 
