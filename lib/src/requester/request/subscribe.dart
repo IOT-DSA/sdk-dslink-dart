@@ -203,10 +203,9 @@ class ReqSubscribeController {
       }
     } else {
       callbacks[callback] = cacheLevel;
-    }
-
-    if (_lastUpdate != null) {
-      callback(_lastUpdate);
+      if (_lastUpdate != null) {
+        callback(_lastUpdate);
+      }
     }
   }
   void unlisten(callback(ValueUpdate)) {
