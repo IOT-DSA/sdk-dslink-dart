@@ -217,7 +217,7 @@ class ListController implements RequestUpdater {
       }
       if (request.streamStatus == StreamStatus.closed) {
         _controller.close();
-        for (ListDefListener listener in _defLoaders) {
+        for (ListDefListener listener in _defLoaders.values) {
           listener.cancel();
         }
         _defLoaders.clear();
