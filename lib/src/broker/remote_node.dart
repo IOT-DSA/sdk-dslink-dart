@@ -136,10 +136,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   Map<Function, int> callbacks = new Map<Function, int>();
+  bool _subscribing = false;
   RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]) {
     callbacks[callback] = cachelevel;
     var rslt = new RespSubscribeListener(this, callback);
-    _linkManager.requester.subscribe(remotePath, updateValue, cachelevel);
+    if (!_subscribing) {
+      _subscribing = true;
+      _linkManager.requester.subscribe(remotePath, updateValue, cachelevel);
+    }
     return rslt;
   }
   void unsubscribe(callback(ValueUpdate)) {
@@ -149,6 +153,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     if (callbacks.isEmpty) {
       _linkManager.requester.unsubscribe(remotePath, updateValue);
       _valueReady = false;
+      _subscribing = false;
     }
   }
 
