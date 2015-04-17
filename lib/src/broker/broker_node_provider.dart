@@ -11,15 +11,20 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       new Map<String, RemoteLinkManager>();
 
   LocalNodeImpl connsNode;
-  Map rootStructure = {'conns': {}, 'defs': {}, 'quarantine': {}};
+  Map rootStructure = {'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
   BrokerNodeProvider() {
     // initialize root nodes
     RootNode root = new RootNode('/');
     nodes['/'] = root;
     root.load(rootStructure, this);
     connsNode = nodes['/conns'];
+    _initSys();
   }
   
+  void _initSys() {
+    setNode('/sys/version', new BrokerVersionNode('/sys/version' ,'0.9.0'));
+    setNode('/sys/startTime', new StartTimeNode('/sys/startTime'));
+  }
   bool _defsLoaded = false;
   /// load a fixed profile map
   void loadDefs(Map m) {
@@ -57,7 +62,25 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     connsFile.writeAsString(JSON.encode(m));
     return m;
   }
-
+  
+  /// add a node to the tree
+  void setNode(String path, LocalNode newnode) {
+    LocalNode node = nodes[path];
+    if (node != null) {
+      printError('error, BrokerNodeProvider.setNode same node can not be set twice');
+      return;
+    }
+    
+    Path p = new Path(path);
+    LocalNode parentNode = nodes[p.parentPath];
+    if (parentNode == null) {
+      printError('error, BrokerNodeProvider.setNode parentNode is null');
+      return;
+    }
+    
+    nodes[path] = newnode;
+    parentNode.addChild(p.name, newnode);
+  }
   /// load a local node
   LocalNode getNode(String path) {
     LocalNode node = nodes[path];

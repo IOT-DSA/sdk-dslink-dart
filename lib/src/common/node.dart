@@ -3,9 +3,6 @@ part of dslink.common;
 class Node {
   /// absoulte node path from the responder root.
 
-  /// node name or custom name defined in $name
-  String name;
-
   Node profile;
 
   /// mixins are stored in a reverse order as the mixin string is defined
@@ -54,8 +51,8 @@ class Node {
 
   Map<String, Node> children = {};
 
-  void addChild(Node node) {
-    children[node.name] = node;
+  void addChild(String name, Node node) {
+    children[name] = node;
   }
 
   void removeChild(dynamic input) {
