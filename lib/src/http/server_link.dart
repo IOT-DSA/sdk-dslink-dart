@@ -55,10 +55,12 @@ class HttpServerLink implements ServerLink {
     return publicKey.verifyDsId(dsId);
   }
 
-  void initLink(HttpRequest request) {
-
-//          isRequester: m['isResponder'] == true, // if client is responder, then server is requester
-//          isResponder: m['isRequester'] == true // if client is requester, then server is responder
+  bool isRequester = false;
+  /// by default it's a responder only link
+  bool isResponder = true;
+  void initLink(HttpRequest request, bool clientRequester, bool clientResponder) {
+    isRequester = clientResponder;
+    isResponder = clientRequester;
 
     // TODO, dont use hard coded id and public key
     Map respJson = {
@@ -131,10 +133,10 @@ class HttpServerLink implements ServerLink {
     }
     if (_connection == null) {
       _connection = new HttpServerConnection();
-      if (responder != null) {
+      if (responder != null && isResponder) {
         responder.connection = _connection.responderChannel;
       }
-      if (requester != null) {
+      if (requester != null && isRequester) {
         requester.connection = _connection.requesterChannel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
@@ -160,10 +162,10 @@ class HttpServerLink implements ServerLink {
           _connection.close();
         }
         _connection = wsconnection;
-        if (responder != null) {
+        if (responder != null && isResponder) {
           responder.connection = _connection.responderChannel;
         }
-        if (requester != null) {
+        if (requester != null && isRequester) {
           requester.connection = _connection.requesterChannel;
           if (!_onRequesterReadyCompleter.isCompleted) {
             _onRequesterReadyCompleter.complete(requester);

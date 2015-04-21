@@ -119,7 +119,7 @@ class DsHttpServer {
           }
           _linkManager.addLink(link);
         }
-        link.initLink(request);
+        link.initLink(request, m['isRequester'] == true, m['isResponder'] == true);
       } catch (err) {
         updateResponseBeforeWrite(request);
         if (err is int) {
