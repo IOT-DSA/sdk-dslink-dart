@@ -17,7 +17,11 @@ class BrowserECDHLink implements ClientLink {
   WebSocketConnection _wsConnection;
   HttpBrowserConnection _httpConnection;
 
-  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,'saltL': 2,};
+  static const Map<String, int> saltNameMap = const {
+    'salt': 0,
+    'saltS': 1,
+    'saltL': 2,
+  };
 
   /// 2 salts, salt and saltS
   final List<String> salts = new List<String>(3);
@@ -41,7 +45,8 @@ class BrowserECDHLink implements ClientLink {
             : null {}
 
   int _connDelay = 1;
-  connect() async{
+  connect() async {
+    if (_closed) return;
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     printDebug('connecting: $connUri');
     try {
@@ -50,12 +55,11 @@ class BrowserECDHLink implements ClientLink {
         'isRequester': requester != null,
         'isResponder': responder != null
       };
-      HttpRequest request = await HttpRequest
-          .request(connUri.toString(),
-              method: 'POST',
-              withCredentials: false,
-              mimeType: 'application/json',
-              sendData: JSON.encode(requestJson));
+      HttpRequest request = await HttpRequest.request(connUri.toString(),
+          method: 'POST',
+          withCredentials: false,
+          mimeType: 'application/json',
+          sendData: JSON.encode(requestJson));
       Map serverConfig = JSON.decode(request.responseText);
       saltNameMap.forEach((name, idx) {
         //read salts
@@ -82,12 +86,13 @@ class BrowserECDHLink implements ClientLink {
 
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
-      if (_connDelay < 60)_connDelay++;
+      if (_connDelay < 60) _connDelay++;
     }
   }
 
   int _wsDelay = 1;
   initWebsocket([bool reconnect = true]) {
+    if (_closed) return;
     if (reconnect && _httpConnection == null) {
       initHttp();
     }
@@ -101,6 +106,7 @@ class BrowserECDHLink implements ClientLink {
 
     if (requester != null) {
       _wsConnection.onRequesterReady.then((channel) {
+        if (_closed) return;
         requester.connection = channel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
@@ -108,12 +114,13 @@ class BrowserECDHLink implements ClientLink {
       });
     }
     _wsConnection.onDisconnected.then((connection) {
-      if (_wsConnection._opened){
+      if (_closed) return;
+      if (_wsConnection._opened) {
         _wsDelay = 1;
         initWebsocket(false);
-      } else if (reconnect){
-        DsTimer.timerOnceAfter(initWebsocket, _wsDelay*1000);
-        if (_wsDelay < 60)_wsDelay++;
+      } else if (reconnect) {
+        DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
+        if (_wsDelay < 60) _wsDelay++;
       } else {
         initHttp();
         _wsDelay = 5;
@@ -121,9 +128,9 @@ class BrowserECDHLink implements ClientLink {
       }
     });
   }
- 
 
   initHttp() {
+    if (_closed) return;
     _httpConnection =
         new HttpBrowserConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
@@ -139,7 +146,8 @@ class BrowserECDHLink implements ClientLink {
         }
       });
     }
-    _httpConnection.onDisconnected.then((bool authFailed){
+    _httpConnection.onDisconnected.then((bool authFailed) {
+      if (_closed) return;
       _httpConnection = null;
       if (authFailed) {
         DsTimer.timerCancel(initWebsocket);
@@ -148,5 +156,19 @@ class BrowserECDHLink implements ClientLink {
         // reconnection of websocket should handle this case
       }
     });
+  }
+
+  bool _closed = false;
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    if (_wsConnection != null) {
+      _wsConnection.close();
+      _wsConnection = null;
+    }
+    if (_httpConnection != null) {
+      _httpConnection.close();
+      _httpConnection = null;
+    }
   }
 }
