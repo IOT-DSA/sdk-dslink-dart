@@ -72,6 +72,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkManager manager = node._linkManager;
       if (manager.disconnected != null) {
         connsNode.children.remove(name);
+        manager.inTree = false;
         connsNode.updateList(name);
       }
     }
@@ -104,23 +105,16 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
 
     if (path.startsWith('/conns/')) {
-      int slashPos = path.indexOf('/', 7);
-      String connName;
-      if (slashPos < 0) {
-        connName = path.substring(7);
-      } else {
-        connName = path.substring(7, slashPos);
-      }
+      String connName = path.split('/')[2];
       RemoteLinkManager conn = conns[connName];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
         conn = new RemoteLinkManager(this, '/conns/$connName', this);
         conns[connName] = conn;
         nodes['/conns/$connName'] = conn.rootNode;
-      }
-      if (connsNode.children[connName] != conn.rootNode) {
         connsNode.children[connName] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
+        conn.inTree = true;
         connsNode.updateList(connName);
       }
       node = conn.getNode(path);
@@ -213,6 +207,17 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     String str = dsId;
     if (sessionId != null && sessionId != '') {
       str = '$dsId sessionId';
+    }
+    if (_links[str] != null) {
+      String connName = getConnName(str);
+      RemoteLinkNode node = getNode('/conns/$connName');
+      var conn = node._linkManager;
+      if (!conn.inTree) {
+        connsNode.children[connName] = conn.rootNode;
+        conn.rootNode.parentNode = connsNode;
+        conn.inTree = true;
+        connsNode.updateList(connName);
+      }
     }
     return _links[str];
   }
