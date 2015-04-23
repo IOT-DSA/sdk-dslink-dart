@@ -121,10 +121,11 @@ class DsHttpServer {
         }
         link.initLink(request, m['isRequester'] == true, m['isResponder'] == true);
       } catch (err) {
-        updateResponseBeforeWrite(request);
         if (err is int) {
           // TODO need protection because changing statusCode itself can throw
-          request.response.statusCode = err;
+          updateResponseBeforeWrite(request, err);
+        } else {
+          updateResponseBeforeWrite(request);
         }
         request.response.close();
       }
