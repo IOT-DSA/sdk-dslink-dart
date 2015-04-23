@@ -152,8 +152,8 @@ class HttpServerLink implements ServerLink {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
-
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
+      
       WebSocketConnection wsconnection = new WebSocketConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
       

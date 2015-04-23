@@ -114,6 +114,7 @@ class HttpClientLink implements ClientLink {
       }
       _wsConnection.onDisconnected.then((connection) {
         initWebsocket();
+        print('websocket disconnected');
       });
     } catch (error) {
       printDebug(error);
@@ -127,7 +128,6 @@ class HttpClientLink implements ClientLink {
          _wsDelay = 5;
          DsTimer.timerOnceAfter(initWebsocket, 5000);
       }
-     
     }
   }
   

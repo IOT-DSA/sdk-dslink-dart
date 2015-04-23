@@ -34,7 +34,7 @@ class LinkProvider {
       Map defaultNodes,
       Map profiles,
       NodeProvider nodeProvider,
-      bool enableHttp:true
+      bool enableHttp:false
     }) {
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
