@@ -33,10 +33,12 @@ class LinkProvider {
       bool isResponder: true,
       Map defaultNodes,
       Map profiles,
-      NodeProvider nodeProvider
+      NodeProvider nodeProvider,
+      bool enableHttp:true
     }) {
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
+    argp.addOption('name', abbr: 'n');
     argp.addOption('log', defaultsTo: 'notice');
     //argp.addOption('key', abbr: 'k', defaultsTo: '.dslink.key');
     //argp.addOption('nodes', abbr: 'n', defaultsTo: 'dslink.json');
@@ -64,7 +66,14 @@ class LinkProvider {
       print(helpStr);
       return;
     }
-
+    String name = opts['name'];
+    if (name != null) {
+      if (name.endsWith('-')) {
+        prefix = name;
+      } else {
+        prefix = '${name}-';
+      }
+    }
     // load configs
     File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
     Map dslinkJson;
@@ -143,7 +152,7 @@ class LinkProvider {
       }
     }
 
-    link = new HttpClientLink(brokerUrl, prefix, prikey, isRequester: isRequester, isResponder: isResponder, nodeProvider: nodeProvider);
+    link = new HttpClientLink(brokerUrl, prefix, prikey, isRequester: isRequester, isResponder: isResponder, nodeProvider: nodeProvider, enableHttp:enableHttp);
   }
 
   void connect() {

@@ -29,10 +29,10 @@ class HttpClientLink implements ClientLink {
   String _wsUpdateUri;
   String _httpUpdateUri;
   String _conn;
-
+  bool enableHttp;
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
-      bool isResponder: true})
+      bool isResponder: true, this.enableHttp:true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
@@ -42,6 +42,9 @@ class HttpClientLink implements ClientLink {
 
   int _connDelay = 1;
   connect() async {
+    
+    DsTimer.timerCancel(initWebsocket);
+    
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     printDebug('connecting: $connUri');
@@ -114,7 +117,9 @@ class HttpClientLink implements ClientLink {
       });
     } catch (error) {
       printDebug(error);
-      if (reconnect) {
+      if (error is WebSocketException && error.message.contains('was not upgraded to websocket')){
+        DsTimer.timerOnceAfter(connect, _connDelay * 1000);
+      } else if (reconnect) {
          DsTimer.timerOnceAfter(initWebsocket, _wsDelay*1000);
          if (_wsDelay < 60)_wsDelay++;
       } else {
@@ -127,6 +132,9 @@ class HttpClientLink implements ClientLink {
   }
   
   initHttp() async {
+    if (!enableHttp) {
+      return;
+    }
     _httpConnection =
         new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
@@ -145,8 +153,7 @@ class HttpClientLink implements ClientLink {
     _httpConnection.onDisconnected.then((bool authFailed){
       _httpConnection = null;
       if (authFailed) {
-        DsTimer.timerCancel(initWebsocket);
-        connect();
+        DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       } else {
         // reconnection of websocket should handle this case
       }
