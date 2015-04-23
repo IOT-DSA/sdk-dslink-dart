@@ -56,7 +56,7 @@ class HttpServerConnection implements ServerConnection {
     input.fold([], foldList).then((List merged) {
       Map m;
       try {
-        m = JSON.decode(UTF8.decode(merged));
+        m = DsJson.decode(UTF8.decode(merged));
       } catch (err) {}
       if (m != null) {
         paseInput(m);
@@ -71,7 +71,7 @@ class HttpServerConnection implements ServerConnection {
     input.fold([], foldList).then((List merged) {
       Map m;
       try {
-        m = JSON.decode(UTF8.decode(merged));
+        m = DsJson.decode(UTF8.decode(merged));
       } catch (err) {}
       input.response.close();
       if (m != null) {
@@ -126,7 +126,7 @@ class HttpServerConnection implements ServerConnection {
     if (needSend) {
       printDebug('http send: $m');
       updateResponseBeforeWrite(_cachedInput);
-      _cachedInput.response.write(JSON.encode(m));
+      _cachedInput.response.write(DsJson.encode(m));
       _cachedInput.response.close();
     }
   }

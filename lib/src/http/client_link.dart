@@ -57,11 +57,11 @@ class HttpClientLink implements ClientLink {
       };
       printDebug(dsId);
     
-      request.add(jsonUtf8Encoder.convert(requestJson));
+      request.add(UTF8.encode(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
       List<int> merged = await response.fold([], foldList);
       String rslt = UTF8.decode(merged);
-      Map serverConfig = JSON.decode(rslt);
+      Map serverConfig = DsJson.decode(rslt);
       saltNameMap.forEach((name, idx) {
         //read salts
         salts[idx] = serverConfig[name];

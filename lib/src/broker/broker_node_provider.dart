@@ -40,7 +40,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     File connsFile = new File("conns.json");
     try {
       String data = connsFile.readAsStringSync();
-      Map m = JSON.decode(data);
+      Map m = DsJson.decode(data);
       m.forEach((String name, Map m){
         RemoteLinkRootNode node = getNode('/conns/$name');
         node.load(m, this);
@@ -61,7 +61,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m[name] = manager.rootNode.serialize(false);
     });
     File connsFile = new File("conns.json");
-    connsFile.writeAsString(JSON.encode(m));
+    connsFile.writeAsString(DsJson.encode(m));
     return m;
   }
   // remove disconnected nodes from the conns node

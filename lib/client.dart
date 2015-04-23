@@ -21,7 +21,7 @@ part 'src/http/client_http_conn.dart';
 class LinkProvider {
   HttpClientLink link;
   SimpleNodeProvider provider;
-
+  String brokerUrl;
   File _nodesFile;
 
   LinkProvider(
@@ -61,7 +61,7 @@ class LinkProvider {
       return;
     }
 
-    String brokerUrl = opts['broker'];
+    brokerUrl = opts['broker'];
     if (brokerUrl == null) {
       print(helpStr);
       return;
@@ -91,7 +91,7 @@ class LinkProvider {
     if (dslinkFile.existsSync()) {
       try {
         String configStr = dslinkFile.readAsStringSync();
-        dslinkJson = JSON.decode(configStr);
+        dslinkJson = DsJson.decode(configStr);
       } catch (err) {
       }
 
@@ -141,7 +141,7 @@ class LinkProvider {
 
       try {
         String nodesStr = _nodesFile.readAsStringSync();
-        loadedNodesData = JSON.decode(nodesStr);
+        loadedNodesData = DsJson.decode(nodesStr);
       } catch (err) {
       }
 
@@ -161,7 +161,7 @@ class LinkProvider {
 
   void save() {
     if (_nodesFile != null && provider != null) {
-      _nodesFile.writeAsStringSync(JSON.encode(provider.save()));
+      _nodesFile.writeAsStringSync(DsJson.encode(provider.save()));
     }
   }
 }

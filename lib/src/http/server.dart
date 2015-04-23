@@ -101,7 +101,7 @@ class DsHttpServer {
           return;
         }
         String str = UTF8.decode(merged);
-        Map m = JSON.decode(str);
+        Map m = DsJson.decode(str);
         HttpServerLink link = _linkManager.getLink(dsId);
         if (link == null) {
           String publicKeyPointStr = m['publicKey'];

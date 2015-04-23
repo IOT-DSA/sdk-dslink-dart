@@ -52,7 +52,7 @@ class WebSocketConnection implements ClientConnection {
     if (e.data is ByteBuffer) {
       try {
         // TODO(rick): JSONUtf8Decoder
-        m = JSON.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
+        m = DsJson.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
         printDebug('$m');
       } catch (err) {
         printError(err);
@@ -75,7 +75,7 @@ class WebSocketConnection implements ClientConnection {
       }
     } else if (e.data is String) {
       try {
-        m = JSON.decode(e.data);
+        m = DsJson.decode(e.data);
         printDebug('$m');
       } catch (err) {
         printError(err);
@@ -122,7 +122,7 @@ class WebSocketConnection implements ClientConnection {
       printDebug('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
-      socket.send(JSON.encode(m));
+      socket.send(DsJson.encode(m));
     }
   }
 

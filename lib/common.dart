@@ -8,6 +8,7 @@ import 'responder.dart';
 
 import 'package:quiver/core.dart';
 import 'src/crypto/pk.dart';
+import 'utils.dart';
 
 part 'src/common/node.dart';
 part 'src/common/table.dart';
@@ -15,8 +16,8 @@ part 'src/common/value.dart';
 part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
 
-final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
-final List<int> fixedBlankData = jsonUtf8Encoder.convert({});
+//final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
+final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));
 
 List foldList(List a, List b) {
   return a..addAll(b);

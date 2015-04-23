@@ -59,8 +59,8 @@ class BrowserECDHLink implements ClientLink {
           method: 'POST',
           withCredentials: false,
           mimeType: 'application/json',
-          sendData: JSON.encode(requestJson));
-      Map serverConfig = JSON.decode(request.responseText);
+          sendData: DsJson.encode(requestJson));
+      Map serverConfig = DsJson.decode(request.responseText);
       saltNameMap.forEach((name, idx) {
         //read salts
         salts[idx] = serverConfig[name];

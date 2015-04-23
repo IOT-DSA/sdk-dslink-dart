@@ -60,7 +60,7 @@ class HttpClientConnection implements ClientConnection {
     }
   }
 
-  static List<int> _fixedLongPollData = jsonUtf8Encoder.convert({});
+  static List<int> _fixedLongPollData = UTF8.encode(DsJson.encode(({})));
   _sendL() async {
     HttpClient client = new HttpClient();
     HttpClientResponse resp;
@@ -109,7 +109,7 @@ class HttpClientConnection implements ClientConnection {
       // always send back after receiving long polling response
       Map m;
       try {
-        m = JSON.decode(UTF8.decode(merged));
+        m = DsJson.decode(UTF8.decode(merged));
         printDebug('http receive: $m');
       } catch (err) {
         return;
@@ -159,7 +159,7 @@ class HttpClientConnection implements ClientConnection {
             Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
 
         HttpClientRequest request = await client.postUrl(connUri);
-        _lastRequestS = jsonUtf8Encoder.convert(m); 
+        _lastRequestS = UTF8.encode(JSON.encode(m)); 
         request.add(_lastRequestS);
         resp = await request.close();
       } catch(err) {
@@ -206,7 +206,7 @@ class HttpClientConnection implements ClientConnection {
       _sendingS = false;
       Map m;
       try {
-        m = JSON.decode(UTF8.decode(merged));
+        m = DsJson.decode(UTF8.decode(merged));
       } catch (err) {
         return;
       }

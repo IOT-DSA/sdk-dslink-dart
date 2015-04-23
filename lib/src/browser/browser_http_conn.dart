@@ -124,7 +124,7 @@ class HttpBrowserConnection implements ClientConnection {
       HttpRequest request;
       try {
         _sendingS = true;
-        _lastRequestS = JSON.encode(m);
+        _lastRequestS = DsJson.encode(m);
         connUri =
             Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
         request = await HttpRequest.request(connUri.toString(),
@@ -176,7 +176,7 @@ class HttpBrowserConnection implements ClientConnection {
     requireSend();
     Map m;
     try {
-      m = JSON.decode(response);
+      m = DsJson.decode(response);
       printDebug('http receive: $m');
     } catch (err) {
       return;
@@ -200,7 +200,7 @@ class HttpBrowserConnection implements ClientConnection {
     // always send back after receiving long polling response
     Map m;
     try {
-      m = JSON.decode(response);
+      m = DsJson.decode(response);
       printDebug('http receive: $m');
     } catch (err) {
       return;

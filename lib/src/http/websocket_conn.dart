@@ -59,7 +59,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     if (data is List<int>) {
       try {
         // TODO JSONUTF8Decoder
-        m = JSON.decode(UTF8.decode(data));
+        m = DsJson.decode(UTF8.decode(data));
         printDebug('$m');
       } catch (err) {
         printError(err);
@@ -76,7 +76,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     } else if (data is String) {
       try {
-        m = JSON.decode(data);
+        m = DsJson.decode(data);
         printDebug('$m');
       } catch (err) {
         printError(err);
@@ -124,9 +124,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     if (needSend) {
       printDebug('send: $m');
       if (_useStringFormat) {
-        socket.add(JSON.encode(m));
+        socket.add(DsJson.encode(m));
       } else {
-        socket.add(jsonUtf8Encoder.convert(m));
+        socket.add(UTF8.encode(DsJson.encode(m)));
       }
     }
   }
