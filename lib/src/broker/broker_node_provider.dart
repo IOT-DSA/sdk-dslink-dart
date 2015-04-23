@@ -24,6 +24,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void _initSys() {
     setNode('/sys/version', new BrokerVersionNode('/sys/version' ,'0.9.0'));
     setNode('/sys/startTime', new StartTimeNode('/sys/startTime'));
+    setNode('/sys/clearConns', new ClearConnsAction('/sys/clearConns', this));
   }
   bool _defsLoaded = false;
   /// load a fixed profile map
@@ -55,14 +56,27 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
   Map saveConns() {
     Map m = {};
-    this.conns.forEach((String name, RemoteLinkManager manager){
+    connsNode.children.forEach((String name, RemoteLinkNode node) {
+      RemoteLinkManager manager = node._linkManager;
       m[name] = manager.rootNode.serialize(false);
     });
     File connsFile = new File("conns.json");
     connsFile.writeAsString(JSON.encode(m));
     return m;
   }
-  
+  // remove disconnected nodes from the conns node
+  void clearConns() {
+    List names = connsNode.children.keys.toList();
+    for (String name in names) {
+      RemoteLinkNode node = connsNode.children[name];
+      RemoteLinkManager manager = node._linkManager;
+      if (manager.disconnected != null) {
+        connsNode.children.remove(name);
+        connsNode.updateList(name);
+      }
+    }
+    DsTimer.timerOnceAfter(saveConns, 3000);
+  }
   /// add a node to the tree
   void setNode(String path, LocalNode newnode) {
     LocalNode node = nodes[path];
@@ -103,6 +117,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         conn = new RemoteLinkManager(this, '/conns/$connName', this);
         conns[connName] = conn;
         nodes['/conns/$connName'] = conn.rootNode;
+      }
+      if (connsNode.children[connName] != conn.rootNode) {
         connsNode.children[connName] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
         connsNode.updateList(connName);

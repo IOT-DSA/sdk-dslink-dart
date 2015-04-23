@@ -17,3 +17,15 @@ class StartTimeNode extends LocalNodeImpl {
     updateValue(ValueUpdate.getTs());
   }
 }
+
+class ClearConnsAction extends LocalNodeImpl {
+  BrokerNodeProvider provider;
+  ClearConnsAction(String path, this.provider) : super(path) {
+    configs[r'$invokable'] = 'read';
+  }
+  
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
+    provider.clearConns();
+    return response..close();
+  }
+}
