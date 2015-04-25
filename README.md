@@ -4,19 +4,24 @@ With the DSLink SDK, you can provide IoT data to any DSA compatible consumer.
 
 ## Getting Started
 
-DSLink's API is very simple!
+Example Link:
 
 ```dart
-import "package:dslink/link.dart";
+import 'package:dslink/client.dart';
+import 'package:dslink/utils.dart';
+import 'package:dslink/responder.dart';
 
-void main() {
-  var link = new DSLink("MyLink", host: "broker.example.com");
-  var examples = link.createRootNode("Examples");
-  var integerNode = examples.createChild("Integer Point 1", value: 1);
-  
-  link.connect().then((_) {
-    print("Connected.");
+LinkProvider link;
+
+main(List<String> args) async {
+  link = new LinkProvider(args, "Example-", defaultNodes: {
+    "Message": {
+      r"$type": "string",
+      "?value": "Hello World"
+    }
   });
+
+  link.connect();
 }
 ```
 
