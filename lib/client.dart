@@ -136,7 +136,7 @@ class LinkProvider {
     if (nodeProvider == null) {
       provider = new SimpleNodeProvider(null, profiles);
       nodeProvider = provider;
-      _nodesFile = getConfig('nodes') == null ? new File("dslink.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
+      _nodesFile = getConfig('nodes') == null ? new File("nodes.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
 
       try {
