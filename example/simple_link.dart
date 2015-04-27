@@ -17,5 +17,5 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link.provider.getNode("/Message").subscribe((update) => link.save());
+  link["/Message"].subscribe((update) => link.save());
 }
