@@ -183,3 +183,18 @@ class HttpClientLink implements ClientLink {
     }
   }
 }
+
+PrivateKey getKeyFromFile(String path) {
+  var file = new File(path);
+
+  PrivateKey key;
+  if (!file.existsSync()) {
+    key = new PrivateKey.generate();
+    file.createSync(recursive: true);
+    file.writeAsStringSync(key.saveToString());
+  } else {
+    key = new PrivateKey.loadFromString(file.readAsStringSync());
+  }
+
+  return key;
+}

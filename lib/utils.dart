@@ -29,6 +29,7 @@ const Map<String, int> _debugLevelMap = const {
   'info': _LOG_INFO,
   'debug': _LOG_DEBUG,
 };
+
 void updateLogLevel(String str) {
   if (_debugLevelMap.containsKey(str)) {
     _LOG_LEVEL = _debugLevelMap[str];
