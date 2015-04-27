@@ -11,6 +11,8 @@ part "src/utils/timer.dart";
 part "src/utils/stream_controller.dart";
 part "src/utils/json.dart";
 
+const String DSA_VERSION = '1.0.1';
+
 const int _LOG_NONE = 0;
 //const int _LOG_FATAL = 1;
 const int _LOG_ERROR = 10;

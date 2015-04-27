@@ -53,7 +53,8 @@ class BrowserECDHLink implements ClientLink {
       Map requestJson = {
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
-        'isResponder': responder != null
+        'isResponder': responder != null,
+        'version': DSA_VERSION
       };
       HttpRequest request = await HttpRequest.request(connUri.toString(),
           method: 'POST',

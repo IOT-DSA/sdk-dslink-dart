@@ -32,7 +32,7 @@ class HttpClientLink implements ClientLink {
   bool enableHttp;
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
-      bool isResponder: true, this.enableHttp:true})
+      bool isResponder: true, this.enableHttp:false})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
@@ -54,7 +54,8 @@ class HttpClientLink implements ClientLink {
       Map requestJson = {
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
-        'isResponder': responder != null
+        'isResponder': responder != null,
+        'version': DSA_VERSION
       };
       printDebug(dsId);
 
@@ -102,7 +103,7 @@ class HttpClientLink implements ClientLink {
     try {
       var socket = await WebSocket
           .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-      _wsConnection = new WebSocketConnection(socket, clientLink: this);
+      _wsConnection = new WebSocketConnection(socket, clientLink: this, enableTimeout:true);
 
       if (responder != null) {
         responder.connection = _wsConnection.responderChannel;

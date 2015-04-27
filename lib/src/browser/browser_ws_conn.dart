@@ -32,8 +32,37 @@ class WebSocketConnection implements ClientConnection {
     socket.onOpen.listen(_onOpen);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
+    
+    pingTimer = new Timer.periodic(new Duration(seconds:20), onPingTimer);
   }
 
+  Timer pingTimer;
+  int pingCount = 0;
+  bool _dataSent = false;
+  
+  /// add this count every 20 seconds, set to 0 when receiving data
+  /// when the count is 3, disconnect the link
+  int _dataReceiveCount = 0;
+  
+  void onPingTimer(Timer t){
+    if (_dataReceiveCount >= 3) {
+      this._onDone();
+      return;
+    }
+    _dataReceiveCount ++;
+    
+    if (_dataSent) {
+      _dataSent = false;
+      return;
+    }
+    if (_msgCommand == null) {
+      _msgCommand = {};
+    }
+    _msgCommand['ping'] = ++pingCount;
+    requireSend();
+  }
+  Map _msgCommand;
+  
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
@@ -48,6 +77,7 @@ class WebSocketConnection implements ClientConnection {
 
   void _onData(MessageEvent e) {
     printDebug('onData:');
+    _dataReceiveCount = 0;
     Map m;
     if (e.data is ByteBuffer) {
       try {
@@ -101,8 +131,15 @@ class WebSocketConnection implements ClientConnection {
     }
     printDebug('browser sending');
     bool needSend = false;
-    Map m = {
-    };
+    Map m;
+    if (_msgCommand != null) {
+      m = _msgCommand;
+      needSend = true;
+      _msgCommand = null;
+    } else {
+      m = {};
+    }
+    
 
     if (_responderChannel.getData != null) {
       List rslt = _responderChannel.getData();
@@ -123,6 +160,7 @@ class WebSocketConnection implements ClientConnection {
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
       socket.send(DsJson.encode(m));
+      _dataSent = true;
     }
   }
 
@@ -148,6 +186,9 @@ class WebSocketConnection implements ClientConnection {
 
     if (!_onDisconnectedCompleter.isCompleted) {
       _onDisconnectedCompleter.complete(_authError);
+    }
+    if (pingTimer != null) {
+      pingTimer.cancel();
     }
   }
 

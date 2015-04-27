@@ -21,6 +21,9 @@ class HttpServerLink implements ServerLink {
 
   ServerConnection _connection;
 
+  // TODO deprecate this, all dslink need to support it
+  final bool enableTimeout;
+  
   final List<String> _saltBases = new List<String>(3);
   final List<int> _saltInc = <int>[0, 0, 0];
   /// 3 salts, salt saltS saltL
@@ -29,7 +32,7 @@ class HttpServerLink implements ServerLink {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
-  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, String sessionId, this.trusted: false})
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, String sessionId, this.trusted: false, this.enableTimeout:false})
       : dsId = id,
         session = sessionId,
         requester = linkManager.getRequester(id),
@@ -154,7 +157,7 @@ class HttpServerLink implements ServerLink {
     }
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       
-      WebSocketConnection wsconnection = new WebSocketConnection(websocket);
+      WebSocketConnection wsconnection = new WebSocketConnection(websocket, enableTimeout:enableTimeout);
       wsconnection.addServerCommand('salt', salts[0]);
       
       wsconnection.onRequesterReady.then((channel){
