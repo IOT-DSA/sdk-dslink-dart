@@ -36,6 +36,6 @@ class ResetNode extends SimpleNode {
   @override
   onInvoke(Map<String, dynamic> params) {
     link.updateValue("/Message", "Hello World"); // Update the value of the message node.
-    return []; // Return an empty row of values.
+    return {}; // Return an empty row of values.
   }
 }
