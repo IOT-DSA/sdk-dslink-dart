@@ -50,7 +50,10 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return node;
   }
-
+  /// get an existing node or create a dummy node for requester to listen on
+  LocalNode operator [](String path) {
+    return getNode(path);
+  }
   RemoteNode getRemoteNode(String rPath) {
     String fullPath = path + rPath;
     if (rPath == '') {

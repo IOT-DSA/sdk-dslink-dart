@@ -91,7 +91,12 @@ class ListController implements RequestUpdater {
           continue; // invalid response
         }
         if (name.startsWith(r'$')) {
-          if (name == r'$is' || (name == r'$disconnectedTs' && value is String)) {
+          if (name == r'$disconnectedTs' && value is String) {
+            node.children.clear();
+            node.attributes.clear();
+            node.configs.clear();
+          }
+          else if (name == r'$is') {
             node.children.clear();
             node.attributes.clear();
             node.configs.clear();
