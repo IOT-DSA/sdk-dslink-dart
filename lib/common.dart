@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'requester.dart';
 import 'responder.dart';
 
-import 'package:quiver/core.dart';
 import 'src/crypto/pk.dart';
 import 'utils.dart';
 

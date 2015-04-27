@@ -206,4 +206,10 @@ class LinkProvider {
       _nodesFile.writeAsStringSync(DsJson.encode(provider.save()));
     }
   }
+  
+  LocalNode getNode(String path) {
+    return provider.getNode(path);
+  }
+  
+  LocalNode operator [](String path) => provider[path];
 }
