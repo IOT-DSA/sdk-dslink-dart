@@ -26,7 +26,7 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link.provider.getNode("/Message").subscribe((update) => link.save());
+  link["/Message"].subscribe((update) => link.save());
 }
 
 // A simple node that resets the message value.
@@ -35,7 +35,7 @@ class ResetNode extends SimpleNode {
 
   @override
   onInvoke(Map<String, dynamic> params) {
-    link.provider.getNode("/Message").updateValue("Hello World"); // Update the value of the message node.
+    link.updateValue("/Message", "Hello World"); // Update the value of the message node.
     return []; // Return an empty row of values.
   }
 }
