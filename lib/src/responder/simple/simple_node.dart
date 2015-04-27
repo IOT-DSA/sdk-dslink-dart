@@ -202,8 +202,8 @@ class SimpleNode extends LocalNodeImpl {
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     Object rslt = onInvoke(params);
 
-    if (rslt is List) {
-      response.updateStream(rslt, streamStatus: StreamStatus.closed);
+    if (rslt is Iterable) {
+      response.updateStream(rslt.toList(), streamStatus: StreamStatus.closed);
     } else if (rslt is Map) {
       response.updateStream([rslt], streamStatus: StreamStatus.closed);
     } else if (rslt is SimpleTableResult) {
@@ -214,7 +214,7 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is Future) {
       var r = new AsyncTableResult();
       rslt.then((value) {
-        r.update(value is List ? value : [value]);
+        r.update(value is Iterable ? value.toList() : [value]);
         r.close();
       });
       r.write(response);
