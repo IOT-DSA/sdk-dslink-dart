@@ -4,6 +4,10 @@ part of dslink.responder;
 abstract class LocalNode extends Node {
   final StreamController<String> listChangeController =
       new StreamController<String>();
+      
+  final String path;
+  
+  LocalNode(this.path);
 
   Stream<String> _listStream;
 
@@ -15,12 +19,14 @@ abstract class LocalNode extends Node {
   }
   
   Map<Function, int> callbacks = new Map<Function, int>();
+  
   RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]){
     callbacks[callback] = cachelevel;
     return new RespSubscribeListener(this, callback);
   }
-  void unsubscribe(callback(ValueUpdate)){
-    if (callbacks.containsKey(callback)){
+  
+  void unsubscribe(callback(ValueUpdate)) {
+    if (callbacks.containsKey(callback)) {
       callbacks.remove(callback);
     }
   }
@@ -36,12 +42,12 @@ abstract class LocalNode extends Node {
   void updateValue(Object update) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
-      callbacks.forEach((callback, cachelevel){
+      callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
     } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
       _lastValueUpdate = new ValueUpdate(update);
-      callbacks.forEach((callback, cachelevel){
+      callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
     }
@@ -50,12 +56,11 @@ abstract class LocalNode extends Node {
   
   /// get a list of permission setting on this node
   PermissionList get permissions => null;
+  
   /// get the permission of a responder (actually the permisison of the linked requester)
   int getPermission(Responder responder) {
     return Permission.READ;
   }
-  final String path;
-  LocalNode(this.path);
 
   /// list and subscribe can be called on a node that doesn't exist
   /// other api like set remove, invoke, can only be applied to existing node
@@ -89,14 +94,21 @@ abstract class LocalNode extends Node {
   Response removeConfig(String name, Responder responder, Response response) {
     return response..close();
   }
+  
   /// set node value
   Response setValue(Object value, Responder responder, Response response) {
     return response..close();
   }
 }
+
 /// node provider for responder
 /// one nodeProvider can be reused by multiple responders
 abstract class NodeProvider {
-  /// get a existing node or create a dummy node for requester to listen on
+  /// get an existing node or create a dummy node for requester to listen on
   LocalNode getNode(String path);
+  
+  /// get an existing node or create a dummy node for requester to listen on
+  LocalNode operator [](String path) {
+    return getNode(path);
+  }
 }

@@ -168,11 +168,11 @@ class SimpleNode extends LocalNodeImpl {
       } else if (value is Map) {
         String childPathpath = '$childPathPre$key';
         (provider as SimpleNodeProvider).addNode(childPathpath, value);
-//        Node node = provider.getNode('$childPathPre$key');
-//        children[key] = node;
-//        if (node is LocalNodeImpl) {
-//          node.load(value, provider);
-//        }
+        // Node node = provider.getNode('$childPathPre$key');
+        // children[key] = node;
+        // if (node is LocalNodeImpl) {
+        //   node.load(value, provider);
+        // }
       }
     });
     _loaded = true;
