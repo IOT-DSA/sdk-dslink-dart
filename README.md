@@ -22,7 +22,7 @@ dsbroker # If you have the pub global executable path setup.
 pub global run dslink:broker # If you do not have the pub global executable path setup.
 ```
 
-You can edit the server configuration using `broker.json`
+You can edit the server configuration using `broker.json`. For more information about broker configuration, see [this page](https://github.com/IOT-DSA/sdk-dslink-dart/wiki/Configuring-a-Broker).
 
 ### Create a Link
 
@@ -48,7 +48,7 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link.provider.getNode("/Message").subscribe((update) => link.save());
+  link["/Message"].subscribe((update) => link.save());
 }
 ```
 
