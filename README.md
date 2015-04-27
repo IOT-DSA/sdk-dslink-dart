@@ -12,7 +12,7 @@ With the DSLink SDK, you can provide IoT data to any DSA compatible consumer.
 ### Install
 
 ```bash
-pub global activate -sgit https://github.com/IOT-DSA/sdk-dslink-dart.git
+pub global activate -sgit https://github.com/IOT-DSA/sdk-dslink-dart.git # Globally install the DSA Dart SDK
 ```
 
 ### Start a Broker
