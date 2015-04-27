@@ -215,5 +215,13 @@ class LinkProvider {
     return provider.addNode(path, m);
   }
   
+  void removeNode(String path) {
+    provider.removeNode(path);
+  }
+  
+  void updateValue(String path, dynamic value) {
+    provider.updateValue(path, value);
+  }
+  
   LocalNode operator [](String path) => provider[path];
 }
