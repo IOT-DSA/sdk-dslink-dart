@@ -68,21 +68,22 @@ class SimpleNodeProvider extends NodeProviderImpl {
   }
 
   SimpleNodeProvider([Map m, Map profiles]) {
+    init(m, profiles);
+  }
+  
+  SimpleNode get root => getNode("/");
+
+  void init([Map m, Map profiles]) {
     if (profiles != null) {
       _registerProfiles(profiles);
     }
-    init(m);
-  }
-
-  void init([Map m]) {
-    SimpleNode root = getNode("/");
+    
     if (m != null) {
       root.load(m, this);
     }
   }
 
   Map save() {
-    SimpleNode root = getNode("/");
     return root.save();
   }
 
@@ -97,7 +98,6 @@ class SimpleNodeProvider extends NodeProviderImpl {
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
 
-
     SimpleNode node = pnode.onLoadChild(p.name, m, this);
     if (node == null) {
       String profile = m[r'$is'];
@@ -107,6 +107,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
         node = getNode(path);
       }
     }
+    
     nodes[path] = node;
     node.load(m, this);
 
