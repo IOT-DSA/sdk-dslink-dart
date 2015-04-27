@@ -41,6 +41,7 @@ class LinkProvider {
       this.command: 'link',
       this.isResponder: true,
       this.defaultNodes,
+      this.profiles,
       this.provider,
       this.nodeProvider,
       this.enableHttp: false,
@@ -98,17 +99,6 @@ class LinkProvider {
 
     // load configs
     File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
-    Map dslinkJson;
-
-    Object getConfig(String key) {
-      if (dslinkJson != null &&
-      dslinkJson['configs'] is Map &&
-      dslinkJson['configs'][key] is Map &&
-      dslinkJson['configs'][key].containsKey('value')) {
-        return dslinkJson['configs'][key]['value'];
-      }
-      return null;
-    }
 
     if (dslinkFile.existsSync()) {
       try {
@@ -183,6 +173,18 @@ class LinkProvider {
         nodeProvider: nodeProvider,
         enableHttp: enableHttp
     );
+  }
+
+  Map dslinkJson;
+
+  Object getConfig(String key) {
+    if (dslinkJson != null &&
+      dslinkJson['configs'] is Map &&
+      dslinkJson['configs'][key] is Map &&
+      dslinkJson['configs'][key].containsKey('value')) {
+      return dslinkJson['configs'][key]['value'];
+    }
+    return null;
   }
 
   void connect() {

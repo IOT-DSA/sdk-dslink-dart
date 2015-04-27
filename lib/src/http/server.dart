@@ -37,7 +37,7 @@ class DsHttpServer {
           : linkManager {
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
-        printLog('listen on $httpPort');
+        printLog('listening on HTTP port $httpPort');
         server.listen(_handleRqeuest);
       }).catchError((Object err) {
         printError(err);
@@ -48,7 +48,7 @@ class DsHttpServer {
       HttpServer
           .bindSecure(address, httpsPort, certificateName: certificateName)
           .then((server) {
-        printLog('listen on $httpsPort');
+        printLog('listening on HTTPS port $httpsPort');
         server.listen(_handleRqeuest);
       }).catchError((Object err) {
         printError(err);
