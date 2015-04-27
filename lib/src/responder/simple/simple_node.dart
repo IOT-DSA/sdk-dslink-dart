@@ -92,7 +92,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     node.updateValue(value);
   }
 
-  void addNode(String path, Map m) {
+  LocalNode addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return;
 
     Path p = new Path(path);
@@ -115,6 +115,8 @@ class SimpleNodeProvider extends NodeProviderImpl {
     pnode.children[p.name] = node;
     pnode.onChildAdded(p.name, node);
     pnode.updateList(p.name);
+    
+    return node;
   }
 
   void removeNode(String path) {

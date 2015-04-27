@@ -211,5 +211,9 @@ class LinkProvider {
     return provider.getNode(path);
   }
   
+  LocalNode addNode(String path, Map m) {
+    return provider.addNode(path, m);
+  }
+  
   LocalNode operator [](String path) => provider[path];
 }
