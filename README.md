@@ -4,7 +4,15 @@ With the DSLink SDK, you can provide IoT data to any DSA compatible consumer.
 
 ## Getting Started
 
-Example Link:
+### Starting a Broker
+
+```bash
+dart bin/broker.dart
+```
+
+You can edit the server configuration using `broker.json`
+
+### Example Link
 
 ```dart
 import 'package:dslink/client.dart';
