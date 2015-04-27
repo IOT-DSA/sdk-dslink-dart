@@ -93,7 +93,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
   }
 
   LocalNode addNode(String path, Map m) {
-    if (path == '/' || !path.startsWith('/')) return;
+    if (path == '/' || !path.startsWith('/')) return null;
 
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
