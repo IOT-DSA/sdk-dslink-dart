@@ -5,6 +5,7 @@ typedef SimpleNode _NodeFactory(String path);
 class SimpleTableResult {
   List columns;
   List rows;
+
   SimpleTableResult([this.rows, this.columns]);
 }
 
@@ -22,6 +23,7 @@ class AsyncTableResult {
     } else {
       this.rows.addAll(rows);
     }
+
     if (stat != null) {
       status = stat;
     }
@@ -36,6 +38,7 @@ class AsyncTableResult {
         printWarning('warning, can not use same AsyncTableResult twice');
       }
     }
+
     if (response != null && (rows != null || status == StreamStatus.closed)) {
       response.updateStream(rows, columns: columns, streamStatus: status);
       rows = null;
@@ -63,8 +66,9 @@ class SimpleNodeProvider extends NodeProviderImpl {
     nodes[path] = node;
     return node;
   }
+
   SimpleNodeProvider([Map m, Map profiles]) {
-    if (profiles != null){
+    if (profiles != null) {
       _registerProfiles(profiles);
     }
     init(m);
@@ -89,13 +93,13 @@ class SimpleNodeProvider extends NodeProviderImpl {
 
   void addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return;
-    
+
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
-    
-    
+
+
     SimpleNode node = pnode.onLoadChild(p.name, m, this);
-    if (node == null){
+    if (node == null) {
       String profile = m[r'$is'];
       if (_profileFactories.containsKey(profile)) {
         node = _profileFactories[profile](path);
@@ -105,7 +109,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     }
     nodes[path] = node;
     node.load(m, this);
-    
+
     node.onCreated();
     pnode.children[p.name] = node;
     pnode.onChildAdded(p.name, node);
@@ -123,10 +127,11 @@ class SimpleNodeProvider extends NodeProviderImpl {
     pnode.onChildRemoved(p.name, node);
     pnode.updateList(p.name);
   }
-  
+
   Map<String, _NodeFactory> _profileFactories = new Map<String, _NodeFactory>();
+
   void _registerProfiles(Map m) {
-    m.forEach((key,val) {
+    m.forEach((key, val) {
       if (key is String && val is _NodeFactory) {
         _profileFactories[key] = val;
       }
@@ -138,6 +143,7 @@ class SimpleNode extends LocalNodeImpl {
   SimpleNode(String path) : super(path);
 
   bool removed = false;
+
   void load(Map m, NodeProviderImpl provider) {
     if (_loaded) {
       configs.clear();
@@ -192,46 +198,56 @@ class SimpleNode extends LocalNodeImpl {
 
     return rslt;
   }
+
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     Object rslt = onInvoke(params);
+
     if (rslt is List) {
       response.updateStream(rslt, streamStatus: StreamStatus.closed);
     } else if (rslt is Map) {
       response.updateStream([rslt], streamStatus: StreamStatus.closed);
     } else if (rslt is SimpleTableResult) {
-      response.updateStream(rslt.rows,
-          columns: rslt.columns, streamStatus: StreamStatus.closed);
+      response.updateStream(rslt.rows, columns: rslt.columns, streamStatus: StreamStatus.closed);
     } else if (rslt is AsyncTableResult) {
       rslt.write(response);
+      return response;
+    } else if (rslt is Future) {
+      var r = new AsyncTableResult();
+      rslt.then((value) {
+        r.update(value is List ? value : [value]);
+        r.close();
+      });
+      r.write(response);
       return response;
     } else {
       response.close();
     }
+
     return response;
   }
-  
-  Object onInvoke(Map params){
-    return null;
-  }
-  /// after node is created
-  void onCreated(){
-    
-  }
-  /// before node get removed
-  void onRemoving(){
-    
-  }
-  /// after child node is removed
-  void onChildRemoved(String name, Node node){
-    
-  }
-  /// after child node is created
-  void onChildAdded(String name, Node node){
-    
-  }
-  /// override default node creation logic for children
-  SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider){
+
+  Object onInvoke(Map params) {
     return null;
   }
 
+  /// after node is created
+  void onCreated() {
+  }
+
+  /// before node gets removed
+  void onRemoving() {
+  }
+
+  /// after child node is removed
+  void onChildRemoved(String name, Node node) {
+  }
+
+  /// after child node is created
+  void onChildAdded(String name, Node node) {
+  }
+
+  /// override default node creation logic for children
+  SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider) {
+    return null;
+  }
 }
