@@ -1,6 +1,6 @@
 # DSLink SDK for Dart
 
-With the DSLink SDK, you can provide IoT data to any DSA compatible consumer.
+DSLink SDK for Dart
 
 ## Getting Started
 
