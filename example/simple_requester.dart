@@ -14,5 +14,5 @@ main() async {
 
   await for (RequesterListUpdate update in requester.list("/")) { // List the nodes in /
     print("- ${update.node.remotePath}"); // Print the path of each node.
-  } // This will not end until you break the for loop. Whenever a node is added or removed to the given path, it will receive an update.
+  } // This will not end until you break the for loop. Whenever a node is added or removed to/from the given path, it will receive an update.
 }
