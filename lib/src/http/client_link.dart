@@ -42,6 +42,8 @@ class HttpClientLink implements ClientLink {
 
   int _connDelay = 1;
   connect() async {
+    if (_closed) return;
+
     DsTimer.timerCancel(initWebsocket);
 
     HttpClient client = new HttpClient();
@@ -90,7 +92,10 @@ class HttpClientLink implements ClientLink {
   }
 
   int _wsDelay = 1;
+
   initWebsocket([bool reconnect = true]) async {
+    if (_closed) return;
+
     if(reconnect && _httpConnection == null) {
       initHttp();
     }
@@ -134,6 +139,9 @@ class HttpClientLink implements ClientLink {
     if (!enableHttp) {
       return;
     }
+
+    if (_closed) return;
+
     _httpConnection =
         new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
@@ -149,7 +157,9 @@ class HttpClientLink implements ClientLink {
         }
       });
     }
+
     _httpConnection.onDisconnected.then((bool authFailed){
+      if (_closed) return;
       _httpConnection = null;
       if (authFailed) {
         DsTimer.timerOnceAfter(connect, _connDelay * 1000);
@@ -157,5 +167,19 @@ class HttpClientLink implements ClientLink {
         // reconnection of websocket should handle this case
       }
     });
+  }
+
+  bool _closed = false;
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    if (_wsConnection != null) {
+      _wsConnection.close();
+      _wsConnection = null;
+    }
+    if (_httpConnection != null) {
+      _httpConnection.close();
+      _httpConnection = null;
+    }
   }
 }
