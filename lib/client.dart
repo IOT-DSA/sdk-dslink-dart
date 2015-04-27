@@ -23,25 +23,44 @@ class LinkProvider {
   SimpleNodeProvider provider;
   String brokerUrl;
   File _nodesFile;
-
+  String prefix;
+  List<String> args;
+  bool isRequester = false;
+  String command = 'link';
+  bool isResponder = true;
+  Map defaultNodes;
+  Map profiles;
+  NodeProvider nodeProvider;
+  bool enableHttp = false;
+  
   LinkProvider(
-    List<String> args,
-    String prefix,
+    this.args,
+    this.prefix,
     {
-      bool isRequester: false,
-      String command: 'link',
-      bool isResponder: true,
-      Map defaultNodes,
-      Map profiles,
-      NodeProvider nodeProvider,
-      bool enableHttp:false
+      this.isRequester: false,
+      this.command: 'link',
+      this.isResponder: true,
+      this.defaultNodes,
+      this.provider,
+      this.nodeProvider,
+      this.enableHttp: false,
+      bool autoInitialize: true
     }) {
+    if (autoInitialize) {
+      init();
+    }
+  }
+
+  void init() {
+    if (link != null) {
+      link.close();
+      link = null;
+    }
+
     ArgParser argp = new ArgParser();
     argp.addOption('broker', abbr: 'b');
     argp.addOption('name', abbr: 'n');
     argp.addOption('log', defaultsTo: 'notice');
-    //argp.addOption('key', abbr: 'k', defaultsTo: '.dslink.key');
-    //argp.addOption('nodes', abbr: 'n', defaultsTo: 'dslink.json');
     argp.addFlag('help');
 
     if (args.length == 0) {
@@ -83,9 +102,9 @@ class LinkProvider {
 
     Object getConfig(String key) {
       if (dslinkJson != null &&
-        dslinkJson['configs'] is Map &&
-        dslinkJson['configs'][key] is Map &&
-        dslinkJson['configs'][key].containsKey('value')) {
+      dslinkJson['configs'] is Map &&
+      dslinkJson['configs'][key] is Map &&
+      dslinkJson['configs'][key].containsKey('value')) {
         return dslinkJson['configs'][key]['value'];
       }
       return null;
@@ -170,7 +189,15 @@ class LinkProvider {
     if (link != null) link.connect();
   }
 
-  bool get didFailInit => link == null;
+  void close() {
+    if (link != null) {
+      link.close();
+      link = null;
+    }
+  }
+
+  bool get didInitializationFail => link == null;
+  bool get isInitialized => link != null;
 
   void save() {
     if (_nodesFile != null && provider != null) {
