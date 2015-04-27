@@ -4,15 +4,27 @@ With the DSLink SDK, you can provide IoT data to any DSA compatible consumer.
 
 ## Getting Started
 
-### Starting a Broker
+### Prerequisites
+
+- [Git](https://git-scm.com/downloads)
+- [Dart SDK](https://www.dartlang.org/downloads/)
+
+### Install
 
 ```bash
-dart bin/broker.dart
+pub global activate -sgit https://github.com/IOT-DSA/sdk-dslink-dart.git
+```
+
+### Start a Broker
+
+```bash
+dsbroker # If you have the pub global executable path setup.
+pub global run dslink:broker # If you do not have the pub global executable path setup.
 ```
 
 You can edit the server configuration using `broker.json`
 
-### Example Link
+### Create a Link
 
 For more examples, see [this page](https://github.com/IOT-DSA/sdk-dslink-dart/tree/master/example).
 
@@ -38,6 +50,13 @@ main(List<String> args) async {
   // Save the message when it changes.
   link.provider.getNode("/Message").subscribe((update) => link.save());
 }
+```
+
+### Start a Link
+
+```bash
+dart path/to/link.dart # Start a link that connects to a broker at http://127.0.0.1:8080/conn
+dart path/to/link.dart --broker http://my.broker:8080/conn # Start a link that connects to the specified broker.
 ```
 
 ## Links
