@@ -62,4 +62,4 @@ dart path/to/link.dart --broker http://my.broker:8080/conn # Start a link that c
 ## Links
 
 - [DSA Site](http://iot-dsa.org/)
-- [Community Wiki](https://github.com/IOT-DSA/community/wiki)
+- [DSA Wiki](https://github.com/IOT-DSA/docs/wiki)
