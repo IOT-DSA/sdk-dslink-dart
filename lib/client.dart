@@ -32,7 +32,7 @@ class LinkProvider {
   Map profiles;
   NodeProvider nodeProvider;
   bool enableHttp = false;
-  
+
   LinkProvider(
     this.args,
     this.prefix,
