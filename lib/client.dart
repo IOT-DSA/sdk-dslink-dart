@@ -66,7 +66,9 @@ class LinkProvider {
       print(helpStr);
       return;
     }
+
     String name = opts['name'];
+
     if (name != null) {
       if (name.endsWith('-')) {
         prefix = name;
@@ -74,6 +76,7 @@ class LinkProvider {
         prefix = '${name}-';
       }
     }
+
     // load configs
     File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
     Map dslinkJson;
@@ -152,12 +155,22 @@ class LinkProvider {
       }
     }
 
-    link = new HttpClientLink(brokerUrl, prefix, prikey, isRequester: isRequester, isResponder: isResponder, nodeProvider: nodeProvider, enableHttp:enableHttp);
+    link = new HttpClientLink(
+        brokerUrl,
+        prefix,
+        prikey,
+        isRequester: isRequester,
+        isResponder: isResponder,
+        nodeProvider: nodeProvider,
+        enableHttp: enableHttp
+    );
   }
 
   void connect() {
     if (link != null) link.connect();
   }
+
+  bool get didFailInit => link == null;
 
   void save() {
     if (_nodesFile != null && provider != null) {

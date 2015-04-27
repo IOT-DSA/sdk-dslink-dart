@@ -42,9 +42,8 @@ class HttpClientLink implements ClientLink {
 
   int _connDelay = 1;
   connect() async {
-    
     DsTimer.timerCancel(initWebsocket);
-    
+
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     printDebug('connecting: $connUri');
@@ -56,7 +55,7 @@ class HttpClientLink implements ClientLink {
         'isResponder': responder != null
       };
       printDebug(dsId);
-    
+
       request.add(UTF8.encode(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
       List<int> merged = await response.fold([], foldList);
@@ -83,7 +82,7 @@ class HttpClientLink implements ClientLink {
       _connDelay = 1;
       _wsDelay = 1;
       //initHttp();
-      
+
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       if (_connDelay < 60)_connDelay++;
@@ -130,7 +129,7 @@ class HttpClientLink implements ClientLink {
       }
     }
   }
-  
+
   initHttp() async {
     if (!enableHttp) {
       return;
