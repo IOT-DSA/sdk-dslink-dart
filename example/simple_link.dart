@@ -11,7 +11,7 @@ main(List<String> args) async {
       r"$writable": "write", // This node's value can be set by a responder link.
       "?value": "Hello World" // The default message value.
     }
-  });
+  }, encodePrettyJson: true);
 
   // Connect to the broker.
   link.connect();

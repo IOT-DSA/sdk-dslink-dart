@@ -32,6 +32,7 @@ class LinkProvider {
   Map profiles;
   NodeProvider nodeProvider;
   bool enableHttp = false;
+  bool encodePrettyJson = false;
 
   LinkProvider(
     this.args,
@@ -45,6 +46,7 @@ class LinkProvider {
       this.provider,
       this.nodeProvider,
       this.enableHttp: false,
+      this.encodePrettyJson: false,
       bool autoInitialize: true
     }) {
     if (autoInitialize) {
@@ -177,6 +179,7 @@ class LinkProvider {
 
   Map dslinkJson;
 
+  /// Gets a configuration from the dslink.json
   Object getConfig(String key) {
     if (dslinkJson != null &&
       dslinkJson['configs'] is Map &&
@@ -203,25 +206,25 @@ class LinkProvider {
 
   void save() {
     if (_nodesFile != null && provider != null) {
-      _nodesFile.writeAsStringSync(DsJson.encode(provider.save()));
+      _nodesFile.writeAsStringSync(DsJson.encode(provider.save(), pretty: encodePrettyJson));
     }
   }
-  
+
   LocalNode getNode(String path) {
     return provider.getNode(path);
   }
-  
+
   LocalNode addNode(String path, Map m) {
     return provider.addNode(path, m);
   }
-  
+
   void removeNode(String path) {
     provider.removeNode(path);
   }
-  
+
   void updateValue(String path, dynamic value) {
     provider.updateValue(path, value);
   }
-  
+
   LocalNode operator [](String path) => provider[path];
 }

@@ -20,7 +20,7 @@ main(List<String> args) async {
     }
   }, profiles: {
     "reset": (String path) => new ResetNode(path) // The reset profile should use this function to create the node object.
-  });
+  }, encodePrettyJson: true);
 
   // Connect to the broker.
   link.connect();
