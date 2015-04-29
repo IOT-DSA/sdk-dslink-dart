@@ -39,10 +39,13 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
 
   Timer pingTimer;
   int pingCount = 0;
+  /// set to true when data is sent, reset the flag every 20 seconds
+  /// since the previous ping message will cause the next 20 seoncd to have a message
+  /// max interval between 2 ping messages is 40 seconds
   bool _dataSent = false;
   
   /// add this count every 20 seconds, set to 0 when receiving data
-  /// when the count is 3, disconnect the link
+  /// when the count is 3, disconnect the link (>=60 seconds)
   int _dataReceiveCount = 0;
   
   void onPingTimer(Timer t){

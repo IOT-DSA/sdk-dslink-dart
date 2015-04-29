@@ -22,7 +22,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
   
   void _initSys() {
-    setNode('/sys/version', new BrokerVersionNode('/sys/version' ,'0.9.0'));
+    setNode('/sys/version', new BrokerVersionNode('/sys/version' ,DSA_VERSION));
     setNode('/sys/startTime', new StartTimeNode('/sys/startTime'));
     setNode('/sys/clearConns', new ClearConnsAction('/sys/clearConns', this));
   }
