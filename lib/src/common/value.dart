@@ -12,10 +12,11 @@ class ValueUpdate {
     int mm = timeZoneOffset % 60;
     return "$s${hh<10?'0':''}$hh:${mm<10?'0':''}$mm";
   }();
-  
+
   static String getTs() {
     return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
   }
+
   Object value;
   String ts;
   String status;

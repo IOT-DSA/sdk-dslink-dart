@@ -20,13 +20,15 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     connsNode = nodes['/conns'];
     _initSys();
   }
-  
+
   void _initSys() {
     setNode('/sys/version', new BrokerVersionNode('/sys/version' ,DSA_VERSION));
     setNode('/sys/startTime', new StartTimeNode('/sys/startTime'));
     setNode('/sys/clearConns', new ClearConnsAction('/sys/clearConns', this));
   }
+
   bool _defsLoaded = false;
+
   /// load a fixed profile map
   void loadDefs(Map m) {
     _defsLoaded = false;
@@ -34,7 +36,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     _defsLoaded = true;
     // TODO send requester an update says: all profiles changed
   }
+
   Map _pendingDevices = {};
+
   void loadConns() {
     // loadConns from file
     File connsFile = new File("conns.json");
@@ -54,6 +58,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } catch (err) {
     }
   }
+
   Map saveConns() {
     Map m = {};
     connsNode.children.forEach((String name, RemoteLinkNode node) {
@@ -64,6 +69,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     connsFile.writeAsString(DsJson.encode(m));
     return m;
   }
+
   // remove disconnected nodes from the conns node
   void clearConns() {
     List names = connsNode.children.keys.toList();
@@ -78,6 +84,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     DsTimer.timerOnceAfter(saveConns, 3000);
   }
+
   /// add a node to the tree
   void setNode(String path, LocalNode newnode) {
     LocalNode node = nodes[path];
@@ -85,17 +92,18 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       printError('error, BrokerNodeProvider.setNode same node can not be set twice');
       return;
     }
-    
+
     Path p = new Path(path);
     LocalNode parentNode = nodes[p.parentPath];
     if (parentNode == null) {
       printError('error, BrokerNodeProvider.setNode parentNode is null');
       return;
     }
-    
+
     nodes[path] = newnode;
     parentNode.addChild(p.name, newnode);
   }
+
   /// load a local node
   LocalNode getNode(String path) {
     LocalNode node = nodes[path];
@@ -155,7 +163,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } else {
       // device link
       String connName;
-      
+
       // find a connName for it, keep append characters until find a new name
       int i = 43;
       if (dsId == '') i = 42;
@@ -196,6 +204,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       }
     }
   }
+
   /// [deviceId] is not a secure method of create link, only use it in https
   ServerLink getLink(String dsId, {String sessionId:'', String deviceId}) {
     if (deviceId != null && _pendingDevices.containsKey(deviceId)){

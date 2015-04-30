@@ -14,6 +14,7 @@ class TableColumn {
     }
     return rslt;
   }
+
   /// convert tableColumns into List of Map
   static List serializeColumns(List list) {
     List rslts = [];
@@ -26,6 +27,7 @@ class TableColumn {
     }
     return rslts;
   }
+
   /// parse List of Map into TableColumn
   static List<TableColumn> parseColumns(List list) {
     List<TableColumn> rslt = <TableColumn>[];
