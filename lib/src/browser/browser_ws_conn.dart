@@ -84,43 +84,43 @@ class WebSocketConnection implements ClientConnection {
         // TODO(rick): JSONUtf8Decoder
         m = DsJson.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
         printDebug('$m');
+
+        if (m['salt'] is String) {
+          clientLink.updateSalt(m['salt']);
+        }
+  
+        if (m['responses'] is List) {
+          // send responses to requester channel
+          _requesterChannel.onReceiveController.add(m['responses']);
+        }
+  
+        if (m['requests'] is List) {
+          // send requests to responder channel
+          _responderChannel.onReceiveController.add(m['requests']);
+        }
       } catch (err) {
         printError(err);
         close();
         return;
-      }
-
-      if (m['salt'] is String) {
-        clientLink.updateSalt(m['salt']);
-      }
-
-      if (m['responses'] is List) {
-        // send responses to requester channel
-        _requesterChannel.onReceiveController.add(m['responses']);
-      }
-
-      if (m['requests'] is List) {
-        // send requests to responder channel
-        _responderChannel.onReceiveController.add(m['requests']);
       }
     } else if (e.data is String) {
       try {
         m = DsJson.decode(e.data);
         printDebug('$m');
+
+        if (m['responses'] is List) {
+          // send responses to requester channel
+          _requesterChannel.onReceiveController.add(m['responses']);
+        }
+  
+        if (m['requests'] is List) {
+          // send requests to responder channel
+          _responderChannel.onReceiveController.add(m['requests']);
+        }
       } catch (err) {
         printError(err);
         close();
         return;
-      }
-
-      if (m['responses'] is List) {
-        // send responses to requester channel
-        _requesterChannel.onReceiveController.add(m['responses']);
-      }
-
-      if (m['requests'] is List) {
-        // send requests to responder channel
-        _responderChannel.onReceiveController.add(m['requests']);
       }
     }
   }
