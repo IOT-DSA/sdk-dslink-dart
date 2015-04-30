@@ -1,5 +1,5 @@
-import "dart:io";
 import "dart:convert";
+import "dart:io";
 
 import "package:dslink/broker.dart";
 import "package:dslink/client.dart";
@@ -9,8 +9,36 @@ BrokerNodeProvider broker;
 DsHttpServer server;
 LinkProvider link;
 
-main(List<String> args) async {
+const Map<String, String> VARS = const {
+  "BROKER_URL": "broker_url",
+  "BROKER_LINK_PREFIX": "link_prefix",
+  "BROKER_PORT": "port",
+  "BROKER_HOST": "host",
+  "BROKER_HTTPS_PORT": "https_port",
+  "BROKER_CERTIFICATE_NAME": "certificate_name"
+};
+
+main(List<String> _args) async {
+  var args = new List<String>.from(_args);
   var configFile = new File("broker.json");
+
+  if (args.contains("--docker")) {
+    args.remove("--docker");
+    var config = {
+      "host": "0.0.0.0",
+      "port": 8080,
+      "link_prefix": "broker-"
+    };
+
+    VARS.forEach((n, c) {
+      if (Platform.environment.containsKey(n)) {
+        config[c] = Platform.environment[n];
+      }
+    });
+
+    await configFile.writeAsString(JSON.encode(config));
+  }
+
   if (!(await configFile.exists())) {
     await configFile.create(recursive: true);
     await configFile.writeAsString(defaultConfig);
@@ -29,6 +57,11 @@ main(List<String> args) async {
   server = new DsHttpServer.start(getConfig("host", "0.0.0.0"), httpPort: getConfig("port", -1),
     httpsPort: getConfig("https_port", -1),
     certificateName: getConfig("certificate_name"), nodeProvider: broker, linkManager: broker);
+
+  if (getConfig("broker_url") != null) {
+    var url = getConfig("broker_url");
+    args.addAll(["--broker", url]);
+  }
 
   if (args.any((it) => it.startsWith("--broker")) || args.contains("-b")) {
     link = new LinkProvider(args, getConfig("link_prefix", "broker-"), nodeProvider: broker)..connect();
