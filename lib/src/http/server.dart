@@ -25,9 +25,11 @@ class DsSimpleLinkManager implements ServerLinkManager {
     return new Responder(nodeProvider);
   }
 }
+
 class DsHttpServer {
   final NodeProvider nodeProvider;
   final ServerLinkManager _linkManager;
+
   /// to open a secure server, SecureSocket.initialize() need to be called before start()
   DsHttpServer.start(dynamic address, //
       {int httpPort: 8080, int httpsPort: 8443, String certificateName,
@@ -38,7 +40,7 @@ class DsHttpServer {
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
         printLog('listening on HTTP port $httpPort');
-        server.listen(_handleRqeuest);
+        server.listen(_handleRequest);
       }).catchError((Object err) {
         printError(err);
       });
@@ -49,14 +51,14 @@ class DsHttpServer {
           .bindSecure(address, httpsPort, certificateName: certificateName)
           .then((server) {
         printLog('listening on HTTPS port $httpsPort');
-        server.listen(_handleRqeuest);
+        server.listen(_handleRequest);
       }).catchError((Object err) {
         printError(err);
       });
     }
   }
 
-  void _handleRqeuest(HttpRequest request) {
+  void _handleRequest(HttpRequest request) {
     try {
       String dsId = request.uri.queryParameters['dsId'];
 
@@ -131,6 +133,7 @@ class DsHttpServer {
       }
     });
   }
+
   void _handleHttpUpdate(HttpRequest request, String dsId) {
     HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {

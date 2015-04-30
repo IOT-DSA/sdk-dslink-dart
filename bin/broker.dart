@@ -5,16 +5,18 @@ import "package:dslink/broker.dart";
 import "package:dslink/client.dart";
 import "package:dslink/server.dart";
 
+BrokerNodeProvider broker;
+DsHttpServer server;
 LinkProvider link;
 
 main(List<String> args) async {
-  File configFile = new File("broker.json");
-  if (!configFile.existsSync()) {
-    configFile.createSync(recursive: true);
-    configFile.writeAsStringSync(defaultConfig);
+  var configFile = new File("broker.json");
+  if (!(await configFile.exists())) {
+    await configFile.create(recursive: true);
+    await configFile.writeAsString(defaultConfig);
   }
 
-  var config = JSON.decode(configFile.readAsStringSync());
+  var config = JSON.decode(await configFile.readAsString());
 
   dynamic getConfig(String key, [defaultValue]) {
     if (!config.containsKey(key)) {
@@ -23,8 +25,8 @@ main(List<String> args) async {
     return config[key];
   }
 
-  var broker = new BrokerNodeProvider();
-  var server = new DsHttpServer.start(getConfig("host", "0.0.0.0"), httpPort: getConfig("port", -1),
+  broker = new BrokerNodeProvider();
+  server = new DsHttpServer.start(getConfig("host", "0.0.0.0"), httpPort: getConfig("port", -1),
     httpsPort: getConfig("https_port", -1),
     certificateName: getConfig("certificate_name"), nodeProvider: broker, linkManager: broker);
 

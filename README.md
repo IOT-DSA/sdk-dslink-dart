@@ -22,6 +22,12 @@ dsbroker # If you have the pub global executable path setup.
 pub global run dslink:broker # If you do not have the pub global executable path setup.
 ```
 
+To connect a broker to another broker:
+
+```bash
+dsbroker --broker http://my.broker.org:8080/conn # Connect a broker to another broker
+```
+
 You can edit the server configuration using `broker.json`. For more information about broker configuration, see [this page](https://github.com/IOT-DSA/sdk-dslink-dart/wiki/Configuring-a-Broker).
 
 ### Create a Link
