@@ -1,12 +1,13 @@
 import "package:dslink/client.dart";
 import "package:dslink/requester.dart";
 
-main() async {
-  var link = new HttpClientLink(
-      "http://127.0.0.1:8080/conn", // Broker URL
+LinkProvider link;
+
+main(List<String> args) async {
+  link = new LinkProvider(
+      args,
       "Simple-Requester-", // DSLink Prefix
-      getKeyFromFile(".dslink.key"), // Gets a Private Key from the specified path. If it does not exist, it is generated then saved.
-      isResponder: false
+      isResponder: false // We are just a requester.
   );
 
   link.connect(); // Connect to the broker.

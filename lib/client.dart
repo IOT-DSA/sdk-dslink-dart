@@ -194,6 +194,10 @@ class LinkProvider {
     if (link != null) link.connect();
   }
 
+  Requester get requester => link.requester;
+
+  Future<Requester> get onRequesterReady => link.onRequesterReady;
+
   void close() {
     if (link != null) {
       link.close();
