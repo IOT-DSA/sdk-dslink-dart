@@ -6,7 +6,7 @@ class BrokerDiscoveryClient {
   BrokerDiscoveryClient();
 
   Future init([bool broadcast = false]) async {
-    _socket = await RawDatagramSocket.bind("0.0.0.0", broadcast ? 1900 : 1902);
+    _socket = await RawDatagramSocket.bind("0.0.0.0", broadcast ? 1900 : 0);
 
     _socket.multicastHops = 10;
     _socket.broadcastEnabled = true;
