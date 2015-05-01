@@ -69,6 +69,6 @@ class BrokerDiscoverRequest {
   BrokerDiscoverRequest(this.client, this.packet);
 
   void reply(String url) {
-    client._send("BROKER ${url}", "239.255.255.230", 1900);
+    client._send("BROKER ${url}", packet.address.address, packet.port);
   }
 }
