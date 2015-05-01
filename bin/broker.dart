@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:convert";
 import "dart:io";
 
@@ -8,6 +9,7 @@ import "package:dslink/server.dart";
 BrokerNodeProvider broker;
 DsHttpServer server;
 LinkProvider link;
+BrokerDiscoveryClient discovery;
 
 const Map<String, String> VARS = const {
   "BROKER_URL": "broker_url",
@@ -15,24 +17,45 @@ const Map<String, String> VARS = const {
   "BROKER_PORT": "port",
   "BROKER_HOST": "host",
   "BROKER_HTTPS_PORT": "https_port",
-  "BROKER_CERTIFICATE_NAME": "certificate_name"
+  "BROKER_CERTIFICATE_NAME": "certificate_name",
+  "BROKER_BROADCAST": "broadcast",
+  "BROKER_BROADCAST_URL": "broadcast_url"
 };
+
+Future<String> getNetworkAddress() async {
+  List<NetworkInterface> interfaces = await NetworkInterface.list();
+  if (interfaces == null || interfaces.isEmpty) {
+    return null;
+  }
+  NetworkInterface interface = interfaces.first;
+  List<InternetAddress> addresses = interface.addresses.where((it) => !it.isLinkLocal && !it.isLoopback).toList();
+  if (addresses.isEmpty) {
+    return null;
+  }
+  return addresses.first.address;
+}
 
 main(List<String> _args) async {
   var args = new List<String>.from(_args);
   var configFile = new File("broker.json");
+  var https = false;
 
   if (args.contains("--docker")) {
     args.remove("--docker");
     var config = {
       "host": "0.0.0.0",
       "port": 8080,
-      "link_prefix": "broker-"
+      "link_prefix": "broker-",
+      "broadcast": true
     };
 
     VARS.forEach((n, c) {
       if (Platform.environment.containsKey(n)) {
-        config[c] = Platform.environment[n];
+        var v = Platform.environment[n];
+        if (v == "true" || v == "false") {
+          v = v == "true";
+        }
+        config[c] = v;
       }
     });
 
@@ -58,6 +81,8 @@ main(List<String> _args) async {
     httpsPort: getConfig("https_port", -1),
     certificateName: getConfig("certificate_name"), nodeProvider: broker, linkManager: broker);
 
+  https = getConfig("https_port", -1) != -1;
+
   if (getConfig("broker_url") != null) {
     var url = getConfig("broker_url");
     args.addAll(["--broker", url]);
@@ -65,6 +90,23 @@ main(List<String> _args) async {
 
   if (args.any((it) => it.startsWith("--broker")) || args.contains("-b")) {
     link = new LinkProvider(args, getConfig("link_prefix", "broker-"), nodeProvider: broker)..connect();
+  }
+
+  if (getConfig("broadcast", false)) {
+    var addr = await getNetworkAddress();
+    var scheme = https ? "https" : "http";
+    var port = https ? getConfig("https_port") : getConfig("port");
+    var url = getConfig("broadcast_url", "${scheme}://${addr}:${port}/conn");
+    print("Starting Broadcast of Broker at ${url}");
+    discovery = new BrokerDiscoveryClient();
+    try {
+      await discovery.init(true);
+      discovery.requests.listen((BrokerDiscoverRequest request) {
+        request.reply(url);
+      });
+    } catch (e) {
+      print("Warning: Failed to start broker broadcast service. Are you running more than one broker on this machine?");
+    }
   }
 }
 
