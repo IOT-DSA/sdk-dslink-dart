@@ -99,10 +99,14 @@ main(List<String> _args) async {
     var url = getConfig("broadcast_url", "${scheme}://${addr}:${port}/conn");
     print("Starting Broadcast of Broker at ${url}");
     discovery = new BrokerDiscoveryClient();
-    await discovery.init(true);
-    discovery.requests.listen((BrokerDiscoverRequest request) {
-      request.reply(url);
-    });
+    try {
+      await discovery.init(true);
+      discovery.requests.listen((BrokerDiscoverRequest request) {
+        request.reply(url);
+      });
+    } catch (e) {
+      print("Warning: Failed to start broker broadcast service. Are you running more than one broker on this machine?");
+    }
   }
 }
 
