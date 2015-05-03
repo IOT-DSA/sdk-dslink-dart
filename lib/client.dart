@@ -138,7 +138,11 @@ class LinkProvider {
       if (Platform.isWindows) {
         macs = Process.runSync('getmac', []).stdout.toString();
       } else {
-        macs = Process.runSync('ifconfig', []).stdout.toString();
+        try {
+          macs = Process.runSync('arp', ['-an']).stdout.toString();
+        } catch (e) {
+          macs = Process.runSync('ifconfig', []).stdout.toString();
+        }
       }
       // randomize the PRNG with the system mac (as well as timestamp)
       DSRandom.instance.randomize(macs);
