@@ -111,6 +111,7 @@ class DsTimer {
   }
   
   static int _lastTimeRun = -1;
+  /// do nothng if the callback is already in the list and will get called after 0 ~ N ms
   static void timerOnceBefore(Function callback, int ms) {
     int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms)/50).ceil();
     if (_functionsMap.containsKey(callback)) {
@@ -129,6 +130,7 @@ class DsTimer {
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
+  /// do nothng if the callback is already in the list and will get called after N or more ms
   static void timerOnceAfter(Function callback, int ms) {
     int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms)/50).ceil();
     if (_functionsMap.containsKey(callback)) {
@@ -144,6 +146,27 @@ class DsTimer {
       return;
     }
     TimerFunctions tf = _getTimerFunctions(desiredTime);
+    tf.add(callback);
+    _functionsMap[callback] = tf;
+  }
+  
+  /// do nothng if the callback is already in the list and will get called after M to N ms
+  static void timerOnceBetween(Function callback, int after, int before) {
+    int desiredTime0 = (((new DateTime.now()).millisecondsSinceEpoch + after)/50).ceil();
+    int desiredTime1 = (((new DateTime.now()).millisecondsSinceEpoch + before)/50).ceil();
+    if (_functionsMap.containsKey(callback)) {
+      TimerFunctions existTf = _functionsMap[callback];
+      if (existTf.ts >= desiredTime0 && existTf.ts <= desiredTime1) {
+        return;
+      } else {
+        existTf.remove(callback);
+      }
+    }
+    if (desiredTime1 <= _lastTimeRun){
+      callLaterOnce(callback);
+      return;
+    }
+    TimerFunctions tf = _getTimerFunctions(desiredTime1);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
