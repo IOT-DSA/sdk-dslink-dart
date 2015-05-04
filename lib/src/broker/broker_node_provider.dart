@@ -89,14 +89,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void setNode(String path, LocalNode newnode) {
     LocalNode node = nodes[path];
     if (node != null) {
-      printError('error, BrokerNodeProvider.setNode same node can not be set twice');
+      logger.severe('error, BrokerNodeProvider.setNode same node can not be set twice');
       return;
     }
 
     Path p = new Path(path);
     LocalNode parentNode = nodes[p.parentPath];
     if (parentNode == null) {
-      printError('error, BrokerNodeProvider.setNode parentNode is null');
+      logger.severe('error, BrokerNodeProvider.setNode parentNode is null');
       return;
     }
 
@@ -200,7 +200,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         // don't create node for requester node with session
         connName = getConnName(str);
         getNode('/conns/$connName').configs[r'$$dsId'] = link.dsId;
-        printLog('new node added at /conns/$connName');
+        logger.info('new node added at /conns/$connName');
       }
     }
   }
