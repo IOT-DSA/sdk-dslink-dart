@@ -80,15 +80,21 @@ class LinkProvider {
     argp.addFlag("help", abbr: "h", help: "Displays this Help Message");
 
     if (args.length == 0) {
-      // for debugging
+      // default
       args = ["-b", "localhost:8080/conn", "--log", "INFO"];
+      try {
+        assert(false);
+      } catch (e) {
+        // in debug mode, turn on logging for everything
+        args[3] = 'ALL';
+      }
     }
 
     ArgResults opts = argp.parse(args);
 
     String log = opts['log'].toLowerCase();
     var levels = Level.LEVELS.where((it) => it.name.toLowerCase() == log).toList();
-    if (levels.isEmpty) {
+    if (!levels.isEmpty) {
       logger.level = levels.first;
     }
 
