@@ -92,7 +92,7 @@ class LinkProvider {
 
     if (args.length == 0) {
       // for debugging
-      args = ["-b", "localhost:8080/conn", "--log", ""];
+      args = ["-b", "localhost:8080/conn", "--log", "INFO"];
     }
 
     ArgResults opts = argp.parse(args);
