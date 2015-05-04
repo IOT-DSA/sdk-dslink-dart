@@ -54,17 +54,6 @@ class LinkProvider {
     if (autoInitialize) {
       init();
     }
-
-    logger.onRecord.listen((record) {
-      print("[${record.time}] [${record.level.name}] ${record.message}");
-      if (record.error != null) {
-        print(record.error);
-      }
-
-      if (record.stackTrace != null) {
-        print(record.stackTrace);
-      }
-    });
   }
 
   void init() {

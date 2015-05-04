@@ -23,5 +23,18 @@ Logger get logger {
   }
 
   hierarchicalLoggingEnabled = true;
-  return _logger = new Logger("DSA");
+  _logger = new Logger("DSA");
+
+  _logger.onRecord.listen((record) {
+    print("[DSA][${record.level.name}] ${record.message}");
+    if (record.error != null) {
+      print(record.error);
+    }
+
+    if (record.stackTrace != null) {
+      print(record.stackTrace);
+    }
+  });
+
+  return _logger;
 }
