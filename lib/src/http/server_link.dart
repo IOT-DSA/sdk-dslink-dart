@@ -23,15 +23,17 @@ class HttpServerLink implements ServerLink {
 
   // TODO deprecate this, all dslink need to support it
   final bool enableTimeout;
-  
+
   final List<String> _saltBases = new List<String>(3);
   final List<int> _saltInc = <int>[0, 0, 0];
   /// 3 salts, salt saltS saltL
   final List<String> salts = new List<String>(3);
+
   void _updateSalt(int type) {
     _saltInc[type] += DSRandom.instance.nextUint16();
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
+
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, String sessionId, this.trusted: false, this.enableTimeout:false})
       : dsId = id,
         session = sessionId,
@@ -150,16 +152,16 @@ class HttpServerLink implements ServerLink {
     (_connection as HttpServerConnection).handleInput(request);
   }
 
-  
+
   void handleWsUpdate(HttpRequest request) {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
-      
+
       WebSocketConnection wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
-      
+
       wsconnection.onRequesterReady.then((channel){
         if (_connection != null) {
           _connection.close();
@@ -182,7 +184,7 @@ class HttpServerLink implements ServerLink {
       }
     });
   }
-  
+
   WebSocketConnection createWsConnection(WebSocket websocket){
     return new WebSocketConnection(websocket, enableTimeout:enableTimeout);
   }

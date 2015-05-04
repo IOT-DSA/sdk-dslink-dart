@@ -7,6 +7,7 @@ class SetController implements RequestUpdater {
   final String path;
   final Object value;
   Request _request;
+
   SetController(this.requester, this.path, this.value) {
     Map reqMap = {'method': 'set', 'path': path, 'value': value};
     _request = requester._sendRequest(reqMap, this);
@@ -16,8 +17,10 @@ class SetController implements RequestUpdater {
     // TODO implement error
     completer.complete(new RequesterUpdate(status));
   }
+
   void onDisconnect() {
   }
+  
   void onReconnect() {
   }
 }

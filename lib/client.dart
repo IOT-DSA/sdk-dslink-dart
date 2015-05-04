@@ -13,6 +13,8 @@ import 'utils.dart';
 import 'src/crypto/pk.dart';
 import 'src/http/websocket_conn.dart';
 
+import "package:logging/logging.dart";
+
 export 'src/crypto/pk.dart';
 
 part 'src/http/client_link.dart';
@@ -52,6 +54,17 @@ class LinkProvider {
     if (autoInitialize) {
       init();
     }
+
+    logger.onRecord.listen((record) {
+      print("[${record.time}] [${record.level.name}] ${record.message}");
+      if (record.error != null) {
+        print(record.error);
+      }
+
+      if (record.stackTrace != null) {
+        print(record.stackTrace);
+      }
+    });
   }
 
   void init() {
@@ -61,25 +74,40 @@ class LinkProvider {
     }
 
     ArgParser argp = new ArgParser();
-    argp.addOption('broker', abbr: 'b');
-    argp.addOption('name', abbr: 'n');
-    argp.addOption('log', defaultsTo: 'notice');
-    argp.addFlag('help');
+    argp.addOption("broker", abbr: 'b', help: "Broker URL");
+    argp.addOption("name", abbr: 'n', help: "Link Name");
+    argp.addOption("log", abbr: "l", allowed: [
+      "ALL",
+      "OFF",
+      "FINEST",
+      "FINER",
+      "FINE",
+      "CONFIG",
+      "INFO",
+      "WARNING",
+      "SEVERE",
+      "SHOUT"
+    ], help: "Log Level", defaultsTo: "INFO");
+    argp.addFlag("help", abbr: "h", help: "Displays this Help Message");
 
     if (args.length == 0) {
       // for debugging
-      args = ['-b', 'localhost:8080/conn', '--log', 'debug'];
+      args = ["-b", "localhost:8080/conn", "--log", ""];
     }
 
     ArgResults opts = argp.parse(args);
 
-    String log = opts['log'];
-    updateLogLevel(log);
+    String log = opts['log'].toLowerCase();
+    var levels = Level.LEVELS.where((it) => it.name.toLowerCase() == log).toList();
+    if (levels.isEmpty) {
+      logger.level = levels.first;
+    }
 
-    String helpStr = 'usage: $command --broker url [--config file]';
+    String helpStr = 'usage: $command [--broker URL] [--log LEVEL] [--name NAME]';
 
     if (opts['help'] == true) {
       print(helpStr);
+      print(argp.usage);
       return;
     }
 
@@ -103,14 +131,16 @@ class LinkProvider {
     File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
 
     if (dslinkFile.existsSync()) {
+      var e;
       try {
         String configStr = dslinkFile.readAsStringSync();
         dslinkJson = DsJson.decode(configStr);
       } catch (err) {
+        e = err;
       }
 
       if (dslinkJson == null) {
-        printError('Invalid dslink.json');
+        logger.severe("Invalid dslink.json", e);
         return;
       }
     } else {

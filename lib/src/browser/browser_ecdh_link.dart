@@ -48,7 +48,7 @@ class BrowserECDHLink implements ClientLink {
   connect() async {
     if (_closed) return;
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
-    printDebug('connecting: $connUri');
+    logger.fine('connecting: $connUri');
     try {
       Map requestJson = {
         'publicKey': privateKey.publicKey.qBase64,

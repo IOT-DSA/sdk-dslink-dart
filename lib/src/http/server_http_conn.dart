@@ -22,6 +22,7 @@ class HttpServerConnection implements ServerConnection {
   }
   bool _pendingCheck = false;
   bool _pendingSend = false;
+
   void requireSend() {
     _pendingSend = true;
     if (!_pendingCheck) {
@@ -123,8 +124,9 @@ class HttpServerConnection implements ServerConnection {
         needSend = true;
       }
     }
+
     if (needSend) {
-      printDebug('http send: $m');
+      logger.fine('http send: $m');
       updateResponseBeforeWrite(_cachedInput);
       _cachedInput.response.write(DsJson.encode(m));
       _cachedInput.response.close();

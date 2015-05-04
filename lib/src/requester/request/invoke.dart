@@ -85,6 +85,7 @@ class InvokeController implements RequestUpdater {
       _request.close();
     }
   }
+
   void _onNodeUpdate(RequesterListUpdate listUpdate) {
     //TODO, close the stream when configs are loaded
   }
@@ -109,7 +110,7 @@ class InvokeController implements RequestUpdater {
       _controller.close();
     }
   }
-  
+
   void onDisconnect() {
   }
   void onReconnect() {

@@ -32,25 +32,25 @@ class WebSocketConnection implements ClientConnection {
     socket.onOpen.listen(_onOpen);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
-    
+
     pingTimer = new Timer.periodic(new Duration(seconds:20), onPingTimer);
   }
 
   Timer pingTimer;
   int pingCount = 0;
   bool _dataSent = false;
-  
+
   /// add this count every 20 seconds, set to 0 when receiving data
   /// when the count is 3, disconnect the link
   int _dataReceiveCount = 0;
-  
+
   void onPingTimer(Timer t){
     if (_dataReceiveCount >= 3) {
       this._onDone();
       return;
     }
     _dataReceiveCount ++;
-    
+
     if (_dataSent) {
       _dataSent = false;
       return;
@@ -62,7 +62,7 @@ class WebSocketConnection implements ClientConnection {
     requireSend();
   }
   Map _msgCommand;
-  
+
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
@@ -76,49 +76,49 @@ class WebSocketConnection implements ClientConnection {
   }
 
   void _onData(MessageEvent e) {
-    printDebug('onData:');
+    logger.fine('onData:');
     _dataReceiveCount = 0;
     Map m;
     if (e.data is ByteBuffer) {
       try {
         // TODO(rick): JSONUtf8Decoder
         m = DsJson.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
-        printDebug('$m');
+        logger.fine('$m');
 
         if (m['salt'] is String) {
           clientLink.updateSalt(m['salt']);
         }
-  
+
         if (m['responses'] is List) {
           // send responses to requester channel
           _requesterChannel.onReceiveController.add(m['responses']);
         }
-  
+
         if (m['requests'] is List) {
           // send requests to responder channel
           _responderChannel.onReceiveController.add(m['requests']);
         }
-      } catch (err) {
-        printError(err);
+      } catch (err, stack) {
+        logger.severe("error in onData", err, stack);
         close();
         return;
       }
     } else if (e.data is String) {
       try {
         m = DsJson.decode(e.data);
-        printDebug('$m');
+        logger.fine('$m');
 
         if (m['responses'] is List) {
           // send responses to requester channel
           _requesterChannel.onReceiveController.add(m['responses']);
         }
-  
+
         if (m['requests'] is List) {
           // send requests to responder channel
           _responderChannel.onReceiveController.add(m['requests']);
         }
       } catch (err) {
-        printError(err);
+        logger.severe(err);
         close();
         return;
       }
@@ -129,7 +129,7 @@ class WebSocketConnection implements ClientConnection {
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }
-    printDebug('browser sending');
+    logger.fine('browser sending');
     bool needSend = false;
     Map m;
     if (_msgCommand != null) {
@@ -139,7 +139,7 @@ class WebSocketConnection implements ClientConnection {
     } else {
       m = {};
     }
-    
+
 
     if (_responderChannel.getData != null) {
       List rslt = _responderChannel.getData();
@@ -156,7 +156,7 @@ class WebSocketConnection implements ClientConnection {
       }
     }
     if (needSend) {
-      printDebug('send: $m');
+      logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
       socket.send(DsJson.encode(m));
@@ -166,7 +166,7 @@ class WebSocketConnection implements ClientConnection {
 
   bool _authError = false;
   void _onDone([Object o]) {
-    printDebug('socket disconnected');
+    logger.fine('socket disconnected');
 
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();

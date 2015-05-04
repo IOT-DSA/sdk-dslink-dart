@@ -127,7 +127,6 @@ class RemoteNode extends Node {
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
-        String childPathpath;
         Node node = cache.getRemoteNode('$childPathPre/$key');
         children[key] = node;
         if (node is RemoteNode) {

@@ -57,7 +57,7 @@ class ListController implements RequestUpdater {
       changes.add(r'$disconnectedTs');
     }
   }
-  
+
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
   void onUpdate(String streamStatus, List updates, List columns,
       [DSError error]) {
@@ -200,7 +200,7 @@ class ListController implements RequestUpdater {
       }
     }
     onDefUpdated();
-    printDebug('_onDefUpdated');
+    logger.fine('_onDefUpdated');
   }
   bool _ready = false;
   void onDefUpdated() {
@@ -229,7 +229,7 @@ class ListController implements RequestUpdater {
       }
     } else {
       // TODO remove this debug code
-      printDebug(_defLoaders.keys);
+      logger.fine(_defLoaders.keys);
     }
   }
   bool _pendingRemoveDef = false;

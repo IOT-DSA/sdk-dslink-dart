@@ -82,7 +82,7 @@ class HttpBrowserConnection implements ClientConnection {
     _onDataL(request.responseText);
   }
   void _onDataErrorL(Object err) {
-    printDebug('http long error:$err');
+    logger.fine('http long error:$err');
     if (!_connectedOnce) {
       _onDone();
       return;
@@ -120,7 +120,7 @@ class HttpBrowserConnection implements ClientConnection {
     }
     if (needSend) {
       Uri connUri = Uri.parse('$url&');
-      printDebug('http sendS: $m');
+      logger.fine('http sendS: $m');
       HttpRequest request;
       try {
         _sendingS = true;
@@ -141,7 +141,7 @@ class HttpBrowserConnection implements ClientConnection {
   }
 
   void _onDataErrorS(Object err) {
-    printDebug('http short error:$err');
+    logger.fine('http short error:$err');
     if (!_connectedOnce) {
       _onDone();
       return;
@@ -155,7 +155,7 @@ class HttpBrowserConnection implements ClientConnection {
   void retryS() {
     _needRetryS = false;
     Uri connUri = Uri.parse('$url&');
-    printDebug('re-sendS: $_lastRequestS');
+    logger.fine('re-sendS: $_lastRequestS');
     connUri = Uri.parse('$url&authS=${this.clientLink.nonce.hashSalt(saltS)}');
     HttpRequest
         .request(connUri.toString(),
@@ -177,7 +177,7 @@ class HttpBrowserConnection implements ClientConnection {
     Map m;
     try {
       m = DsJson.decode(response);
-      printDebug('http receive: $m');
+      logger.fine('http receive: $m');
     } catch (err) {
       return;
     }
@@ -201,7 +201,7 @@ class HttpBrowserConnection implements ClientConnection {
     Map m;
     try {
       m = DsJson.decode(response);
-      printDebug('http receive: $m');
+      logger.fine('http receive: $m');
     } catch (err) {
       return;
     }
@@ -229,7 +229,7 @@ class HttpBrowserConnection implements ClientConnection {
   bool _authError = false;
   void _onDone() {
     _done = true;
-    printDebug('http disconnected');
+    logger.fine('http disconnected');
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }

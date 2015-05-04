@@ -7,10 +7,12 @@ import "package:dslink/client.dart";
 import "package:dslink/requester.dart";
 import "package:dslink/utils.dart";
 
+import "package:logging/logging.dart";
+
 LinkProvider link;
 
 main(List<String> argv) async {
-  updateLogLevel("none");
+  logger.level = Level.SEVERE;
 
   link = new LinkProvider(argv, "Requester-", isRequester: true, isResponder: false);
 

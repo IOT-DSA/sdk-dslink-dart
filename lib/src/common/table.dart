@@ -7,7 +7,7 @@ class TableColumn {
 
   TableColumn(this.name, this.type, [this.defaultValue]);
 
-  Map getData(){
+  Map getData() {
     Map rslt = {'type': type, 'name': name};
     if (defaultValue != null) {
       rslt['default'] = defaultValue;
@@ -34,7 +34,7 @@ class TableColumn {
     for (Object m in list) {
       if (m is Map && m['name'] is String) {
         String type = 'string';
-        if (m['type'] is String){
+        if (m['type'] is String) {
           type = m['type'];
         }
         rslt.add(new TableColumn(m['name'], type, m['default']));
@@ -52,4 +52,6 @@ class TableColumn {
 class Table {
   List<TableColumn> columns;
   List<List> rows;
+
+  Table(this.columns, this.rows);
 }

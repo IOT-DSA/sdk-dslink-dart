@@ -8,23 +8,27 @@ import '../../utils.dart';
 
 class WebSocketConnection implements ServerConnection, ClientConnection {
   PassiveChannel _responderChannel;
+
   ConnectionChannel get responderChannel => _responderChannel;
 
   PassiveChannel _requesterChannel;
+
   ConnectionChannel get requesterChannel => _requesterChannel;
 
   Completer<ConnectionChannel> onRequestReadyCompleter =
-      new Completer<ConnectionChannel>();
+  new Completer<ConnectionChannel>();
+
   Future<ConnectionChannel> get onRequesterReady =>
-      onRequestReadyCompleter.future;
+  onRequestReadyCompleter.future;
 
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   final ClientLink clientLink;
 
   final WebSocket socket;
-  
+
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket, {this.clientLink, bool enableTimeout:false}) {
     _responderChannel = new PassiveChannel(this, true);
@@ -39,22 +43,23 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
 
   Timer pingTimer;
   int pingCount = 0;
+
   /// set to true when data is sent, reset the flag every 20 seconds
   /// since the previous ping message will cause the next 20 seoncd to have a message
   /// max interval between 2 ping messages is 40 seconds
   bool _dataSent = false;
-  
+
   /// add this count every 20 seconds, set to 0 when receiving data
   /// when the count is 3, disconnect the link (>=60 seconds)
   int _dataReceiveCount = 0;
-  
-  void onPingTimer(Timer t){
+
+  void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
       this._onDone();
       return;
     }
     _dataReceiveCount ++;
-    
+
     if (_dataSent) {
       _dataSent = false;
       return;
@@ -65,12 +70,15 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand['ping'] = ++pingCount;
     requireSend();
   }
+
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
+
   /// special server command that need to be merged into message
   /// now only 2 possible value, salt, allowed
   Map _serverCommand;
+
   /// add server command, will be called only when used as server connection
   void addServerCommand(String key, Object value) {
     if (_serverCommand == null) {
@@ -79,22 +87,23 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand[key] = value;
     DsTimer.callLaterOnce(_send);
   }
+
   //TODO, let connection choose which mode to use, before the first response comes in
   bool _useStringFormat = false;
+
   void onData(dynamic data) {
+    logger.finest("begin WebSocketConnection.onData");
     if (!onRequestReadyCompleter.isCompleted) {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
     _dataReceiveCount = 0;
-    printDebug('onData:');
     Map m;
     if (data is List<int>) {
       try {
-        // TODO JSONUTF8Decoder
         m = DsJson.decode(UTF8.decode(data));
-        printDebug('$m');
-      } catch (err) {
-        printError(err);
+        logger.fine("WebSocket JSON (bytes): ${m}");
+      } catch (err, stack) {
+        logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -109,9 +118,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     } else if (data is String) {
       try {
         m = DsJson.decode(data);
-        printDebug('$m');
-      } catch (err) {
-        printError(err);
+        logger.fine("WebSocket JSON: ${m}");
+      } catch (err, stack) {
+        logger.severe("Failed to decode JSON from WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -128,7 +137,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         _responderChannel.onReceiveController.add(m['requests']);
       }
     }
+
+    logger.finest("end WebSocketConnection.onData");
   }
+
   void _send() {
     bool needSend = false;
     Map m;
@@ -154,11 +166,12 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     }
     if (needSend) {
-      printDebug('send: $m');
+      logger.fine('send: $m');
       addData(m);
       _dataSent = true;
     }
   }
+
   void addData(Map m) {
     if (_useStringFormat) {
       socket.add(DsJson.encode(m));
@@ -168,7 +181,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void _onDone() {
-    printDebug('socket disconnected');
+    logger.fine("socket disconnected");
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
@@ -190,8 +203,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void close() {
-    if (socket.readyState == WebSocket.OPEN ||
-        socket.readyState == WebSocket.CONNECTING) {
+    if (socket.readyState == WebSocket.OPEN || socket.readyState == WebSocket.CONNECTING) {
       socket.close();
     }
     _onDone();

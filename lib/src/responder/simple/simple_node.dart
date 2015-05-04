@@ -35,7 +35,7 @@ class AsyncTableResult {
       if (response == null) {
         response = resp;
       } else {
-        printWarning('warning, can not use same AsyncTableResult twice');
+        logger.warning("can not use same AsyncTableResult twice");
       }
     }
 
@@ -70,14 +70,14 @@ class SimpleNodeProvider extends NodeProviderImpl {
   SimpleNodeProvider([Map m, Map profiles]) {
     init(m, profiles);
   }
-  
+
   SimpleNode get root => getNode("/");
 
   void init([Map m, Map profiles]) {
     if (profiles != null) {
       _registerProfiles(profiles);
     }
-    
+
     if (m != null) {
       root.load(m, this);
     }
@@ -107,7 +107,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
         node = getNode(path);
       }
     }
-    
+
     nodes[path] = node;
     node.load(m, this);
 
@@ -115,7 +115,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     pnode.children[p.name] = node;
     pnode.onChildAdded(p.name, node);
     pnode.updateList(p.name);
-    
+
     return node;
   }
 
@@ -142,11 +142,14 @@ class SimpleNodeProvider extends NodeProviderImpl {
   }
 }
 
+/// A Simple Node Implementation
+/// A flexible node implementation that should fit most use cases.
 class SimpleNode extends LocalNodeImpl {
   SimpleNode(String path) : super(path);
 
   bool removed = false;
 
+  /// Load this node from the provided map as [m].
   void load(Map m, NodeProviderImpl provider) {
     if (_loaded) {
       configs.clear();
@@ -181,7 +184,7 @@ class SimpleNode extends LocalNodeImpl {
     _loaded = true;
   }
 
-
+  /// Save this node into a map.
   Map save() {
     Map rslt = {};
     configs.forEach((str, val) {
@@ -204,6 +207,21 @@ class SimpleNode extends LocalNodeImpl {
 
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     Object rslt = onInvoke(params);
+
+    if (rslt == null) { // Create a default result based on the result type
+      var rtype = "values";
+      if (configs.containsKey(r"$result")) {
+        rtype = configs[r"$result"];
+      }
+
+      if (rtype == "values") {
+        rslt = {};
+      } else if (rtype == "table") {
+        rtype = [];
+      } else if (rtype == "stream") {
+        rtype = [];
+      }
+    }
 
     if (rslt is Iterable) {
       response.updateStream(rslt.toList(), streamStatus: StreamStatus.closed);
@@ -229,7 +247,8 @@ class SimpleNode extends LocalNodeImpl {
     return response;
   }
 
-  Object onInvoke(Map params) {
+  /// This is called when this node is invoked.
+  dynamic onInvoke(Map params) {
     return null;
   }
 

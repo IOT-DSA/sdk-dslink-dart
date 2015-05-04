@@ -68,7 +68,7 @@ class SubscribeRequest extends Request {
   void resend() {
     requester.addProcessor(_sendSubscriptionReuests);
   }
-  
+
   @override
   void _close([DSError error]) {
     if (subsriptions.isNotEmpty){
@@ -142,8 +142,8 @@ class SubscribeRequest extends Request {
       subsriptionids.remove(controller.sid);
       requester.addProcessor(_sendSubscriptionReuests);
     } else if (subsriptionids.containsKey(controller.sid)) {
-      printError(
-          'error, unexpected remoteSubscription in the requester, sid:${controller.sid}');
+      logger.severe(
+          'unexpected remoteSubscription in the requester, sid: ${controller.sid}');
     }
   }
   List toRemove = [];
@@ -152,7 +152,7 @@ class SubscribeRequest extends Request {
       return;
     }
     List toAdd = [];
-    
+
     HashSet<String> processingPaths = _changedPaths;
     _changedPaths = new HashSet<String>();
     for (String path in processingPaths) {

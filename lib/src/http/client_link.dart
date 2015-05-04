@@ -48,7 +48,7 @@ class HttpClientLink implements ClientLink {
 
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
-    printDebug('connecting: $connUri');
+    logger.fine('connecting: $connUri');
     try {
       HttpClientRequest request = await client.postUrl(connUri);
       Map requestJson = {
@@ -57,7 +57,8 @@ class HttpClientLink implements ClientLink {
         'isResponder': responder != null,
         'version': DSA_VERSION
       };
-      printDebug(dsId);
+
+      logger.fine("DS ID: ${dsId}");
 
       request.add(UTF8.encode(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
@@ -122,7 +123,7 @@ class HttpClientLink implements ClientLink {
         print('websocket disconnected');
       });
     } catch (error) {
-      printDebug(error);
+      logger.fine(error);
       if (error is WebSocketException && error.message.contains('was not upgraded to websocket')){
         DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       } else if (reconnect) {
