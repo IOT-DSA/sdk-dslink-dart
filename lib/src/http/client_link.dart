@@ -48,7 +48,7 @@ class HttpClientLink implements ClientLink {
 
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
-    logger.fine('connecting: $connUri');
+    logger.info('connecting: $connUri');
     try {
       HttpClientRequest request = await client.postUrl(connUri);
       Map requestJson = {
