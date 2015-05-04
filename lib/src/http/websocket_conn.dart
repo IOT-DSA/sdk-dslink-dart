@@ -26,10 +26,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   final WebSocket socket;
   
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, {this.clientLink, enableTimeout:false}) {
+  WebSocketConnection(this.socket, {this.clientLink, bool enableTimeout:false}) {
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
-    socket.listen(_onData, onDone: _onDone);
+    socket.listen(onData, onDone: _onDone);
     socket.add(fixedBlankData);
     if (enableTimeout) {
       pingTimer = new Timer.periodic(new Duration(seconds:20), onPingTimer);
@@ -81,7 +81,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
   //TODO, let connection choose which mode to use, before the first response comes in
   bool _useStringFormat = false;
-  void _onData(dynamic data) {
+  void onData(dynamic data) {
     if (!onRequestReadyCompleter.isCompleted) {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
@@ -155,12 +155,15 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     }
     if (needSend) {
       printDebug('send: $m');
-      if (_useStringFormat) {
-        socket.add(DsJson.encode(m));
-      } else {
-        socket.add(UTF8.encode(DsJson.encode(m)));
-      }
+      addData(m);
       _dataSent = true;
+    }
+  }
+  void addData(Map m) {
+    if (_useStringFormat) {
+      socket.add(DsJson.encode(m));
+    } else {
+      socket.add(UTF8.encode(DsJson.encode(m)));
     }
   }
 

@@ -18,10 +18,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     nodes['/'] = root;
     root.load(rootStructure, this);
     connsNode = nodes['/conns'];
-    _initSys();
+    initSys();
   }
 
-  void _initSys() {
+  void initSys() {
     setNode('/sys/version', new BrokerVersionNode('/sys/version' ,DSA_VERSION));
     setNode('/sys/startTime', new StartTimeNode('/sys/startTime'));
     setNode('/sys/clearConns', new ClearConnsAction('/sys/clearConns', this));
