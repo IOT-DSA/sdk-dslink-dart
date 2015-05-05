@@ -91,7 +91,7 @@ class LinkProvider {
 
     if (opts['help'] == true) {
       print(helpStr);
-      print(argp.getUsage());
+      print(argp.usage);
       if (exitOnFailure) {
         exit(1);
       } else {
