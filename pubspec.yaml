@@ -5,7 +5,7 @@ dependencies:
   args: ">=0.12.0 <0.13.0"
   bignum: ">=0.0.6 <0.1.0"
   cipher: ">=0.7.1"
-  logging: ">=0.10.0 <0.11.0"
+  logging: ">=0.9.0 <0.11.0"
 dev_dependencies:
   scheduled_test: ">=0.11.6 <0.12.0"
   browser: any
