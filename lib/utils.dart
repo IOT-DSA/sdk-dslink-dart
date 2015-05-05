@@ -38,3 +38,18 @@ Logger get logger {
 
   return _logger;
 }
+
+void updateLogLevel(String name) {
+  name = name.trim().toUpperCase();
+
+  Map<String, Level> levels = {};
+  for (var l in Level.LEVELS) {
+    levels[l.name] = l;
+  }
+
+  var l = levels[name];
+
+  if (l != null) {
+    logger.level = l;
+  }
+}

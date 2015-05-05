@@ -35,6 +35,8 @@ class LinkProvider {
   NodeProvider nodeProvider;
   bool enableHttp = false;
   bool encodePrettyJson = false;
+  bool strictOptions = false;
+  bool exitOnFailure = true;
 
   LinkProvider(
     this.args,
@@ -49,7 +51,9 @@ class LinkProvider {
       this.nodeProvider,
       this.enableHttp: false,
       this.encodePrettyJson: false,
-      bool autoInitialize: true
+      bool autoInitialize: true,
+      this.strictOptions: false,
+      this.exitOnFailure: true
     }) {
     if (autoInitialize) {
       init();
@@ -62,21 +66,10 @@ class LinkProvider {
       link = null;
     }
 
-    ArgParser argp = new ArgParser();
+    ArgParser argp = new ArgParser(allowTrailingOptions: !strictOptions);
     argp.addOption("broker", abbr: 'b', help: "Broker URL");
     argp.addOption("name", abbr: 'n', help: "Link Name");
-    argp.addOption("log", abbr: "l", allowed: [
-      "ALL",
-      "OFF",
-      "FINEST",
-      "FINER",
-      "FINE",
-      "CONFIG",
-      "INFO",
-      "WARNING",
-      "SEVERE",
-      "SHOUT"
-    ], help: "Log Level", defaultsTo: "INFO");
+    argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name).toList(), help: "Log Level", defaultsTo: "INFO");
     argp.addFlag("help", abbr: "h", help: "Displays this Help Message");
 
     if (args.length == 0) {
@@ -86,24 +79,24 @@ class LinkProvider {
         assert(false);
       } catch (e) {
         // in debug mode, turn on logging for everything
-        args[3] = 'ALL';
+        args[3] = "ALL";
       }
     }
 
     ArgResults opts = argp.parse(args);
 
-    String log = opts['log'].toLowerCase();
-    var levels = Level.LEVELS.where((it) => it.name.toLowerCase() == log).toList();
-    if (!levels.isEmpty) {
-      logger.level = levels.first;
-    }
+    updateLogLevel(opts["log"]);
 
     String helpStr = 'usage: $command [--broker URL] [--log LEVEL] [--name NAME]';
 
     if (opts['help'] == true) {
       print(helpStr);
       print(argp.usage);
-      return;
+      if (exitOnFailure) {
+        exit(1);
+      } else {
+        return;
+      }
     }
 
     brokerUrl = opts['broker'];
