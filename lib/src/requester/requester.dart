@@ -8,6 +8,7 @@ abstract class RequestUpdater {
 
 class RequesterUpdate {
   final String streamStatus;
+
   RequesterUpdate(this.streamStatus);
 }
 
@@ -15,7 +16,7 @@ class Requester extends ConnectionHandler {
   Map<int, Request> _requests = new Map<int, Request>();
   /// caching of nodes
   final RemoteNodeCache nodeCache;
-  
+
   SubscribeRequest _subsciption;
 
   Requester([RemoteNodeCache cache])
@@ -23,6 +24,7 @@ class Requester extends ConnectionHandler {
     _subsciption = new SubscribeRequest(this, 0);
     _requests[0] = _subsciption;
   }
+
   void onData(List list) {
     for (Object resp in list) {
       if (resp is Map) {
@@ -30,21 +32,25 @@ class Requester extends ConnectionHandler {
       }
     }
   }
+
   void _onReceiveUpdate(Map m) {
     if (m['rid'] is int && _requests.containsKey(m['rid'])) {
       _requests[m['rid']]._update(m);
     }
   }
+
   int nextRid = 1;
   int nextSid = 1;
-  
+
   // TODO need a new design for short polling and long polling
   int lastSentId = 0;
-  List doSend(){
+
+  List doSend() {
     List rslt = super.doSend();
     lastSentId = nextRid - 1;
     return rslt;
   }
+
   Request _sendRequest(Map m, RequestUpdater updater) {
     m['rid'] = nextRid;
     Request req;
@@ -62,6 +68,7 @@ class Requester extends ConnectionHandler {
     node._subscribe(this, callback, cacheLevel);
     return new ReqSubscribeListener(this, path, callback);
   }
+
   void unsubscribe(String path, callback(ValueUpdate)) {
      RemoteNode node = nodeCache.getRemoteNode(path);
      node._unsubscribe(this, callback);
@@ -95,11 +102,13 @@ class Requester extends ConnectionHandler {
       request._close();
     }
   }
+
   bool _connected = false;
+
   void onDisconnected() {
     if (!_connected) return;
     _connected = false;
-    
+
     var newRequests = new Map<int, Request>();
     ;
     newRequests[0] = _subsciption;
@@ -118,7 +127,7 @@ class Requester extends ConnectionHandler {
   void onReconnected() {
     if (_connected) return;
     _connected = true;
-    
+
     super.onReconnected();
 
     _requests.forEach((n, req) {

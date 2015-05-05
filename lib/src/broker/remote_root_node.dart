@@ -11,11 +11,11 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
 
   // TODO does this need parentNode?
   LocalNode parentNode;
-  
+
   ListController createListController(Requester requester) {
    return new RemoteLinkRootListController(this, requester);
   }
-  
+
   int getPermission(Responder responder) {
     PermissionList ps = permissions;
 // TODO deal with node mixin
@@ -36,7 +36,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
     // TODO default permission should be NONE
     return Permission.WRITE;
   }
-  
+
   Response setAttribute(
       String name, String value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
@@ -73,14 +73,14 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
     var config = Configs.getConfig(name, profile);
     return response..close(config.removeConfig(this, responder));
   }
-  
+
   void load(Map m, NodeProviderImpl provider) {
     m.forEach((String name, Object value){
       if (name.startsWith(r'$')) {
          configs[name] = value;
        } else if (name.startsWith('@')) {
          attributes[name] = value;
-       } 
+       }
     });
   }
   Map serialize(bool withChildren) {
@@ -103,8 +103,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
 
 class RemoteLinkRootListController extends ListController {
   RemoteLinkRootListController(RemoteNode node, Requester requester) : super(node, requester);
-  
-  
+
   void onUpdate(String streamStatus, List updates, List columns,
        [DSError error]) {
      // TODO implement error handling
@@ -157,5 +156,5 @@ class RemoteLinkRootListController extends ListController {
        onDefUpdated();
      }
    }
-  
+
 }
