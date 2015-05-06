@@ -27,6 +27,9 @@ class DsSimpleLinkManager implements ServerLinkManager {
 }
 
 class DsHttpServer {
+  String dsId = "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g";
+  String publicKey = "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w";
+  int updateInterval = 200;
   final NodeProvider nodeProvider;
   final ServerLinkManager _linkManager;
 
@@ -121,7 +124,7 @@ class DsHttpServer {
           }
           _linkManager.addLink(link);
         }
-        link.initLink(request, m['isRequester'] == true, m['isResponder'] == true);
+        link.initLink(request, m['isRequester'] == true, m['isResponder'] == true, dsId, publicKey, updateInterval:updateInterval);
       } catch (err) {
         if (err is int) {
           // TODO need protection because changing statusCode itself can throw

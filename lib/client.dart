@@ -23,6 +23,7 @@ part 'src/http/client_http_conn.dart';
 class LinkProvider {
   HttpClientLink link;
   SimpleNodeProvider provider;
+  PrivateKey prikey;
   String brokerUrl;
   File _nodesFile;
   String prefix;
@@ -141,7 +142,6 @@ class LinkProvider {
 
     File keyFile = getConfig('key') == null ? new File(".dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
     String key;
-    PrivateKey prikey;
 
     try {
       key = keyFile.readAsStringSync();

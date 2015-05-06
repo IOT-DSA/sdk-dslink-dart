@@ -63,18 +63,19 @@ class HttpServerLink implements ServerLink {
   bool isRequester = false;
   /// by default it's a responder only link
   bool isResponder = true;
-  void initLink(HttpRequest request, bool clientRequester, bool clientResponder) {
+  void initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey, 
+                {String wsUri:'/ws', String httpUri:'/http', int updateInterval:200}) {
     isRequester = clientResponder;
     isResponder = clientRequester;
 
     // TODO, dont use hard coded id and public key
     Map respJson = {
-      "id": "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
-      "publicKey":
-          "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
-      "wsUri": "/ws",
-      "httpUri": "/http",
-      "updateInterval": 200
+      "id": serverDsId,//"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
+      "publicKey": serverKey,
+          //"vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
+      "wsUri": wsUri,
+      "httpUri": httpUri,
+      "updateInterval": updateInterval
     };
     if (!trusted) {
       _tempNonce = new ECDH.generate(publicKey);
@@ -86,6 +87,7 @@ class HttpServerLink implements ServerLink {
     updateResponseBeforeWrite(request);
     request.response.write(DsJson.encode(respJson));
     request.response.close();
+    print('inited $respJson');
   }
 
   bool _verifySalt(int type, String hash) {
