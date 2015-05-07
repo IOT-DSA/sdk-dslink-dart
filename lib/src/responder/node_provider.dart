@@ -77,7 +77,7 @@ abstract class LocalNode extends Node {
   }
 
   Response setAttribute(
-      String name, String value, Responder responder, Response response) {
+      String name, Object value, Responder responder, Response response) {
     return response..close();
   }
 

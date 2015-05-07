@@ -248,7 +248,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   Response setAttribute(
-      String name, String value, Responder responder, Response response) {
+      String name, Object value, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
     _linkManager.requester.set('$remotePath/$name', value).then((update) {
       response.close();

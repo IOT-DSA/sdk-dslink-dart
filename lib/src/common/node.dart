@@ -7,11 +7,11 @@ class Node {
 
   /// mixins are stored in a reverse order as the mixin string is defined
   List<Node> mixins;
-  Map<String, String> attributes = {};
+  Map<String, Object> attributes = {};
 
   Node();
 
-  String getAttribute(String name) {
+  Object getAttribute(String name) {
     if (attributes.containsKey(name)) {
       return attributes[name];
     }

@@ -200,12 +200,8 @@ class Responder extends ConnectionHandler {
       nodeProvider.getNode(path.parentPath).setConfig(
           path.name, value, this, addResponse(new Response(this, rid)));
     } else if (path.isAttribute) {
-      if (value is String) {
         nodeProvider.getNode(path.parentPath).setAttribute(
             path.name, value, this, addResponse(new Response(this, rid)));
-      } else {
-        _closeResponse(m['rid'], error: DSError.INVALID_VALUE);
-      }
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';

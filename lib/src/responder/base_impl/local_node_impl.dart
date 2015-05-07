@@ -82,7 +82,7 @@ class LocalNodeImpl extends LocalNode {
     listChangeController.add(name);
   }
   Response setAttribute(
-      String name, String value, Responder responder, Response response) {
+      String name, Object value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
       if (!attributes.containsKey(name) || attributes[name] != value) {
         attributes[name] = value;

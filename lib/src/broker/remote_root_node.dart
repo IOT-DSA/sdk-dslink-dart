@@ -38,7 +38,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
   }
 
   Response setAttribute(
-      String name, String value, Responder responder, Response response) {
+      String name, Object value, Responder responder, Response response) {
     if (getPermission(responder) >= Permission.WRITE) {
       if (!attributes.containsKey(name) || attributes[name] != value) {
         attributes[name] = value;
@@ -88,7 +88,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
     configs.forEach((String name, Object val){
       rslt[name] = val;
     });
-    attributes.forEach((String name, String val){
+    attributes.forEach((String name, Object val){
       rslt[name] = val;
     });
     return rslt;
