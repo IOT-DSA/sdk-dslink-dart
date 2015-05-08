@@ -191,6 +191,12 @@ class DsTimer {
   static bool _mergeCycle = false;
 
   static void _dsLoop() {
+    if (timerTimer != null) {
+      if (timerTimer.isActive) {
+        timerTimer.cancel();
+      }
+      timerTimer = null;
+    }
     _pending = false;
     _looping = true;
 
@@ -215,10 +221,11 @@ class DsTimer {
 
     if (_pendingTimer.isNotEmpty) {
       if (!_pending) {
-        _startTimer();
+        timerTimer = new Timer(new Duration(milliseconds:20),_startTimer); 
       }
     }
   }
+  static Timer timerTimer;
 
   // don't wait for the timer, run it now
   static void runNow() {
