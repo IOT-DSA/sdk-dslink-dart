@@ -1,10 +1,11 @@
 part of dslink.utils;
 
 class TimerFunctions extends LinkedListEntry {
-  final int ts;
+  /// for better performance, use a low accuricy timer, ts50 is the floor of ts/50
+  final int ts50;
   List<Function> _functions = new List<Function>();
 
-  TimerFunctions(this.ts);
+  TimerFunctions(this.ts50);
 
   void add(Function foo) {
     if (!_functions.contains(foo)) {
@@ -72,18 +73,18 @@ class DsTimer {
   static Map<int, TimerFunctions> _pendingTimerMap = new Map<int, TimerFunctions>();
   static Map<Function, TimerFunctions> _functionsMap = new Map<Function, TimerFunctions>();
 
-  static TimerFunctions _getTimerFunctions(int time) {
-    if (_pendingTimerMap.containsKey(time)) {
-      return _pendingTimerMap[time];
+  static TimerFunctions _getTimerFunctions(int time50) {
+    if (_pendingTimerMap.containsKey(time50)) {
+      return _pendingTimerMap[time50];
     }
-    TimerFunctions tf = new TimerFunctions(time);
-    _pendingTimerMap[time] = tf;
+    TimerFunctions tf = new TimerFunctions(time50);
+    _pendingTimerMap[time50] = tf;
     TimerFunctions it;
     if (_pendingTimer.isNotEmpty) {
       it = _pendingTimer.first;
     }
     while (it != null) {
-      if (it.ts > time) {
+      if (it.ts50 > time50) {
         it.insertBefore(tf);
         break;
       } else if (it.next != _pendingTimer) {
@@ -101,10 +102,10 @@ class DsTimer {
     return tf;
   }
 
-  static TimerFunctions _removeTimerFunctions(int time) {
-    if (_pendingTimer.isNotEmpty && _pendingTimer.first.ts <= time) {
+  static TimerFunctions _removeTimerFunctions(int time50) {
+    if (_pendingTimer.isNotEmpty && _pendingTimer.first.ts50 <= time50) {
       TimerFunctions rslt = _pendingTimer.first;
-      _pendingTimerMap.remove(rslt.ts);
+      _pendingTimerMap.remove(rslt.ts50);
       rslt.unlink();
       for (Function fun in rslt._functions) {
         _functionsMap.remove(fun);
@@ -119,61 +120,61 @@ class DsTimer {
 
   /// do nothng if the callback is already in the list and will get called after 0 ~ N ms
   static void timerOnceBefore(Function callback, int ms) {
-    int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
+    int desiredTime50 = (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
-      if (existTf.ts <= desiredTime) {
+      if (existTf.ts50 <= desiredTime50) {
         return;
       } else {
         existTf.remove(callback);
       }
     }
-    if (desiredTime <= _lastTimeRun) {
+    if (desiredTime50 <= _lastTimeRun) {
       callLaterOnce(callback);
       return;
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime);
+    TimerFunctions tf = _getTimerFunctions(desiredTime50);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
 
   /// do nothng if the callback is already in the list and will get called after N or more ms
   static void timerOnceAfter(Function callback, int ms) {
-    int desiredTime = (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
+    int desiredTime50 = (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
-      if (existTf.ts >= desiredTime) {
+      if (existTf.ts50 >= desiredTime50) {
         return;
       } else {
         existTf.remove(callback);
       }
     }
-    if (desiredTime <= _lastTimeRun) {
+    if (desiredTime50 <= _lastTimeRun) {
       callLaterOnce(callback);
       return;
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime);
+    TimerFunctions tf = _getTimerFunctions(desiredTime50);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
 
   /// do nothing if the callback is already in the list and will get called after M to N ms
   static void timerOnceBetween(Function callback, int after, int before) {
-    int desiredTime0 = (((new DateTime.now()).millisecondsSinceEpoch + after) / 50).ceil();
-    int desiredTime1 = (((new DateTime.now()).millisecondsSinceEpoch + before) / 50).ceil();
+    int desiredTime50_0 = (((new DateTime.now()).millisecondsSinceEpoch + after) / 50).ceil();
+    int desiredTime50_1 = (((new DateTime.now()).millisecondsSinceEpoch + before) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
-      if (existTf.ts >= desiredTime0 && existTf.ts <= desiredTime1) {
+      if (existTf.ts50 >= desiredTime50_0 && existTf.ts50 <= desiredTime50_1) {
         return;
       } else {
         existTf.remove(callback);
       }
     }
-    if (desiredTime1 <= _lastTimeRun) {
+    if (desiredTime50_1 <= _lastTimeRun) {
       callLaterOnce(callback);
       return;
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime1);
+    TimerFunctions tf = _getTimerFunctions(desiredTime50_1);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
@@ -191,12 +192,6 @@ class DsTimer {
   static bool _mergeCycle = false;
 
   static void _dsLoop() {
-    if (timerTimer != null) {
-      if (timerTimer.isActive) {
-        timerTimer.cancel();
-      }
-      timerTimer = null;
-    }
     _pending = false;
     _looping = true;
 
@@ -208,9 +203,10 @@ class DsTimer {
       f();
     });
 
-    _lastTimeRun = ((new DateTime.now()).millisecondsSinceEpoch / 50).floor();
+    int currentTime = (new DateTime.now()).millisecondsSinceEpoch;
+    _lastTimeRun = (currentTime / 50).floor();
     while (_removeTimerFunctions(_lastTimeRun) != null) {
-      // empty loop
+      // run the timer functions, empty loop
     }
 
     _looping = false;
@@ -221,10 +217,22 @@ class DsTimer {
 
     if (_pendingTimer.isNotEmpty) {
       if (!_pending) {
-        timerTimer = new Timer(new Duration(milliseconds:20),_startTimer); 
+        if (timerTs50 != _pendingTimer.first.ts50) {
+          timerTs50 = _pendingTimer.first.ts50;
+          if (timerTimer != null && timerTimer.isActive) {
+            timerTimer.cancel();
+          }
+          timerTimer = new Timer(new Duration(milliseconds:timerTs50*50 + 1 - currentTime),_startTimer); 
+        }
       }
+    } else if (timerTimer != null) {
+      if (timerTimer.isActive) {
+        timerTimer.cancel();
+      }
+      timerTimer = null;
     }
   }
+  static int timerTs50 = -1;
   static Timer timerTimer;
 
   // don't wait for the timer, run it now
