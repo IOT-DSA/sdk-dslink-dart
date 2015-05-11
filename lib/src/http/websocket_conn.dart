@@ -55,7 +55,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
-      this._onDone();
+      this.close();
       return;
     }
     _dataReceiveCount ++;
