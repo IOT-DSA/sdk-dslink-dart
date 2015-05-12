@@ -1,5 +1,4 @@
-import "package:dslink/client.dart";
-import "package:dslink/requester.dart";
+import "package:dslink/dslink.dart";
 
 LinkProvider link;
 

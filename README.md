@@ -35,8 +35,7 @@ You can edit the server configuration using `broker.json`. For more information 
 For more examples, see [this page](https://github.com/IOT-DSA/sdk-dslink-dart/tree/master/example).
 
 ```dart
-import "package:dslink/client.dart";
-import "package:dslink/responder.dart";
+import "package:dslink/dslink.dart";
 
 LinkProvider link;
 
