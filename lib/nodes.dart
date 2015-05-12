@@ -23,3 +23,17 @@ class DeleteActionNode extends SimpleNode {
     return {};
   }
 }
+
+typedef ActionFunction(Map<String, dynamic> params);
+
+/// A Simple Action Node
+class SimpleActionNode extends SimpleNode {
+  final ActionFunction function;
+
+  /// When this action is invoked, the given [function] will be called with the parameters
+  /// and then the result of the function will be returned.
+  SimpleActionNode(String path, this.function) : super(path);
+
+  @override
+  Object onInvoke(Map<String, dynamic> params) => function(params);
+}
