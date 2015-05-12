@@ -88,9 +88,6 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     DsTimer.callLaterOnce(_send);
   }
 
-  //TODO, let connection choose which mode to use, before the first response comes in
-  bool _useStringFormat = false;
-
   void onData(dynamic data) {
     logger.finest("begin WebSocketConnection.onData");
     if (!onRequestReadyCompleter.isCompleted) {
@@ -124,7 +121,6 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         close();
         return;
       }
-      _useStringFormat = true;
       if (m['salt'] is String && clientLink != null) {
         clientLink.updateSalt(m['salt']);
       }
@@ -173,11 +169,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void addData(Map m) {
-    if (_useStringFormat) {
-      socket.add(DsJson.encode(m));
-    } else {
-      socket.add(UTF8.encode(DsJson.encode(m)));
-    }
+    socket.add(DsJson.encode(m));
   }
 
   void _onDone() {

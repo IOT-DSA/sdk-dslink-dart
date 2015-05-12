@@ -171,7 +171,7 @@ class HttpClientConnection implements ClientConnection {
   }
 
   void _onDataErrorS(Object err) {
-    logger.fine('http short error:$err');
+    logger.fine('http short error: $err');
     if (!_connectedOnce) {
       _onDone();
       return;
@@ -195,7 +195,7 @@ class HttpClientConnection implements ClientConnection {
 
   void _onDataS(HttpClientResponse response) {
     if (response.statusCode != 200){
-       logger.fine('http short response.statusCode:${response.statusCode}');
+       logger.fine('http short response.statusCode: ${response.statusCode}');
        if (response.statusCode == HttpStatus.UNAUTHORIZED){
          _authError = true;
          _onDone();
@@ -225,7 +225,7 @@ class HttpClientConnection implements ClientConnection {
     if (_needRetryL) {
       retryL();
     }
-    if (_needRetryS){
+    if (_needRetryS) {
       retryS();
     }
   }
