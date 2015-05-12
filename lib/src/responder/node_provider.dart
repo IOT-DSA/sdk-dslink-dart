@@ -1,12 +1,12 @@
 part of dslink.responder;
 
-/// node can be subscribed or listed by multiple responder
+/// node can be subscribed or listed by multiple responders
 abstract class LocalNode extends Node {
   final StreamController<String> listChangeController =
       new StreamController<String>();
-      
+
   final String path;
-  
+
   LocalNode(this.path);
 
   Stream<String> _listStream;
@@ -17,14 +17,14 @@ abstract class LocalNode extends Node {
     }
     return _listStream;
   }
-  
+
   Map<Function, int> callbacks = new Map<Function, int>();
-  
+
   RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]){
     callbacks[callback] = cachelevel;
     return new RespSubscribeListener(this, callback);
   }
-  
+
   void unsubscribe(callback(ValueUpdate)) {
     if (callbacks.containsKey(callback)) {
       callbacks.remove(callback);
@@ -52,12 +52,12 @@ abstract class LocalNode extends Node {
       });
     }
   }
-  
-  
+
+
   /// get a list of permission setting on this node
   PermissionList get permissions => null;
-  
-  /// get the permission of a responder (actually the permisison of the linked requester)
+
+  /// get the permission of a responder (actually the permission of the linked requester)
   int getPermission(Responder responder) {
     return Permission.READ;
   }
@@ -70,7 +70,7 @@ abstract class LocalNode extends Node {
   bool get listReady => true;
   String get disconnected => null;
   bool get valueReady => true;
-  
+
   InvokeResponse invoke(
       Map params, Responder responder, InvokeResponse response) {
     return response..close();
@@ -94,7 +94,7 @@ abstract class LocalNode extends Node {
   Response removeConfig(String name, Responder responder, Response response) {
     return response..close();
   }
-  
+
   /// set node value
   Response setValue(Object value, Responder responder, Response response) {
     return response..close();
@@ -106,7 +106,7 @@ abstract class LocalNode extends Node {
 abstract class NodeProvider {
   /// get an existing node or create a dummy node for requester to listen on
   LocalNode getNode(String path);
-  
+
   /// get an existing node or create a dummy node for requester to listen on
   LocalNode operator [](String path) {
     return getNode(path);

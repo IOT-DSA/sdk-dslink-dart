@@ -1,6 +1,6 @@
 part of dslink.utils;
 
-abstract class DsJson{
+abstract class DsJson {
   static DsJson instance = new DsJsonCodecImpl();
 
   static String encode(Object val, {bool pretty: false}) {
@@ -15,7 +15,7 @@ abstract class DsJson{
   Object decodeJson(String str);
 }
 
-class DsJsonCodecImpl implements DsJson{
+class DsJsonCodecImpl implements DsJson {
   @override
   Object decodeJson(String str) {
     return JSON.decode(str);
