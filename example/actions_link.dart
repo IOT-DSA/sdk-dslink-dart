@@ -7,7 +7,7 @@ main(List<String> args) async {
   link = new LinkProvider(args, "Actions-", defaultNodes: {
     "Message": {
       r"$type": "string", // The type of the node is a string.
-      r"$writable": "write", // This node's value can be set by a responder link.
+      r"$writable": "write", // This node's value can be set by a requester.
       "?value": "Hello World", // The default message value.
       "Reset": { // An action on the message node.
         r"$is": "reset", // This node takes on the 'reset' profile.
