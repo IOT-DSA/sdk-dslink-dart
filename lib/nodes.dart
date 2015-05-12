@@ -24,6 +24,7 @@ class DeleteActionNode extends SimpleNode {
   }
 }
 
+/// A function that is called when an action is invoked.
 typedef ActionFunction(Map<String, dynamic> params);
 
 /// A Simple Action Node
@@ -36,4 +37,79 @@ class SimpleActionNode extends SimpleNode {
 
   @override
   Object onInvoke(Map<String, dynamic> params) => function(params);
+}
+
+typedef void SimpleCallback();
+typedef void ChildChangedCallback(String name, Node node);
+typedef SimpleNode LoadChildCallback(String name, Map data, SimpleNodeProvider provider);
+
+/// A Simple Node which delegates all basic methods to given functions.
+class CallbackNode extends SimpleNode {
+  final SimpleCallback onCreatedCallback;
+  final SimpleCallback onRemovingCallback;
+  final ChildChangedCallback onChildAddedCallback;
+  final ChildChangedCallback onChildRemovedCallback;
+  final ActionFunction onActionInvoke;
+  final LoadChildCallback onLoadChildCallback;
+
+  CallbackNode(String path, {
+    this.onActionInvoke,
+    ChildChangedCallback onChildAdded,
+    ChildChangedCallback onChildRemoved,
+    SimpleCallback onCreated,
+    SimpleCallback onRemoving,
+    LoadChildCallback onLoadChild
+  }) :
+    super(path),
+    onChildAddedCallback = onChildAdded,
+    onChildRemovedCallback = onChildRemoved,
+    onCreatedCallback = onCreated,
+    onRemovingCallback = onRemoving,
+    onLoadChildCallback = onLoadChild;
+
+  @override
+  onInvoke(Map<String, dynamic> params) {
+    if (onActionInvoke != null) {
+      return onActionInvoke(params);
+    } else {
+      return super.onInvoke(params);
+    }
+  }
+
+  @override
+  void onCreated() {
+    if (onCreatedCallback != null) {
+      onCreatedCallback();
+    }
+  }
+
+  @override
+  void onRemoving() {
+    if (onRemovingCallback != null) {
+      onRemovingCallback();
+    }
+  }
+
+  @override
+  void onChildAdded(String name, Node node) {
+    if (onChildAddedCallback != null) {
+      onChildAddedCallback(name, node);
+    }
+  }
+
+  @override
+  void onChildRemoved(String name, Node node) {
+    if (onChildRemovedCallback != null) {
+      onChildRemovedCallback(name, node);
+    }
+  }
+
+  @override
+  SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider) {
+    if (onLoadChildCallback != null) {
+      return onLoadChildCallback(name, data, provider);
+    } else {
+      return super.onLoadChild(name, data, provider);
+    }
+  }
 }
