@@ -66,7 +66,10 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return node;
   }
-  Node getDefNode(String rPath) {
+  Node getDefNode(String rPath, String defName) {
+    if (DefaultDefNodes.nameMap.containsKey(defName)) {
+      return DefaultDefNodes.nameMap[defName];
+    }
     // reuse local broker node and doesn't reload it
     if (rPath.startsWith('/defs/') && broker.nodes.containsKey(rPath)) {
       LocalNode node = broker.nodes[rPath];

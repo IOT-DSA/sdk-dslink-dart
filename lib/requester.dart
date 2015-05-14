@@ -13,3 +13,5 @@ part 'src/requester/request/subscribe.dart';
 part 'src/requester/request/invoke.dart';
 part 'src/requester/request/set.dart';
 part 'src/requester/request/remove.dart';
+
+part 'src/requester/default_defs.dart';
