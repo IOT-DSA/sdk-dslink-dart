@@ -79,7 +79,7 @@ class Scheduler {
     } else if (interval is Interval) {
       duration = interval.duration;
     } else {
-      throw new Exception("Inv");
+      throw new Exception("Invalid Interval: ${interval}");
     }
 
     return new Timer.periodic(duration, (timer) async {
