@@ -36,6 +36,7 @@ abstract class Connection {
   /// close the connection
   void close();
 }
+
 abstract class ServerConnection extends Connection {
   /// send a server command to client such as salt string, or allowed:true
   void addServerCommand(String key, Object value);

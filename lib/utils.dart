@@ -53,3 +53,47 @@ void updateLogLevel(String name) {
     logger.level = l;
   }
 }
+
+class Interval {
+  final Duration duration;
+
+  Interval(this.duration);
+  Interval.forMilliseconds(int ms) : this(new Duration(milliseconds: ms));
+  Interval.forSeconds(int seconds) : this(new Duration(seconds: seconds));
+  Interval.forMinutes(int minutes) : this(new Duration(minutes: minutes));
+  Interval.forHours(int hours) : this(new Duration(hours: hours));
+
+  int get inMilliseconds => duration.inMilliseconds;
+}
+
+class Scheduler {
+  static Timer get currentTimer => Zone.current["dslink.scheduler.timer"];
+
+  static Timer every(interval, action()) {
+    Duration duration;
+
+    if (interval is Duration) {
+      duration = interval;
+    } else if (interval is int) {
+      duration = new Duration(milliseconds: interval);
+    } else if (interval is Interval) {
+      duration = interval.duration;
+    } else {
+      throw new Exception("Inv");
+    }
+
+    return new Timer.periodic(duration, (timer) async {
+      await runZoned(action, zoneValues: {
+        "dslink.scheduler.timer": timer
+      });
+    });
+  }
+
+  static void later(action()) {
+    Timer.run(action);
+  }
+
+  static Timer after(Duration duration, action()) {
+    return new Timer(duration, action);
+  }
+}
