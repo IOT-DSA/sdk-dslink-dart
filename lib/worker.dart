@@ -107,7 +107,7 @@ class Worker {
   final Map<String, dynamic> metadata;
 
   Worker(this.port, [Map<String, dynamic> meta])
-  : metadata = meta == null ? {} : meta;
+    : metadata = meta == null ? {} : meta;
 
   WorkerSocket createSocket() => new WorkerSocket.worker(port);
   Future<WorkerSocket> init() async => await createSocket().init();
