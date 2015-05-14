@@ -29,7 +29,7 @@ main(List<String> args) async {
 
 counterWorker(Worker worker) async {
   WorkerSocket socket = await worker.init();
-  new Timer.periodic(new Duration(seconds: 1), (_) async {
+  Scheduler.every(Interval.ONE_SECOND, () async {
     await socket.callMethod("increment");
   });
 }

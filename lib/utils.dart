@@ -55,9 +55,18 @@ void updateLogLevel(String name) {
 }
 
 class Interval {
+  static final Interval HALF_SECOND = new Interval.forMilliseconds(500);
+  static final Interval ONE_SECOND = new Interval.forSeconds(1);
+  static final Interval TWO_SECONDS = new Interval.forSeconds(2);
+  static final Interval THREE_SECONDS = new Interval.forSeconds(3);
+  static final Interval FOUR_SECONDS = new Interval.forSeconds(4);
+  static final Interval FIVE_SECONDS = new Interval.forSeconds(5);
+  static final Interval ONE_MINUTE = new Interval.forMinutes(1);
+
   final Duration duration;
 
-  Interval(this.duration);
+  const Interval(this.duration);
+
   Interval.forMilliseconds(int ms) : this(new Duration(milliseconds: ms));
   Interval.forSeconds(int seconds) : this(new Duration(seconds: seconds));
   Interval.forMinutes(int minutes) : this(new Duration(minutes: minutes));
