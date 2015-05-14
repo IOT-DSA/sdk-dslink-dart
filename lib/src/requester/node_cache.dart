@@ -5,11 +5,6 @@ part of dslink.requester;
 class RemoteNodeCache {
   Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
   RemoteNodeCache() {
-    // special def that should always be empty
-    _nodes['/defs/profile/node'] = new RemoteDefNode('/defs/profile/node')
-      ..listed = true;
-    _nodes['/defs/profile/static'] = new RemoteDefNode('/defs/profile/static')
-      ..listed = true;
   }
   RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
@@ -21,7 +16,10 @@ class RemoteNodeCache {
     }
     return _nodes[path];
   }
-  Node getDefNode(String path) {
+  Node getDefNode(String path, String defName) {
+    if (DefaultDefNodes.nameMap.containsKey(defName)) {
+      return DefaultDefNodes.nameMap[defName];
+    }
     return getRemoteNode(path);
   }
   /// update node with a map.

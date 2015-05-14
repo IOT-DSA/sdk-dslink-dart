@@ -139,21 +139,22 @@ class ListController implements RequestUpdater {
   }
 
   Map<String, ListDefListener> _defLoaders = new Map<String, ListDefListener>();
-  void loadProfile(String str) {
-    if (str == 'node') {
+  void loadProfile(String defName) {
+    if (defName == 'node') {
       return;
     }
-    if (!str.startsWith('/')) {
-      str = '/defs/profile/$str';
+    String defPath = defName;
+    if (!defPath.startsWith('/')) {
+      defPath = '/defs/profile/$defPath';
     }
     if (node.profile is RemoteNode &&
-        (node.profile as RemoteNode).remotePath == str) {
+        (node.profile as RemoteNode).remotePath == defPath) {
       return;
     }
     if (node.profile != null) {
       _pendingRemoveDef = true;
     }
-    node.profile = requester.nodeCache.getDefNode(str);
+    node.profile = requester.nodeCache.getDefNode(defPath, defName);
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _loadDef(node.profile);
     }
