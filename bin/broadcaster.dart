@@ -32,5 +32,5 @@ main(List<String> args) async {
     exit(1);
   }
 
-  print("Broadcasting Service Started.");
+  print("Broadcast Service Started.");
 }
