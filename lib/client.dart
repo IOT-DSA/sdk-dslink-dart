@@ -66,7 +66,6 @@ class LinkProvider {
     }
 
     if (autoInitialize) {
-      configure();
       init();
     }
   }
