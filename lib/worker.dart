@@ -98,6 +98,12 @@ class WorkerPool {
     return getAvailableWorker().callMethod(name, argument);
   }
 
+  void resetDistributionCache() {
+    for (var i in _workCounts.keys.toList()) {
+      _workCounts[i] = 0;
+    }
+  }
+
   int getAvailableWorkerId() {
     var ids = _workCounts.keys.toList();
     ids.sort((a, b) => _workCounts[a].compareTo(_workCounts[b]));
