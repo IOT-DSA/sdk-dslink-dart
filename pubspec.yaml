@@ -13,3 +13,4 @@ environment:
   sdk: ">=1.9.0-dev"
 executables:
   dsbroker: broker
+  dsbroadcaster: broadcaster
