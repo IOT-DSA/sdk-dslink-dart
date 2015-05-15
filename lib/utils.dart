@@ -17,6 +17,22 @@ const String DSA_VERSION = '1.0.1';
 
 Logger _logger;
 
+bool _DEBUG_MODE;
+
+bool get DEBUG_MODE {
+  if (_DEBUG_MODE != null) {
+    return _DEBUG_MODE;
+  }
+
+  try {
+    assert(false);
+    _DEBUG_MODE = false;
+  } catch (e) {
+    _DEBUG_MODE = true;
+  }
+  return _DEBUG_MODE;
+}
+
 Logger get logger {
   if (_logger != null) {
     return _logger;

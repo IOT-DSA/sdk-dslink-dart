@@ -17,10 +17,12 @@ import "package:logging/logging.dart";
 
 import "package:dslink/broker.dart" show BrokerDiscoveryClient;
 
-export 'src/crypto/pk.dart';
+export "src/crypto/pk.dart";
 
 part 'src/http/client_link.dart';
 part 'src/http/client_http_conn.dart';
+
+typedef void OptionResultsHandler(ArgResults results);
 
 class LinkProvider {
   HttpClientLink link;
@@ -57,7 +59,7 @@ class LinkProvider {
       this.strictOptions: false,
       this.exitOnFailure: true,
       this.loadNodesJson: true,
-      NodeProvider nodeProvider
+      NodeProvider nodeProvider // For Backwards Compatibility
     }) {
     if (nodeProvider != null) {
       provider = nodeProvider;
@@ -71,7 +73,9 @@ class LinkProvider {
 
   bool _configured = false;
 
-  bool configure() {
+  /// Configure the link.
+  /// If [argp] is provided for argument parsing, it is used.
+  bool configure({ArgParser argp, OptionResultsHandler optionsHandler}) {
     _configured = true;
 
     if (link != null) {
@@ -79,31 +83,31 @@ class LinkProvider {
       link = null;
     }
 
-    ArgParser argp = new ArgParser(allowTrailingOptions: !strictOptions);
-    argp.addOption("broker", abbr: 'b', help: "Broker URL");
-    argp.addOption("name", abbr: 'n', help: "Link Name");
-    argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name).toList(), help: "Log Level", defaultsTo: "INFO");
-    argp.addFlag("help", abbr: "h", help: "Displays this Help Message");
-    argp.addFlag("discover", abbr: "d", help: "Automatically Discover a Broker", negatable: false);
-
-    if (args.length == 0) {
-      // default
-      args = ["-b", "localhost:8080/conn", "--log", "INFO"];
-      try {
-        assert(false);
-      } catch (e) {
-        // in debug mode, turn on logging for everything
-        args[3] = "ALL";
-      }
+    if (argp == null) {
+      argp = new ArgParser(allowTrailingOptions: !strictOptions);
     }
+
+    argp.addOption("broker", abbr: "b", help: "Broker URL", defaultsTo: "http://localhost:8080/conn");
+    argp.addOption("name", abbr: "n", help: "Link Name");
+    argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name).toList()..addAll(["AUTO"]), help: "Log Level", defaultsTo: "AUTO");
+    argp.addFlag("help", abbr: "h", help: "Displays this Help Message", negatable: false);
+    argp.addFlag("discover", abbr: "d", help: "Automatically Discover a Broker", negatable: false);
 
     ArgResults opts = argp.parse(args);
 
-    updateLogLevel(opts["log"]);
+    if (opts["log"] == "AUTO") {
+      if (DEBUG_MODE) {
+        updateLogLevel("ALL");
+      } else {
+        updateLogLevel("INFO");
+      }
+    } else {
+      updateLogLevel(opts["log"]);
+    }
 
-    String helpStr = 'usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]';
+    String helpStr = "usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]";
 
-    if (opts['help'] == true) {
+    if (opts["help"]) {
       print(helpStr);
       print(argp.usage);
       if (exitOnFailure) {
@@ -125,13 +129,13 @@ class LinkProvider {
       }
     }
 
-    String name = opts['name'];
+    String name = opts["name"];
 
     if (name != null) {
-      if (name.endsWith('-')) {
+      if (name.endsWith("-")) {
         prefix = name;
       } else {
-        prefix = '${name}-';
+        prefix = "${name}-";
       }
     }
 
@@ -179,12 +183,12 @@ class LinkProvider {
       // generate the key
       String macs;
       if (Platform.isWindows) {
-        macs = Process.runSync('getmac', []).stdout.toString();
+        macs = Process.runSync("getmac", []).stdout.toString();
       } else {
         try {
-          macs = Process.runSync('arp', ['-an']).stdout.toString();
+          macs = Process.runSync("arp", ["-an"]).stdout.toString();
         } catch (e) {
-          macs = Process.runSync('ifconfig', []).stdout.toString();
+          macs = Process.runSync("ifconfig", []).stdout.toString();
         }
       }
       // randomize the PRNG with the system mac (as well as timestamp)
@@ -198,11 +202,18 @@ class LinkProvider {
       _discoverBroker = true;
     }
 
+    if (optionsHandler != null) {
+      optionsHandler(opts);
+    }
+
     return true;
   }
 
   bool _discoverBroker = false;
 
+  /// Initializes the Link.
+  /// There is no guarantee that the link will be ready when this method returns.
+  /// If the [configure] method is not called prior to calling this method, it is called.
   void init() {
     if (!_configured) {
       if (!configure()) {
