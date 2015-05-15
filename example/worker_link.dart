@@ -1,5 +1,3 @@
-import "dart:async";
-
 import "package:dslink/dslink.dart";
 import "package:dslink/worker.dart";
 
