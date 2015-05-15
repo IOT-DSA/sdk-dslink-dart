@@ -102,8 +102,12 @@ class Scheduler {
     });
   }
 
-  static void later(action()) {
+  static void runLater(action()) {
     Timer.run(action);
+  }
+
+  static Future later(action()) {
+    return new Future(action);
   }
 
   static Timer after(Duration duration, action()) {

@@ -15,6 +15,8 @@ import 'src/http/websocket_conn.dart';
 
 import "package:logging/logging.dart";
 
+import "package:dslink/broker.dart" show BrokerDiscoveryClient;
+
 export 'src/crypto/pk.dart';
 
 part 'src/http/client_link.dart';
@@ -77,6 +79,7 @@ class LinkProvider {
     argp.addOption("name", abbr: 'n', help: "Link Name");
     argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name).toList(), help: "Log Level", defaultsTo: "INFO");
     argp.addFlag("help", abbr: "h", help: "Displays this Help Message");
+    argp.addFlag("discover", abbr: "d", help: "Automatically Discover a Broker", negatable: false);
 
     if (args.length == 0) {
       // default
@@ -106,7 +109,7 @@ class LinkProvider {
     }
 
     brokerUrl = opts['broker'];
-    if (brokerUrl == null) {
+    if (brokerUrl == null && !opts["discover"]) {
       print(helpStr);
       return;
     }
@@ -141,8 +144,10 @@ class LinkProvider {
       dslinkJson = {};
     }
 
-    if (!brokerUrl.startsWith('http')) {
-      brokerUrl = 'http://$brokerUrl';
+    if (brokerUrl != null) {
+      if (!brokerUrl.startsWith('http')) {
+        brokerUrl = 'http://$brokerUrl';
+      }
     }
 
     File keyFile = getConfig('key') == null ? new File(".dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
@@ -173,7 +178,13 @@ class LinkProvider {
       key = prikey.saveToString();
       keyFile.writeAsStringSync(key);
     }
+
+    if (opts["discover"]) {
+      _discoverBroker = true;
+    }
   }
+
+  bool _discoverBroker = false;
 
   void init() {
     if (!_configured) {
@@ -199,15 +210,40 @@ class LinkProvider {
       }
     }
 
-    link = new HttpClientLink(
-        brokerUrl,
-        prefix,
-        prikey,
-        isRequester: isRequester,
-        isResponder: isResponder,
-        nodeProvider: nodeProvider,
-        enableHttp: enableHttp
-    );
+    void doRun() {
+      link = new HttpClientLink(
+          brokerUrl,
+          prefix,
+          prikey,
+          isRequester: isRequester,
+          isResponder: isResponder,
+          nodeProvider: nodeProvider,
+          enableHttp: enableHttp
+      );
+      _ready = true;
+
+      if (_connectOnReady) {
+        connect();
+      }
+    }
+
+    if (_discoverBroker) {
+      var discovery = new BrokerDiscoveryClient();
+      new Future(() async {
+        await discovery.init();
+        try {
+          var broker = await discovery.discover().first;
+          print("Discovered Broker at ${broker}");
+          brokerUrl = broker;
+          doRun();
+        } catch (e) {
+          print("Failed to discover a broker.");
+          exit(1);
+        }
+      });
+    } else {
+      doRun();
+    }
   }
 
   Map dslinkJson;
@@ -223,8 +259,15 @@ class LinkProvider {
     return null;
   }
 
+  bool _ready = false;
+  bool _connectOnReady = false;
+
   void connect() {
-    if (link != null) link.connect();
+    if (_ready) {
+      if (link != null) link.connect();
+    } else {
+      _connectOnReady = true;
+    }
   }
 
   Requester get requester => link.requester;
