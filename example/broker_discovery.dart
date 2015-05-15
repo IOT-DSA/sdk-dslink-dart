@@ -4,7 +4,8 @@ main() async {
   var client = new BrokerDiscoveryClient();
 
   await client.init();
-  client.discover().listen((url) {
+
+  await for (var url in client.discover()) {
     print("Discovered Broker at ${url}");
-  });
+  }
 }
