@@ -15,6 +15,42 @@ WorkerSocket createWorker(WorkerFunction function, {Map<String, dynamic> metadat
   return socket;
 }
 
+Worker buildWorkerForScript(Map data) {
+  return new Worker(data["port"], data["metadata"]);
+}
+
+WorkerSocket createWorkerScript(script, {List<String> args, Map<String, dynamic> metadata}) {
+  var receiver = new ReceivePort();
+  var socket = new WorkerSocket.master(receiver);
+  Uri uri;
+
+  if (script is Uri) {
+    uri = script;
+  } else if (script is String) {
+    uri = Uri.parse(script);
+  } else {
+    throw new ArgumentError.value(script, "script", "should be either a Uri or a String.");
+  }
+
+  Isolate.spawnUri(uri, [], {
+    "port": receiver.sendPort,
+    "metadata": metadata
+  }).then((x) {
+    socket._isolate = x;
+  });
+  return socket;
+}
+
+WorkerPool createWorkerScriptPool(int count, Uri uri, {Map<String, dynamic> metadata}) {
+  var workers = [];
+  for (var i = 1; i <= count; i++) {
+    workers.add(createWorkerScript(uri, metadata: {
+      "workerId": i
+    }..addAll(metadata == null ? {} : metadata)));
+  }
+  return new WorkerPool(workers);
+}
+
 WorkerPool createWorkerPool(int count, WorkerFunction function, {Map<String, dynamic> metadata}) {
   var workers = [];
   for (var i = 1; i <= count; i++) {
@@ -130,7 +166,7 @@ class Worker {
   : metadata = meta == null ? {} : meta;
 
   WorkerSocket createSocket() => new WorkerSocket.worker(port);
-  Future<WorkerSocket> init() async => await createSocket().init();
+  Future<WorkerSocket> init({Map<String, Producer> methods}) async => await createSocket().init(methods: methods);
 
   dynamic get(String key) => metadata[key];
   bool has(String key) => metadata.containsKey(key);
@@ -257,7 +293,14 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     }
   }
 
-  Future<WorkerSocket> init() => waitFor().then((_) => this);
+  Future<WorkerSocket> init({Map<String, Producer> methods}) {
+    if (methods != null) {
+      for (var key in methods.keys) {
+        addMethod(key, methods[key]);
+      }
+    }
+    return waitFor().then((_) => this);
+  }
 
   void addMethod(String name, Producer producer) {
     _requestHandlers[name] = producer;
