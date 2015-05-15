@@ -21,7 +21,7 @@ class HttpServerLink implements ServerLink {
 
   ServerConnection _connection;
 
-  // TODO deprecate this, all dslink need to support it
+  // TODO(rinick): deprecate this, all dslinks need to support it
   final bool enableTimeout;
 
   final List<String> _saltBases = new List<String>(3);
@@ -50,7 +50,7 @@ class HttpServerLink implements ServerLink {
       }
     }
 
-    // TODO, need a requester ready property? because client can disconnect and reconnect and change isResponder value
+    // TODO(rinick): need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
   /// check if public key matchs the dsId
   bool get valid {
@@ -63,12 +63,12 @@ class HttpServerLink implements ServerLink {
   bool isRequester = false;
   /// by default it's a responder only link
   bool isResponder = true;
-  void initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey, 
+  void initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey,
                 {String wsUri:'/ws', String httpUri:'/http', int updateInterval:200}) {
     isRequester = clientResponder;
     isResponder = clientRequester;
 
-    // TODO, dont use hard coded id and public key
+    // TODO(rinick): don't use a hardcoded id and public key
     Map respJson = {
       "id": serverDsId,//"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
       "publicKey": serverKey,
@@ -181,7 +181,7 @@ class HttpServerLink implements ServerLink {
       });
       if (_connection is! HttpServerConnection) {
         // work around for backward compatibility
-        // TODO remove this when all client send blank data to initialize ws
+        // TODO(rinick): remove this when all clients send blank data to initialize ws
         wsconnection.onRequestReadyCompleter.complete(wsconnection.requesterChannel);;
       }
     });
