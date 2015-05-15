@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 FILES=(
     bin/broker.dart
+    bin/broadcaster.dart
     lib/broker.dart
     lib/browser_client.dart
     lib/client.dart
