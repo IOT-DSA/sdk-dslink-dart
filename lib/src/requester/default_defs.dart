@@ -8,9 +8,9 @@ class DefaultDefNodes {
       r'$invokable':'read',
       r'$result':'table',
       r"$params":[
-        {"name":"Timerange","type":"string",'editor':'daterangePicker'},
+        {"name":"Timerange","type":"string",'editor':'daterange'},
         {"name":"Interval","type":"enum[default,none,oneYear,threeMonths,oneMonth,oneWeek,oneDay,twelveHours,sixHours,fourHours,threeHours,twoHours,oneHour,thirtyMinutes,twentyMinutes,fifteenMinutes,tenMinutes,fiveMinutes,oneMinute,thirtySeconds,fifteenSeconds,tenSeconds,fiveSeconds,oneSecond]"},
-        {"name":"Rollup","type":"enums[avg,min,max,sum,first,last,count]}"}
+        {"name":"Rollup","type":"enum[avg,min,max,sum,first,last,count]}"}
       ],
       r"$columns":[
         {"name":"Ts","type":"time"},
