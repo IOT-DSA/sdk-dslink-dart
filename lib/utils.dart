@@ -78,6 +78,10 @@ class Interval {
 class Scheduler {
   static Timer get currentTimer => Zone.current["dslink.scheduler.timer"];
 
+  static void cancelCurrentTimer() {
+    currentTimer.cancel();
+  }
+
   static Timer every(interval, action()) {
     Duration duration;
 

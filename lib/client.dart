@@ -57,11 +57,16 @@ class LinkProvider {
       this.exitOnFailure: true
     }) {
     if (autoInitialize) {
+      configure();
       init();
     }
   }
 
-  void init() {
+  bool _configured = false;
+
+  void configure() {
+    _configured = true;
+
     if (link != null) {
       link.close();
       link = null;
@@ -168,6 +173,12 @@ class LinkProvider {
       key = prikey.saveToString();
       keyFile.writeAsStringSync(key);
     }
+  }
+
+  void init() {
+    if (!_configured) {
+      configure();
+    }
 
     if (nodeProvider == null) {
       provider = new SimpleNodeProvider(null, profiles);
@@ -226,6 +237,8 @@ class LinkProvider {
       link = null;
     }
   }
+
+  void stop() => close();
 
   bool get didInitializationFail => link == null;
   bool get isInitialized => link != null;
