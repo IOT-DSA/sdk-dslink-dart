@@ -192,13 +192,17 @@ class LinkProvider {
     if (opts["discover"]) {
       _discoverBroker = true;
     }
+
+    return true;
   }
 
   bool _discoverBroker = false;
 
   void init() {
     if (!_configured) {
-      configure();
+      if (!configure()) {
+        return;
+      }
     }
 
     if (nodeProvider == null) {
