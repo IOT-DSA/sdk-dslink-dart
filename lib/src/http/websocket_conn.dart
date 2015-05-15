@@ -38,7 +38,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     if (enableTimeout) {
       pingTimer = new Timer.periodic(new Duration(seconds:20), onPingTimer);
     }
-    // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
+    // TODO(rinick): when it's used in client link, wait for the server to send {allowed} before complete this
   }
 
   Timer pingTimer;

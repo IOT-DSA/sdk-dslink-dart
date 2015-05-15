@@ -30,12 +30,13 @@ class HttpClientConnection implements ClientConnection {
   HttpClientConnection(this.url, this.clientLink, this.saltL, this.saltS) {
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
-    // TODO, wait for the server to send {allowed} before complete this
+    // TODO(rinick): wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
     _sendL();
   }
   bool _pendingCheck = false;
   bool _pendingSendS = false;
+
   void requireSend() {
     _pendingSendS = true;
     if (!_pendingCheck) {
@@ -45,9 +46,9 @@ class HttpClientConnection implements ClientConnection {
   }
 
   void close() {
-    //TODO
-
+    // TODO(rinick): Implement Close on HttpClientConnection
   }
+
   bool _sending = false;
   bool _sendingS = false;
 

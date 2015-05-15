@@ -17,7 +17,7 @@ class HttpClientLink implements ClientLink {
   WebSocketConnection _wsConnection;
   HttpClientConnection _httpConnection;
 
-  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1, 'saltL': 2,};
+  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1, 'saltL': 2};
 
   /// 2 salts, salt and saltS
   final List<String> salts = new List<String>(3);
@@ -48,7 +48,7 @@ class HttpClientLink implements ClientLink {
 
     HttpClient client = new HttpClient();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
-    logger.info('connecting: $connUri');
+    logger.info("Connecting to ${_conn}");
     try {
       HttpClientRequest request = await client.postUrl(connUri);
       Map requestJson = {
@@ -78,7 +78,7 @@ class HttpClientLink implements ClientLink {
       }
 
       if (serverConfig['httpUri'] is String) {
-        // TODO implement http
+        // TODO(rinick): implement http
         _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
 
@@ -104,7 +104,9 @@ class HttpClientLink implements ClientLink {
     try {
       var socket = await WebSocket
           .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-      _wsConnection = new WebSocketConnection(socket, clientLink: this, enableTimeout:true);
+      _wsConnection = new WebSocketConnection(socket, clientLink: this, enableTimeout: true);
+
+      logger.info("Connected");
 
       if (responder != null) {
         responder.connection = _wsConnection.responderChannel;
@@ -120,7 +122,7 @@ class HttpClientLink implements ClientLink {
       }
       _wsConnection.onDisconnected.then((connection) {
         initWebsocket();
-        print('websocket disconnected');
+        print('WebSocket disconnected');
       });
     } catch (error) {
       logger.fine(error);
