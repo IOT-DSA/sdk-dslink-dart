@@ -105,6 +105,11 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   }
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
+  
+  ListController createListController(Requester requester) {
+   return new RemoteLinkListController(this, requester);
+  }
+  
   PermissionList get permissions => null;
   int getPermission(Responder responder) {
     return _linkManager.getPermission(responder);
@@ -318,3 +323,81 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 }
 
+class RemoteLinkListController extends ListController {
+  RemoteLinkListController(RemoteNode node, Requester requester) : super(node, requester);
+
+  void onUpdate(String streamStatus, List updates, List columns,
+        [DSError error]) {
+      // TODO implement error handling
+      if (updates != null) {
+        for (Object update in updates) {
+          String name;
+          Object value;
+          bool removed = false;
+          if (update is Map) {
+            if (update['name'] is String) {
+              name = update['name'];
+            } else {
+              continue; // invalid response
+            }
+            if (update['change'] == 'remove') {
+              removed = true;
+            } else {
+              value = update['value'];
+            }
+          } else if (update is List) {
+            if (update.length > 0 && update[0] is String) {
+              name = update[0];
+              if (update.length > 1) {
+                value = update[1];
+              }
+            } else {
+              continue; // invalid response
+            }
+          } else {
+            continue; // invalid response
+          }
+          if (name.startsWith(r'$')) {
+            if (name == r'$disconnectedTs' && value is String) {
+              node.children.clear();
+              node.attributes.clear();
+              node.configs.clear();
+            }
+            
+            if (name == r'$base' && value is String) {
+              node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path + value;
+            }
+            if (name == r'$is' && !node.configs.containsKey(r'$base')) {
+              node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path;
+              changes.add(r'$base');
+            }
+            changes.add(name);
+            if (removed) {
+              node.configs.remove(name);
+            } else {
+              node.configs[name] = value;
+            }
+          } else if (name.startsWith('@')) {
+            changes.add(name);
+            if (removed) {
+              node.attributes.remove(name);
+            } else {
+              node.attributes[name] = value;
+            }
+          } else {
+            changes.add(name);
+            if (removed) {
+              node.children.remove(name);
+            } else if (value is Map) {
+              node.children[name] =
+                  requester.nodeCache.updateRemoteChildNode(node, name, value);
+            }
+          }
+        }
+        if (request.streamStatus != StreamStatus.initialize) {
+          node.listed = true;
+        }
+        onDefUpdated();
+      }
+    }
+}

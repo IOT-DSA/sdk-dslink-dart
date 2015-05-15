@@ -26,6 +26,7 @@ class ListResponse extends Response {
   bool _disconnectSent = false;
   void processor() {
     Object updateIs;
+    Object updateBase;
     Object updateMixin;
     List updateConfigs = [];
     List updateAttributes = [];
@@ -51,6 +52,8 @@ class ListResponse extends Response {
         Object update = [name, value];
         if (name == r'$is') {
           updateIs = update;
+        } else if (name == r'$base') {
+          updateBase = update;
         } else if (name == r'$mixin') {
           updateMixin = update;
         } else {
@@ -102,6 +105,9 @@ class ListResponse extends Response {
 
 
     List updates = [];
+    if (updateBase != null) {
+      updates.add(updateBase);
+    }
     if (updateIs != null) {
       updates.add(updateIs);
     }

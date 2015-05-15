@@ -139,9 +139,6 @@ class RemoteLinkRootListController extends ListController {
            if (name == r'$disconnectedTs' && value is String) {
              node.children.clear();
            }
-           else if (name == r'$is') {
-             node.children.clear();
-           }
            // ignore other changes
          } else if (name.startsWith('@')) {
           // ignore
