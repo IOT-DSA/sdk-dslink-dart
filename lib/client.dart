@@ -24,8 +24,8 @@ part 'src/http/client_http_conn.dart';
 
 class LinkProvider {
   HttpClientLink link;
-  SimpleNodeProvider provider;
-  PrivateKey prikey;
+  NodeProvider provider;
+  PrivateKey privateKey;
   String brokerUrl;
   File _nodesFile;
   String prefix;
@@ -35,11 +35,11 @@ class LinkProvider {
   bool isResponder = true;
   Map defaultNodes;
   Map profiles;
-  NodeProvider nodeProvider;
   bool enableHttp = false;
   bool encodePrettyJson = false;
   bool strictOptions = false;
   bool exitOnFailure = true;
+  bool loadNodesJson = true;
 
   LinkProvider(
     this.args,
@@ -51,13 +51,18 @@ class LinkProvider {
       this.defaultNodes,
       this.profiles,
       this.provider,
-      this.nodeProvider,
       this.enableHttp: false,
       this.encodePrettyJson: false,
       bool autoInitialize: true,
       this.strictOptions: false,
-      this.exitOnFailure: true
+      this.exitOnFailure: true,
+      this.loadNodesJson: true,
+      NodeProvider nodeProvider
     }) {
+    if (nodeProvider != null) {
+      provider = nodeProvider;
+    }
+
     if (autoInitialize) {
       configure();
       init();
@@ -165,7 +170,7 @@ class LinkProvider {
 
     try {
       key = keyFile.readAsStringSync();
-      prikey = new PrivateKey.loadFromString(key);
+      privateKey = new PrivateKey.loadFromString(key);
     } catch (err) {
     }
 
@@ -184,8 +189,8 @@ class LinkProvider {
       }
       // randomize the PRNG with the system mac (as well as timestamp)
       DSRandom.instance.randomize(macs);
-      prikey = new PrivateKey.generate();
-      key = prikey.saveToString();
+      privateKey = new PrivateKey.generate();
+      key = privateKey.saveToString();
       keyFile.writeAsStringSync(key);
     }
 
@@ -205,9 +210,11 @@ class LinkProvider {
       }
     }
 
-    if (nodeProvider == null) {
+    if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
-      nodeProvider = provider;
+    }
+
+    if (loadNodesJson && provider is SerializableNodeProvider) {
       _nodesFile = getConfig('nodes') == null ? new File("nodes.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
 
@@ -218,9 +225,9 @@ class LinkProvider {
       }
 
       if (loadedNodesData != null) {
-        provider.init(loadedNodesData);
+        (provider as SerializableNodeProvider).init(loadedNodesData);
       } else if (defaultNodes != null) {
-        provider.init(defaultNodes);
+        (provider as SerializableNodeProvider).init(defaultNodes);
       }
     }
 
@@ -228,10 +235,10 @@ class LinkProvider {
       link = new HttpClientLink(
           brokerUrl,
           prefix,
-          prikey,
+          privateKey,
           isRequester: isRequester,
           isResponder: isResponder,
-          nodeProvider: nodeProvider,
+          nodeProvider: provider,
           enableHttp: enableHttp
       );
       _ready = true;
@@ -302,7 +309,11 @@ class LinkProvider {
 
   void save() {
     if (_nodesFile != null && provider != null) {
-      _nodesFile.writeAsStringSync(DsJson.encode(provider.save(), pretty: encodePrettyJson));
+      if (provider is! SerializableNodeProvider) {
+        return;
+      }
+
+      _nodesFile.writeAsStringSync(DsJson.encode((provider as SerializableNodeProvider).save(), pretty: encodePrettyJson));
     }
   }
 
@@ -311,15 +322,24 @@ class LinkProvider {
   }
 
   LocalNode addNode(String path, Map m) {
-    return provider.addNode(path, m);
+    if (provider is! MutableNodeProvider) {
+      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+    }
+    return (provider as MutableNodeProvider).addNode(path, m);
   }
 
   void removeNode(String path) {
-    provider.removeNode(path);
+    if (provider is! MutableNodeProvider) {
+      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+    }
+    (provider as MutableNodeProvider).removeNode(path);
   }
 
   void updateValue(String path, dynamic value) {
-    provider.updateValue(path, value);
+    if (provider is! MutableNodeProvider) {
+      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+    }
+    (provider as MutableNodeProvider).updateValue(path, value);
   }
 
   LocalNode operator [](String path) => provider[path];

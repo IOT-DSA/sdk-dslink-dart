@@ -55,9 +55,21 @@ class AsyncTableResult {
   }
 }
 
-class SimpleNodeProvider extends NodeProviderImpl {
+abstract class SerializableNodeProvider {
+  void init([Map m, Map profiles]);
+  Map save();
+}
+
+abstract class MutableNodeProvider {
+  void updateValue(String path, Object value);
+  LocalNode addNode(String path, Map m);
+  void removeNode(String path);
+}
+
+class SimpleNodeProvider extends NodeProviderImpl implements SerializableNodeProvider, MutableNodeProvider {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
+  @override
   LocalNode getNode(String path) {
     if (nodes.containsKey(path)) {
       return nodes[path];
@@ -73,6 +85,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
 
   SimpleNode get root => getNode("/");
 
+  @override
   void init([Map m, Map profiles]) {
     if (profiles != null) {
       _registerProfiles(profiles);
@@ -83,15 +96,18 @@ class SimpleNodeProvider extends NodeProviderImpl {
     }
   }
 
+  @override
   Map save() {
     return root.save();
   }
 
+  @override
   void updateValue(String path, Object value) {
     SimpleNode node = getNode(path);
     node.updateValue(value);
   }
 
+  @override
   LocalNode addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return null;
 
@@ -119,6 +135,7 @@ class SimpleNodeProvider extends NodeProviderImpl {
     return node;
   }
 
+  @override
   void removeNode(String path) {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);

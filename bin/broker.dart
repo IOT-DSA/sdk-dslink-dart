@@ -89,7 +89,7 @@ main(List<String> _args) async {
   }
 
   if (args.any((it) => it.startsWith("--broker")) || args.contains("-b")) {
-    link = new LinkProvider(args, getConfig("link_prefix", "broker-"), nodeProvider: broker)..connect();
+    link = new LinkProvider(args, getConfig("link_prefix", "broker-"), provider: broker)..connect();
   }
 
   if (getConfig("broadcast", false)) {
