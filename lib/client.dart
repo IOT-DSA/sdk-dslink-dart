@@ -66,7 +66,7 @@ class LinkProvider {
 
   bool _configured = false;
 
-  void configure() {
+  bool configure() {
     _configured = true;
 
     if (link != null) {
@@ -96,7 +96,7 @@ class LinkProvider {
 
     updateLogLevel(opts["log"]);
 
-    String helpStr = 'usage: $command [--broker URL] [--log LEVEL] [--name NAME]';
+    String helpStr = 'usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]';
 
     if (opts['help'] == true) {
       print(helpStr);
@@ -104,14 +104,20 @@ class LinkProvider {
       if (exitOnFailure) {
         exit(1);
       } else {
-        return;
+        return false;
       }
     }
 
     brokerUrl = opts['broker'];
     if (brokerUrl == null && !opts["discover"]) {
+      print("No Broker URL Specified. One of [--broker, --discover] is required.");
       print(helpStr);
-      return;
+      print(argp.usage);
+      if (exitOnFailure) {
+        exit(1);
+      } else {
+        return false;
+      }
     }
 
     String name = opts['name'];
@@ -138,7 +144,11 @@ class LinkProvider {
 
       if (dslinkJson == null) {
         logger.severe("Invalid dslink.json", e);
-        return;
+        if (exitOnFailure) {
+          exit(1);
+        } else {
+          return false;
+        }
       }
     } else {
       dslinkJson = {};
