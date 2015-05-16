@@ -8,7 +8,7 @@ class BrokerNode extends LocalNodeImpl {
 /// Version node
 class BrokerVersionNode extends LocalNodeImpl {
   BrokerVersionNode(String path, String version) : super(path) {
-    configs[r'$type'] = 'string';
+    configs[r"$type"] = "string";
     updateValue(version);
   }
 }
@@ -16,7 +16,7 @@ class BrokerVersionNode extends LocalNodeImpl {
 /// Start Time node
 class StartTimeNode extends LocalNodeImpl {
   StartTimeNode(String path) : super(path) {
-    configs[r'$type'] = 'time';
+    configs[r"$type"] = "time";
     updateValue(ValueUpdate.getTs());
   }
 }
@@ -26,7 +26,7 @@ class ClearConnsAction extends LocalNodeImpl {
   BrokerNodeProvider provider;
 
   ClearConnsAction(String path, this.provider) : super(path) {
-    configs[r'$invokable'] = 'read';
+    configs[r"$invokable"] = "read";
   }
 
   @override

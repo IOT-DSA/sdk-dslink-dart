@@ -52,7 +52,7 @@ class HttpServerLink implements ServerLink {
 
     // TODO(rinick): need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
-  /// check if public key matchs the dsId
+  /// check if public key matches the dsId
   bool get valid {
     if (trusted) {
       return true;

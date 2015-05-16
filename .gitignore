@@ -6,7 +6,7 @@ build
 pubspec.lock
 .idea
 *.iml
-/test/.dslink.key
+/test/experiment/.dslink.key
 /dslink.json
 /.dslink.key
 /broker.json

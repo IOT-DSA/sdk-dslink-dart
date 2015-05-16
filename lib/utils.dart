@@ -126,7 +126,11 @@ class Scheduler {
     return new Future(action);
   }
 
-  static Timer after(Duration duration, action()) {
+  static Future after(Duration duration, action()) {
+    return new Future.delayed(duration, action);
+  }
+
+  static Timer runAfter(Duration duration, action()) {
     return new Timer(duration, action);
   }
 }
