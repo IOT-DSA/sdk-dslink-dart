@@ -24,6 +24,7 @@ part 'src/http/client_http_conn.dart';
 
 typedef void OptionResultsHandler(ArgResults results);
 
+/// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
   HttpClientLink link;
   NodeProvider provider;

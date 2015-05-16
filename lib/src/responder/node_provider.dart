@@ -1,6 +1,6 @@
 part of dslink.responder;
 
-/// node can be subscribed or listed by multiple responders
+/// a node that can be subscribed or listed by multiple responders
 abstract class LocalNode extends Node {
   final StreamController<String> listChangeController =
       new StreamController<String>();
@@ -102,7 +102,7 @@ abstract class LocalNode extends Node {
 }
 
 /// node provider for responder
-/// one nodeProvider can be reused by multiple responders
+/// one NodeProvider can be reused by multiple responders.
 abstract class NodeProvider {
   /// get an existing node or create a dummy node for requester to listen on
   LocalNode getNode(String path);
