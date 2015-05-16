@@ -209,6 +209,12 @@ class LinkProvider {
     return true;
   }
 
+  /// A Method that a Custom Link Provider can override for changing how to choose a broker.
+  /// By default this selects the first broker available.
+  Future<String> chooseBroker(Stream<String> brokers) async {
+    return await brokers.first;
+  }
+
   bool _discoverBroker = false;
 
   /// Initializes the Link.
@@ -264,7 +270,7 @@ class LinkProvider {
       new Future(() async {
         await discovery.init();
         try {
-          var broker = await discovery.discover().first;
+          var broker = await chooseBroker(discovery.discover());
           print("Discovered Broker at ${broker}");
           brokerUrl = broker;
           doRun();
@@ -325,6 +331,18 @@ class LinkProvider {
       }
 
       _nodesFile.writeAsStringSync(DsJson.encode((provider as SerializableNodeProvider).save(), pretty: encodePrettyJson));
+    }
+  }
+
+  Future saveAsync() async {
+    if (_nodesFile != null && provider != null) {
+      if (provider is! SerializableNodeProvider) {
+        return;
+      }
+
+      var encoded = DsJson.encode((provider as SerializableNodeProvider).save(), pretty: encodePrettyJson);
+
+      await _nodesFile.writeAsString(encoded);
     }
   }
 
