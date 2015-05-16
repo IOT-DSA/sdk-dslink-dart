@@ -71,6 +71,8 @@ class LinkProvider {
     }
   }
 
+  String _basePath = ".";
+
   bool _configured = false;
 
   /// Configure the link.
@@ -89,6 +91,7 @@ class LinkProvider {
 
     argp.addOption("broker", abbr: "b", help: "Broker URL", defaultsTo: "http://localhost:8080/conn");
     argp.addOption("name", abbr: "n", help: "Link Name");
+    argp.addOption("base-path", help: "Base Path for DSLink");
     argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name).toList()..addAll(["AUTO"]), help: "Log Level", defaultsTo: "AUTO");
     argp.addFlag("help", abbr: "h", help: "Displays this Help Message", negatable: false);
     argp.addFlag("discover", abbr: "d", help: "Automatically Discover a Broker", negatable: false);
@@ -103,6 +106,14 @@ class LinkProvider {
       }
     } else {
       updateLogLevel(opts["log"]);
+    }
+
+    if (opts["base-path"] != null) {
+      _basePath = opts["base-path"];
+
+      if (_basePath.endsWith("/")) {
+        _basePath = _basePath.substring(0, _basePath.length - 1);
+      }
     }
 
     String helpStr = "usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]";
@@ -140,7 +151,7 @@ class LinkProvider {
     }
 
     // load configs
-    File dslinkFile = new File.fromUri(Uri.parse('dslink.json'));
+    File dslinkFile = new File("${_basePath}/dslink.json");
 
     if (dslinkFile.existsSync()) {
       var e;
@@ -169,7 +180,7 @@ class LinkProvider {
       }
     }
 
-    File keyFile = getConfig('key') == null ? new File(".dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
+    File keyFile = getConfig('key') == null ? new File("${_basePath}/.dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
     String key;
 
     try {
@@ -232,7 +243,7 @@ class LinkProvider {
     }
 
     if (loadNodesJson && provider is SerializableNodeProvider) {
-      _nodesFile = getConfig('nodes') == null ? new File("nodes.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
+      _nodesFile = getConfig('nodes') == null ? new File("${_basePath}/nodes.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
 
       try {
