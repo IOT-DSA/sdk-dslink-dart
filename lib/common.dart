@@ -55,12 +55,9 @@ abstract class ConnectionChannel {
   /// whether the connection is ready to send and receive data
   bool get isReady;
 
-  
-  
   bool get connected;
   Future<ConnectionChannel> get onDisconnected;
   Future<ConnectionChannel> get onConnected;
-  
 }
 
 abstract class Link {

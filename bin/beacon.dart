@@ -13,7 +13,7 @@ main(List<String> args) async {
   var opts = argp.parse(args);
 
   if (opts["help"] || opts.rest.isEmpty) {
-    print("Usage: broadcaster <URLs...>");
+    print("Usage: beacon <URLs...>");
     if (argp.usage.isNotEmpty) {
       print(argp.usage);
     }
@@ -28,9 +28,9 @@ main(List<String> args) async {
       }
     });
   } catch (e) {
-    print("Error: Failed to start broadcast service. Are you running another broadcaster or broker on this machine?");
+    print("Error: Failed to start the beacon service. Are you running another beacon or broker on this machine?");
     exit(1);
   }
 
-  print("Broadcast Service Started.");
+  print("Beacon Service Started.");
 }
