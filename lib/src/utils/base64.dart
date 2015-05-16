@@ -38,6 +38,14 @@ class Base64 {
     return table;
   })();
 
+  static String encodeString(String content, [int lineSize = 0, int paddingSpace = 0]) {
+    return Base64.encode(UTF8.encode(content), lineSize, paddingSpace);
+  }
+
+  static String decodeString(String input) {
+    return UTF8.decode(decode(input));
+  }
+
   static String encode(List<int> bytes,
       [int lineSize = 0, int paddingSpace = 0]) {
     int len = bytes.length;
