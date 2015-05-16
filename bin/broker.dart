@@ -55,6 +55,13 @@ main(List<String> _args) async {
         if (v == "true" || v == "false") {
           v = v == "true";
         }
+
+        var number = num.parse(v, (_) => null);
+
+        if (number != null) {
+          v = number;
+        }
+
         config[c] = v;
       }
     });
