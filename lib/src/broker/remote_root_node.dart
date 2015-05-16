@@ -1,6 +1,5 @@
 part of dslink.broker;
 
-
 // TODO, implement special configs and attribute merging
 class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
   RemoteLinkRootNode(
@@ -159,5 +158,4 @@ class RemoteLinkRootListController extends ListController {
        onDefUpdated();
      }
    }
-
 }

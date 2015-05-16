@@ -105,11 +105,11 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   }
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
-  
+
   ListController createListController(Requester requester) {
    return new RemoteLinkListController(this, requester);
   }
-  
+
   PermissionList get permissions => null;
   int getPermission(Responder responder) {
     return _linkManager.getPermission(responder);
@@ -176,12 +176,12 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   void updateValue(Object update) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
-      callbacks.forEach((callback, cachelevel) {
+      callbacks.forEach((callback, cacheLevel) {
         callback(_lastValueUpdate);
       });
     } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
       _lastValueUpdate = new ValueUpdate(update);
-      callbacks.forEach((callback, cachelevel) {
+      callbacks.forEach((callback, cacheLevel) {
         callback(_lastValueUpdate);
       });
     }
@@ -363,7 +363,7 @@ class RemoteLinkListController extends ListController {
               node.attributes.clear();
               node.configs.clear();
             }
-            
+
             if (name == r'$base' && value is String) {
               node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path + value;
             }
