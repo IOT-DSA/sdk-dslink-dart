@@ -159,8 +159,8 @@ class HttpServerLink implements ServerLink {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
-    WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
 
+    WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       WebSocketConnection wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
 
@@ -179,11 +179,23 @@ class HttpServerLink implements ServerLink {
           }
         }
       });
+
       if (_connection is! HttpServerConnection) {
         // work around for backward compatibility
         // TODO(rinick): remove this when all clients send blank data to initialize ws
         wsconnection.onRequestReadyCompleter.complete(wsconnection.requesterChannel);;
       }
+    }).catchError((e) {
+      try {
+        if (e is WebSocketException) {
+          request.response.statusCode = HttpStatus.BAD_REQUEST;
+          request.response.writeln("Failed to upgrade to a WebSocket.");
+        } else {
+          request.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+          request.response.writeln("Internal Server Error");
+        }
+      } catch (e) {}
+      return request.response.close();
     });
   }
 
