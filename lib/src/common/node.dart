@@ -98,11 +98,6 @@ class Node {
     }
   }
 
-  /// clear all configs attributes and children
-  void reset() {
-    // TODO
-  }
-
   // get a simple map for data listed in parent's children property
   Map getSimpleMap() {
     Map rslt = {};

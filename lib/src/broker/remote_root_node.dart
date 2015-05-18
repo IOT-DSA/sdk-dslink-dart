@@ -98,6 +98,9 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
   void updateList(String name, [int permission = Permission.READ]) {
     listChangeController.add(name);
   }
+  void resetBeforeList() {
+    children.clear();
+  }
 }
 
 class RemoteLinkRootListController extends ListController {
