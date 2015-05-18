@@ -122,7 +122,6 @@ class HttpClientLink implements ClientLink {
       }
       _wsConnection.onDisconnected.then((connection) {
         initWebsocket();
-        print('WebSocket disconnected');
       });
     } catch (error) {
       logger.fine(error);
