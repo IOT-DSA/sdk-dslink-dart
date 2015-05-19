@@ -6,6 +6,7 @@ class HttpServerLink implements ServerLink {
   final String dsId;
   final String session;
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   final Requester requester;
@@ -14,6 +15,7 @@ class HttpServerLink implements ServerLink {
 
   /// nonce for authentication, don't overwrite existing nonce
   ECDH _tempNonce;
+
   /// nonce after user verified the public key
   ECDH _verifiedNonce;
 
@@ -26,6 +28,7 @@ class HttpServerLink implements ServerLink {
 
   final List<String> _saltBases = new List<String>(3);
   final List<int> _saltInc = <int>[0, 0, 0];
+
   /// 3 salts, salt saltS saltL
   final List<String> salts = new List<String>(3);
 
@@ -35,10 +38,10 @@ class HttpServerLink implements ServerLink {
   }
 
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, String sessionId, this.trusted: false, this.enableTimeout:false})
-      : dsId = id,
-        session = sessionId,
-        requester = linkManager.getRequester(id),
-        responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider, sessionId) : null {
+  : dsId = id,
+  session = sessionId,
+  requester = linkManager.getRequester(id),
+  responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider, sessionId) : null {
     if (!trusted) {
       for (int i = 0; i < 3; ++i) {
         List<int> bytes = new List<int>(12);
@@ -52,6 +55,7 @@ class HttpServerLink implements ServerLink {
 
     // TODO(rinick): need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
+
   /// check if public key matches the dsId
   bool get valid {
     if (trusted) {
@@ -61,8 +65,10 @@ class HttpServerLink implements ServerLink {
   }
 
   bool isRequester = false;
+
   /// by default it's a responder only link
   bool isResponder = true;
+
   void initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey,
                 {String wsUri:'/ws', String httpUri:'/http', int updateInterval:200}) {
     isRequester = clientResponder;
@@ -70,9 +76,9 @@ class HttpServerLink implements ServerLink {
 
     // TODO(rinick): don't use a hardcoded id and public key
     Map respJson = {
-      "id": serverDsId,//"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
+      "id": serverDsId, //"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
       "publicKey": serverKey,
-          //"vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
+      //"vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": wsUri,
       "httpUri": httpUri,
       "updateInterval": updateInterval
@@ -98,7 +104,7 @@ class HttpServerLink implements ServerLink {
       return false;
     }
     if (_verifiedNonce != null &&
-        _verifiedNonce.verifySalt(salts[type], hash)) {
+    _verifiedNonce.verifySalt(salts[type], hash)) {
       _updateSalt(type);
       return true;
     } else if (_tempNonce != null && _tempNonce.verifySalt(salts[type], hash)) {
@@ -108,6 +114,7 @@ class HttpServerLink implements ServerLink {
     }
     return false;
   }
+
   void _nonceChanged() {
     _verifiedNonce = _tempNonce;
     _tempNonce = null;
@@ -167,7 +174,7 @@ class HttpServerLink implements ServerLink {
       WebSocketConnection wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
 
-      wsconnection.onRequesterReady.then((channel){
+      wsconnection.onRequesterReady.then((channel) {
         if (_connection != null) {
           _connection.close();
         }
@@ -197,12 +204,13 @@ class HttpServerLink implements ServerLink {
           request.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
           request.response.writeln("Internal Server Error");
         }
-      } catch (e) {}
+      } catch (e) {
+      }
       return request.response.close();
     });
   }
 
-  WebSocketConnection createWsConnection(WebSocket websocket){
+  WebSocketConnection createWsConnection(WebSocket websocket) {
     return new WebSocketConnection(websocket, enableTimeout:enableTimeout);
   }
 }

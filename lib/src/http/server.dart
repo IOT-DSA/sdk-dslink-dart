@@ -63,6 +63,39 @@ class DsHttpServer {
 
   void _handleRequest(HttpRequest request) {
     try {
+      if (request.method == "HEAD" || request.method == "OPTIONS") {
+        var response = request.response;
+
+        if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
+          response.statusCode = HttpStatus.NOT_FOUND;
+        }
+
+        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
+        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+
+        String origin;
+
+        try {
+          origin = request.requestedUri.origin;
+        } catch (e) {}
+
+        if (origin == null) {
+          origin = "*";
+        }
+
+        response.headers.set('Access-Control-Allow-Origin', origin);
+        response.close();
+        return;
+      }
+
+      if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
+        updateResponseBeforeWrite(request, HttpStatus.NOT_FOUND, null, true);
+        request.response.statusCode = HttpStatus.NOT_FOUND;
+        request.response.writeln("Not Found.");
+        request.response.close();
+        return;
+      }
+
       String dsId = request.uri.queryParameters['dsId'];
 
       if (dsId == null || dsId.length < 43) {
