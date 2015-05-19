@@ -24,8 +24,18 @@ void updateResponseBeforeWrite(HttpRequest request, [int statusCode = HttpStatus
   var response = request.response;
   response.statusCode = statusCode;
   response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
-  response.headers.set('Access-Control-Allow-Headers', "Content-Type");
-  response.headers.set('Access-Control-Allow-Origin', request.headers.value("origin"));
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  String origin;
+
+  try {
+    origin = request.requestedUri.origin;
+  } catch (e) {}
+
+  if (origin == null) {
+    origin = "*";
+  }
+
+  response.headers.set('Access-Control-Allow-Origin', origin);
 
   if (contentType == null) {
     contentType = _jsonContentType;
