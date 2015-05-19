@@ -2,6 +2,7 @@ part of dslink.utils;
 
 class DSLinkJSON {
   Map _json;
+
   String name;
   String version;
   String description;
