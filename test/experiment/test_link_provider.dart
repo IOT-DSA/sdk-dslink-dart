@@ -1,8 +1,7 @@
-import 'package:dslink/client.dart';
-import 'package:dslink/utils.dart';
-import 'package:dslink/responder.dart';
-import 'dart:math' as Math;
-import 'dart:async';
+import "package:dslink/dslink.dart";
+import "package:dslink/utils.dart" show DsTimer;
+
+import "dart:math" as Math;
 
 LinkProvider link;
 int lastNum;
@@ -11,11 +10,12 @@ SimpleNode rootNode;
 
 class AddNodeAction extends SimpleNode {
   AddNodeAction(String path) : super(path);
-  Object onInvoke(Map params){
+
+  Object onInvoke(Map params) {
     addNode.configs[r'$lastNum'] = ++lastNum;
-    
+
     String nodeName = '/node_$lastNum';
-    link.provider.addNode(nodeName, {
+    link.addNode(nodeName, {
       r'$type':'number',
       r'$is':'rng',
       '?value':0,
@@ -25,17 +25,19 @@ class AddNodeAction extends SimpleNode {
       }
     });
     link.save(); // save json
-    
-    return new SimpleTableResult([['0'],['1']], [{"name":"name"}]);
+
+    return new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
 }
 
 class RemoveSelfAction extends SimpleNode {
   RemoveSelfAction(String path) : super(path);
-  Object onInvoke(Map params){
-    List p = path.split('/')..removeLast();
+
+  Object onInvoke(Map params) {
+    List p = path.split('/')
+      ..removeLast();
     String parentPath = p.join('/');
-    link.provider.removeNode(parentPath);
+    link.removeNode(parentPath);
     link.save();
     return null;
   }
@@ -43,19 +45,14 @@ class RemoveSelfAction extends SimpleNode {
 
 class RngNode extends SimpleNode {
   RngNode(String path) : super(path);
-  
-  static Math.Random rng = new  Math.Random();
-  
+
+  static Math.Random rng = new Math.Random();
+
+  @override
   void onCreated() {
     updateValue(rng.nextDouble());
-    //DsTimer.timerOnceAfter(updateRng, 1000);
   }
-  void onRemoving(){
-    
-  }
-  void onChildAdded(String name, SimpleNode node){
-    
-  }
+
   void updateRng() {
     if (!removed) {
       updateValue(rng.nextDouble());
@@ -64,34 +61,40 @@ class RngNode extends SimpleNode {
   }
 }
 
-main(List<String> args){
+main(List<String> args) {
 
   Map defaultNodes = {
     'add': {
       r'$is': 'addNodeAction',
-r'$params':{"name":{"type":"string"},"source":{"type":"string"},"destination":{"type":"string"},"queueSize":{"type":"string"},"pem":{"type":"string"},"filePrefix":{"type":"string"},"copyToPath":{"type":"string"}},
+      r'$params':{"name":{"type":"string"}, "source":{"type":"string"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"string"}, "copyToPath":{"type":"string"}},
       //r'$columns':[{'name':'name','type':'string'}],
       r'$invokable': 'read',
       r'$lastNum':0
     }
   };
 
-  
+
   Map profiles = {
-    'addNodeAction': (String path){return new AddNodeAction(path);},
-    'removeSelfAction': (String path){return new RemoveSelfAction(path);},
-    'rng': (String path){return new RngNode(path);}
+    'addNodeAction': (String path) {
+      return new AddNodeAction(path);
+    },
+    'removeSelfAction': (String path) {
+      return new RemoveSelfAction(path);
+    },
+    'rng': (String path) {
+      return new RngNode(path);
+    }
   };
-  
+
   link = new LinkProvider(args, 'quicklink-', defaultNodes:defaultNodes, profiles:profiles);
   if (link.link == null) {
     // initialization failed
     return;
   }
-  
-  addNode = link.provider.getNode('/add');
-  rootNode = link.provider.getNode('/');
+
+  addNode = link.getNode('/add');
+  rootNode = link.getNode('/');
   lastNum = addNode.configs[r'$lastNum'];
-  
+
   link.connect();
 }
