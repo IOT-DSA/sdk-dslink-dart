@@ -116,6 +116,7 @@ class HttpServerLink implements ServerLink {
       _connection = null;
     }
   }
+
   void handleHttpUpdate(HttpRequest request) {
     String saltS = request.uri.queryParameters['authS'];
     if (saltS != null) {
@@ -159,6 +160,8 @@ class HttpServerLink implements ServerLink {
     if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
+
+    updateResponseBeforeWrite(request, null, null, true);
 
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
       WebSocketConnection wsconnection = createWsConnection(websocket);

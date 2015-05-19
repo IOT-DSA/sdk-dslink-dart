@@ -66,6 +66,7 @@ class DsHttpServer {
       String dsId = request.uri.queryParameters['dsId'];
 
       if (dsId == null || dsId.length < 43) {
+        updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
         request.response.close();
         return;
       }
@@ -81,12 +82,16 @@ class DsHttpServer {
           _handleWsUpdate(request, dsId);
           break;
         default:
+          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
           request.response.close();
+          break;
       }
     } catch (err) {
       if (err is int) {
         // TODO need protection because changing statusCode itself can throw
-        request.response.statusCode = err;
+        updateResponseBeforeWrite(request, err);
+      } else {
+        updateResponseBeforeWrite(request);
       }
       request.response.close();
     }
@@ -96,12 +101,12 @@ class DsHttpServer {
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
-          updateResponseBeforeWrite(request);
+          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
           // invalid connection request
           request.response.close();
           return;
         } else if (merged.length == 0) {
-          updateResponseBeforeWrite(request);
+          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
           request.response.close();
           return;
         }
