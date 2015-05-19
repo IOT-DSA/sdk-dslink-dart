@@ -23,7 +23,7 @@ void base64Tests() {
       expect(decoded, equals(key));
     }
   });
-  
+
   test("successfully encodes and decodes bytes", () {
     for (var key in inputs.keys) {
       var encoded = Base64.encode(UTF8.encode(key));
