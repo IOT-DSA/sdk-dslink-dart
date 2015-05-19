@@ -16,7 +16,7 @@ main(List<String> args){
 
 
   for (var x in new List<int>.generate(500, (i) => i)) {
-    link.provider.addNode("/Node_${x}", {
+    link.addNode("/Node_${x}", {
       "?value": "node ${x}",
       r"$type": "string"
     });
