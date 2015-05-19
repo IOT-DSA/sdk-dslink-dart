@@ -23,6 +23,7 @@ class DSLinkJSON {
     j.engines = map["engines"];
     j.configs = map["configs"];
     j.getDependencies = map["getDependencies"];
+    return j;
   }
 
   void verify() {
