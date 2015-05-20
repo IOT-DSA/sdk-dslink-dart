@@ -47,7 +47,7 @@ main(List<String> args) async {
       mm++;
 
       if (mm == 2) {
-        print("${connectedCount}/${pairCount} links connected.");
+        print("${connectedCount} of ${pairCount} link pairs are connected.");
         mm = 0;
       }
 
@@ -55,7 +55,7 @@ main(List<String> args) async {
     }
 
     if (!ready) {
-      print("All links are now connected.");
+      print("All link pairs are now connected.");
       ready = true;
     }
 
@@ -123,7 +123,7 @@ createLinkPair() async {
   pairIndex++;
 
   linkReq.onRequesterReady.then((req) {
-    print("Link Pair ${mine} Connected.");
+    print("Link Pair ${mine} connected.");
     connectedCount++;
     req.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
       valueUpdate(val.value, mine);
