@@ -4,6 +4,8 @@ import "package:dslink/dslink.dart";
 import "package:dslink/utils.dart";
 import "package:logging/logging.dart";
 
+import "package:args/args.dart";
+
 class TestNodeProvider extends NodeProvider {
   TestNode onlyNode = new TestNode('/');
 
@@ -21,14 +23,46 @@ class TestNode extends LocalNodeImpl {
   }
 }
 
-main() async {
+int pairCount = 1000;
+
+main(List<String> args) async {
+  var argp = new ArgParser();
+  argp.addOption("pairs", abbr: "p", help: "Number of Link Pairs", defaultsTo: "1000", valueHelp: "pairs");
+  var opts = argp.parse(args);
+
+  try {
+    pairCount = int.parse(opts["pairs"]);
+  } catch (e) {
+    print("Invalid Number of Pairs.");
+    return;
+  }
+
   Random random = new Random();
   logger.level = Level.WARNING;
   await createLinks();
+  int mm = 0;
+  bool ready = false;
   Scheduler.every(Interval.TWO_SECONDS, () {
+    if (connectedCount != pairCount) {
+      mm++;
+
+      if (mm == 2) {
+        print("${connectedCount}/${pairCount} links connected.");
+        mm = 0;
+      }
+
+      return;
+    }
+
+    if (!ready) {
+      print("All links are now connected.");
+      ready = true;
+    }
+
     var pi = 1;
     for (var pair in pairs) {
       if (pair == null) continue;
+
       var n = random.nextInt(5000);
       expect[pi] = n;
       pair[2]["/node"].updateValue(n);
@@ -58,7 +92,7 @@ void valueUpdate(Object value, int idx) {
 createLinks() async {
   while (true) {
     await createLinkPair();
-    if (pairIndex > 2000) {
+    if (pairIndex > pairCount) {
       return;
     }
   }
@@ -82,17 +116,19 @@ createLinkPair() async {
   linkReq.connect();
 
   pairs.add([linkResp, linkReq, provider]);
-  print("Links Created: ${(pairIndex * 2)}");
 
   var mine = pairIndex;
 
   changeValue(0, pairIndex);
   pairIndex++;
 
-  Requester req = await linkReq.onRequesterReady;
-  req.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
-    valueUpdate(val.value, mine);
+  linkReq.onRequesterReady.then((req) {
+    print("Link Pair ${mine} Connected.");
+    connectedCount++;
+    req.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
+      valueUpdate(val.value, mine);
+    });
   });
-
-  return null;
 }
+
+int connectedCount = 0;
