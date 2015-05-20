@@ -93,7 +93,6 @@ class HttpServerLink implements ServerLink {
     updateResponseBeforeWrite(request);
     request.response.write(DsJson.encode(respJson));
     request.response.close();
-    print('inited $respJson');
   }
 
   bool _verifySalt(int type, String hash) {
