@@ -63,34 +63,34 @@ class DsHttpServer {
 
   void _handleRequest(HttpRequest request) {
     try {
-      if (request.method == "HEAD" || request.method == "OPTIONS") {
-        var response = request.response;
-
-        if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
-          response.statusCode = HttpStatus.NOT_FOUND;
-        }
-
-        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
-        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-
-        String origin;
-
-        if (request.headers.value("X-Proxy-Origin") != null) {
-          origin = request.headers.value("X-Proxy-Origin");
-        } else {
-          try {
-            origin = request.requestedUri.origin;
-          } catch (e) {}
-
-          if (origin == null) {
-            origin = "*";
-          }
-        }
-
-        response.headers.set('Access-Control-Allow-Origin', origin);
-        response.close();
-        return;
-      }
+//      if (request.method == "HEAD" || request.method == "OPTIONS") {
+//        var response = request.response;
+//
+//        if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
+//          response.statusCode = HttpStatus.NOT_FOUND;
+//        }
+//
+//        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
+//        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+//
+//        String origin;
+//
+//        if (request.headers.value("X-Proxy-Origin") != null) {
+//          origin = request.headers.value("X-Proxy-Origin");
+//        } else {
+//          try {
+//            origin = request.requestedUri.origin;
+//          } catch (e) {}
+//
+//          if (origin == null) {
+//            origin = "*";
+//          }
+//        }
+//
+//        response.headers.set('Access-Control-Allow-Origin', origin);
+//        response.close();
+//        return;
+//      }
 
       if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
         updateResponseBeforeWrite(request, HttpStatus.NOT_FOUND, null, true);
@@ -103,7 +103,7 @@ class DsHttpServer {
       String dsId = request.uri.queryParameters['dsId'];
 
       if (dsId == null || dsId.length < 43) {
-        updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
+//        updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
         request.response.close();
         return;
       }
@@ -119,16 +119,13 @@ class DsHttpServer {
           _handleWsUpdate(request, dsId);
           break;
         default:
-          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
+//          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
           request.response.close();
           break;
       }
     } catch (err) {
-      if (err is int) {
-        // TODO need protection because changing statusCode itself can throw
-        updateResponseBeforeWrite(request, err);
-      } else {
-        updateResponseBeforeWrite(request);
+      if(err is int) {
+        request.response.statusCode = err;
       }
       request.response.close();
     }
@@ -138,12 +135,12 @@ class DsHttpServer {
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
-          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
+          updateResponseBeforeWrite(request/*, HttpStatus.BAD_REQUEST*/);
           // invalid connection request
           request.response.close();
           return;
         } else if (merged.length == 0) {
-          updateResponseBeforeWrite(request, HttpStatus.BAD_REQUEST);
+          updateResponseBeforeWrite(request/*, HttpStatus.BAD_REQUEST*/);
           request.response.close();
           return;
         }
