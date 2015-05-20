@@ -39,6 +39,16 @@ class SimpleActionNode extends SimpleNode {
   Object onInvoke(Map<String, dynamic> params) => function(params);
 }
 
+/// A Node Provider for a Single Node
+class SingleNodeProvider extends NodeProvider {
+  final LocalNode node;
+
+  SingleNodeProvider(this.node);
+
+  @override
+  LocalNode getNode(String path) => node;
+}
+
 typedef void SimpleCallback();
 typedef void ChildChangedCallback(String name, Node node);
 typedef SimpleNode LoadChildCallback(String name, Map data, SimpleNodeProvider provider);
