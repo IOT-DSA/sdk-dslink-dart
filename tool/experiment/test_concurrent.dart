@@ -25,6 +25,8 @@ class TestNode extends LocalNodeImpl {
 
 int pairCount = 1000;
 
+Stopwatch stopwatch;
+
 main(List<String> args) async {
   var argp = new ArgParser();
   argp.addOption("pairs", abbr: "p", help: "Number of Link Pairs", defaultsTo: "1000", valueHelp: "pairs");
@@ -39,15 +41,19 @@ main(List<String> args) async {
 
   Random random = new Random();
   logger.level = Level.WARNING;
+
+  stopwatch = new Stopwatch();
+
   await createLinks();
   int mm = 0;
   bool ready = false;
+
   Scheduler.every(Interval.TWO_SECONDS, () {
     if (connectedCount != pairCount) {
       mm++;
 
       if (mm == 2) {
-        print("${connectedCount} of ${pairCount} link pairs are connected.");
+        print("${connectedCount} of ${pairCount} link pairs are ready.");
         mm = 0;
       }
 
@@ -55,7 +61,7 @@ main(List<String> args) async {
     }
 
     if (!ready) {
-      print("All link pairs are now connected.");
+      print("All link pairs are now ready. Subscribing requesters to values and starting value updates.");
       ready = true;
     }
 
@@ -84,12 +90,13 @@ void valueUpdate(Object value, int idx) {
   }
 
   if (expect[idx] != value) {
-    print("Value Update Invalid for pair ${idx}: we expected ${expect[idx]}, but we got ${value}.");
+    print("Value Update Invalid for link pair ${idx}: we expected ${expect[idx]}, but we got ${value}.");
   }
   expect.remove(idx);
 }
 
 createLinks() async {
+  print("Creating ${pairCount} link pairs.");
   while (true) {
     await createLinkPair();
     if (pairIndex > pairCount) {
@@ -106,8 +113,6 @@ PrivateKey key =
       '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
 
 createLinkPair() async {
-  print("Creating Link Pair #${pairIndex}");
-
   TestNodeProvider provider = new TestNodeProvider();
   var linkResp = new HttpClientLink('http://localhost:8080/conn', 'responder-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
   linkResp.connect();
@@ -123,7 +128,7 @@ createLinkPair() async {
   pairIndex++;
 
   linkReq.onRequesterReady.then((req) {
-    print("Link Pair ${mine} connected.");
+    print("Link Pair ${mine} is now ready.");
     connectedCount++;
     req.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
       valueUpdate(val.value, mine);

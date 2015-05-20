@@ -75,12 +75,16 @@ class DsHttpServer {
 
         String origin;
 
-        try {
-          origin = request.requestedUri.origin;
-        } catch (e) {}
+        if (request.headers.value("X-Proxy-Origin") != null) {
+          origin = request.headers.value("X-Proxy-Origin");
+        } else {
+          try {
+            origin = request.requestedUri.origin;
+          } catch (e) {}
 
-        if (origin == null) {
-          origin = "*";
+          if (origin == null) {
+            origin = "*";
+          }
         }
 
         response.headers.set('Access-Control-Allow-Origin', origin);
