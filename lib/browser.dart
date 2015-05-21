@@ -65,15 +65,6 @@ class LinkProvider {
     } else {
       (provider as SerializableNodeProvider).init(defaultNodes);
     }
-
-    link = new BrowserECDHLink(
-        brokerUrl,
-        prefix,
-        privateKey,
-        nodeProvider: provider,
-        isRequester: isRequester,
-        isResponder: isResponder
-    );
   }
 
   Future resetSavedNodes() async {
@@ -89,10 +80,27 @@ class LinkProvider {
   }
 
   void connect() {
-    if (!_initCalled) {
-      init().then((_) => link.connect());
-    } else {
+    void run() {
+      link = new BrowserECDHLink(
+          brokerUrl,
+          prefix,
+          privateKey,
+          nodeProvider: provider,
+          isRequester: isRequester,
+          isResponder: isResponder
+      );
+
       link.connect();
+    }
+
+    if (link != null) {
+      throw new StateError("Link is already connected!");
+    }
+
+    if (!_initCalled) {
+      init().then((_) => run());
+    } else {
+      run();
     }
   }
 
