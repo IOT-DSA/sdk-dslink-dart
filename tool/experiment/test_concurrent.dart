@@ -77,7 +77,6 @@ main(List<String> args) async {
   });
 }
 
-/// TODO, randomly change a value in a node and test if responder can get it;
 void changeValue(value, int idx) {
   (pairs[idx][2] as TestNodeProvider).getNode('/node').updateValue(value);
 }
@@ -115,7 +114,6 @@ PrivateKey key =
 createLinkPair() async {
   TestNodeProvider provider = new TestNodeProvider();
   var linkResp = new HttpClientLink('http://localhost:8080/conn', 'responder-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
-  linkResp.connect();
 
   var linkReq = new HttpClientLink('http://localhost:8080/conn', 'requester-$pairIndex-', key, isRequester: true);
   linkReq.connect();
@@ -127,10 +125,10 @@ createLinkPair() async {
   changeValue(0, pairIndex);
   pairIndex++;
 
-  linkReq.onRequesterReady.then((req) {
+  linkResp.connect().then((_) {
     print("Link Pair ${mine} is now ready.");
     connectedCount++;
-    req.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
+    linkReq.requester.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
       valueUpdate(val.value, mine);
     });
   });
