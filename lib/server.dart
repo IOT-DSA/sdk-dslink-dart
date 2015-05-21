@@ -31,17 +31,13 @@ void updateResponseBeforeWrite(HttpRequest request, [int statusCode = HttpStatus
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   String origin = request.headers.value("origin");
 
-//  if (request.headers.value("X-Proxy-Origin") != null) {
-//    origin = request.headers.value("X-Proxy-Origin");
-//  } else {
-//    try {
-//      origin = request.requestedUri.origin;
-//    } catch (e) {}
-//
-//    if (origin == null) {
-//      origin = "*";
-//    }
-//  }
+  if (request.headers.value("X-Proxy-Origin") != null) {
+    origin = request.headers.value("X-Proxy-Origin");
+  }
+
+  if (origin == null) {
+    origin = "*";
+  }
 
   response.headers.set('Access-Control-Allow-Origin', origin);
 
