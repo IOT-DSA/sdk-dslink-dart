@@ -63,34 +63,30 @@ class DsHttpServer {
 
   void _handleRequest(HttpRequest request) {
     try {
-//      if (request.method == "HEAD" || request.method == "OPTIONS") {
-//        var response = request.response;
-//
-//        if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
-//          response.statusCode = HttpStatus.NOT_FOUND;
-//        }
-//
-//        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
-//        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-//
-//        String origin;
-//
-//        if (request.headers.value("X-Proxy-Origin") != null) {
-//          origin = request.headers.value("X-Proxy-Origin");
-//        } else {
-//          try {
-//            origin = request.requestedUri.origin;
-//          } catch (e) {}
-//
-//          if (origin == null) {
-//            origin = "*";
-//          }
-//        }
-//
-//        response.headers.set('Access-Control-Allow-Origin', origin);
-//        response.close();
-//        return;
-//      }
+      if (request.method == "HEAD" || request.method == "OPTIONS") {
+        var response = request.response;
+
+        if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
+          response.statusCode = HttpStatus.NOT_FOUND;
+        }
+
+        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
+        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+
+        String origin = request.headers.value("origin");
+
+        if (request.headers.value("x-proxy-origin") != null) {
+          origin = request.headers.value("x-proxy-origin");
+        }
+
+        if (origin == null) {
+          origin = "*";
+        }
+
+        response.headers.set('Access-Control-Allow-Origin', origin);
+        response.close();
+        return;
+      }
 
       if (!(const ["/conn", "/http", "/ws"].contains(request.uri.path))) {
         updateResponseBeforeWrite(request, HttpStatus.NOT_FOUND, null, true);

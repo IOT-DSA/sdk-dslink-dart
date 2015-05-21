@@ -31,8 +31,8 @@ void updateResponseBeforeWrite(HttpRequest request, [int statusCode = HttpStatus
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   String origin = request.headers.value("origin");
 
-  if (request.headers.value("X-Proxy-Origin") != null) {
-    origin = request.headers.value("X-Proxy-Origin");
+  if (request.headers.value("x-proxy-origin") != null) {
+    origin = request.headers.value("x-proxy-origin");
   }
 
   if (origin == null) {
