@@ -15,51 +15,54 @@ part 'src/browser/browser_ecdh_link.dart';
 part 'src/browser/browser_http_conn.dart';
 part 'src/browser/browser_ws_conn.dart';
 
-/// A Storage System for Private Keys
-abstract class PrivateKeyStorage {
-  /// Get Private Key Content
-  Future<String> get();
+/// A Storage System for DSA Data
+abstract class DataStorage {
+  /// Get a key's value.
+  Future<String> get(String key);
 
-  /// Check if a Private Key is stored.
-  Future<bool> has();
+  /// Check if a key is stored.
+  Future<bool> has(String key);
 
-  /// Store a Private Key
-  Future store(String value);
+  /// Remove the specified key.
+  Future<String> remove(String key);
+
+  /// Store a key value pair.
+  Future store(String key, String value);
 }
 
-/// Storage for Private Keys in Local Storage
-class LocalPrivateKeyStorage extends PrivateKeyStorage {
-  /// Local Storage Key
-  final String key;
+/// Storage for DSA in Local Storage
+class LocalDataStorage extends DataStorage {
+  static final LocalDataStorage INSTANCE = new LocalDataStorage();
 
-  LocalPrivateKeyStorage([this.key = "dsa_key"]);
-
-  @override
-  Future<String> get() async => window.localStorage[key];
+  LocalDataStorage();
 
   @override
-  Future<bool> has() async => window.localStorage.containsKey(key);
+  Future<String> get(String key) async => window.localStorage[key];
 
   @override
-  Future store(String value) async => window.localStorage[key] = value;
+  Future<bool> has(String key) async => window.localStorage.containsKey(key);
+
+  @override
+  Future store(String key, String value) async => window.localStorage[key] = value;
+
+  @override
+  Future<String> remove(String key) async => window.localStorage.remove(key);
 }
-
-final LocalPrivateKeyStorage _localPrivateKeyStorage = new LocalPrivateKeyStorage();
 
 /// Get a Private Key using the specified storage strategy.
-/// If [storage] is not specified, it uses the [LocalPrivateKeyStorage] class.
-Future<PrivateKey> getPrivateKey({PrivateKeyStorage storage}) async {
+/// If [storage] is not specified, it uses the [LocalDataStorage] class.
+Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   if (storage == null) {
-    storage = _localPrivateKeyStorage;
+    storage = LocalDataStorage.INSTANCE;
   }
 
-  if (await storage.has()) {
-    return new PrivateKey.loadFromString(await storage.get());
+  if (await storage.has("dsa_key")) {
+    return new PrivateKey.loadFromString(await storage.get("dsa_key"));
   }
 
   var key = new PrivateKey.generate();
 
-  await storage.store(key.saveToString());
+  await storage.store("dsa_key", key.saveToString());
 
   return key;
 }
