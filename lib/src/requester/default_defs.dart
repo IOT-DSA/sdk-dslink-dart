@@ -67,7 +67,7 @@ class DefaultDefNodes {
       ]
     }
   };
-  
+
   static final Map<String, Node> nameMap = () {
     Map rslt = new Map<String, Node>();
     _defaultDefs.forEach((String k, Map m) {
