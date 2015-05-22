@@ -5,21 +5,27 @@ import "package:dslink/nodes.dart";
 
 LinkProvider link;
 
-const List<String> CSS_COLORS = const [
+final List<String> CSS_COLORS = ([
+  "aqua",
+  "fuchsia",
   "blue",
   "green",
   "red",
   "orange",
   "yellow",
-  "magenta",
+  "maroon",
+  "navy",
+  "olive",
   "black",
   "white",
   "gold",
   "brown",
-  "grey",
+  "gray",
+  "silver",
+  "teal",
   "pink",
   "purple"
-];
+])..sort();
 
 final String CSS_COLOR_ENUM = 'enum[${CSS_COLORS.join(",")}]';
 
@@ -48,6 +54,12 @@ main() async {
       r"$type": CSS_COLOR_ENUM,
       r"$writable": "write",
       "?value": "white"
+    },
+    "Text_Rotation": {
+      r"$name": "Text Rotation",
+      r"$type": "number",
+      r"$writable": "write",
+      "?value": 0.0
     },
     "Click": {
       "ID": {
@@ -134,6 +146,12 @@ main() async {
     textElement
       ..text = update.value
       ..offsetHeight; // Trigger Re-flow
+    await link.save();
+  });
+
+  link.onValueChange("/Text_Rotation").listen((ValueUpdate update) async {
+    textElement
+      ..style.transform = "rotate(${update.value}deg";
     await link.save();
   });
 
