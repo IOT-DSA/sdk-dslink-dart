@@ -135,3 +135,5 @@ class Scheduler {
     return new Timer(duration, action);
   }
 }
+
+String buildEnumType(List<String> values) => "enum[${values.join(',')}]";
