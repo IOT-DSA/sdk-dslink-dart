@@ -2,6 +2,7 @@
 library dslink.browser;
 
 import "dart:async";
+import "dart:html";
 
 import "package:dslink/requester.dart";
 import "package:dslink/responder.dart";
@@ -168,4 +169,14 @@ class LinkProvider {
   Requester get requester => link.requester;
 
   Future<Requester> get onRequesterReady => link.onRequesterReady;
+}
+
+class BrowserUtils {
+  static Future<String> fetchBrokerUrlFromPath(String path, String otherwise) async {
+    try {
+      return (await HttpRequest.getString(path)).trim();
+    } catch (e) {
+      return otherwise;
+    }
+  }
 }
