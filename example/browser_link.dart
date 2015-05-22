@@ -1,21 +1,21 @@
-import "package:dslink/browser_client.dart";
-import "package:dslink/responder.dart";
+import "package:dslink/browser.dart";
 
-BrowserECDHLink link;
-SimpleNodeProvider provider;
+LinkProvider link;
 
 main() async {
-  provider = new SimpleNodeProvider(); // Create a Simple Node Provider
-
-  link = new BrowserECDHLink(
+  link = new LinkProvider(
       "http://127.0.0.1:8080/conn", // Broker URL
-      "Browser-", // Link Prefix
-      await getPrivateKey(), // Handle Private Key management in the browser
-      nodeProvider: new SimpleNodeProvider(),
-      isRequester: false, // In this instance, we don't want to be a responder
-      isResponder: true // We want to be a responder link
+      "BrowserExample-", // Link Prefix
+      defaultNodes: {
+        "Message": {
+          r"$type": "string", // The type of the node is a string.
+          r"$writable": "write", // This node's value can be set by a requester.
+          "?value": "Hello World" // The default message value.
+        }
+      }
   );
 
-  // Connect to the broker.
-  link.connect();
+  await link.init(); // Initialize the Link
+
+  link.connect(); // Connect to the Broker
 }
