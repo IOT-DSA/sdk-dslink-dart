@@ -3,6 +3,8 @@ part of dslink.browser_client;
 /// a client link for both http and ws
 class BrowserECDHLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+  Completer _onConnectedCompleter = new Completer();
+  Future get onConnected => _onConnectedCompleter.future;
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   final String dsId;
@@ -99,7 +101,11 @@ class BrowserECDHLink implements ClientLink {
     }
     var socket =
         new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _wsConnection = new WebSocketConnection(socket, this);
+    _wsConnection = new WebSocketConnection(socket, this, onConnect: () {
+      if (!_onConnectedCompleter.isCompleted) {
+        _onConnectedCompleter.complete();
+      }
+    });
 
     if (responder != null) {
       responder.connection = _wsConnection.responderChannel;
@@ -135,6 +141,10 @@ class BrowserECDHLink implements ClientLink {
     _httpConnection =
         new HttpBrowserConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
+    if (!_onConnectedCompleter.isCompleted) {
+      _onConnectedCompleter.complete();
+    }
+
     if (responder != null) {
       responder.connection = _httpConnection.responderChannel;
     }
@@ -161,6 +171,7 @@ class BrowserECDHLink implements ClientLink {
 
   bool _closed = false;
   void close() {
+    _onConnectedCompleter = new Completer();
     if (_closed) return;
     _closed = true;
     if (_wsConnection != null) {

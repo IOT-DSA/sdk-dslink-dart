@@ -107,8 +107,8 @@ class LinkProvider {
     n.updateValue(n.lastValueUpdate.value, force: true);
   }
 
-  void connect() {
-    void run() {
+  Future connect() {
+    Future run() {
       link = new BrowserECDHLink(
           brokerUrl,
           prefix,
@@ -119,6 +119,7 @@ class LinkProvider {
       );
 
       link.connect();
+      return link.onConnected;
     }
 
     if (link != null) {
@@ -126,9 +127,9 @@ class LinkProvider {
     }
 
     if (!_initCalled) {
-      init().then((_) => run());
+      return init().then((_) => run());
     } else {
-      run();
+      return run();
     }
   }
 

@@ -22,8 +22,10 @@ class WebSocketConnection implements ClientConnection {
 
   final WebSocket socket;
 
+  Function onConnect;
+
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, this.clientLink) {
+  WebSocketConnection(this.socket, this.clientLink, {this.onConnect}) {
     socket.binaryType = 'arraybuffer';
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
@@ -69,6 +71,9 @@ class WebSocketConnection implements ClientConnection {
   bool _opened = false;
   void _onOpen(Event e) {
     _opened = true;
+    if (onConnect != null) {
+      onConnect();
+    }
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
     socket.sendString('{}');

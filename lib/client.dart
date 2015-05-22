@@ -337,19 +337,28 @@ class LinkProvider {
   bool _ready = false;
   bool _connectOnReady = false;
 
-  void connect() {
+  Future connect() {
+    if (_connectedCompleter == null) {
+      _connectedCompleter = new Completer();
+    }
+
     if (_ready) {
+      link.onConnected.then(_connectedCompleter.complete);
       if (link != null) link.connect();
     } else {
       _connectOnReady = true;
     }
+    return _connectedCompleter.future;
   }
+
+  Completer _connectedCompleter;
 
   Requester get requester => link.requester;
 
   Future<Requester> get onRequesterReady => link.onRequesterReady;
 
   void close() {
+    _connectedCompleter = null;
     if (link != null) {
       link.close();
       link = null;

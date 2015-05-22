@@ -97,7 +97,7 @@ class HttpClientConnection implements ClientConnection {
   }
   void _onDataL(HttpClientResponse response) {
     if (response.statusCode != 200){
-      logger.fine('http long response.statusCode:${response.statusCode}');
+      logger.fine('http long response.statusCode: ${response.statusCode}');
       if (response.statusCode == HttpStatus.UNAUTHORIZED){
         _authError = true;
         _onDone();

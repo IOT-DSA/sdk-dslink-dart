@@ -3,7 +3,11 @@ part of dslink.client;
 /// a client link for both http and ws
 class HttpClientLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+  Completer _onConnectedCompleter = new Completer();
+
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
+
+  Future get onConnected => _onConnectedCompleter.future;
 
   final String dsId;
 
@@ -12,6 +16,7 @@ class HttpClientLink implements ClientLink {
   final PrivateKey privateKey;
 
   ECDH _nonce;
+
   ECDH get nonce => _nonce;
 
   WebSocketConnection _wsConnection;
@@ -30,17 +35,20 @@ class HttpClientLink implements ClientLink {
   String _httpUpdateUri;
   String _conn;
   bool enableHttp;
+
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider, bool isRequester: true,
-      bool isResponder: true, this.enableHttp:false})
-      : privateKey = privateKey,
-        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
-        requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null)
-            ? new Responder(nodeProvider)
-            : null {}
+                 {NodeProvider nodeProvider, bool isRequester: true,
+                 bool isResponder: true, this.enableHttp:false})
+  : privateKey = privateKey,
+  dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
+  requester = isRequester ? new Requester() : null,
+  responder = (isResponder && nodeProvider != null)
+  ? new Responder(nodeProvider)
+  : null {
+  }
 
   int _connDelay = 1;
+
   connect() async {
     if (_closed) return;
 
@@ -74,7 +82,7 @@ class HttpClientLink implements ClientLink {
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
-            .replaceFirst('http', 'ws');
+        .replaceFirst('http', 'ws');
       }
 
       if (serverConfig['httpUri'] is String) {
@@ -98,15 +106,18 @@ class HttpClientLink implements ClientLink {
   initWebsocket([bool reconnect = true]) async {
     if (_closed) return;
 
-    if(reconnect && _httpConnection == null) {
+    if (reconnect && _httpConnection == null) {
       initHttp();
     }
     try {
       var socket = await WebSocket
-          .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
       _wsConnection = new WebSocketConnection(socket, clientLink: this, enableTimeout: true);
 
       logger.info("Connected");
+      if (!_onConnectedCompleter.isCompleted) {
+        _onConnectedCompleter.complete();
+      }
 
       if (responder != null) {
         responder.connection = _wsConnection.responderChannel;
@@ -125,15 +136,15 @@ class HttpClientLink implements ClientLink {
       });
     } catch (error) {
       logger.fine(error);
-      if (error is WebSocketException && error.message.contains('was not upgraded to websocket')){
+      if (error is WebSocketException && error.message.contains('was not upgraded to websocket')) {
         DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       } else if (reconnect) {
-         DsTimer.timerOnceAfter(initWebsocket, _wsDelay*1000);
-         if (_wsDelay < 60)_wsDelay++;
+        DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
+        if (_wsDelay < 60)_wsDelay++;
       } else {
         initHttp();
-         _wsDelay = 5;
-         DsTimer.timerOnceAfter(initWebsocket, 5000);
+        _wsDelay = 5;
+        DsTimer.timerOnceAfter(initWebsocket, 5000);
       }
     }
   }
@@ -145,8 +156,12 @@ class HttpClientLink implements ClientLink {
 
     if (_closed) return;
 
-    _httpConnection =
-        new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
+    _httpConnection = new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
+
+    logger.info("Connected");
+    if (!_onConnectedCompleter.isCompleted) {
+      _onConnectedCompleter.complete();
+    }
 
     if (responder != null) {
       responder.connection = _httpConnection.responderChannel;
@@ -161,7 +176,7 @@ class HttpClientLink implements ClientLink {
       });
     }
 
-    _httpConnection.onDisconnected.then((bool authFailed){
+    _httpConnection.onDisconnected.then((bool authFailed) {
       if (_closed) return;
       _httpConnection = null;
       if (authFailed) {
@@ -173,8 +188,10 @@ class HttpClientLink implements ClientLink {
   }
 
   bool _closed = false;
+
   void close() {
     if (_closed) return;
+    _onConnectedCompleter = new Completer();
     _closed = true;
     if (_wsConnection != null) {
       _wsConnection.close();
