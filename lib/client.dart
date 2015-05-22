@@ -228,6 +228,32 @@ class LinkProvider {
 
   bool _discoverBroker = false;
 
+  Stream<ValueUpdate> onValueChange(String path, {int cacheLevel: 1}) {
+    RespSubscribeListener listener;
+    StreamController<ValueUpdate> controller;
+    int subs = 0;
+    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+      subs++;
+      if (listener == null) {
+        listener = this[path].subscribe((ValueUpdate update) {
+          controller.add(update);
+        }, cacheLevel);
+      }
+    }, onCancel: () {
+      subs--;
+      if (subs == 0) {
+        listener.cancel();
+        listener = null;
+      }
+    });
+    return controller.stream;
+  }
+
+  void syncValue(String path) {
+    var n = this[path];
+    n.updateValue(n.lastValueUpdate.value, force: true);
+  }
+
   /// Initializes the Link.
   /// There is no guarantee that the link will be ready when this method returns.
   /// If the [configure] method is not called prior to calling this method, it is called.
