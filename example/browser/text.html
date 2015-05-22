@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>DSA Browser Link</title>
+
+        <style>
+            html, body, .container {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            .container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #text {
+                font-size: 72px;
+            }
+        </style>
+    </head>
+
+    <body id="body">
+        <div class="container">
+            <p id="text"></p>
+        </div>
+
+        <script type="application/dart" src="text.dart"></script>
+        <script type="application/javascript" src="packages/browser/dart.js"></script>
+    </body>
+</html>

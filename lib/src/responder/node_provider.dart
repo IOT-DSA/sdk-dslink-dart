@@ -39,13 +39,13 @@ abstract class LocalNode extends Node {
     return _lastValueUpdate;
   }
 
-  void updateValue(Object update) {
+  void updateValue(Object update, {bool force: false}) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
       callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
-    } else if (_lastValueUpdate == null || _lastValueUpdate.value != update) {
+    } else if (_lastValueUpdate == null || _lastValueUpdate.value != update || force) {
       _lastValueUpdate = new ValueUpdate(update);
       callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);

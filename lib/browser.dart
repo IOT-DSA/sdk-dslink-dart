@@ -6,6 +6,7 @@ import "dart:async";
 import "package:dslink/requester.dart";
 import "package:dslink/responder.dart";
 import "package:dslink/browser_client.dart";
+import "package:dslink/common.dart";
 
 import "package:dslink/src/crypto/pk.dart";
 import "package:dslink/utils.dart";
@@ -71,12 +72,38 @@ class LinkProvider {
     await dataStore.remove("dsa_nodes");
   }
 
+  Stream<ValueUpdate> onValueChange(String path, {int cacheLevel: 1}) {
+    RespSubscribeListener listener;
+    StreamController<ValueUpdate> controller;
+    int subs = 0;
+    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+      subs++;
+      if (listener == null) {
+        listener = this[path].subscribe((ValueUpdate update) {
+          controller.add(update);
+        }, cacheLevel);
+      }
+    }, onCancel: () {
+      subs--;
+      if (subs == 0) {
+        listener.cancel();
+        listener = null;
+      }
+    });
+    return controller.stream;
+  }
+
   Future save() async {
     if (provider is! SerializableNodeProvider) {
       return;
     }
 
     await dataStore.store("dsa_nodes", DsJson.encode((provider as SerializableNodeProvider).save()));
+  }
+
+  void syncValue(String path) {
+    var n = this[path];
+    n.updateValue(n.lastValueUpdate.value, force: true);
   }
 
   void connect() {
