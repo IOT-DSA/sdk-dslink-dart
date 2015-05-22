@@ -7,8 +7,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   /// connName to connection
-  final Map<String, RemoteLinkManager> conns =
-      new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
   LocalNodeImpl connsNode;
   Map rootStructure = {'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
@@ -23,7 +22,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   void initSys() {
-    setNode("/sys/version", new BrokerVersionNode("/sys/version" ,DSA_VERSION));
+    setNode("/sys/version", new BrokerVersionNode("/sys/version", DSA_VERSION));
     setNode("/sys/startTime", new StartTimeNode("/sys/startTime"));
     setNode("/sys/clearConns", new ClearConnsAction("/sys/clearConns", this));
   }
@@ -46,7 +45,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     try {
       String data = connsFile.readAsStringSync();
       Map m = DsJson.decode(data);
-      m.forEach((String name, Map m){
+      m.forEach((String name, Map m) {
         RemoteLinkRootNode node = getNode('/conns/$name');
         node.load(m, this);
         if (node.configs[r'$$dsId'] is String) {
@@ -172,7 +171,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         connName = dsId.substring(0, dsId.length - i);
         if (i == 43 && connName.length > 1 && connName.endsWith('-')) {
           // remove the last - in the name;
-          connName = connName.substring(0, connName.length-1);
+          connName = connName.substring(0, connName.length - 1);
         }
         if (!_connName2id.containsKey(connName)) {
           _connName2id[connName] = dsId;
@@ -197,7 +196,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // TODO is it possible same link get added twice?
     } else {
       _links[str] = link;
-      if (link.session == null){
+      if (link.session == null) {
         // don't create node for requester node with session
         connName = getConnName(str);
         getNode('/conns/$connName').configs[r'$$dsId'] = link.dsId;
@@ -208,7 +207,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   /// [deviceId] is not a secure method of create link, only use it in https
   ServerLink getLink(String dsId, {String sessionId:'', String deviceId}) {
-    if (deviceId != null && _pendingDevices.containsKey(deviceId)){
+    if (deviceId != null && _pendingDevices.containsKey(deviceId)) {
       _id2connName[dsId] = _pendingDevices[deviceId];
       _connName2id[_pendingDevices[deviceId]] = dsId;
       _pendingDevices.remove(deviceId);
@@ -249,7 +248,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
-      [String sessionId = '']) {
+                         [String sessionId = '']) {
     String connName = getConnName(dsId);
     if (conns.containsKey(connName)) {
       return conns[connName].getResponder(nodeProvider, sessionId);
