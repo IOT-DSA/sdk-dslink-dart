@@ -3,6 +3,7 @@ import "dart:io";
 import "dart:convert";
 
 import "package:dslink/dslink.dart";
+import "package:dslink/io.dart";
 
 LinkProvider link;
 
@@ -14,7 +15,7 @@ main(List<String> argv) async {
 
   Requester requester = await link.onRequesterReady;
 
-  var input = stdin.transform(UTF8.decoder).transform(new LineSplitter()).asBroadcastStream();
+  var input = readStdinLines().asBroadcastStream();
 
   while (true) {
     stdout.write("> ");
