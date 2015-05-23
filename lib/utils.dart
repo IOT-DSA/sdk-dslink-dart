@@ -137,3 +137,10 @@ class Scheduler {
 }
 
 String buildEnumType(List<String> values) => "enum[${values.join(',')}]";
+
+List<Map<String, dynamic>> buildActionIO(Map<String, String> types) {
+  return types.keys.map((it) => {
+    "name": it,
+    "type": types[it]
+  }).toList();
+}
