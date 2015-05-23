@@ -57,11 +57,11 @@ class DefaultDefNodes {
       ],
       r"$columns":[
         {
-          "name": "Ts",
+          "name": "ts",
           "type": "time"
         },
         {
-          "name": "Value",
+          "name": "value",
           "type": "object"
         }
       ]
