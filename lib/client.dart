@@ -264,6 +264,8 @@ class LinkProvider {
       }
     }
 
+    _initialized = true;
+
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
     }
@@ -334,12 +336,17 @@ class LinkProvider {
     return null;
   }
 
+  bool _initialized = false;
   bool _ready = false;
   bool _connectOnReady = false;
 
   Future connect() {
     if (_connectedCompleter == null) {
       _connectedCompleter = new Completer();
+    }
+
+    if (!_configured || !_initialized) {
+      init();
     }
 
     if (_ready) {
