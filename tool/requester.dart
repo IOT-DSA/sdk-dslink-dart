@@ -54,8 +54,10 @@ main(List<String> argv) async {
 
       if (node.children.isNotEmpty) {
         print("Children:");
-        for (var child in node.children.keys) {
-          print("  - ${child}");
+        for (var id in node.children.keys) {
+          RemoteNode child = node.getChild(id);
+          var cn = child.configs.containsKey(r"$name") ? child.configs[r"$name"] : child.name;
+          print("  - ${cn}${cn != child.name ? ' (${child.name})' : ''}");
         }
       }
     } else if (["value", "val", "v"].contains(cmd)) {
