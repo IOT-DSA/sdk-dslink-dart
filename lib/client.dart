@@ -43,6 +43,7 @@ class LinkProvider {
   bool strictOptions = false;
   bool exitOnFailure = true;
   bool loadNodesJson = true;
+  String defaultLogLevel = "INFO";
 
   LinkProvider(
     this.args,
@@ -60,6 +61,7 @@ class LinkProvider {
       this.strictOptions: false,
       this.exitOnFailure: true,
       this.loadNodesJson: true,
+      this.defaultLogLevel: "INFO",
       NodeProvider nodeProvider // For Backwards Compatibility
     }) {
     if (nodeProvider != null) {
@@ -102,7 +104,7 @@ class LinkProvider {
       if (DEBUG_MODE) {
         updateLogLevel("ALL");
       } else {
-        updateLogLevel("INFO");
+        updateLogLevel(defaultLogLevel);
       }
     } else {
       updateLogLevel(opts["log"]);

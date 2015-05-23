@@ -2,20 +2,14 @@ import "dart:async";
 import "dart:io";
 import "dart:convert";
 
-import "package:dslink/common.dart";
-import "package:dslink/client.dart";
-import "package:dslink/requester.dart";
-import "package:dslink/utils.dart";
-
-import "package:logging/logging.dart";
+import "package:dslink/dslink.dart";
 
 LinkProvider link;
 
 main(List<String> argv) async {
-  logger.level = Level.SEVERE;
+  updateLogLevel("OFF");
 
-  link = new LinkProvider(argv, "Requester-", isRequester: true, isResponder: false);
-
+  link = new LinkProvider(argv, "Requester-", isRequester: true, isResponder: false, defaultLogLevel: "OFF");
   link.connect();
 
   Requester requester = await link.onRequesterReady;
@@ -42,8 +36,9 @@ main(List<String> argv) async {
       RequesterListUpdate update = await requester.list(path).first;
 
       var node = update.node;
+      var name = node.configs.containsKey(r"$name") ? node.configs[r"$name"] : node.name;
 
-      print("Name: ${node.name}");
+      print("Name: ${name}");
       print("Configs:");
       for (var key in node.configs.keys) {
         print("  ${key}: ${node.configs[key]}");
@@ -93,16 +88,63 @@ main(List<String> argv) async {
       }
 
       var path = args[0];
-      var value = args.skip(1).join(" ");
-      try {
-        value = num.parse(value.toString());
-      } catch (e) {}
-      try {
-        value = JSON.decode(value.toString());
-      } catch (e) {}
+      var value = parseInputValue(args.skip(1).join(" "));
       await requester.set(path, value);
     } else if (["q", "quit", "exit", "end", "finish", "done"].contains(cmd)) {
       exit(0);
+    } else if (["i", "invoke", "call"].contains(cmd)) {
+      if (args.length == 0) {
+        print("Usage: ${cmd} <path> [values]");
+        continue;
+      }
+
+      var path = args[0];
+      var value = args.length > 1 ? parseInputValue(args.skip(1).join(" ")) : {};
+
+      List<RequesterInvokeUpdate> updates = await requester.invoke(path, value).toList();
+
+      if (updates.length == 1 && updates.first.rows.length == 1) { // Single Row of Values
+        var update = updates.first;
+        var rows = update.rows;
+        var values = rows.first;
+
+        if (update.columns.isNotEmpty) {
+          var i = 0;
+          for (var x in update.columns) {
+            print("${x.name}: ${values[i]}");
+            i++;
+          }
+        } else if (update.columns.isEmpty && values.isNotEmpty) {
+          print(values);
+        }
+      } else {
+        var x = [];
+        for (var update in updates) {
+          x.add(update.updates);
+        }
+        print(encodePrettyJson(x));
+      }
     }
   }
+}
+
+String encodePrettyJson(input) => new JsonEncoder.withIndent("  ").convert(input);
+
+dynamic parseInputValue(String input) {
+  var number = num.parse(input, (_) => null);
+  if (number != null) {
+    return number;
+  }
+
+  var lower = input.toLowerCase();
+
+  if (lower == "true" || lower == "false") {
+    return lower == "true";
+  }
+
+  try {
+    return JSON.decode(input);
+  } catch (e) {}
+
+  return input;
 }
