@@ -36,7 +36,7 @@ main(List<String> args) {
     }),
     "reduce": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) {
       var target = params["target"] != null ? params["target"] : 1;
-      for (var name in link["/"].children.keys.where((it) => it.startsWith("Node_"))) {
+      for (var name in link["/"].children.keys.where((it) => it.startsWith("Node_")).toList()) {
         link.removeNode("/${name}");
       }
       generate(target);
