@@ -70,7 +70,7 @@ main(List<String> args) async {
       if (pair == null) continue;
 
       var n = random.nextInt(5000);
-      expect[pi] = n;
+      expect[pi].add(n);
       pair[2]["/node"].updateValue(n);
       pi++;
     }
@@ -81,17 +81,18 @@ void changeValue(value, int idx) {
   (pairs[idx][2] as TestNodeProvider).getNode('/node').updateValue(value);
 }
 
-Map<int, int> expect = {};
+Map<int, List<int>> expect = {};
 
 void valueUpdate(Object value, int idx) {
   if (!expect.containsKey(idx)) {
     return;
   }
 
-  if (expect[idx] != value) {
-    print("Value Update Invalid for link pair ${idx}: we expected ${expect[idx]}, but we got ${value}.");
+  var l = expect[idx].removeAt(0);
+
+  if (l != value) {
+    print("Value Update Invalid for link pair ${idx}: we expected ${l}, but we got ${value}.");
   }
-  expect.remove(idx);
 }
 
 createLinks() async {
@@ -124,6 +125,8 @@ createLinkPair() async {
 
   changeValue(0, pairIndex);
   pairIndex++;
+
+  expect[mine] = [0];
 
   linkResp.connect().then((_) {
     print("Link Pair ${mine} is now ready.");
