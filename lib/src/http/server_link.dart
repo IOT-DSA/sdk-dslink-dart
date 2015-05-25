@@ -84,7 +84,7 @@ class HttpServerLink implements ServerLink {
       "updateInterval": updateInterval
     };
     if (!trusted) {
-      _tempNonce = new ECDH.generate(publicKey);
+      _tempNonce = new ECDH.assign(publicKey, _verifiedNonce);
       respJson["tempKey"] = _tempNonce.encodePublicKey();
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
