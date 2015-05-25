@@ -40,6 +40,28 @@ ECDomainParameters _secp256r1 = () {
 }();
 
 abstract class ECDH {
+  
+  static ECPrivateKey _cachedPrivate;
+  static ECPublicKey _cachedPublic;
+  static int _cachedTime = -1;
+  
+  factory ECDH.assign(PublicKey publicKeyRemote, ECDH old) {
+    int ts = (new DateTime.now()).millisecondsSinceEpoch;
+    /// reuse same ECDH server pair for up to 1 minute
+    if (_cachedPrivate == null || ts - _cachedTime > 60000 || (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
+      var gen = new ECKeyGenerator();
+      var rsapars = new ECKeyGeneratorParameters(_secp256r1);
+      var params = new ParametersWithRandom(rsapars, DSRandom.instance);
+      gen.init(params);
+      var pair = gen.generateKeyPair();
+      _cachedPrivate = pair.privateKey;
+      _cachedPublic = pair.publicKey;
+      _cachedTime = ts;
+    }
+     return new ECDHImpl(
+              publicKeyRemote.ecPublicKey, _cachedPrivate, _cachedPublic);
+   }
+  
   factory ECDH.generate(PublicKey publicKeyRemote) {
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
@@ -260,38 +282,15 @@ String bytes2hex(List<int> bytes) {
 /// BigInteger.toByteArray contains negative values, so we need a different version
 /// this version also remove the byte for sign, so it's not able to serialize negative number
 Uint8List bigintToUint8List(BigInteger input) {
-  var this_array = input.array;
-  var i = input.t;
-  JSArray<int> r = new JSArray<int>();
-  r[0] = input.s;
-  var p = BigInteger.BI_DB - (i * BigInteger.BI_DB) % 8,
-      d,
-      k = 0;
-  if (i-- > 0) {
-    if (p < BigInteger.BI_DB &&
-        (d = this_array[i] >> p) != (input.s & BigInteger.BI_DM) >> p) {
-      r[k++] = d | (input.s << (BigInteger.BI_DB - p));
-    }
-
-    while (i >= 0) {
-      if (p < 8) {
-        d = (this_array[i] & ((1 << p) - 1)) << (8 - p);
-        d |= this_array[--i] >> (p += BigInteger.BI_DB - 8);
-      } else {
-        d = (this_array[i] >> (p -= 8)) & 0xff;
-        if (p <= 0) {
-          p += BigInteger.BI_DB;
-          --i;
-        }
-      }
-      if (d < 0) d |= -256;
-      if (k == 0 && (input.s & 0x80) != (d & 0x80)) ++k;
-      if (k > 0 || d != input.s) r[k++] = d;
+  List rslt = input.toByteArray();
+  if (rslt.length > 32 && rslt[0] == 0){
+    rslt = rslt.sublist(1);
+  }
+  int len = rslt.length;
+  for (int i = 0; i < len; ++i) {
+    if (rslt[i] < 0) {
+      rslt[i] &= 0xff; 
     }
   }
-  if (r.data[0] == 0) {
-    // have ended up with an extra zero byte, copy down.
-    return new Uint8List.fromList(r.data.sublist(1));
-  }
-  return new Uint8List.fromList(r.data);
+  return new Uint8List.fromList(rslt);
 }

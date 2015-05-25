@@ -89,6 +89,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void onData(dynamic data) {
+    if (_onDisconnectedCompleter.isCompleted) {
+      return;
+    }
     logger.finest("begin WebSocketConnection.onData");
     if (!onRequestReadyCompleter.isCompleted) {
       onRequestReadyCompleter.complete(_requesterChannel);
