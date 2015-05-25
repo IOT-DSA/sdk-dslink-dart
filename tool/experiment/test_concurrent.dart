@@ -26,6 +26,7 @@ class TestNode extends LocalNodeImpl {
 int pairCount = 1000;
 
 Stopwatch stopwatch;
+Random random = new Random();
 
 main(List<String> args) async {
   var argp = new ArgParser();
@@ -39,7 +40,6 @@ main(List<String> args) async {
     return;
   }
 
-  Random random = new Random();
   logger.level = Level.WARNING;
 
   stopwatch = new Stopwatch();
@@ -66,15 +66,20 @@ main(List<String> args) async {
     }
 
     var pi = 1;
-    for (var pair in pairs) {
-      if (pair == null) continue;
 
+    while (pi <= 5) {
+      var rpc = getRandomPair();
+      var p = pairs[rpc];
       var n = random.nextInt(5000);
-      expect[pi].add(n);
-      pair[2]["/node"].updateValue(n);
+      expect[rpc].add(n);
+      p[2]["/node"].updateValue(n);
       pi++;
     }
   });
+}
+
+int getRandomPair() {
+  return random.nextInt(pairCount - 1) + 1;
 }
 
 void changeValue(value, int idx) {
@@ -88,11 +93,11 @@ void valueUpdate(Object value, int idx) {
     return;
   }
 
-  var l = expect[idx].removeAt(0);
-
-  if (l != value) {
-    print("Value Update Invalid for link pair ${idx}: we expected ${l}, but we got ${value}.");
+  if (!expect[idx].contains(value)) {
+    print("Value Update Error: Link Pair #${idx} received a bad value update with a value of ${value}.");
   }
+
+  expect[idx].remove(value);
 }
 
 createLinks() async {
