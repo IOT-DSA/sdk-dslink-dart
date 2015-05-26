@@ -1,5 +1,5 @@
 /**
- * this is a modified version of the original test_cocurrent.dart
+ * this is a modified version of the original test_concurrent.dart
  * it gives the broker more time to handler handshake and not blocking network traffic
  */
 import "dart:math";
@@ -29,7 +29,7 @@ class TestNode extends LocalNodeImpl {
 }
 
 int pairCount = 1000;
-String broker =  "http://localhost:8080/conn";
+String broker = "http://localhost:8080/conn";
 Stopwatch stopwatch;
 Random random = new Random();
 
@@ -60,39 +60,40 @@ main(List<String> args) async {
 }
 
 bool onCreatedRun = false;
-void onCreated(){
+
+void onCreated() {
   if (onCreatedRun) return;
   onCreatedRun = true;
-  
+
   int mm = 0;
-   bool ready = false;
+  bool ready = false;
 
-   Scheduler.every(Interval.TWO_SECONDS, () {
-     if (connectedCount != pairCount) {
-       mm++;
+  Scheduler.every(Interval.TWO_SECONDS, () {
+    if (connectedCount != pairCount) {
+      mm++;
 
-       if (mm == 2) {
-         print("${connectedCount} of ${pairCount} link pairs are ready.");
-         mm = 0;
-       }
+      if (mm == 2) {
+        print("${connectedCount} of ${pairCount} link pairs are ready.");
+        mm = 0;
+      }
 
-       return;
-     }
+      return;
+    }
 
-     if (!ready) {
-       print("All link pairs are now ready. Subscribing requesters to values and starting value updates.");
-       ready = true;
-     }
+    if (!ready) {
+      print("All link pairs are now ready. Subscribing requesters to values and starting value updates.");
+      ready = true;
+    }
 
-     var pi = 1;
+    var pi = 1;
 
-     while (pi <= 5) {
-       var rpc = getRandomPair();
-       var n = random.nextInt(5000);
-       changeValue(n, rpc);
-       pi++;
-     }
-   });
+    while (pi <= 5) {
+      var rpc = getRandomPair();
+      var n = random.nextInt(5000);
+      changeValue(n, rpc);
+      pi++;
+    }
+  });
 }
 
 int getRandomPair() {
@@ -118,8 +119,8 @@ List pairs = [null];
 int pairIndex = 1;
 
 PrivateKey key =
-  new PrivateKey.loadFromString(
-      '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
+new PrivateKey.loadFromString(
+    '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
 
 createLinkPair() async {
   TestNodeProvider provider = new TestNodeProvider();
@@ -136,10 +137,10 @@ createLinkPair() async {
   pairIndex++;
 
   await linkResp.connect();
-    print("Link Pair ${mine} is now ready.");
-    connectedCount++;
-    linkReq.requester.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
-    });
+  print("Link Pair ${mine} is now ready.");
+  connectedCount++;
+  linkReq.requester.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
+  });
 }
 
 int connectedCount = 0;
