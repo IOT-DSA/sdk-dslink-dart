@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:math";
 
 import "package:dslink/dslink.dart";
@@ -30,6 +31,18 @@ main(List<String> args) {
           "default": 1
         }
       ]
+    },
+    "Tick_Rate": {
+      r"$name": "Tick Rate",
+      r"$type": "number",
+      r"$writable": "write",
+      "?value": 300
+    },
+    "RNG_Maximum": {
+      r"$name": "Maximum Random Number",
+      r"$type": "number",
+      r"$writable": "write",
+      "?value": max
     }
   }, profiles: {
     "generate": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) {
@@ -56,15 +69,33 @@ main(List<String> args) {
     }
   });
 
+  link.onValueChange("/Tick_Rate").listen((ValueUpdate u) {
+    if (schedule != null) {
+      schedule.cancel();
+      schedule = null;
+    }
+
+    schedule = Scheduler.every(new Interval.forMilliseconds(u.value), update);
+  });
+
+  link.onValueChange("/RNG_Maximum").listen((ValueUpdate u) {
+    max = u.value;
+  });
+
   link.connect();
 
-  Scheduler.every(Interval.THREE_HUNDRED_MILLISECONDS, () {
-    nodes.forEach((node) {
-      var l = link["${node.path}/RNG/Value"];
-      if (l.hasSubscriber) {
-        l.updateValue(random.nextInt(100));
-      }
-    });
+  schedule = Scheduler.every(Interval.THREE_HUNDRED_MILLISECONDS, update);
+}
+
+Timer schedule;
+int max = 100;
+
+void update() {
+  nodes.forEach((node) {
+    var l = link["${node.path}/RNG/Value"];
+    if (l.hasSubscriber) {
+      l.updateValue(random.nextInt(max));
+    }
   });
 }
 

@@ -17,7 +17,7 @@ class ValueUpdate {
     return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
   }
 
-  Object value;
+  dynamic value;
   String ts;
   String status;
   int count;
