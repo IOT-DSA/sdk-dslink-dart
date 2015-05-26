@@ -22,29 +22,64 @@ export "src/crypto/pk.dart";
 part 'src/http/client_link.dart';
 part 'src/http/client_http_conn.dart';
 
+/// A Handler for Argument Results
 typedef void OptionResultsHandler(ArgResults results);
 
 /// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
+  /// The Link Object
   HttpClientLink link;
+  /// The Node Provider
   NodeProvider provider;
+  /// The Private Key
   PrivateKey privateKey;
+  /// The Broker URL
   String brokerUrl;
   File _nodesFile;
+  /// The Link Name
   String prefix;
+  /// The Command-line Arguments
   List<String> args;
+  /// Are we a requester?
   bool isRequester = false;
+  /// The Command Name
   String command = 'link';
+  /// Are we a responder?
   bool isResponder = true;
+  /// Default Nodes
   Map defaultNodes;
+  /// Profiles
   Map profiles;
-  bool enableHttp = false;
+  /// Enable HTTP Fallback?
+  bool enableHttp = true;
+  /// Encode Pretty JSON?
   bool encodePrettyJson = false;
+  /// Strict Options?
   bool strictOptions = false;
+  /// Exit on Failure?
   bool exitOnFailure = true;
+  /// Load the nodes.json?
   bool loadNodesJson = true;
+  /// Default Log Level.
   String defaultLogLevel = "INFO";
 
+  /// Create a Link Provider.
+  /// [args] are the command-line arguments to pass in.
+  /// [prefix] is the link name.
+  /// [isRequester] specifies if you are a requester or not.
+  /// [isResponder] specifies if you a responder or not.
+  /// [command] is the command name for this link.
+  /// [defaultNodes] specify the default nodes to initialize if a nodes.json is not present.
+  /// [profiles] specify the profiles for this link.
+  /// [provider] is a node provider. If it is not specified, one will be created for you.
+  /// [enableHttp] toggles whether to enable HTTP fallbacks.
+  /// [encodePrettyJson] specifies whether to encode pretty JSON files when writing the nodes.json
+  /// [autoInitialize] specifies whether to initialize the link inside the constructor.
+  /// [strictOptions] toggles allowing trailing options in the argument parser.
+  /// [exitOnFailure] toggles exiting when the link fails.
+  /// [loadNodesJson] specifies whether to load the nodes.json file or not.
+  /// [defaultLogLevel] specifies the default log level.
+  /// [nodeProvider] is the same as [provider]. It is provided for backwards compatibility.
   LinkProvider(
     this.args,
     this.prefix,
@@ -55,7 +90,7 @@ class LinkProvider {
       this.defaultNodes,
       this.profiles,
       this.provider,
-      this.enableHttp: false,
+      this.enableHttp: true,
       this.encodePrettyJson: false,
       bool autoInitialize: true,
       this.strictOptions: false,
@@ -79,6 +114,11 @@ class LinkProvider {
 
   /// Configure the link.
   /// If [argp] is provided for argument parsing, it is used.
+  /// This includes:
+  /// - processing command-line arguments
+  /// - setting broker urls
+  /// - loading dslink.json files
+  /// - loading or creating private keys
   bool configure({ArgParser argp, OptionResultsHandler optionsHandler}) {
     _configured = true;
 
@@ -230,6 +270,9 @@ class LinkProvider {
 
   bool _discoverBroker = false;
 
+  /// Retrieves a Broadcast Stream which subscribes to [path] with the specified [cacheLevel].
+  /// The node is only subscribed if there is at least one stream subscription.
+  /// When the stream subscription count goes to 0, the node is unsubscribed from.
   Stream<ValueUpdate> onValueChange(String path, {int cacheLevel: 1}) {
     RespSubscribeListener listener;
     StreamController<ValueUpdate> controller;
@@ -251,14 +294,24 @@ class LinkProvider {
     return controller.stream;
   }
 
+  /// Gets the value for [path] and forcibly updates the value to the same exact value.
   void syncValue(String path) {
     var n = this[path];
     n.updateValue(n.lastValueUpdate.value, force: true);
   }
 
+  bool _reconnecting = false;
+
   /// Initializes the Link.
   /// There is no guarantee that the link will be ready when this method returns.
   /// If the [configure] method is not called prior to calling this method, it is called.
+  ///
+  /// This method handles the following:
+  /// - calling [configure] if it has not been called.
+  /// - creating a [provider] if it has not been created.
+  /// - loading the nodes.json file.
+  /// - creating the actual link.
+  /// - discovering brokers if that was enabled.
   void init() {
     if (!_configured) {
       if (!configure()) {
@@ -272,7 +325,7 @@ class LinkProvider {
       provider = new SimpleNodeProvider(null, profiles);
     }
 
-    if (loadNodesJson && provider is SerializableNodeProvider) {
+    if (loadNodesJson && provider is SerializableNodeProvider && !_reconnecting) {
       _nodesFile = getConfig('nodes') == null ? new File("${_basePath}/nodes.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
 
@@ -325,9 +378,10 @@ class LinkProvider {
     }
   }
 
+  /// The dslink.json contents. This is only available after [configure] is called.
   Map dslinkJson;
 
-  /// Gets a configuration from the dslink.json
+  /// Gets a configuration value from the dslink.json
   Object getConfig(String key) {
     if (dslinkJson != null &&
       dslinkJson['configs'] is Map &&
@@ -342,6 +396,7 @@ class LinkProvider {
   bool _ready = false;
   bool _connectOnReady = false;
 
+  /// Connects the link to the broker.
   Future connect() {
     if (_connectedCompleter == null) {
       _connectedCompleter = new Completer();
@@ -362,23 +417,33 @@ class LinkProvider {
 
   Completer _connectedCompleter;
 
+  /// The requester object.
   Requester get requester => link.requester;
 
+  /// Completes when the requester is ready for use.
   Future<Requester> get onRequesterReady => link.onRequesterReady;
 
+  /// Closes the link by disconnecting from the broker.
+  /// You can call [connect] again once you have closed a link.
   void close() {
     _connectedCompleter = null;
     if (link != null) {
       link.close();
       link = null;
+      _initialized = false;
+      _reconnecting = true;
     }
   }
 
+  /// An alias to [close].
   void stop() => close();
 
+  /// Checks if the link object is null.
   bool get didInitializationFail => link == null;
+  /// Checks if the link object is not null.
   bool get isInitialized => link != null;
 
+  /// Synchronously saves the nodes.json file.
   void save() {
     if (_nodesFile != null && provider != null) {
       if (provider is! SerializableNodeProvider) {
@@ -389,6 +454,7 @@ class LinkProvider {
     }
   }
 
+  /// Asynchronously saves the nodes.json file.
   Future saveAsync() async {
     if (_nodesFile != null && provider != null) {
       if (provider is! SerializableNodeProvider) {
@@ -401,10 +467,14 @@ class LinkProvider {
     }
   }
 
+  /// Gets the node at the specified path.
   LocalNode getNode(String path) {
     return provider.getNode(path);
   }
 
+  /// Adds a node with the given configuration in [m] at the given [path].
+  /// In order for this method to work, the node provider must be mutable.
+  /// If you did not specify a custom node provider, the created provider is mutable.
   LocalNode addNode(String path, Map m) {
     if (provider is! MutableNodeProvider) {
       throw new Exception("Unable to Modify Node Provider: It is not mutable.");
@@ -412,6 +482,9 @@ class LinkProvider {
     return (provider as MutableNodeProvider).addNode(path, m);
   }
 
+  /// Removes the method at the specified [path].
+  /// In order for this method to work, the node provider must be mutable.
+  /// If you did not specify a custom node provider, the created provider is mutable.
   void removeNode(String path) {
     if (provider is! MutableNodeProvider) {
       throw new Exception("Unable to Modify Node Provider: It is not mutable.");
@@ -419,6 +492,9 @@ class LinkProvider {
     (provider as MutableNodeProvider).removeNode(path);
   }
 
+  /// Updates the value of the node at the given [path] to [value].
+  /// In order for this method to work, the node provider must be mutable.
+  /// If you did not specify a custom node provider, the created provider is mutable.
   void updateValue(String path, dynamic value) {
     if (provider is! MutableNodeProvider) {
       throw new Exception("Unable to Modify Node Provider: It is not mutable.");
@@ -426,5 +502,6 @@ class LinkProvider {
     (provider as MutableNodeProvider).updateValue(path, value);
   }
 
+  /// Gets the node specified at [path].
   LocalNode operator [](String path) => provider[path];
 }
