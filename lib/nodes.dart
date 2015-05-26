@@ -49,6 +49,28 @@ class SingleNodeProvider extends NodeProvider {
   LocalNode getNode(String path) => node;
 }
 
+typedef void NodeUpgradeFunction(int from);
+
+class UpgradableNode extends SimpleNode {
+  final int latestVersion;
+  final NodeUpgradeFunction upgrader;
+
+  UpgradableNode(String path, this.latestVersion, this.upgrader) : super(path);
+
+  @override
+  void onCreated() {
+    if (configs.containsKey(r"$version")) {
+      var version = configs[r"$version"];
+      if (version != latestVersion) {
+        upgrader(version);
+        configs[r"$version"] = latestVersion;
+      }
+    } else {
+      configs[r"$version"] = latestVersion;
+    }
+  }
+}
+
 typedef void SimpleCallback();
 typedef void ChildChangedCallback(String name, Node node);
 typedef SimpleNode LoadChildCallback(String name, Map data, SimpleNodeProvider provider);
