@@ -72,6 +72,13 @@ void updateLogLevel(String name) {
 }
 
 class Interval {
+  static final Interval SIXTEEN_MILLISECONDS = new Interval.forMilliseconds(16);
+  static final Interval THIRTY_MILLISECONDS = new Interval.forMilliseconds(30);
+  static final Interval FIFTY_MILLISECONDS = new Interval.forMilliseconds(50);
+  static final Interval ONE_HUNDRED_MILLISECONDS = new Interval.forMilliseconds(100);
+  static final Interval TWO_HUNDRED_MILLISECONDS = new Interval.forMilliseconds(200);
+  static final Interval THREE_HUNDRED_MILLISECONDS = new Interval.forMilliseconds(300);
+  static final Interval QUARTER_SECOND = new Interval.forMilliseconds(250);
   static final Interval HALF_SECOND = new Interval.forMilliseconds(500);
   static final Interval ONE_SECOND = new Interval.forSeconds(1);
   static final Interval TWO_SECONDS = new Interval.forSeconds(2);

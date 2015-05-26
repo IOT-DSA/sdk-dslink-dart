@@ -71,6 +71,8 @@ abstract class LocalNode extends Node {
   String get disconnected => null;
   bool get valueReady => true;
 
+  bool get hasSubscriber => callbacks.isNotEmpty;
+
   InvokeResponse invoke(
       Map params, Responder responder, InvokeResponse response) {
     return response..close();
