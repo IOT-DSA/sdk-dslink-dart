@@ -6,7 +6,7 @@ int workers = 30; // Number of Workers
 main() async {
   WorkerPool pool = createWorkerPool(workers, linkWorker); // Create a Worker Pool
   await pool.init(); // Initialize the Worker Pool
-  await pool.divide("spawn", 30); // Divide 3000 calls to "spawn" over all the workers, which is 100 links per worker.
+  await pool.divide("spawn", 3000); // Divide 3000 calls to "spawn" over all the workers, which is 100 links per worker.
 }
 
 linkWorker(Worker worker) async {
