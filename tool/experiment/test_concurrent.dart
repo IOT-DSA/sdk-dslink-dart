@@ -69,10 +69,8 @@ main(List<String> args) async {
 
     while (pi <= 5) {
       var rpc = getRandomPair();
-      var p = pairs[rpc];
       var n = random.nextInt(5000);
-      expect[rpc].add(n);
-      p[2]["/node"].updateValue(n);
+      changeValue(n, rpc);
       pi++;
     }
   });
@@ -84,20 +82,6 @@ int getRandomPair() {
 
 void changeValue(value, int idx) {
   (pairs[idx][2] as TestNodeProvider).getNode('/node').updateValue(value);
-}
-
-Map<int, List<int>> expect = {};
-
-void valueUpdate(Object value, int idx) {
-  if (!expect.containsKey(idx)) {
-    return;
-  }
-
-  if (!expect[idx].contains(value)) {
-    print("Value Update Error: Link Pair #${idx} received a bad value update with a value of ${value}.");
-  }
-
-  expect[idx].remove(value);
 }
 
 createLinks() async {
@@ -131,13 +115,10 @@ createLinkPair() async {
   changeValue(0, pairIndex);
   pairIndex++;
 
-  expect[mine] = [0];
-
   linkResp.connect().then((_) {
     print("Link Pair ${mine} is now ready.");
     connectedCount++;
     linkReq.requester.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
-      valueUpdate(val.value, mine);
     });
   });
 }
