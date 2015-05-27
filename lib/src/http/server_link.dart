@@ -161,6 +161,41 @@ class HttpServerLink implements ServerLink {
     (connection as HttpServerConnection).handleInput(request);
   }
 
+  void handleStreamUpdate(StreamConnectionAdapter adapter) {
+    adapter.auth().then((auth) async {
+      if (!verifySalt(0, auth)) {
+        adapter.close(1011);
+        return;
+      }
+
+      var salts = await adapter.salts();
+
+      StreamConnection sconnection = createStreamConnection(adapter);
+      sconnection.addServerCommand("salt", salts[0]);
+      sconnection.onRequesterReady.then((channel) {
+        if (connection != null) {
+          connection.close();
+        }
+
+        connection = sconnection;
+
+        if (responder != null && isResponder) {
+          responder.connection = connection.responderChannel;
+        }
+
+        if (requester != null && isRequester) {
+          requester.connection = connection.requesterChannel;
+          if (!onRequesterReadyCompleter.isCompleted) {
+            onRequesterReadyCompleter.complete(requester);
+          }
+        }
+      });
+
+      if (connection is! HttpServerConnection) {
+        sconnection.onRequestReadyCompleter.complete(sconnection.requesterChannel);
+      }
+    });
+  }
 
   void handleWsUpdate(HttpRequest request) {
     if (!verifySalt(0, request.uri.queryParameters['auth'])) {
@@ -211,5 +246,9 @@ class HttpServerLink implements ServerLink {
 
   WebSocketConnection createWsConnection(WebSocket websocket) {
     return new WebSocketConnection(websocket, enableTimeout:enableTimeout);
+  }
+
+  StreamConnection createStreamConnection(StreamConnectionAdapter adapter) {
+    return new StreamConnection(adapter, enableTimeout: enableTimeout);
   }
 }
