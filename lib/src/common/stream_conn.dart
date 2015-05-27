@@ -7,6 +7,7 @@ abstract class StreamConnectionAdapter {
   Future send(dynamic data);
   Future onDisconnected();
   Future close([int code]);
+  Future<String> getMetadata(String name);
 }
 
 class StreamConnection implements ClientConnection, ServerConnection {
