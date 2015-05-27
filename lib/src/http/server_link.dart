@@ -5,23 +5,23 @@ class HttpServerLink implements ServerLink {
   final bool trusted;
   final String dsId;
   final String session;
-  Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+  Completer<Requester> onRequesterReadyCompleter = new Completer<Requester>();
 
-  Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
+  Future<Requester> get onRequesterReady => onRequesterReadyCompleter.future;
 
   final Requester requester;
   final Responder responder;
   final PublicKey publicKey;
 
   /// nonce for authentication, don't overwrite existing nonce
-  ECDH _tempNonce;
+  ECDH tempNonce;
 
   /// nonce after user verified the public key
-  ECDH _verifiedNonce;
+  ECDH verifiedNonce;
 
-  ECDH get nonce => _verifiedNonce;
+  ECDH get nonce => verifiedNonce;
 
-  ServerConnection _connection;
+  ServerConnection connection;
 
   // TODO(rinick): deprecate this, all dslinks need to support it
   final bool enableTimeout;
@@ -84,8 +84,8 @@ class HttpServerLink implements ServerLink {
       "updateInterval": updateInterval
     };
     if (!trusted) {
-      _tempNonce = new ECDH.assign(publicKey, _verifiedNonce);
-      respJson["tempKey"] = _tempNonce.encodePublicKey();
+      tempNonce = new ECDH.assign(publicKey, verifiedNonce);
+      respJson["tempKey"] = tempNonce.encodePublicKey();
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
       respJson["saltL"] = salts[2];
@@ -95,75 +95,75 @@ class HttpServerLink implements ServerLink {
     request.response.close();
   }
 
-  bool _verifySalt(int type, String hash) {
+  bool verifySalt(int type, String hash) {
     if (trusted) {
       return true;
     }
     if (hash == null) {
       return false;
     }
-    if (_verifiedNonce != null &&
-    _verifiedNonce.verifySalt(salts[type], hash)) {
+    if (verifiedNonce != null &&
+    verifiedNonce.verifySalt(salts[type], hash)) {
       _updateSalt(type);
       return true;
-    } else if (_tempNonce != null && _tempNonce.verifySalt(salts[type], hash)) {
+    } else if (tempNonce != null && tempNonce.verifySalt(salts[type], hash)) {
       _updateSalt(type);
-      _nonceChanged();
+      nonceChanged();
       return true;
     }
     return false;
   }
 
-  void _nonceChanged() {
-    _verifiedNonce = _tempNonce;
-    _tempNonce = null;
-    if (_connection != null) {
-      _connection.close();
-      _connection = null;
+  void nonceChanged() {
+    verifiedNonce = tempNonce;
+    tempNonce = null;
+    if (connection != null) {
+      connection.close();
+      connection = null;
     }
   }
 
   void handleHttpUpdate(HttpRequest request) {
     String saltS = request.uri.queryParameters['authS'];
     if (saltS != null) {
-      if (_connection is HttpServerConnection && _verifySalt(1, saltS)) {
+      if (connection is HttpServerConnection && verifySalt(1, saltS)) {
         // handle http short polling
-        (_connection as HttpServerConnection).handleInputS(request, salts[1]);
+        (connection as HttpServerConnection).handleInputS(request, salts[1]);
         return;
       } else {
         throw HttpStatus.UNAUTHORIZED;
       }
     }
 
-    if (!_verifySalt(2, request.uri.queryParameters['authL'])) {
+    if (!verifySalt(2, request.uri.queryParameters['authL'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
 //    if (requester == null) {
 //      throw HttpStatus.FORBIDDEN;
 //    }
-    if (_connection != null && _connection is! HttpServerConnection) {
-      _connection.close();
-      _connection = null;
+    if (connection != null && connection is! HttpServerConnection) {
+      connection.close();
+      connection = null;
     }
-    if (_connection == null) {
-      _connection = new HttpServerConnection();
+    if (connection == null) {
+      connection = new HttpServerConnection();
       if (responder != null && isResponder) {
-        responder.connection = _connection.responderChannel;
+        responder.connection = connection.responderChannel;
       }
       if (requester != null && isRequester) {
-        requester.connection = _connection.requesterChannel;
-        if (!_onRequesterReadyCompleter.isCompleted) {
-          _onRequesterReadyCompleter.complete(requester);
+        requester.connection = connection.requesterChannel;
+        if (!onRequesterReadyCompleter.isCompleted) {
+          onRequesterReadyCompleter.complete(requester);
         }
       }
     }
-    _connection.addServerCommand('saltL', salts[2]);
-    (_connection as HttpServerConnection).handleInput(request);
+    connection.addServerCommand('saltL', salts[2]);
+    (connection as HttpServerConnection).handleInput(request);
   }
 
 
   void handleWsUpdate(HttpRequest request) {
-    if (!_verifySalt(0, request.uri.queryParameters['auth'])) {
+    if (!verifySalt(0, request.uri.queryParameters['auth'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
 
@@ -174,22 +174,22 @@ class HttpServerLink implements ServerLink {
       wsconnection.addServerCommand('salt', salts[0]);
 
       wsconnection.onRequesterReady.then((channel) {
-        if (_connection != null) {
-          _connection.close();
+        if (connection != null) {
+          connection.close();
         }
-        _connection = wsconnection;
+        connection = wsconnection;
         if (responder != null && isResponder) {
-          responder.connection = _connection.responderChannel;
+          responder.connection = connection.responderChannel;
         }
         if (requester != null && isRequester) {
-          requester.connection = _connection.requesterChannel;
-          if (!_onRequesterReadyCompleter.isCompleted) {
-            _onRequesterReadyCompleter.complete(requester);
+          requester.connection = connection.requesterChannel;
+          if (!onRequesterReadyCompleter.isCompleted) {
+            onRequesterReadyCompleter.complete(requester);
           }
         }
       });
 
-      if (_connection is! HttpServerConnection) {
+      if (connection is! HttpServerConnection) {
         // work around for backward compatibility
         // TODO(rinick): remove this when all clients send blank data to initialize ws
         wsconnection.onRequestReadyCompleter.complete(wsconnection.requesterChannel);;
