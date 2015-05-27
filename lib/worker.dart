@@ -15,6 +15,15 @@ WorkerSocket createWorker(WorkerFunction function, {Map<String, dynamic> metadat
   return socket;
 }
 
+WorkerSocket createFakeWorker(WorkerFunction function, {Map<String, dynamic> metadata}) {
+  var receiver = new ReceivePort();
+  var socket = new WorkerSocket.master(receiver);
+  Timer.run(() {
+    function(new Worker(receiver.sendPort, metadata));
+  });
+  return socket;
+}
+
 Worker buildWorkerForScript(Map data) {
   return new Worker(data["port"], data["metadata"]);
 }
