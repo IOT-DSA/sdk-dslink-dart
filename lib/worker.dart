@@ -3,6 +3,8 @@ library dslink.worker;
 import "dart:async";
 import "dart:isolate";
 
+import "package:dslink/utils.dart" show generateBasicId;
+
 typedef void WorkerFunction(Worker worker);
 typedef Producer(input);
 
@@ -201,7 +203,9 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
       if (type == "send_port") {
         _sendPort = msg["port"];
-        _readyCompleter.complete();
+        if (!_readyCompleter.isCompleted) {
+          _readyCompleter.complete();
+        }
       } else if (type == "data") {
         _controller.add(msg["data"]);
       } else if (type == "error") {
@@ -226,6 +230,42 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
         }
       } else if (type == "stopped") {
         _stopCompleter.complete();
+      } else if (type == "session.created") {
+        var id = msg["session"];
+        _remoteSessions[id] = new _WorkerSession(this, id, false);
+        _sendPort.send({
+          "type": "session.ready",
+          "session": id
+        });
+        _sessionController.add(_remoteSessions[id]);
+      } else if (type == "session.ready") {
+        var id = msg["session"];
+        if (_sessionReady.containsKey(id)) {
+          _sessionReady[id].complete();
+          _sessionReady.remove(id);
+        }
+      } else if (type == "session.data") {
+        var id = msg["session"];
+        if (_ourSessions.containsKey(id)) {
+          (_ourSessions[id] as _WorkerSession)._messages.add(msg["data"]);
+        } else if (_remoteSessions.containsKey(id)) {
+          (_remoteSessions[id] as _WorkerSession)._messages.add(msg["data"]);
+        }
+      } else if (type == "session.done") {
+        var id = msg["session"];
+        if (_ourSessions.containsKey(id)) {
+          var c = (_ourSessions[id] as _WorkerSession)._doneCompleter;
+          if (!c.isCompleted) {
+            c.complete();
+          }
+          _ourSessions.remove(id);
+        } else if (_remoteSessions.containsKey(id)) {
+          var c = (_remoteSessions[id] as _WorkerSession)._doneCompleter;
+          if (!c.isCompleted) {
+            c.complete();
+          }
+          _remoteSessions.remove(id);
+        }
       } else {
         throw new Exception("Unknown message: ${msg}");
       }
@@ -274,6 +314,42 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
         }
       } else if (type == "request") {
         _handleRequest(msg["name"], msg["id"], msg["argument"]);
+      } else if (type == "session.created") {
+        var id = msg["session"];
+        _remoteSessions[id] = new _WorkerSession(this, id, false);
+        _sendPort.send({
+          "type": "session.ready",
+          "session": id
+        });
+        _sessionController.add(_remoteSessions[id]);
+      } else if (type == "session.ready") {
+        var id = msg["session"];
+        if (_sessionReady.containsKey(id)) {
+          _sessionReady[id].complete();
+          _sessionReady.remove(id);
+        }
+      } else if (type == "session.data") {
+        var id = msg["session"];
+        if (_ourSessions.containsKey(id)) {
+          (_ourSessions[id] as _WorkerSession)._messages.add(msg["data"]);
+        } else if (_remoteSessions.containsKey(id)) {
+          (_remoteSessions[id] as _WorkerSession)._messages.add(msg["data"]);
+        }
+      } else if (type == "session.done") {
+        var id = msg["session"];
+        if (_ourSessions.containsKey(id)) {
+          var c = (_ourSessions[id] as _WorkerSession)._doneCompleter;
+          if (!c.isCompleted) {
+            c.complete();
+          }
+          _ourSessions.remove(id);
+        } else if (_remoteSessions.containsKey(id)) {
+          var c = (_remoteSessions[id] as _WorkerSession)._doneCompleter;
+          if (!c.isCompleted) {
+            c.complete();
+          }
+          _remoteSessions.remove(id);
+        }
       } else if (type == "response") {
         var id = msg["id"];
         var result = msg["result"];
@@ -328,8 +404,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     return completer.future;
   }
 
-  WorkerMethod<dynamic> getMethod(String name) => ([argument]) =>
-  callMethod(name, argument);
+  WorkerMethod<dynamic> getMethod(String name) => ([argument]) => callMethod(name, argument);
 
   int _reqId = 0;
 
@@ -409,6 +484,26 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     });
   }
 
+  Future<WorkerSession> createSession() async {
+    var s = generateBasicId(length: 25);
+    var session = new _WorkerSession(this, s, true);
+    _sendPort.send({
+      "type": "session.created",
+      "session": s
+    });
+    await ((_sessionReady[s] = new Completer.sync()).future);
+    _ourSessions[s] = session;
+    return session;
+  }
+
+  Map<String, Completer> _sessionReady = {};
+  Map<String, WorkerSession> _ourSessions = {};
+  Map<String, WorkerSession> _remoteSessions = {};
+
+  Stream<WorkerSession> get sessions => _sessionController.stream;
+
+  StreamController<WorkerSession> _sessionController = new StreamController<WorkerSession>.broadcast();
+
   @override
   Future get done => _stopCompleter.future;
 
@@ -433,4 +528,59 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   Isolate _isolate;
 
   StreamController _controller = new StreamController.broadcast();
+}
+
+abstract class WorkerSession {
+  String get id;
+  void send(data);
+  Future close();
+  Future get done;
+  bool get isClosed;
+  Stream get messages;
+}
+
+class _WorkerSession extends WorkerSession {
+  final bool creator;
+  final String id;
+  final WorkerSocket _socket;
+
+  Completer _doneCompleter = new Completer.sync();
+  StreamController _messages = new StreamController.broadcast();
+
+  _WorkerSession(this._socket, this.id, this.creator);
+
+  @override
+  Future close() {
+    _socket._sendPort.send({
+      "type": "session.done",
+      "session": id
+    });
+    new Future(() {
+      if (!_doneCompleter.isCompleted) {
+        _doneCompleter.complete();
+      }
+      _socket._remoteSessions.remove(id);
+      _socket._ourSessions.remove(id);
+      _messages.close();
+    });
+    return done;
+  }
+
+  @override
+  Future get done => _doneCompleter.future;
+
+  @override
+  Stream get messages => _messages.stream;
+
+  @override
+  void send(data) {
+    _socket._sendPort.send({
+      "type": "session.data",
+      "session": id,
+      "data": data
+    });
+  }
+
+  @override
+  bool get isClosed => _doneCompleter.isCompleted;
 }
