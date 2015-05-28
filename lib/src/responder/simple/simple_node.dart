@@ -298,4 +298,18 @@ class SimpleNode extends LocalNodeImpl {
     addChild(name, child);
     return child;
   }
+
+  
+  void addChild(String name, Node node) {
+    super.addChild(name, node);
+    updateList(name);
+  }
+
+  String removeChild(dynamic input) {
+    String name = super.removeChild(input);
+    if (name != null) {
+      updateList(name);
+    }
+    return name;
+  }
 }
