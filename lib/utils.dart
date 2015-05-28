@@ -147,6 +147,13 @@ class Scheduler {
 
 String buildEnumType(List<String> values) => "enum[${values.join(',')}]";
 
+List<String> parseEnumType(String type) {
+  if (!type.startsWith("enum[") || !type.endsWith("]")) {
+    throw new FormatException("Invalid Enum Type");
+  }
+  return type.substring(4, type.length - 1).split(",").map((it) => it.trim()).toList();
+}
+
 List<Map<String, dynamic>> buildActionIO(Map<String, String> types) {
   return types.keys.map((it) => {
     "name": it,
