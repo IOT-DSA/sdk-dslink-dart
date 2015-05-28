@@ -321,6 +321,10 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
     return m;
   }
+
+  bool get hasSubscriber {
+    return callbacks.isNotEmpty;
+  }
 }
 
 class RemoteLinkListController extends ListController {
