@@ -129,6 +129,10 @@ Map<String, dynamic> DEFAULT_NODES = {
     "Y": { // Mouse y position.
       r"$type": "number",
       "?value": 0.0
+    },
+    "Down": {
+      r"$type": "bool",
+      "?value": false
     }
   },
   "Play_Sound": { // An action to play a sound.
@@ -292,6 +296,14 @@ main() async {
   bodyElement.onMouseMove.listen((MouseEvent event) {
     link.updateValue("/Mouse/X", event.page.x);
     link.updateValue("/Mouse/Y", event.page.y);
+  });
+
+  bodyElement.onMouseDown.listen((_) {
+    link.updateValue("/Mouse/Down", true);
+  });
+
+  bodyElement.onMouseUp.listen((_) {
+    link.updateValue("/Mouse/Down", false);
   });
 
   // Re-sync Values to trigger subscribers.
