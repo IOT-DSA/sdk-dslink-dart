@@ -30,8 +30,7 @@ Map<String, dynamic> DEFAULT_NODES = {
     r"$name": "Text",
     r"$type": "string",
     r"$writable": "write",
-    "?value": "Hello World",
-    "@icon": "http://files.softicons.com/download/toolbar-icons/iconza-grey-icons-by-turbomilk/png/32x32/text.png"
+    "?value": "Hello World"
   },
   "Text_Size_Transition_Time": {
     r"$name": "Text Size Transition Time",
