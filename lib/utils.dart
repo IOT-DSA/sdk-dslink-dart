@@ -145,7 +145,7 @@ class Scheduler {
   }
 }
 
-String buildEnumType(List<String> values) => "enum[${values.join(',')}]";
+String buildEnumType(Iterable<String> values) => "enum[${values.join(',')}]";
 
 List<String> parseEnumType(String type) {
   if (!type.startsWith("enum[") || !type.endsWith("]")) {
