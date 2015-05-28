@@ -100,6 +100,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
   }
   void resetBeforeList() {
     children.clear();
+    configs.remove(r'$disconnectedTs');
   }
 }
 
