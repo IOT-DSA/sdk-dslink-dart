@@ -20,6 +20,12 @@ Map<String, dynamic> DEFAULT_NODES = {
     r"$writable": "write",
     "?value": "blue"
   },
+  "Page_Gradient": {
+    r"$name": "Page Gradient",
+    r"$type": "gradient",
+    r"$writable": "write",
+    "?value": "none"
+  },
   "Page_Color_Transition_Time": {
     r"$name": "Page Color Transition Time",
     r"$type": TRANSITION_ENUM,
@@ -175,6 +181,7 @@ main() async {
       color = "#${int.parse(update.value).toRadixString(16)}";
     } catch (e) {}
     bodyElement
+      ..style.removeProperty("background")
       ..style.backgroundColor = color;
     await link.save();
   });
@@ -190,6 +197,22 @@ main() async {
     await link.save();
   });
 
+  link.onValueChange("/Page_Gradient").listen((ValueUpdate update) async {
+    if (update.value == "none") {
+      return;
+    }
+
+    if (update.value == null) {
+      link.updateValue("/Page_Gradient", "none");
+      return;
+    }
+
+    String x = update.value;
+    bodyElement
+      ..style.removeProperty("background-color")
+      ..style.background = "linear-gradient(${x})";
+  });
+
   link.onValueChange("/Text").listen((ValueUpdate update) async { // Wait for message changes.
     textElement
       ..text = update.value
@@ -202,6 +225,7 @@ main() async {
       ..style.transform = "rotate(${update.value}deg";
     await link.save();
   });
+
   link.onValueChange("/Page_Color_Transition_Time").listen((ValueUpdate update) async {
     var n = update.value;
 
@@ -295,6 +319,7 @@ main() async {
   link.syncValue("/Text_Color_Transition_Time");
   link.syncValue("/Text_Size_Transition_Time");
   link.syncValue("/Page_Color");
+  link.syncValue("/Page_Gradient");
   link.syncValue("/Text_Color");
   link.syncValue("/Text");
   link.syncValue("/Text_Font");
