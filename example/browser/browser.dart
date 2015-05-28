@@ -5,40 +5,18 @@ import "package:dslink/nodes.dart";
 
 LinkProvider link;
 
-final List<String> CSS_COLORS = [
-  "aqua",
-  "fuchsia",
-  "blue",
-  "green",
-  "red",
-  "orange",
-  "yellow",
-  "maroon",
-  "navy",
-  "olive",
-  "black",
-  "white",
-  "gold",
-  "brown",
-  "gray",
-  "silver",
-  "teal",
-  "pink",
-  "purple"
-];
-
 final Map<String, String> TRANSITION_TIMES = {
   "Instant": "0s",
-  "Quarter of a Second": "0.25s",
-  "Half a Second": "0.5s",
-  "One Second": "1s",
-  "Two Seconds": "2s"
+  "250ms": "0.25s",
+  "500ms": "0.5s",
+  "1s": "1s",
+  "2s": "2s"
 };
 
 Map<String, dynamic> DEFAULT_NODES = {
   "Page_Color": { // Page Background Color
     r"$name": "Page Color",
-    r"$type": CSS_COLOR_ENUM,
+    r"$type": "color",
     r"$writable": "write",
     "?value": "blue"
   },
@@ -46,29 +24,30 @@ Map<String, dynamic> DEFAULT_NODES = {
     r"$name": "Page Color Transition Time",
     r"$type": TRANSITION_ENUM,
     r"$writable": "write",
-    "?value": "One Second"
+    "?value": "1s"
   },
   "Text": { // Text Message
     r"$name": "Text",
     r"$type": "string",
     r"$writable": "write",
-    "?value": "Hello World"
+    "?value": "Hello World",
+    "@icon": "http://files.softicons.com/download/toolbar-icons/iconza-grey-icons-by-turbomilk/png/32x32/text.png"
   },
   "Text_Size_Transition_Time": {
     r"$name": "Text Size Transition Time",
     r"$type": TRANSITION_ENUM,
     r"$writable": "write",
-    "?value": "One Second"
+    "?value": "1s"
   },
   "Text_Color_Transition_Time": {
     r"$name": "Text Color Transition Time",
     r"$type": TRANSITION_ENUM,
     r"$writable": "write",
-    "?value": "One Second"
+    "?value": "1s"
   },
   "Text_Color": { // Text Color
     r"$name": "Text Color",
-    r"$type": CSS_COLOR_ENUM,
+    r"$type": "color",
     r"$writable": "write",
     "?value": "white"
   },
@@ -154,7 +133,6 @@ Map<String, dynamic> DEFAULT_NODES = {
 };
 
 final String TRANSITION_ENUM = buildEnumType(TRANSITION_TIMES.keys);
-final String CSS_COLOR_ENUM = buildEnumType(CSS_COLORS);
 
 BodyElement bodyElement = querySelector("#body");
 ParagraphElement textElement = querySelector("#text");
@@ -162,7 +140,6 @@ ParagraphElement textElement = querySelector("#text");
 AudioElement audio;
 
 main() async {
-  CSS_COLORS.sort();
   var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://127.0.0.1:8080/conn");
   link = new LinkProvider(brokerUrl, "Browser-", defaultNodes: DEFAULT_NODES, profiles: {
     "playSound": (String path) =>
@@ -183,7 +160,7 @@ main() async {
           audio = null;
         }
       })
-  }, loadNodes: true);
+  });
 
   await link.init();
 
@@ -194,14 +171,22 @@ main() async {
   }
 
   link.onValueChange("/Page_Color").listen((ValueUpdate update) async { // Wait for background color changes.
+    String color = update.value;
+    try {
+      color = "#${int.parse(update.value).toRadixString(16)}";
+    } catch (e) {}
     bodyElement
-      ..style.backgroundColor = update.value;
+      ..style.backgroundColor = color;
     await link.save();
   });
 
   link.onValueChange("/Text_Color").listen((ValueUpdate update) async { // Wait for text color changes.
+    String color = update.value;
+    try {
+      color = "#${int.parse(update.value).toRadixString(16)}";
+    } catch (e) {}
     textElement
-      ..style.color = update.value
+      ..style.color = color
       ..offsetHeight; // Trigger Re-flow
     await link.save();
   });

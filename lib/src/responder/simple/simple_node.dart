@@ -167,7 +167,7 @@ class SimpleNode extends LocalNodeImpl {
   bool removed = false;
 
   /// Load this node from the provided map as [m].
-  void load(Map m, NodeProviderImpl provider) {
+  void load(Map m, [NodeProviderImpl provider]) {
     if (_loaded) {
       configs.clear();
       attributes.clear();
@@ -288,5 +288,14 @@ class SimpleNode extends LocalNodeImpl {
   /// override default node creation logic for children
   SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider) {
     return null;
+  }
+
+  SimpleNode createChild(String name, [Map m]) {
+    var child = new SimpleNode("${path}/${name}");
+    if (m != null) {
+      child.load(m, null);
+    }
+    addChild(name, child);
+    return child;
   }
 }
