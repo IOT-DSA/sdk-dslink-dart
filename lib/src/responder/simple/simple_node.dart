@@ -249,6 +249,25 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is AsyncTableResult) {
       rslt.write(response);
       return response;
+    } else if (rslt is Table) {
+      response.updateStream(rslt.rows, columns: rslt.columns, streamStatus: StreamStatus.closed);
+    } else if (rslt is Stream) {
+      var r = new AsyncTableResult();
+      Stream stream = rslt;
+      stream.listen((v) {
+        if (v is Table) {
+          Table table = v;
+          r.update(table.rows);
+        } else if (v is Iterable) {
+          r.update(v.toList());
+        } else if (v is Map) {
+          r.update([v]);
+        } else {
+          throw new Exception("Unknown Value from Stream");
+        }
+      }, onDone: r.close);
+      r.write(response);
+      return response;
     } else if (rslt is Future) {
       var r = new AsyncTableResult();
       rslt.then((value) {
@@ -299,7 +318,7 @@ class SimpleNode extends LocalNodeImpl {
     return child;
   }
 
-  
+
   void addChild(String name, Node node) {
     super.addChild(name, node);
     updateList(name);
