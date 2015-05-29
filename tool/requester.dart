@@ -126,7 +126,6 @@ main(List<String> argv) async {
         for (var update in updates) {
           x.addAll(update.updates);
         }
-        //print(encodePrettyJson(x));
         print(buildTableTree(c, x));
       }
     }
