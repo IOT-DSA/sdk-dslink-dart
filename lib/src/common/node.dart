@@ -54,15 +54,18 @@ class Node {
   void addChild(String name, Node node) {
     children[name] = node;
   }
-
-  void removeChild(dynamic input) {
+  
+  /// remove node and return name
+  String removeChild(dynamic input) {
     if (input is String) {
       children.remove(getChild(input));
+      return input;
     } else if (input is Node) {
       children.remove(input);
     } else {
       throw new Exception("Invalid Input");
     }
+    return null;
   }
 
   Node getChild(String name) {
