@@ -128,6 +128,19 @@ class Scheduler {
     });
   }
 
+  static Future repeat(int times, action()) async {
+    for (var i = 1; i <= times; i++) {
+      await action();
+    }
+  }
+
+  static Future tick(int times, Interval interval, action()) async {
+    for (var i = 1; i <= times; i++) {
+      await new Future.delayed(new Duration(milliseconds: interval.inMilliseconds));
+      await action();
+    }
+  }
+
   static void runLater(action()) {
     Timer.run(action);
   }

@@ -225,12 +225,12 @@ class SimpleNode extends LocalNodeImpl {
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
     Object rslt = onInvoke(params);
 
-    if (rslt == null) { // Create a default result based on the result type
-      var rtype = "values";
-      if (configs.containsKey(r"$result")) {
-        rtype = configs[r"$result"];
-      }
+    var rtype = "values";
+    if (configs.containsKey(r"$result")) {
+      rtype = configs[r"$result"];
+    }
 
+    if (rslt == null) { // Create a default result based on the result type
       if (rtype == "values") {
         rslt = {};
       } else if (rtype == "table") {
@@ -254,18 +254,33 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is Stream) {
       var r = new AsyncTableResult();
       Stream stream = rslt;
-      stream.listen((v) {
-        if (v is Table) {
-          Table table = v;
-          r.update(table.rows);
-        } else if (v is Iterable) {
-          r.update(v.toList());
-        } else if (v is Map) {
-          r.update([v]);
-        } else {
-          throw new Exception("Unknown Value from Stream");
-        }
-      }, onDone: r.close);
+      if (rtype == "stream") {
+        stream.listen((v) {
+          if (v is Iterable) {
+            r.update(v.toList());
+          } else if (v is Map) {
+            r.update([v]);
+          } else {
+            throw new Exception("Unknown Value from Stream");
+          }
+        }, onDone: () {
+          r.close();
+        });
+      } else {
+        var list = [];
+        stream.listen((v) {
+          if (v is Iterable) {
+            list.addAll(v);
+          } else if (v is Map) {
+            list.add(v);
+          } else {
+            throw new Exception("Unknown Value from Stream");
+          }
+        }, onDone: () {
+          r.update(list);
+          r.close();
+        });
+      }
       r.write(response);
       return response;
     } else if (rslt is Future) {
