@@ -121,11 +121,13 @@ main(List<String> argv) async {
           print(values);
         }
       } else {
+        var c = updates.last.columns;
         var x = [];
         for (var update in updates) {
-          x.add(update.updates);
+          x.addAll(update.updates);
         }
-        print(encodePrettyJson(x));
+        //print(encodePrettyJson(x));
+        print(buildTableTree(c, x));
       }
     }
   }
@@ -150,4 +152,85 @@ dynamic parseInputValue(String input) {
   } catch (e) {}
 
   return input;
+}
+
+class Icon {
+  static const String CHECKMARK = "\u2713";
+  static const String BALLOT_X = "\u2717";
+  static const String VERTICAL_LINE = "\u23D0";
+  static const String HORIZONTAL_LINE = "\u23AF";
+  static const String LEFT_VERTICAL_LINE = "\u23B8";
+  static const String LOW_LINE = "\uFF3F";
+  static const String PIPE_VERTICAL = "\u2502";
+  static const String PIPE_LEFT_HALF_VERTICAL = "\u2514";
+  static const String PIPE_LEFT_VERTICAL = "\u251C";
+  static const String PIPE_HORIZONTAL = "\u2500";
+  static const String PIPE_BOTH = "\u252C";
+  static const String HEAVY_VERTICAL_BAR = "\u275A";
+  static const String REFRESH = "\u27F3";
+  static const String HEAVY_CHECKMARK = "\u2714";
+  static const String HEAVY_BALLOT_X = "\u2718";
+  static const String STAR = "\u272D";
+}
+
+String buildTableTree(List<TableColumn> columns, List<List<dynamic>> rows) {
+  List<Map<String, dynamic>> nodes = [];
+  var map = {
+    "label": "Result",
+    "nodes": nodes
+  };
+
+  var i = 0;
+  for (var row in rows) {
+    var n = [];
+
+    var x = 0;
+    for (var value in row) {
+      String name;
+      if (x >= columns.length) {
+        name = "";
+      } else {
+        name = columns[x].name;
+      }
+
+      n.add({
+        "label": name,
+        "nodes": [value.toString()]
+      });
+      x++;
+    }
+
+    nodes.add({
+      "label": i.toString(),
+      "nodes": n
+    });
+    i++;
+  }
+
+  return createTreeView(map);
+}
+
+String createTreeView(input, {String prefix: '', Map opts}) {
+  if (input is String) {
+    input = {
+      "label": input
+    };
+  }
+
+  var label = input.containsKey("label") ? input['label'] : "";
+  var nodes = input.containsKey("nodes") ? input['nodes'] : [];
+
+  var lines = label.split("\n");
+  var splitter = '\n' + prefix + (nodes.isNotEmpty ? Icon.PIPE_VERTICAL : ' ') + ' ';
+
+  return prefix + lines.join(splitter) + '\n' + nodes.map((node) {
+    var last = nodes.last == node;
+    var more = node is Map && node.containsKey("nodes") && node['nodes'] is List && node['nodes'].isNotEmpty;
+    var prefix_ = prefix + (last ? ' ' : Icon.PIPE_VERTICAL) + ' ';
+
+    return prefix
+    + (last ? Icon.PIPE_LEFT_HALF_VERTICAL : Icon.PIPE_LEFT_VERTICAL) + Icon.PIPE_HORIZONTAL
+    + (more ? Icon.PIPE_BOTH : Icon.PIPE_HORIZONTAL) + ' '
+    + createTreeView(node, prefix: prefix_, opts: opts).substring(prefix.length + 2);
+  }).join('');
 }
