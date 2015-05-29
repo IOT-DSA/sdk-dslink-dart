@@ -126,7 +126,7 @@ class Node {
 
 /// Util class for ds node path and config/attribute path
 class Path {
-  static final RegExp invalidChar = new RegExp(r'[\.\\\?%\*:|"<>]');
+  static final RegExp invalidChar = new RegExp(r'[\.\\\?\*:|"<>]');
 
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {
