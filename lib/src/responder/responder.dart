@@ -84,7 +84,7 @@ class Responder extends ConnectionHandler {
     addToSendList(m);
   }
 
-  void updateReponse(Response response, List updates,
+  void updateResponse(Response response, List updates,
       {String streamStatus, List<TableColumn> columns}) {
     if (_responses[response.rid] == response) {
       Map m = {'rid': response.rid};
@@ -154,7 +154,7 @@ class Responder extends ConnectionHandler {
         if (sid is int) {
           _subscription.remove(sid);
         }
-        
+
       }
       _closeResponse(m['rid']);
     } else {

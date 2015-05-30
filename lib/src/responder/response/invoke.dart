@@ -43,7 +43,7 @@ class InvokeResponse extends Response {
     if (_columns != null) {
       _columns = TableColumn.serializeColumns(_columns);
     }
-    responder.updateReponse(this, _updates,
+    responder.updateResponse(this, _updates,
         streamStatus: _sendingStreamStatus, columns: _columns);
     _columns = null;
     _updates = null;

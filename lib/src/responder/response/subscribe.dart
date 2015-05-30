@@ -19,7 +19,7 @@ class SubscribeResponse extends Response {
       new Map<String, RespSubscribeController>();
   final Map<int, RespSubscribeController> subsriptionids =
       new Map<int, RespSubscribeController>();
-  
+
   final LinkedHashSet<RespSubscribeController> changed =
       new LinkedHashSet<RespSubscribeController>();
 
@@ -57,7 +57,7 @@ class SubscribeResponse extends Response {
     for (RespSubscribeController controller in changed) {
       updates.addAll(controller.process());
     }
-    responder.updateReponse(this, updates);
+    responder.updateResponse(this, updates);
     changed.clear();
   }
   void _close() {

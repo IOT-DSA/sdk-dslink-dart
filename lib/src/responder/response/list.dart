@@ -31,9 +31,9 @@ class ListResponse extends Response {
     List updateConfigs = [];
     List updateAttributes = [];
     List updateChildren = [];
-    
+
     if (node.disconnected != null) {
-      responder.updateReponse(this, [[r'$disconnectedTs',node.disconnected]], streamStatus: StreamStatus.open);
+      responder.updateResponse(this, [[r'$disconnectedTs',node.disconnected]], streamStatus: StreamStatus.open);
       _disconnectSent = true;
       changes.clear();
       return;
@@ -119,7 +119,7 @@ class ListResponse extends Response {
       ..addAll(updateAttributes)
       ..addAll(updateChildren);
 
-    responder.updateReponse(this, updates, streamStatus: StreamStatus.open);
+    responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
   void _close() {
     _nodeChangeListener.cancel();
