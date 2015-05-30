@@ -98,7 +98,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
   void updateList(String name, [int permission = Permission.READ]) {
     listChangeController.add(name);
   }
-  void resetBeforeList() {
+  void resetNodeCache() {
     children.clear();
     configs.remove(r'$disconnectedTs');
   }
@@ -109,6 +109,7 @@ class RemoteLinkRootListController extends ListController {
 
   void onUpdate(String streamStatus, List updates, List columns,
        [DSError error]) {
+     bool reseted = false;
      // TODO implement error handling
      if (updates != null) {
        for (Object update in updates) {
@@ -139,8 +140,9 @@ class RemoteLinkRootListController extends ListController {
            continue; // invalid response
          }
          if (name.startsWith(r'$')) {
-           if (name == r'$disconnectedTs' && value is String) {
-             node.children.clear();
+           if (!reseted && (name == r'$is' || name == r'$base' || (name == r'$disconnectedTs' && value is String))) {
+             reseted = true;
+             node.resetNodeCache();
            }
            // ignore other changes
          } else if (name.startsWith('@')) {

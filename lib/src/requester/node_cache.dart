@@ -85,7 +85,6 @@ class RemoteNode extends Node {
 
   Stream<RequesterListUpdate> _list(Requester requester) {
     if (_listController == null) {
-      resetBeforeList();
       _listController = createListController(requester);
     }
     return _listController.stream;
@@ -133,8 +132,9 @@ class RemoteNode extends Node {
       }
     });
   }
+  
   /// clear all configs attributes and children
-  void resetBeforeList() {
+  void resetNodeCache() {
     configs.clear();
     attributes.clear();
     children.clear();

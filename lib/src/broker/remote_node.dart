@@ -332,6 +332,7 @@ class RemoteLinkListController extends ListController {
 
   void onUpdate(String streamStatus, List updates, List columns,
         [DSError error]) {
+      bool reseted = false;
       // TODO implement error handling
       if (updates != null) {
         for (Object update in updates) {
@@ -362,10 +363,9 @@ class RemoteLinkListController extends ListController {
             continue; // invalid response
           }
           if (name.startsWith(r'$')) {
-            if (name == r'$disconnectedTs' && value is String) {
-              node.children.clear();
-              node.attributes.clear();
-              node.configs.clear();
+            if (!reseted && (name == r'$is' || name == r'$base' || (name == r'$disconnectedTs' && value is String))) {
+              reseted = true;
+              node.resetNodeCache();
             }
 
             if (name == r'$base' && value is String) {

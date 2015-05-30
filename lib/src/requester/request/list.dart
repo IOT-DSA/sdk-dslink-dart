@@ -61,6 +61,7 @@ class ListController implements RequestUpdater {
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
   void onUpdate(String streamStatus, List updates, List columns,
       [DSError error]) {
+    bool reseted = false;
     // TODO implement error handling
     if (updates != null) {
       for (Object update in updates) {
@@ -91,12 +92,11 @@ class ListController implements RequestUpdater {
           continue; // invalid response
         }
         if (name.startsWith(r'$')) {
-          if (name == r'$disconnectedTs' && value is String) {
-            node.children.clear();
-            node.attributes.clear();
-            node.configs.clear();
+          if (!reseted && (name == r'$is' || name == r'$base' || (name == r'$disconnectedTs' && value is String))) {
+            reseted = true;
+            node.resetNodeCache();
           }
-          else if (name == r'$is') {
+          if (name == r'$is') {
             loadProfile(value);
           } else if (name == r'$mixin') {
             loadMixin(value);
