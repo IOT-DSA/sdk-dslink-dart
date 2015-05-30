@@ -223,7 +223,17 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   InvokeResponse invoke(Map params, Responder responder, InvokeResponse response) {
-    Object rslt = onInvoke(params);
+    Object rslt;
+    try {
+      rslt = onInvoke(params);
+    } catch (e, stack) {
+      var error = new DSError("invokeException", msg: e.toString());
+      try {
+        error.detail = stack.toString();
+      } catch (e) {}
+      response.close(error);
+      return error;
+    }
 
     var rtype = "values";
     if (configs.containsKey(r"$result")) {
@@ -265,7 +275,15 @@ class SimpleNode extends LocalNodeImpl {
           }
         }, onDone: () {
           r.close();
-        });
+        }, onError: (e, stack) {
+          var error = new DSError("invokeException", msg: e.toString());
+          try {
+            error.detail = stack.toString();
+          } catch (e) {}
+          response.close(error);
+        }, cancelOnError: true);
+        r.write(response);
+        return response;
       } else {
         var list = [];
         stream.listen((v) {
@@ -279,7 +297,13 @@ class SimpleNode extends LocalNodeImpl {
         }, onDone: () {
           r.update(list);
           r.close();
-        });
+        }, onError: (e, stack) {
+          var error = new DSError("invokeException", msg: e.toString());
+          try {
+            error.detail = stack.toString();
+          } catch (e) {}
+          response.close(error);
+        }, cancelOnError: true);
       }
       r.write(response);
       return response;
@@ -288,6 +312,12 @@ class SimpleNode extends LocalNodeImpl {
       rslt.then((value) {
         r.update(value is Iterable ? value.toList() : [value]);
         r.close();
+      }).catchError((e, stack) {
+        var error = new DSError("invokeException", msg: e.toString());
+        try {
+          error.detail = stack.toString();
+        } catch (e) {}
+        response.close(error);
       });
       r.write(response);
       return response;

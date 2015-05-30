@@ -32,6 +32,14 @@ class InvokeResponse extends Response {
   }
 
   void processor() {
+    if (_err != null) {
+      responder._closeResponse(rid, response: this, error: _err);
+      if (_sentStreamStatus == StreamStatus.closed) {
+        _close();
+      }
+      return;
+    }
+
     if (_columns != null) {
       _columns = TableColumn.serializeColumns(_columns);
     }
@@ -46,9 +54,12 @@ class InvokeResponse extends Response {
 
   /// close the request from responder side and also notify the requester
   void close([DSError err = null]) {
+    _err = err;
     _sendingStreamStatus = StreamStatus.closed;
     responder.addProcessor(processor);
   }
+
+  DSError _err;
 
   OnInvokeClosed onClose;
   void _close() {
