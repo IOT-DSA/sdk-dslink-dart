@@ -101,6 +101,26 @@ abstract class LocalNode extends Node {
   Response setValue(Object value, Responder responder, Response response) {
     return response..close();
   }
+
+  operator [](String name) {
+    if (name.startsWith(r"$") || name.startsWith(r"@")) {
+      return get(name);
+    } else {
+      return getChild(name);
+    }
+  }
+
+  operator []=(String name, value) {
+    if (name.startsWith(r"$") || name.startsWith(r"@")) {
+      if (name.startsWith(r"$")) {
+        configs[name] = value;
+      } else {
+        attributes[name] = value;
+      }
+    } else {
+      addChild(name, value);
+    }
+  }
 }
 
 /// node provider for responder

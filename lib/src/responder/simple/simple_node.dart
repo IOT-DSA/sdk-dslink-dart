@@ -376,4 +376,23 @@ class SimpleNode extends LocalNodeImpl {
     }
     return name;
   }
+
+  operator []=(String name, value) {
+    if (name.startsWith(r"$") || name.startsWith(r"@")) {
+      if (name.startsWith(r"$")) {
+        configs[name] = value;
+      } else {
+        attributes[name] = value;
+      }
+    } else {
+      if (value == null) {
+        return removeChild(name);
+      } else if (value is Map) {
+        return createChild(name, value);
+      } else {
+        addChild(name, value);
+        return value;
+      }
+    }
+  }
 }

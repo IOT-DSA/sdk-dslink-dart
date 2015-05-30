@@ -167,15 +167,15 @@ main() async {
       })
   });
 
-  await link.init();
+  await $.init();
 
   for (var key in DEFAULT_NODES.keys) {
     if (!link["/"].children.containsKey(key)) {
-      link.addNode(key, DEFAULT_NODES[key]);
+      $.addNode(key, DEFAULT_NODES[key]);
     }
   }
 
-  link.onValueChange("/Page_Color").listen((ValueUpdate update) async { // Wait for background color changes.
+  $.onValueChange("/Page_Color").listen((ValueUpdate update) async { // Wait for background color changes.
     String color = update.value;
     try {
       color = "#${int.parse(update.value).toRadixString(16)}";
@@ -183,10 +183,10 @@ main() async {
     bodyElement
       ..style.removeProperty("background")
       ..style.backgroundColor = color;
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Text_Color").listen((ValueUpdate update) async { // Wait for text color changes.
+  $.onValueChange("/Text_Color").listen((ValueUpdate update) async { // Wait for text color changes.
     String color = update.value;
     try {
       color = "#${int.parse(update.value).toRadixString(16)}";
@@ -194,16 +194,16 @@ main() async {
     textElement
       ..style.color = color
       ..offsetHeight; // Trigger Re-flow
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Page_Gradient").listen((ValueUpdate update) async {
+  $.onValueChange("/Page_Gradient").listen((ValueUpdate update) async {
     if (update.value == "none") {
       return;
     }
 
     if (update.value == null) {
-      link.updateValue("/Page_Gradient", "none");
+      $.updateValue("/Page_Gradient", "none");
       return;
     }
 
@@ -213,20 +213,20 @@ main() async {
       ..style.background = "linear-gradient(${x})";
   });
 
-  link.onValueChange("/Text").listen((ValueUpdate update) async { // Wait for message changes.
+  $.onValueChange("/Text").listen((ValueUpdate update) async { // Wait for message changes.
     textElement
       ..text = update.value
       ..offsetHeight; // Trigger Re-flow
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Text_Rotation").listen((ValueUpdate update) async {
+  $.onValueChange("/Text_Rotation").listen((ValueUpdate update) async {
     textElement
       ..style.transform = "rotate(${update.value}deg";
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Page_Color_Transition_Time").listen((ValueUpdate update) async {
+  $.onValueChange("/Page_Color_Transition_Time").listen((ValueUpdate update) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -236,24 +236,24 @@ main() async {
     bodyElement
       ..style.transition = "background-color ${n}";
 
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Text_Font").listen((ValueUpdate update) async {
+  $.onValueChange("/Text_Font").listen((ValueUpdate update) async {
     textElement
       ..style.fontFamily = '"' + update.value + '"'
       ..offsetHeight;
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Text_Size").listen((ValueUpdate update) async {
+  $.onValueChange("/Text_Size").listen((ValueUpdate update) async {
     textElement
       ..style.fontSize = "${update.value}px"
       ..offsetHeight;
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Page_Color_Transition_Time").listen((ValueUpdate update) async {
+  $.onValueChange("/Page_Color_Transition_Time").listen((ValueUpdate update) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -263,10 +263,10 @@ main() async {
     bodyElement
       ..style.transition = "background-color ${n}";
 
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Text_Size_Transition_Time").listen((ValueUpdate update) async {
+  $.onValueChange("/Text_Size_Transition_Time").listen((ValueUpdate update) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -276,10 +276,10 @@ main() async {
     textElement
       ..style.transition = "font-size ${n}";
 
-    await link.save();
+    await $.save();
   });
 
-  link.onValueChange("/Text_Color_Transition_Time").listen((ValueUpdate update) async {
+  $.onValueChange("/Text_Color_Transition_Time").listen((ValueUpdate update) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -289,41 +289,45 @@ main() async {
     textElement
       ..style.transition = "color ${n}";
 
-    await link.save();
+    await $.save();
   });
 
   bodyElement.onClick.listen((MouseEvent event) { // Update Click Information
-    link.updateValue("/Click/ID", (link["/Click/ID"].lastValueUpdate.value as int) + 1);
-    link.updateValue("/Click/X", event.page.x);
-    link.updateValue("/Click/Y", event.page.y);
+    $.updateValue("/Click/ID", (link["/Click/ID"].lastValueUpdate.value as int) + 1);
+    $.updateValue("/Click/X", event.page.x);
+    $.updateValue("/Click/Y", event.page.y);
   });
 
-  textElement.onMouseEnter.listen((event) => link.updateValue("/Text_Hovering", true));
-  textElement.onMouseLeave.listen((event) => link.updateValue("/Text_Hovering", false));
+  textElement.onMouseEnter.listen((event) => $.updateValue("/Text_Hovering", true));
+  textElement.onMouseLeave.listen((event) => $.updateValue("/Text_Hovering", false));
 
   bodyElement.onMouseMove.listen((MouseEvent event) {
-    link.updateValue("/Mouse/X", event.page.x);
-    link.updateValue("/Mouse/Y", event.page.y);
+    $.updateValue("/Mouse/X", event.page.x);
+    $.updateValue("/Mouse/Y", event.page.y);
   });
 
   bodyElement.onMouseDown.listen((_) {
-    link.updateValue("/Mouse/Down", true);
+    $.updateValue("/Mouse/Down", true);
   });
 
   bodyElement.onMouseUp.listen((_) {
-    link.updateValue("/Mouse/Down", false);
+    $.updateValue("/Mouse/Down", false);
   });
 
   // Re-sync Values to trigger subscribers.
-  link.syncValue("/Page_Color_Transition_Time");
-  link.syncValue("/Text_Color_Transition_Time");
-  link.syncValue("/Text_Size_Transition_Time");
-  link.syncValue("/Page_Color");
-  link.syncValue("/Page_Gradient");
-  link.syncValue("/Text_Color");
-  link.syncValue("/Text");
-  link.syncValue("/Text_Font");
-  link.syncValue("/Text_Size");
+  [
+    "/Page_Color_Transition_Time",
+    "/Text_Color_Transition_Time",
+    "/Text_Size_Transition_Time",
+    "/Page_Color",
+    "/Page_Gradient",
+    "/Text_Color",
+    "/Text",
+    "/Text_Font",
+    "/Text_Size"
+  ].forEach($.syncValue);
 
-  link.connect();
+  $.connect();
 }
+
+LinkProvider get $ => link;
