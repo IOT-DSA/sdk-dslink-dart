@@ -19,6 +19,7 @@ export "package:dslink/browser_client.dart";
 export "package:dslink/utils.dart" show Scheduler, Interval, DSLinkJSON, updateLogLevel, buildEnumType, buildActionIO;
 export "package:dslink/src/crypto/pk.dart" show PrivateKey;
 
+
 /// DSLink Provider for the Browser
 class LinkProvider {
   BrowserECDHLink link;
@@ -163,6 +164,15 @@ class LinkProvider {
       throw new Exception("Unable to Modify Node Provider: It is not mutable.");
     }
     (provider as MutableNodeProvider).updateValue(path, value);
+  }
+
+  dynamic val(String path, [value = unspecified]) {
+    if (value is Unspecified) {
+      return this[path].lastValueUpdate.value;
+    } else {
+      updateValue(path, value);
+      return value;
+    }
   }
 
   LocalNode operator [](String path) => provider[path];

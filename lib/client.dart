@@ -506,4 +506,13 @@ class LinkProvider {
   LocalNode operator [](String path) => provider[path];
 
   LocalNode operator ~() => this["/"];
+
+  dynamic val(String path, [value = unspecified]) {
+    if (value is Unspecified) {
+      return this[path].lastValueUpdate.value;
+    } else {
+      updateValue(path, value);
+      return value;
+    }
+  }
 }

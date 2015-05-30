@@ -170,3 +170,9 @@ class DSError {
   static final DSError INVALID_VALUE = new DSError('invalidValue');
   static final DSError DISCONNECTED = new DSError('disconnected', phase: ErrorPhase.request);
 }
+
+const Unspecified unspecified = const Unspecified();
+
+class Unspecified {
+  const Unspecified();
+}

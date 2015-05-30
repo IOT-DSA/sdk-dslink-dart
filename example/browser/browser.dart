@@ -14,6 +14,11 @@ final Map<String, String> TRANSITION_TIMES = {
 };
 
 Map<String, dynamic> DEFAULT_NODES = {
+  "User_Agent": {
+    r"$name": "User Agent",
+    r"$type": "string",
+    "?value": window.navigator.userAgent
+  },
   "Page_Color": { // Page Background Color
     r"$name": "Page Color",
     r"$type": "color",
@@ -203,7 +208,7 @@ main() async {
     }
 
     if (update.value == null) {
-      $.updateValue("/Page_Gradient", "none");
+      $.val("/Page_Gradient", "none");
       return;
     }
 
@@ -293,25 +298,25 @@ main() async {
   });
 
   bodyElement.onClick.listen((MouseEvent event) { // Update Click Information
-    $.updateValue("/Click/ID", (link["/Click/ID"].lastValueUpdate.value as int) + 1);
-    $.updateValue("/Click/X", event.page.x);
-    $.updateValue("/Click/Y", event.page.y);
+    $.val("/Click/ID", (link["/Click/ID"].lastValueUpdate.value as int) + 1);
+    $.val("/Click/X", event.page.x);
+    $.val("/Click/Y", event.page.y);
   });
 
-  textElement.onMouseEnter.listen((event) => $.updateValue("/Text_Hovering", true));
-  textElement.onMouseLeave.listen((event) => $.updateValue("/Text_Hovering", false));
+  textElement.onMouseEnter.listen((event) => $.val("/Text_Hovering", true));
+  textElement.onMouseLeave.listen((event) => $.val("/Text_Hovering", false));
 
   bodyElement.onMouseMove.listen((MouseEvent event) {
-    $.updateValue("/Mouse/X", event.page.x);
-    $.updateValue("/Mouse/Y", event.page.y);
+    $.val("/Mouse/X", event.page.x);
+    $.val("/Mouse/Y", event.page.y);
   });
 
   bodyElement.onMouseDown.listen((_) {
-    $.updateValue("/Mouse/Down", true);
+    $.val("/Mouse/Down", true);
   });
 
   bodyElement.onMouseUp.listen((_) {
-    $.updateValue("/Mouse/Down", false);
+    $.val("/Mouse/Down", false);
   });
 
   // Re-sync Values to trigger subscribers.
