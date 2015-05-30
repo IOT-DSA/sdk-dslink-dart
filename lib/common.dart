@@ -20,12 +20,15 @@ part 'src/common/stream_conn.dart';
 final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));
 
 List foldList(List a, List b) {
-  return a..addAll(b);
+  return a
+    ..addAll(b);
 }
 
 abstract class Connection {
   ConnectionChannel get requesterChannel;
+
   ConnectionChannel get responderChannel;
+
   /// trigger when requester channel is Ready
   Future<ConnectionChannel> get onRequesterReady;
 
@@ -34,6 +37,7 @@ abstract class Connection {
 
   /// notify the connection channel need to send data
   void requireSend();
+
   /// close the connection
   void close();
 }
@@ -43,13 +47,15 @@ abstract class ServerConnection extends Connection {
   void addServerCommand(String key, Object value);
 }
 
-abstract class ClientConnection extends Connection {}
+abstract class ClientConnection extends Connection {
+}
 
 abstract class ConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
   /// a new getData function will always overwrite the previous one;
   /// requester and responder should handle the merging of methods
   void sendWhenReady(List getData());
+
   /// receive data from method stream
   Stream<List> get onReceive;
 
@@ -57,12 +63,15 @@ abstract class ConnectionChannel {
   bool get isReady;
 
   bool get connected;
+
   Future<ConnectionChannel> get onDisconnected;
+
   Future<ConnectionChannel> get onConnected;
 }
 
 abstract class Link {
   Requester get requester;
+
   Responder get responder;
 
   ECDH get nonce;
@@ -73,23 +82,31 @@ abstract class Link {
 
 abstract class ServerLink extends Link {
   String get dsId;
+
   String get session;
+
   PublicKey get publicKey;
 }
 
 abstract class ClientLink extends Link {
   PrivateKey get privateKey;
+
   /// shortPolling is only valid in http mode
   /// saltId: 0 salt, 1:saltS, 2:saltL
   updateSalt(String salt, [int saltId = 0]);
+
   void connect();
 }
 
 abstract class ServerLinkManager {
   void addLink(ServerLink link);
+
   void removeLink(ServerLink link);
+
   ServerLink getLink(String dsId, {String sessionId:'', String deviceId});
+
   Requester getRequester(String dsId);
+
   Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']);
 }
 
@@ -113,7 +130,7 @@ class DSError {
   String phase;
 
   DSError(this.type,
-      {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
+          {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
 
   String getMessage() {
     if (msg != null) {
@@ -131,7 +148,6 @@ class DSError {
     if (msg != null) {
       rslt['msg'] = msg;
     }
-    ;
     if (type != null) {
       rslt['type'] = type;
     }
@@ -152,6 +168,5 @@ class DSError {
   static final DSError INVALID_PATH = new DSError('invalidPath');
   static final DSError INVALID_PATHS = new DSError('invalidPaths');
   static final DSError INVALID_VALUE = new DSError('invalidValue');
-  static final DSError DISCONNECTED =
-      new DSError('disconnected', phase: ErrorPhase.request);
+  static final DSError DISCONNECTED = new DSError('disconnected', phase: ErrorPhase.request);
 }
