@@ -170,6 +170,8 @@ class LinkProvider {
   Requester get requester => link.requester;
 
   Future<Requester> get onRequesterReady => link.onRequesterReady;
+
+  LocalNode operator ~() => this["/"];
 }
 
 class BrowserUtils {

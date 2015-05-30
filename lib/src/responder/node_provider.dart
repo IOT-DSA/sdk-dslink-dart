@@ -133,4 +133,6 @@ abstract class NodeProvider {
   LocalNode operator [](String path) {
     return getNode(path);
   }
+
+  LocalNode operator ~() => this["/"];
 }

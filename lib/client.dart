@@ -504,4 +504,6 @@ class LinkProvider {
 
   /// Gets the node specified at [path].
   LocalNode operator [](String path) => provider[path];
+
+  LocalNode operator ~() => this["/"];
 }
