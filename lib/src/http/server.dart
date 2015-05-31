@@ -152,7 +152,8 @@ class DsHttpServer {
           }
           link = new HttpServerLink(
               dsId, new PublicKey.fromBytes(bytes), _linkManager,
-              nodeProvider: nodeProvider);
+              nodeProvider: nodeProvider,
+              enableTimeout: true);
           if (!link.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
