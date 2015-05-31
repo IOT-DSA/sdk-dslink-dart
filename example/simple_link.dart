@@ -16,5 +16,5 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link["/Message"].subscribe((update) => link.save());
+  link.onValueChange("/Message").listen((_) => link.save());
 }
