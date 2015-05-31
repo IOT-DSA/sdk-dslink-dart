@@ -103,6 +103,8 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return Permission.NONE;
   }
+
+  LocalNode operator ~()=>this['/'];
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
 
@@ -324,6 +326,20 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   bool get hasSubscriber {
     return callbacks.isNotEmpty;
+  }
+
+  operator [](String name) {
+    return get(name);
+  }
+
+  operator []=(String name, Object value) {
+    if (name.startsWith(r"$")) {
+      configs[name] = value;
+    } else if (name.startsWith(r"@")){
+      attributes[name] = value;
+    } else if (value is Node){
+      addChild(name, value);
+    }
   }
 }
 

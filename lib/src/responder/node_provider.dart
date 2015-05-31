@@ -103,21 +103,15 @@ abstract class LocalNode extends Node {
   }
 
   operator [](String name) {
-    if (name.startsWith(r"$") || name.startsWith(r"@")) {
-      return get(name);
-    } else {
-      return getChild(name);
-    }
+    return get(name);
   }
 
-  operator []=(String name, value) {
-    if (name.startsWith(r"$") || name.startsWith(r"@")) {
-      if (name.startsWith(r"$")) {
-        configs[name] = value;
-      } else {
-        attributes[name] = value;
-      }
-    } else {
+  operator []=(String name, Object value) {
+    if (name.startsWith(r"$")) {
+      configs[name] = value;
+    } else if (name.startsWith(r"@")){
+      attributes[name] = value;
+    } else if (value is Node){
       addChild(name, value);
     }
   }
