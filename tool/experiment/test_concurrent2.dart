@@ -33,10 +33,13 @@ String broker = "http://localhost:8080/conn";
 Stopwatch stopwatch;
 Random random = new Random();
 
+String prefix = '';
 main(List<String> args) async {
   var argp = new ArgParser();
   argp.addOption("pairs", abbr: "p", help: "Number of Link Pairs", defaultsTo: "1000", valueHelp: "pairs");
   argp.addOption("broker", abbr: "b", help: "Broker Url", defaultsTo: "http://localhost:8080/conn", valueHelp: "broker");
+  argp.addOption("prefix", abbr: "f", help: "Prefix on DsLink Id", defaultsTo: "", valueHelp: "previx");
+    
   var opts = argp.parse(args);
 
   try {
@@ -51,6 +54,8 @@ main(List<String> args) async {
     print("Invalid broker");
     return;
   }
+  prefix = opts["prefix"];
+  
   logger.level = Level.WARNING;
 
   stopwatch = new Stopwatch();
@@ -124,9 +129,9 @@ new PrivateKey.loadFromString(
 
 createLinkPair() async {
   TestNodeProvider provider = new TestNodeProvider();
-  var linkResp = new HttpClientLink(broker, 'responder-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
+  var linkResp = new HttpClientLink(broker, '$prefix-resp-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
 
-  var linkReq = new HttpClientLink(broker, 'requester-$pairIndex-', key, isRequester: true);
+  var linkReq = new HttpClientLink(broker, '$prefix-req--$pairIndex-', key, isRequester: true);
   linkReq.connect();
 
   pairs.add([linkResp, linkReq, provider]);
@@ -139,7 +144,7 @@ createLinkPair() async {
   await linkResp.connect();
   print("Link Pair ${mine} is now ready.");
   connectedCount++;
-  linkReq.requester.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
+  linkReq.requester.subscribe("/conns/$prefix-resp-$mine/node", (ValueUpdate val) {
   });
 }
 
