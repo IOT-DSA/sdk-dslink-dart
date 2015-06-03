@@ -15,8 +15,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
 
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> onRequestReadyCompleter =
-  new Completer<ConnectionChannel>();
+  Completer<ConnectionChannel> onRequestReadyCompleter = new Completer<ConnectionChannel>();
 
   Future<ConnectionChannel> get onRequesterReady =>
   onRequestReadyCompleter.future;
@@ -92,7 +91,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     if (_onDisconnectedCompleter.isCompleted) {
       return;
     }
-    logger.finest("begin WebSocketConnection.onData");
+    //logger.finest("begin WebSocketConnection.onData");
     if (!onRequestReadyCompleter.isCompleted) {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
@@ -101,9 +100,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     if (data is List<int>) {
       try {
         m = DsJson.decode(UTF8.decode(data));
-        logger.fine("WebSocket JSON (bytes): ${m}");
+        //logger.fine("WebSocket JSON (bytes): ${m}");
       } catch (err, stack) {
-        logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
+        //logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -118,9 +117,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     } else if (data is String) {
       try {
         m = DsJson.decode(data);
-        logger.fine("WebSocket JSON: ${m}");
-      } catch (err, stack) {
-        logger.severe("Failed to decode JSON from WebSocket Connection", err, stack);
+//        logger.fine("WebSocket JSON: ${m}");
+      } catch (err) {
+//        logger.severe("Failed to decode JSON from WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -137,7 +136,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     }
 
-    logger.finest("end WebSocketConnection.onData");
+//    logger.finest("end WebSocketConnection.onData");
   }
 
   void _send() {
@@ -165,7 +164,6 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     }
     if (needSend) {
-      logger.fine('send: $m');
       addData(m);
       _dataSent = true;
     }
@@ -176,7 +174,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void _onDone() {
-    logger.fine("socket disconnected");
+    //logger.fine("socket disconnected");
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
