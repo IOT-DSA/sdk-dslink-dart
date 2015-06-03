@@ -118,7 +118,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       try {
         m = DsJson.decode(data);
 //        logger.fine("WebSocket JSON: ${m}");
-      } catch (err, stack) {
+      } catch (err) {
 //        logger.severe("Failed to decode JSON from WebSocket Connection", err, stack);
         close();
         return;

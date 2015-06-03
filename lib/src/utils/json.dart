@@ -16,9 +16,11 @@ abstract class DsJson {
 }
 
 class DsJsonCodecImpl implements DsJson {
+  JsonDecoder decoder = new JsonDecoder();
+
   @override
   Object decodeJson(String str) {
-    return JSON.decode(str);
+    return decoder.convert(str);
   }
 
   @override
