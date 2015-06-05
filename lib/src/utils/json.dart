@@ -16,14 +16,17 @@ class BinaryData {
       bytes = new Uint8List.fromList(list);
     }
   }
+  BinaryData.fromBuffer(ByteBuffer buff){
+    bytes = buff.asUint8List();
+  }
 }
 class BinaryInCache {
   Map<String, BinaryData> caches = new Map<String, BinaryData>();
-  BinaryData fetchData(String id) {
+  ByteBuffer fetchData(String id) {
     BinaryData data = caches[id];
     if (data != null && data.bytes != null) {
       caches.remove(id);
-      return data;
+      return data.bytes.buffer;
     }
     return null;
   }
@@ -81,9 +84,9 @@ class BinaryOutCache {
   bool get hasData {
     return !caches.isEmpty;
   }
-  int addBinaryData(BinaryData data){
+  int addBinaryData(ByteBuffer data){
     int newId= ++id;
-    caches[newId] = data;
+    caches[newId] = new BinaryData.fromBuffer(data);
     return newId;
   }
   Uint8List export() {
@@ -147,6 +150,11 @@ abstract class DsJson {
 }
 
 class DsJsonCodecImpl implements DsJson {
+  static dynamic _safeEncoder(value) {
+    return null;
+  }
+  JsonEncoder encoder = new JsonEncoder(_safeEncoder);
+  
   JsonDecoder decoder = new JsonDecoder();
   JsonEncoder _prettyEncoder;
   
@@ -155,10 +163,9 @@ class DsJsonCodecImpl implements DsJson {
   }
 
   String encodeJson(Object val, {bool pretty: false}) {
-    var encoder = JSON.encoder;
     if (pretty) {
       if (_prettyEncoder == null) {
-        _prettyEncoder = encoder = new JsonEncoder.withIndent("  ");
+        _prettyEncoder = encoder = new JsonEncoder.withIndent("  ", _safeEncoder);
       } else {
         encoder = _prettyEncoder;
       }
@@ -173,13 +180,13 @@ class DsJsonCodecImpl implements DsJson {
       }
       return value;
     }
-    JsonDecoder decoder = new JsonDecoder(_reviver);
+    JsonDecoder decoder = new JsonDecoder(_reviver);  
     return decoder.convert(str);
   }
 
   String encodeJsonFrame(Object val, BinaryOutCache cache, {bool pretty: false}) {
     dynamic _encoder(value) {
-      if (value is BinaryData){
+        if (value is ByteBuffer){
         int id = cache.addBinaryData(value);
         return '\u001Bbytes,$id';
       }
