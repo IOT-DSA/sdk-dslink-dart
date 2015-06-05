@@ -15,6 +15,7 @@ part "src/utils/timer.dart";
 part "src/utils/stream_controller.dart";
 part "src/utils/json.dart";
 part "src/utils/dslink_json.dart";
+part "src/utils/list.dart";
 
 const String DSA_VERSION = '1.0.1';
 

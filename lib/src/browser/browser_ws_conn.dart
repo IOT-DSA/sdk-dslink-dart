@@ -79,15 +79,22 @@ class WebSocketConnection implements ClientConnection {
     socket.sendString('{}');
     requireSend();
   }
-
+  BinaryInCache binaryInCache = new BinaryInCache();
   void _onData(MessageEvent e) {
     logger.fine('onData:');
     _dataReceiveCount = 0;
     Map m;
     if (e.data is ByteBuffer) {
       try {
+        Uint8List bytes = (e.data as ByteBuffer).asUint8List();
+        if (bytes.length != 0 && bytes[0] == 0) {
+          // binary channel
+          binaryInCache.receiveData(bytes);
+          return;
+        }
+        
         // TODO(rick): JSONUtf8Decoder
-        m = DsJson.decode(UTF8.decode((e.data as ByteBuffer).asInt8List()));
+        m = DsJson.decodeFrame(UTF8.decode(bytes), binaryInCache);
         logger.fine('$m');
 
         if (m['salt'] is String) {
@@ -110,7 +117,7 @@ class WebSocketConnection implements ClientConnection {
       }
     } else if (e.data is String) {
       try {
-        m = DsJson.decode(e.data);
+        m = DsJson.decodeFrame(e.data, binaryInCache);
         logger.fine('$m');
 
         if (m['responses'] is List) {
@@ -129,7 +136,7 @@ class WebSocketConnection implements ClientConnection {
       }
     }
   }
-
+  BinaryOutCache binaryOutCache = new BinaryOutCache();
   void _send() {
     if (socket.readyState != WebSocket.OPEN) {
       return;
@@ -164,7 +171,11 @@ class WebSocketConnection implements ClientConnection {
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
-      socket.send(DsJson.encode(m));
+      String json = DsJson.encodeFrame(m, binaryOutCache);
+      if (binaryOutCache.hasData) {
+        socket.sendByteBuffer(binaryOutCache.export().buffer);
+      }
+      socket.send(json);
       _dataSent = true;
     }
   }

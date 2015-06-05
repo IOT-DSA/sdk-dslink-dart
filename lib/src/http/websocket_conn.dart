@@ -86,7 +86,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand[key] = value;
     DsTimer.callLaterOnce(_send);
   }
-
+  BinaryInCache binaryInCache = new BinaryInCache();
   void onData(dynamic data) {
     if (_onDisconnectedCompleter.isCompleted) {
       return;
@@ -98,8 +98,13 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _dataReceiveCount = 0;
     Map m;
     if (data is List<int>) {
+      if (data.length != 0 && data[0] == 0) {
+        // binary channel
+        binaryInCache.receiveData(data);
+        return;
+      }
       try {
-        m = DsJson.decode(UTF8.decode(data));
+        m = DsJson.decodeFrame(UTF8.decode(data), binaryInCache);
         //logger.fine("WebSocket JSON (bytes): ${m}");
       } catch (err, stack) {
         //logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
@@ -116,7 +121,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     } else if (data is String) {
       try {
-        m = DsJson.decode(data);
+        m = DsJson.decodeFrame(data, binaryInCache);
 //        logger.fine("WebSocket JSON: ${m}");
       } catch (err) {
 //        logger.severe("Failed to decode JSON from WebSocket Connection", err, stack);
@@ -168,9 +173,13 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       _dataSent = true;
     }
   }
-
+  BinaryOutCache binaryOutCache = new BinaryOutCache();
   void addData(Map m) {
-    socket.add(DsJson.encode(m));
+    String json =  DsJson.encodeFrame(m, binaryOutCache);
+    if (binaryOutCache.hasData) {
+      socket.add(binaryOutCache.export());
+    }
+    socket.add(json);
   }
 
   void _onDone() {
