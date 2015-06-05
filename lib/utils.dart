@@ -17,7 +17,7 @@ part "src/utils/json.dart";
 part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
 
-const String DSA_VERSION = '1.0.1';
+const String DSA_VERSION = '1.0.2';
 
 Logger _logger;
 
