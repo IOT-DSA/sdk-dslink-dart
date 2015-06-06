@@ -141,6 +141,19 @@ class WorkerPool {
     return collect != null ? await collect(outs) : outs;
   }
 
+  Future<WorkerSession> createSession() => getAvailableWorker().createSession();
+
+  StreamController<WorkerSession> _sessionController = new StreamController<WorkerSession>.broadcast();
+  Stream<WorkerSession> get sessions {
+    if (!_sessionListened) {
+      sockets.forEach((x) => _sessionController.addStream(x.sessions));
+      _sessionListened = true;
+    }
+    return _sessionController.stream;
+  }
+
+  bool _sessionListened = false;
+
   Future<dynamic> distribute(String name, [argument]) {
     return getAvailableWorker().callMethod(name, argument);
   }
