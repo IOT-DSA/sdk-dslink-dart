@@ -91,7 +91,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     if (_onDisconnectedCompleter.isCompleted) {
       return;
     }
-    //logger.finest("begin WebSocketConnection.onData");
+    logger.finest("begin WebSocketConnection.onData");
     if (!onRequestReadyCompleter.isCompleted) {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
@@ -99,15 +99,16 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     Map m;
     if (data is List<int>) {
       if (data.length != 0 && data[0] == 0) {
+        logger.finest(" receive binary length ${data.length}");
         // binary channel
         binaryInCache.receiveData(data);
         return;
       }
       try {
         m = DsJson.decodeFrame(UTF8.decode(data), binaryInCache);
-        //logger.fine("WebSocket JSON (bytes): ${m}");
+        logger.fine("WebSocket JSON (bytes): ${m}");
       } catch (err, stack) {
-        //logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
+        logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -122,9 +123,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     } else if (data is String) {
       try {
         m = DsJson.decodeFrame(data, binaryInCache);
-//        logger.fine("WebSocket JSON: ${m}");
+        logger.fine("WebSocket JSON: ${m}");
       } catch (err) {
-//        logger.severe("Failed to decode JSON from WebSocket Connection", err, stack);
+        logger.severe("Failed to decode JSON from WebSocket Connection", err);
         close();
         return;
       }
@@ -141,7 +142,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     }
 
-//    logger.finest("end WebSocketConnection.onData");
+    logger.finest("end WebSocketConnection.onData");
   }
 
   void _send() {
@@ -177,13 +178,15 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   void addData(Map m) {
     String json =  DsJson.encodeFrame(m, binaryOutCache);
     if (binaryOutCache.hasData) {
+      logger.finest("send binary");
       socket.add(binaryOutCache.export());
     }
+    logger.finest('send: $json');
     socket.add(json);
   }
 
   void _onDone() {
-    //logger.fine("socket disconnected");
+    logger.fine("socket disconnected");
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }

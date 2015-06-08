@@ -4,19 +4,19 @@ class BinaryData {
   /// used when only partial data is received
   /// don't merge them before it's finished
   List<Uint8List> mergingList;
-  
+
   Uint8List bytes;
-  BinaryData(Uint8List bytes){
+  BinaryData(Uint8List bytes) {
     this.bytes = bytes;
   }
-  BinaryData.fromList(List<int> list){
+  BinaryData.fromList(List<int> list) {
     if (list is Uint8List) {
       bytes = list;
     } else {
       bytes = new Uint8List.fromList(list);
     }
   }
-  BinaryData.fromBuffer(ByteBuffer buff){
+  BinaryData.fromBuffer(ByteBuffer buff) {
     bytes = buff.asUint8List();
   }
 }
@@ -38,25 +38,27 @@ class BinaryInCache {
       input = new Uint8List.fromList(inputList);
     }
     // TODO error handling
-    ByteData bytedata = new ByteData.view(input.buffer);
-    int headerSize = bytedata.getInt32(0);
-    int count = headerSize ~/9;
-    for (int i= 0; i < headerSize; i+=9) {
-      int start = bytedata.getInt32(i);
+    ByteData bytedata = new ByteData.view(
+        input.buffer, input.offsetInBytes, input.lengthInBytes);
+    int headerSize = bytedata.getUint32(0);
+    int count = headerSize ~/ 9;
+    for (int i = 0; i < headerSize; i += 9) {
+      int start = bytedata.getUint32(i);
       int end;
       if (i < headerSize - 9) {
-        end = bytedata.getUint32(i+9);
+        end = bytedata.getUint32(i + 9);
       } else {
         end = input.length;
       }
-      Uint8List bytes = input.sublist(start, end);
-      String id = bytedata.getUint32(i+4).toString();
-      bool finished = bytedata.getUint8(i+8) == 0;
+      Uint8List bytes =
+          input.buffer.asUint8List(start + input.offsetInBytes, end - start);
+      String id = bytedata.getUint32(i + 4).toString();
+      bool finished = bytedata.getUint8(i + 8) == 0;
       BinaryData data = caches[id];
       if (data == null) {
         // create new binary data
         data = new BinaryData(null);
-        if (finished){
+        if (finished) {
           data.bytes = bytes;
         } else {
           data.mergingList = [bytes];
@@ -84,8 +86,8 @@ class BinaryOutCache {
   bool get hasData {
     return !caches.isEmpty;
   }
-  int addBinaryData(ByteBuffer data){
-    int newId= ++id;
+  int addBinaryData(ByteBuffer data) {
+    int newId = ++id;
     caches[newId] = new BinaryData.fromBuffer(data);
     return newId;
   }
@@ -108,7 +110,7 @@ class BinaryOutCache {
 //      if (partial) {
 //        bytedata.setUint8(headpos + 8, 1);
 //      } else {
-        idToRemove.add(id);
+      idToRemove.add(id);
 //      }
       output.setAll(headpos + 9, data.bytes);
       headpos += 9;
@@ -132,9 +134,8 @@ abstract class DsJson {
     return instance.decodeJson(str);
   }
 
-
-
-  static String encodeFrame(Object val, BinaryOutCache cache, {bool pretty: false}) {
+  static String encodeFrame(Object val, BinaryOutCache cache,
+      {bool pretty: false}) {
     return instance.encodeJsonFrame(val, cache, pretty: pretty);
   }
 
@@ -145,7 +146,8 @@ abstract class DsJson {
   String encodeJson(Object val, {bool pretty: false});
   Object decodeJson(String str);
 
-  String encodeJsonFrame(Object val, BinaryOutCache cache, {bool pretty: false});
+  String encodeJsonFrame(Object val, BinaryOutCache cache,
+      {bool pretty: false});
   Object decodeJsonFrame(String str, BinaryInCache cache);
 }
 
@@ -154,10 +156,10 @@ class DsJsonCodecImpl implements DsJson {
     return null;
   }
   JsonEncoder encoder = new JsonEncoder(_safeEncoder);
-  
+
   JsonDecoder decoder = new JsonDecoder();
   JsonEncoder _prettyEncoder;
-  
+
   Object decodeJson(String str) {
     return decoder.convert(str);
   }
@@ -165,7 +167,8 @@ class DsJsonCodecImpl implements DsJson {
   String encodeJson(Object val, {bool pretty: false}) {
     if (pretty) {
       if (_prettyEncoder == null) {
-        _prettyEncoder = encoder = new JsonEncoder.withIndent("  ", _safeEncoder);
+        _prettyEncoder =
+            encoder = new JsonEncoder.withIndent("  ", _safeEncoder);
       } else {
         encoder = _prettyEncoder;
       }
@@ -173,27 +176,28 @@ class DsJsonCodecImpl implements DsJson {
     return encoder.convert(val);
   }
 
-  Object decodeJsonFrame(String str,  BinaryInCache cache) {
+  Object decodeJsonFrame(String str, BinaryInCache cache) {
     dynamic _reviver(key, value) {
       if (value is String && value.startsWith('\u001Bbytes,')) {
         return cache.fetchData(value.substring(7));
       }
       return value;
     }
-    JsonDecoder decoder = new JsonDecoder(_reviver);  
+    JsonDecoder decoder = new JsonDecoder(_reviver);
     return decoder.convert(str);
   }
 
-  String encodeJsonFrame(Object val, BinaryOutCache cache, {bool pretty: false}) {
+  String encodeJsonFrame(Object val, BinaryOutCache cache,
+      {bool pretty: false}) {
     dynamic _encoder(value) {
-        if (value is ByteBuffer){
+      if (value is ByteBuffer) {
         int id = cache.addBinaryData(value);
         return '\u001Bbytes,$id';
       }
       return null;
     }
     JsonEncoder encoder;
-    
+
     if (pretty) {
       encoder = new JsonEncoder.withIndent('  ', _encoder);
     } else {
