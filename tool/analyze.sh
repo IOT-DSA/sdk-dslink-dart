@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+set -e
+
 FILES=(
     bin/broker.dart
-    bin/broadcaster.dart
+    bin/beacon.dart
     lib/broker.dart
     lib/browser_client.dart
     lib/client.dart
