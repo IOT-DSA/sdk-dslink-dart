@@ -333,6 +333,10 @@ class SimpleNode extends LocalNodeImpl {
     return null;
   }
 
+  // called before a subscription request is returned
+  void onSubscribe() {
+  }
+
   /// after node is created
   void onCreated() {
   }
@@ -347,6 +351,12 @@ class SimpleNode extends LocalNodeImpl {
 
   /// after child node is created
   void onChildAdded(String name, Node node) {
+  }
+
+  @override
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int cacheLevel = 1]) {
+    onSubscribe();
+    return super.subscribe(callback, cacheLevel);
   }
 
   /// override default node creation logic for children

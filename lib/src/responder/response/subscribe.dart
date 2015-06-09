@@ -84,12 +84,12 @@ class RespSubscribeController {
     if (v < 1) v = 1;
     _cachedLevel = v;
   }
-  RespSubscribeController(this.response, this.node, this.sid, int catcheLevel) {
-    this.cacheLevel = catcheLevel;
+  RespSubscribeController(this.response, this.node, this.sid, int cacheLevel) {
+    this.cacheLevel = cacheLevel;
+    _listener = node.subscribe(addValue, this.cacheLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
       addValue(node.lastValueUpdate);
     }
-    _listener = node.subscribe(addValue, catcheLevel);
   }
 
   void addValue(ValueUpdate val) {
