@@ -1,4 +1,4 @@
-# DSLink SDK for Dart
+# DSLink SDK for Dart [![Build Status](https://travis-ci.org/IOT-DSA/sdk-dslink-dart.svg)](https://travis-ci.org/IOT-DSA/sdk-dslink-dart)
 
 DSLink SDK for Dart
 
