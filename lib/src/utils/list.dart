@@ -1,15 +1,32 @@
 part of dslink.utils;
 
-Uint8List mergeBytes(List<Uint8List> bytesList) {
-  int totalLen = 0;
-  for (Uint8List bytes in bytesList) {
-    totalLen += bytes.length;
+class ByteDataUtil {
+  static ByteData mergeBytes(List<ByteData> bytesList) {
+    int totalLen = 0;
+    for (ByteData bytes in bytesList) {
+      totalLen += bytes.lengthInBytes;
+    }
+    ByteData output = new ByteData(totalLen);
+    int pos = 0;
+    for (ByteData bytes in bytesList) {
+      output.buffer.asUint8List(pos).setAll(0, toUint8List(bytes));
+      pos += bytes.lengthInBytes;
+    }
+    return output;
   }
-  Uint8List output = new Uint8List(totalLen);
-  int pos = 0;
-  for (Uint8List bytes in bytesList) {
-    output.setAll(pos, bytes);
-    pos += bytes.length;
+
+  static ByteData fromUint8List(Uint8List uintsList) {
+    return uintsList.buffer.asByteData(
+        uintsList.offsetInBytes, uintsList.lengthInBytes);
   }
-  return output;
+  static Uint8List toUint8List(ByteData bytes) {
+    return bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
+  }
+
+  static ByteData fromList(List<int> input) {
+    if (input is Uint8List) {
+      return fromUint8List(input);
+    }
+    return fromUint8List(new Uint8List.fromList(input));
+  }
 }
