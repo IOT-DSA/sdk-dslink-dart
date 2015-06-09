@@ -26,6 +26,7 @@ class ClearConnsAction extends LocalNodeImpl {
   BrokerNodeProvider provider;
 
   ClearConnsAction(String path, this.provider) : super(path) {
+    configs[r"$name"] = "Clear Conns";
     configs[r"$invokable"] = "read";
   }
 
