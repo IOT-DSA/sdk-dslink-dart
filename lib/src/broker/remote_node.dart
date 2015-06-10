@@ -121,21 +121,21 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
       _listChangeController = new BroadcastStreamController<String>(
-          _onStartListListen, _onAllListCancel);
+          onStartListListen, onAllListCancel);
     }
     return _listChangeController;
   }
   Stream<String> get listStream => listChangeController.stream;
   StreamSubscription _listReqListener;
 
-  void _onStartListListen() {
+  void onStartListListen() {
     if (_listReqListener == null) {
       _listReqListener =
           _linkManager.requester.list(remotePath).listen(_onListUpdate);
     }
   }
 
-  void _onAllListCancel() {
+  void onAllListCancel() {
     if (_listReqListener != null) {
       _listReqListener.cancel();
       _listReqListener = null;

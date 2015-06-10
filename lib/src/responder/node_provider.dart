@@ -2,25 +2,29 @@ part of dslink.responder;
 
 /// a node that can be subscribed or listed by multiple responders
 abstract class LocalNode extends Node {
-  final StreamController<String> listChangeController =
-      new StreamController<String>();
+  BroadcastStreamController<String> _listChangeController;
+  BroadcastStreamController<String> get listChangeController {
+    if (_listChangeController == null) {
+      _listChangeController = new BroadcastStreamController<String>(
+          onStartListListen, onAllListCancel);
+    }
+    return _listChangeController;
+  }
+  Stream<String> get listStream => listChangeController.stream;
+  StreamSubscription _listReqListener;
+
+  void onStartListListen() {}
+
+  void onAllListCancel() {}
+  
 
   final String path;
 
   LocalNode(this.path);
 
-  Stream<String> _listStream;
-
-  Stream<String> get listStream {
-    if (_listStream == null) {
-      _listStream = listChangeController.stream.asBroadcastStream();
-    }
-    return _listStream;
-  }
-
   Map<Function, int> callbacks = new Map<Function, int>();
 
-  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]){
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]) {
     callbacks[callback] = cachelevel;
     return new RespSubscribeListener(this, callback);
   }
@@ -45,14 +49,15 @@ abstract class LocalNode extends Node {
       callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
-    } else if (_lastValueUpdate == null || _lastValueUpdate.value != update || force) {
+    } else if (_lastValueUpdate == null ||
+        _lastValueUpdate.value != update ||
+        force) {
       _lastValueUpdate = new ValueUpdate(update);
       callbacks.forEach((callback, cachelevel) {
         callback(_lastValueUpdate);
       });
     }
   }
-
 
   /// get a list of permission setting on this node
   PermissionList get permissions => null;
@@ -109,9 +114,9 @@ abstract class LocalNode extends Node {
   operator []=(String name, Object value) {
     if (name.startsWith(r"$")) {
       configs[name] = value;
-    } else if (name.startsWith(r"@")){
+    } else if (name.startsWith(r"@")) {
       attributes[name] = value;
-    } else if (value is Node){
+    } else if (value is Node) {
       addChild(name, value);
     }
   }
