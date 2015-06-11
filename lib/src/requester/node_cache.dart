@@ -69,13 +69,6 @@ class RemoteNode extends Node {
     if (profile is RemoteNode && !(profile as RemoteNode).isSelfUpdated()) {
       return false;
     }
-    if (mixins != null) {
-      for (Node mixin in mixins) {
-        if (mixin is RemoteNode && !mixin.isSelfUpdated()) {
-          return false;
-        }
-      }
-    }
     return true;
   }
   /// whether the node's own data is updated

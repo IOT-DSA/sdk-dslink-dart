@@ -60,14 +60,6 @@ class LocalNodeImpl extends LocalNode {
   /// get the permission of a responder on this node;
   int getPermission(Responder responder) {
     PermissionList ps = permissions;
-    if (ps == null && mixins != null) {
-      for (var node in mixins) {
-        if ((node as LocalNode).permissions != null) {
-          ps = (node as LocalNode).permissions;
-          break;
-        }
-      }
-    }
     if (ps != null) {
       return ps.getPermission(responder);
     }

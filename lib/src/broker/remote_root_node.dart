@@ -161,7 +161,7 @@ class RemoteLinkRootListController extends ListController {
        if (request.streamStatus != StreamStatus.initialize) {
          node.listed = true;
        }
-       onDefUpdated();
+       onProfileUpdated();
      }
    }
 }

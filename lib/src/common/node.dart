@@ -5,8 +5,6 @@ class Node {
 
   Node profile;
 
-  /// mixins are stored in a reverse order as the mixin string is defined
-  List<Node> mixins;
   Map<String, Object> attributes = {};
 
   Node();
@@ -14,14 +12,6 @@ class Node {
   Object getAttribute(String name) {
     if (attributes.containsKey(name)) {
       return attributes[name];
-    }
-
-    if (mixins != null) {
-      for (var mixin in mixins) {
-        if (mixin.attributes.containsKey(name)) {
-          return mixin.attributes[name];
-        }
-      }
     }
 
     if (profile != null && profile.attributes.containsKey(name)) {
@@ -36,13 +26,7 @@ class Node {
     if (configs.containsKey(name)) {
       return configs[name];
     }
-    if (mixins != null) {
-      for (var mixin in mixins) {
-        if (mixin.configs.containsKey(name)) {
-          return mixin.configs[name];
-        }
-      }
-    }
+
     if (profile != null && profile.configs.containsKey(name)) {
       return profile.configs[name];
     }
@@ -73,7 +57,6 @@ class Node {
       return children[name];
     }
 
-    // mixin is never allowed to change
     if (profile != null && profile.configs.containsKey(name)) {
       return profile.configs[name];
     }

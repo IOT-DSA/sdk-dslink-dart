@@ -98,8 +98,6 @@ class ListController implements RequestUpdater {
           }
           if (name == r'$is') {
             loadProfile(value);
-          } else if (name == r'$mixin') {
-            loadMixin(value);
           }
           changes.add(name);
           if (removed) {
@@ -131,15 +129,13 @@ class ListController implements RequestUpdater {
       if (_pendingRemoveDef) {
         _checkRemoveDef();
       }
-      onDefUpdated();
+      onProfileUpdated();
     }
   }
 
-  Map<String, ListDefListener> _defLoaders = new Map<String, ListDefListener>();
+  ListDefListener _profileLoader;
   void loadProfile(String defName) {
-    if (defName == 'node') {
-      return;
-    }
+    _ready = true;
     String defPath = defName;
     if (!defPath.startsWith('/')) {
       defPath = '/defs/profile/$defPath';
@@ -148,70 +144,31 @@ class ListController implements RequestUpdater {
         (node.profile as RemoteNode).remotePath == defPath) {
       return;
     }
-    if (node.profile != null) {
-      _pendingRemoveDef = true;
-    }
     node.profile = requester.nodeCache.getDefNode(defPath, defName);
+    if (defName == 'node') {
+      return;
+    }
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
-      _loadDef(node.profile);
+      _ready = false;
+      _profileLoader =
+             new ListDefListener(node.profile, requester, _onProfileUpdate);
     }
   }
-  String _lastMixin;
-  void loadMixin(String str) {
-    if (str == _lastMixin) {
-      return;
-    }
-    _lastMixin = str;
-    _pendingRemoveDef = true;
-    node.mixins = [];
-    for (String path in str.split('|').reversed) {
-      if (!path.startsWith('/')) {
-        path = '${node.remotePath}/$path';
-      }
-      var mixinNode = requester.nodeCache.getRemoteNode(path);
-      node.mixins.add(mixinNode);
-      if (_defLoaders.containsKey(path)) {
-        continue;
-      }
-      _loadDef(node);
-    }
-  }
-  void _loadDef(RemoteNode def) {
-    if (node == def || _defLoaders.containsKey(def.remotePath)) {
-      return;
-    }
-    ListDefListener listener =
-        new ListDefListener(def, requester, _onDefUpdate);
-    _defLoaders[def.remotePath] = listener;
-  }
+
   static const List<String> _ignoreProfileProps = const [
     r'$is',
     r'$permission',
     r'$settings'
   ];
-  void _onDefUpdate(RequesterListUpdate update) {
+  void _onProfileUpdate(RequesterListUpdate update) {
     changes.addAll(
         update.changes.where((str) => !_ignoreProfileProps.contains(str)));
-    if (update.streamStatus == StreamStatus.closed) {
-      if (_defLoaders.containsKey(update.node.remotePath)) {
-        _defLoaders.remove(update.node.remotePath);
-      }
-    }
-    onDefUpdated();
+    _ready = true;
+    onProfileUpdated();
     logger.fine('_onDefUpdated');
   }
-  bool _ready = false;
-  void onDefUpdated() {
-    if (!_ready) {
-      _ready = true;
-      for (ListDefListener listener in _defLoaders.values) {
-        if (!listener.ready) {
-          _ready = false;
-          break;
-        }
-      }
-    }
-
+  bool _ready = true;
+  void onProfileUpdated() {
     if (_ready) {
       if (request.streamStatus != StreamStatus.initialize) {
         _controller.add(new RequesterListUpdate(
@@ -220,14 +177,7 @@ class ListController implements RequestUpdater {
       }
       if (request.streamStatus == StreamStatus.closed) {
         _controller.close();
-        for (ListDefListener listener in _defLoaders.values) {
-          listener.cancel();
-        }
-        _defLoaders.clear();
       }
-    } else {
-      // TODO remove this debug code
-      logger.fine(_defLoaders.keys);
     }
   }
   bool _pendingRemoveDef = false;
@@ -260,10 +210,10 @@ class ListController implements RequestUpdater {
   }
 
   void _destroy() {
-    _defLoaders.forEach((str, listener) {
-      listener.cancel();
-    });
-    _defLoaders.clear();
+    if (_profileLoader != null) {
+      _profileLoader.cancel();
+      _profileLoader = null;
+    }
 
     if (request != null) {
       requester.closeRequest(request);
