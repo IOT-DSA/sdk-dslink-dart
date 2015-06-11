@@ -66,7 +66,7 @@ class LocalNodeImpl extends LocalNode {
     if (parentNode != null) {
       return parentNode.getPermission(responder);
     }
-    // TODO default permission should be NONE
+    // TODO Permission permission should be NONE
     return Permission.WRITE;
   }
 

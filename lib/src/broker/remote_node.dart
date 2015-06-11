@@ -101,6 +101,8 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     if (ps != null) {
       ps.getPermission(responder);
     }
+    // TODO Permission temp workaround before user permission is implemented
+    return Permission.READ;
     return Permission.NONE;
   }
 

@@ -3,8 +3,10 @@ part of dslink.responder;
 class ListResponse extends Response {
   final LocalNode node;
   StreamSubscription _nodeChangeListener;
+  int _permission;
   ListResponse(Responder responder, int rid, this.node)
       : super(responder, rid) {
+    _permission = node.getPermission(responder);
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
       responder.addProcessor(processor);
@@ -16,6 +18,12 @@ class ListResponse extends Response {
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
   bool initialResponse = true;
   void changed(String key) {
+    if (_permission == Permission.NONE) {
+      return;
+    }
+    if (_permission < Permission.CONFIG && key.startsWith(r'$$')) {
+      return;
+    }
     if (changes.isEmpty) {
       changes.add(key);
       responder.addProcessor(processor);
@@ -27,7 +35,6 @@ class ListResponse extends Response {
   void processor() {
     Object updateIs;
     Object updateBase;
-    Object updateMixin;
     List updateConfigs = [];
     List updateAttributes = [];
     List updateChildren = [];
@@ -54,9 +61,7 @@ class ListResponse extends Response {
           updateIs = update;
         } else if (name == r'$base') {
           updateBase = update;
-        } else if (name == r'$mixin') {
-          updateMixin = update;
-        } else {
+        } else if (_permission == Permission.CONFIG || !name.startsWith(r'$$')) {
           updateConfigs.add(update);
         }
       });
@@ -78,9 +83,7 @@ class ListResponse extends Response {
           } else {
             update = {'name': change, 'change': 'remove'};
           }
-          if (change == r'$mixin') {
-            updateMixin = update;
-          } else {
+          if (_permission == Permission.CONFIG || !change.startsWith(r'$$')) {
             updateConfigs.add(update);
           }
         } else if (change.startsWith(r'@')) {
@@ -110,9 +113,6 @@ class ListResponse extends Response {
     }
     if (updateIs != null) {
       updates.add(updateIs);
-    }
-    if (updateMixin != null) {
-      updates.add(updateMixin);
     }
     updates
       ..addAll(updateConfigs)

@@ -128,18 +128,19 @@ class Responder extends ConnectionHandler {
           } else {
             continue;
           }
-          if (p['sid'] is int){
+          if (p['sid'] is int) {
             sid = p['sid'];
           } else {
             continue;
           }
-          if (p['cache'] is int){
+          if (p['cache'] is int) {
             cacheLevel = p['cache'];
           }
         }
         Path path = Path.getValidNodePath(pathstr);
         if (path != null && path.absolute) {
-          _subscription.add(path.path, nodeProvider.getNode(path.path), sid, cacheLevel);
+          _subscription.add(
+              path.path, nodeProvider.getNode(path.path), sid, cacheLevel);
         }
       }
       _closeResponse(m['rid']);
@@ -154,7 +155,6 @@ class Responder extends ConnectionHandler {
         if (sid is int) {
           _subscription.remove(sid);
         }
-
       }
       _closeResponse(m['rid']);
     } else {
@@ -174,9 +174,16 @@ class Responder extends ConnectionHandler {
 //          }
 //        });
 //      }
-      var node = nodeProvider.getNode(path.path);
-      node.invoke(
-          m['params'], this, addResponse(new InvokeResponse(this, rid, node)));
+      LocalNode node = nodeProvider.getNode(path.path);
+      Object permission = node.getConfig(r'$invokable');
+      if (permission is String &&
+          Permission.nameParser.containsKey(permission) &&
+          Permission.nameParser[permission] <= node.getPermission(this)) {
+        node.invoke(m['params'], this,
+            addResponse(new InvokeResponse(this, rid, node)));
+      } else {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+      }
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
@@ -194,14 +201,28 @@ class Responder extends ConnectionHandler {
     Object value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      nodeProvider.getNode(path.path).setValue(
-          value, this, addResponse(new Response(this, rid)));
+      LocalNode node = nodeProvider.getNode(path.path);
+      if (node.getPermission(this) < Permission.WRITE) {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+      } else {
+        node.setValue(value, this, addResponse(new Response(this, rid)));
+      }
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).setConfig(
-          path.name, value, this, addResponse(new Response(this, rid)));
-    } else if (path.isAttribute) {
-        nodeProvider.getNode(path.parentPath).setAttribute(
+      LocalNode node = nodeProvider.getNode(path.parentPath);
+      if (node.getPermission(this) < Permission.CONFIG) {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+      } else {
+        node.setConfig(
             path.name, value, this, addResponse(new Response(this, rid)));
+      }
+    } else if (path.isAttribute) {
+      LocalNode node = nodeProvider.getNode(path.parentPath);
+      if (node.getPermission(this) < Permission.WRITE) {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+      } else {
+        node.setAttribute(
+            path.name, value, this, addResponse(new Response(this, rid)));
+      }
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';
@@ -218,11 +239,21 @@ class Responder extends ConnectionHandler {
     if (path.isNode) {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     } else if (path.isConfig) {
-      nodeProvider.getNode(path.parentPath).removeConfig(
-          path.name, this, addResponse(new Response(this, rid)));
+      LocalNode node = nodeProvider.getNode(path.parentPath);
+      if (node.getPermission(this) < Permission.CONFIG) {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+      } else {
+        node.removeConfig(
+            path.name, this, addResponse(new Response(this, rid)));
+      }
     } else if (path.isAttribute) {
-      nodeProvider.getNode(path.parentPath).removeAttribute(
-          path.name, this, addResponse(new Response(this, rid)));
+      LocalNode node = nodeProvider.getNode(path.parentPath);
+      if (node.getPermission(this) < Permission.WRITE) {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+      } else {
+        node.removeAttribute(
+            path.name, this, addResponse(new Response(this, rid)));
+      }
     } else {
       // shouldn't be possible to reach here
       throw 'unexpected case';

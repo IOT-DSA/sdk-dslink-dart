@@ -56,7 +56,6 @@ class Configs {
   static const Map _globalConfigs = const {
     r'$is': const {'type': 'profile'},
     r'$interface': const {'type': 'interface'},
-    r'$mixin': const {'type': 'mixin', 'writable': Permission.CONFIG},
     /// list of permissions
     r'$permissions': const {
       'type': 'list',

@@ -17,15 +17,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
 
   int getPermission(Responder responder) {
     PermissionList ps = permissions;
-// TODO deal with node mixin
-//    if (ps == null && mixins != null) {
-//      for (var node in mixins) {
-//        if ((node as LocalNode).permissions != null) {
-//          ps = (node as LocalNode).permissions;
-//          break;
-//        }
-//      }
-//    }
+
     if (ps != null) {
       return ps.getPermission(responder);
     }

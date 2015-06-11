@@ -34,7 +34,7 @@ class SubscribeResponse extends Response {
       controller.cacheLevel = cacheLevel;
     } else {
       RespSubscribeController controller =
-          new RespSubscribeController(this, node, sid, cacheLevel);
+          new RespSubscribeController(this, node, sid, node.getPermission(responder) > Permission.NONE, cacheLevel);
       subsriptions[path] = controller;
       subsriptionids[sid] = controller;
     }
@@ -74,6 +74,15 @@ class RespSubscribeController {
   RespSubscribeListener _listener;
   int sid;
 
+  bool _permitted = true;
+  void set permitted(bool val) {
+    if (val == _permitted) return;
+    _permitted = val;
+    if (_permitted && lastValues.length > 0) {
+      response.subscriptionChanged(this);
+    }
+  }
+    
   ListQueue<ValueUpdate> lastValues = new ListQueue<ValueUpdate>();
 
   int _cachedLevel;
@@ -84,7 +93,7 @@ class RespSubscribeController {
     if (v < 1) v = 1;
     _cachedLevel = v;
   }
-  RespSubscribeController(this.response, this.node, this.sid, int cacheLevel) {
+  RespSubscribeController(this.response, this.node, this.sid, this._permitted, int cacheLevel) {
     this.cacheLevel = cacheLevel;
     _listener = node.subscribe(addValue, this.cacheLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
@@ -99,7 +108,9 @@ class RespSubscribeController {
     }
     // TODO, don't allow this to be called from same controller more oftern than 100ms
     // the first response can happen ASAP, but
-    response.subscriptionChanged(this);
+    if (_permitted) {
+      response.subscriptionChanged(this);
+    }
   }
   void mergeValues() {
     int toRemove = lastValues.length - _cachedLevel;
