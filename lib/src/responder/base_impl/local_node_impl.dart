@@ -67,7 +67,7 @@ class LocalNodeImpl extends LocalNode {
       return parentNode.getPermission(responder);
     }
     // TODO Permission permission should be NONE
-    return Permission.WRITE;
+    return Permission.CONFIG;
   }
 
   void updateList(String name, [int permission = Permission.READ]) {

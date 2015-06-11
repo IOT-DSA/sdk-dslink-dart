@@ -56,7 +56,7 @@ class PermissionList {
 
   int getPermission(Responder responder) {
     // TODO Permission temp workaround before user permission is implemented
-    return Permission.READ;
+    return Permission.CONFIG;
     if (idMatchs.containsKey(responder.reqId)) {
       return idMatchs[responder.reqId];
     }
