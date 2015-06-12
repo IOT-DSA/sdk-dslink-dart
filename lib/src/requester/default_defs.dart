@@ -62,7 +62,7 @@ class DefaultDefNodes {
         },
         {
           "name": "value",
-          "type": "object"
+          "type": "dynamic"
         }
       ]
     }
