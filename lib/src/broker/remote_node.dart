@@ -211,7 +211,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool get exists => true;
 
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response) {
+      Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
     // TODO, when invoke closed without any data, also need to updateStream to close
     StreamSubscription sub = _linkManager.requester
         .invoke(remotePath, params)
@@ -291,9 +291,9 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     return response;
   }
 
-  Response setValue(Object value, Responder responder, Response response) {
+  Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
     // TODO check permission on RemoteLinkRootNode
-    _linkManager.requester.set(remotePath, value).then((update) {
+    _linkManager.requester.set(remotePath, value, maxPermission).then((update) {
       response.close();
     }).catchError((err) {
       if (err is DSError) {

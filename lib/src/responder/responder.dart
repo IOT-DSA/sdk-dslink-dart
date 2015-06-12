@@ -165,20 +165,14 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
-//      Map params = {};
-//      if (m['params'] is Map) {
-//        (m['params'] as Map).forEach((key, value) {
-//          // only allow primitive types in parameters
-//          if (value is! List && value is! Map) {
-//            params[key] = value;
-//          }
-//        });
-//      }
       LocalNode node = nodeProvider.getNode(path.path);
-      Object permission = node.getConfig(r'$invokable');
-      if (permission is String &&
-          Permission.nameParser.containsKey(permission) &&
-          Permission.nameParser[permission] <= node.getPermission(this)) {
+      
+      int permission = node.getPermission(this);
+      int maxPermit = Permission.parse(m['permit']);
+      if (maxPermit < permission) {
+        permission = maxPermit;
+      }
+      if (Permission.parse(node.getConfig(r'$invokable')) <= permission) {
         node.invoke(m['params'], this,
             addResponse(new InvokeResponse(this, rid, node)));
       } else {
@@ -202,10 +196,15 @@ class Responder extends ConnectionHandler {
     int rid = m['rid'];
     if (path.isNode) {
       LocalNode node = nodeProvider.getNode(path.path);
-      if (node.getPermission(this) < Permission.WRITE) {
-        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
-      } else {
+      int permission = node.getPermission(this);
+      int maxPermit = Permission.parse(m['permit']);
+      if (maxPermit < permission) {
+        permission = maxPermit;
+      }
+      if (Permission.parse(node.getConfig(r'$writable')) <= permission) {
         node.setValue(value, this, addResponse(new Response(this, rid)));
+      } else {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       }
     } else if (path.isConfig) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
