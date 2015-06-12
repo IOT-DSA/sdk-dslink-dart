@@ -79,13 +79,13 @@ class Requester extends ConnectionHandler {
     return node._list(this);
   }
 
-  Stream<RequesterInvokeUpdate> invoke(String path, Map params) {
+  Stream<RequesterInvokeUpdate> invoke(String path, Map params, [int maxPermission = Permission.CONFIG]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
-    return node._invoke(params, this);
+    return node._invoke(params, this, maxPermission);
   }
 
-  Future<RequesterUpdate> set(String path, Object value) {
-    return new SetController(this, path, value).future;
+  Future<RequesterUpdate> set(String path, Object value, [int maxPermission = Permission.CONFIG]) {
+    return new SetController(this, path, value, maxPermission).future;
   }
 
   Future<RequesterUpdate> remove(String path) {

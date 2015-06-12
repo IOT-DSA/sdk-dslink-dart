@@ -110,7 +110,7 @@ class LocalNodeImpl extends LocalNode {
     return response..close(config.removeConfig(this, responder));
   }
 
-  Response setValue(Object value, Responder responder, Response response) {
+  Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
     if (getPermission(responder) >= Permission.WRITE &&
         this.getConfig(r'$writable') == 'write') {
       updateValue(value);

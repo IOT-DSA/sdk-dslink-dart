@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dslink.common;
 
 class Permission {
   /// now allowed to do anything
@@ -27,6 +27,13 @@ class Permission {
     'config': CONFIG,
     'never': NEVER
   };
+  
+  static int parse(Object obj, [int defaultVal = NEVER]) {
+    if (obj is String && nameParser.containsKey(obj)) {
+      return nameParser[obj];
+    }
+    return defaultVal;
+  }
 }
 
 class PermissionList {

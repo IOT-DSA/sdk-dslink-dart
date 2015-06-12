@@ -62,7 +62,7 @@ class InvokeController implements RequestUpdater {
   Request _request;
   List<TableColumn> _cachedColumns;
 
-  InvokeController(this.node, this.requester, Map params) {
+  InvokeController(this.node, this.requester, Map params, [int maxPermission = Permission.CONFIG]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
@@ -71,6 +71,9 @@ class InvokeController implements RequestUpdater {
       'path': node.remotePath,
       'params': params
     };
+    if (maxPermission != Permission.CONFIG) {
+      reqMap['permit'] = Permission.names[maxPermission];
+    }
 // TODO update node before invoke to load columns
 //    if(!node.isUpdated()) {
 //      node._list().listen(_onNodeUpdate)

@@ -15,6 +15,7 @@ part 'src/common/value.dart';
 part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
 part 'src/common/stream_conn.dart';
+part 'src/common/permission.dart';
 
 //final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
 final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));

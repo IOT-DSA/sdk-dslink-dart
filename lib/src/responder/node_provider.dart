@@ -79,7 +79,7 @@ abstract class LocalNode extends Node {
   bool get hasSubscriber => callbacks.isNotEmpty;
 
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response) {
+      Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
@@ -103,7 +103,7 @@ abstract class LocalNode extends Node {
   }
 
   /// set node value
-  Response setValue(Object value, Responder responder, Response response) {
+  Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
