@@ -64,7 +64,8 @@ abstract class LocalNode extends Node {
 
   /// get the permission of a responder (actually the permission of the linked requester)
   int getPermission(Responder responder) {
-    return Permission.READ;
+    // normal responder allow all access, this is only needed in broker
+    return Permission.CONFIG;
   }
 
   /// list and subscribe can be called on a node that doesn't exist
