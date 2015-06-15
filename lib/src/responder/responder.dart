@@ -172,7 +172,7 @@ class Responder extends ConnectionHandler {
       if (maxPermit < permission) {
         permission = maxPermit;
       }
-      if (Permission.parse(node.getConfig(r'$invokable')) <= permission) {
+      if (node.getInvokePermission() <= permission) {
         node.invoke(m['params'], this,
             addResponse(new InvokeResponse(this, rid, node)));
       } else {
