@@ -79,6 +79,10 @@ abstract class LocalNode extends Node {
 
   bool get hasSubscriber => callbacks.isNotEmpty;
 
+  int getInvokePermission(){
+    return Permission.parse(getConfig(r'$invokable'));
+  }
+  
   InvokeResponse invoke(
       Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
     return response..close();

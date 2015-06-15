@@ -209,7 +209,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool get valueReady => _valueReady;
 
   bool get exists => true;
-
+  /// requester invoke function
   InvokeResponse invoke(
       Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
     // TODO, when invoke closed without any data, also need to updateStream to close
@@ -227,7 +227,10 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     };
     return response;
   }
-
+  /// for invoke permission as responder
+  int getInvokePermission(){
+    return Permission.parse(getConfig(r'$invokable'), Permission.READ);
+  }
   Response removeAttribute(
       String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
