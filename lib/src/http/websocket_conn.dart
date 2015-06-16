@@ -52,11 +52,14 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   /// when the count is 3, disconnect the link (>=60 seconds)
   int _dataReceiveCount = 0;
 
+  int throughput = 0;
+  
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
       this.close();
       return;
     }
+    
     _dataReceiveCount ++;
 
     if (_dataSent) {
@@ -98,6 +101,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _dataReceiveCount = 0;
     Map m;
     if (data is List<int>) {
+      throughput += data.length;
       if (data.length != 0 && data[0] == 0) {
         logger.finest(" receive binary length ${data.length}");
         // binary channel
@@ -121,6 +125,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         _responderChannel.onReceiveController.add(m['requests']);
       }
     } else if (data is String) {
+      throughput += data.length;
       try {
         m = DsJson.decodeFrame(data, binaryInCache);
         logger.fine("WebSocket JSON: ${m}");
@@ -182,6 +187,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       socket.add(binaryOutCache.export());
     }
     logger.finest('send: $json');
+    throughput += json.length;
     socket.add(json);
   }
 
@@ -214,3 +220,5 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _onDone();
   }
 }
+
+

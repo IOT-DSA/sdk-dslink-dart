@@ -206,7 +206,7 @@ class HttpServerLink implements ServerLink {
     updateResponseBeforeWrite(request, null, null, true);
 
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
-      WebSocketConnection wsconnection = createWsConnection(websocket);
+      ServerWebSocket wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
 
       wsconnection.onRequesterReady.then((channel) {
@@ -245,8 +245,8 @@ class HttpServerLink implements ServerLink {
     });
   }
 
-  WebSocketConnection createWsConnection(WebSocket websocket) {
-    return new WebSocketConnection(websocket, enableTimeout:enableTimeout);
+  ServerWebSocket createWsConnection(WebSocket websocket) {
+    return new ServerWebSocket(websocket, enableTimeout:enableTimeout);
   }
 
   StreamConnection createStreamConnection(StreamConnectionAdapter adapter) {

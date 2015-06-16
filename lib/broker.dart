@@ -3,6 +3,7 @@ library dslink.broker;
 import 'responder.dart';
 import 'requester.dart';
 import 'common.dart';
+import 'server.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'dart:io';

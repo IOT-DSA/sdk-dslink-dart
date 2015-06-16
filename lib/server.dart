@@ -17,6 +17,7 @@ export 'src/crypto/pk.dart';
 part 'src/http/server_http_conn.dart';
 part 'src/http/server_link.dart';
 part 'src/http/server.dart';
+part 'src/http/server_websocket.dart';
 
 ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
 
