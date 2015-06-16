@@ -16,3 +16,4 @@ part 'src/broker/remote_requester.dart';
 part 'src/broker/broker_discovery.dart';
 part 'src/broker/broker_permissions.dart';
 part 'src/broker/broker_alias.dart';
+part 'src/broker/user_node.dart';

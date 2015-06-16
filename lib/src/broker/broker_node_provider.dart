@@ -14,7 +14,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   IPermissionManager permissions;
     
   LocalNodeImpl connsNode;
-  Map rootStructure = {'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
+  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
 
   BrokerNodeProvider() {
     permissions = new BrokerPermissions();
@@ -51,13 +51,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       String data = connsFile.readAsStringSync();
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
-        RemoteLinkRootNode node = getNode('/conns/$name');
+        String path = '/conns/$name';
+        RemoteLinkRootNode node = getNode(path);
         node.load(m, this);
         if (node.configs[r'$$dsId'] is String) {
-          _id2connName[node.configs[r'$$dsId']] = name;
-          _connName2id[name] = node.configs[r'$$dsId'];
-        } else if (node.configs[r'$$deviceId'] is String) {
-          _pendingDevices[node.configs[r'$$deviceId']] = name;
+          _id2connPath[node.configs[r'$$dsId']] = path;
+          _connPath2id[path] = node.configs[r'$$dsId'];
         }
       });
     } catch (err) {
@@ -116,15 +115,26 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (node != null) {
       return node;
     }
-
-    if (path.startsWith('/conns/')) {
+    if (path.startsWith('/users/')) {
+      String username = path.split('/')[2];
+      int pos = path.indexOf('/#');
+      if (pos > 0) {
+        // link node
+        
+      } else {
+        // user node
+        
+      }
+      
+    } else if (path.startsWith('/conns/')) {
       String connName = path.split('/')[2];
-      RemoteLinkManager conn = conns[connName];
+      String connPath = '/conns/$connName';
+      RemoteLinkManager conn = conns[connPath];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-        conn = new RemoteLinkManager(this, '/conns/$connName', this);
-        conns[connName] = conn;
-        nodes['/conns/$connName'] = conn.rootNode;
+        conn = new RemoteLinkManager(this, connPath, connName, this);
+        conns[connPath] = conn;
+        nodes[connPath] = conn.rootNode;
         connsNode.children[connName] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
         conn.inTree = true;
@@ -147,45 +157,45 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   /// dsId to server links
   final Map<String, ServerLink> _links = new Map<String, ServerLink>();
-  final Map<String, String> _id2connName = new Map<String, String>();
-  final Map<String, String> _connName2id = new Map<String, String>();
+  final Map<String, String> _id2connPath = new Map<String, String>();
+  final Map<String, String> _connPath2id = new Map<String, String>();
 
-  String getConnName(String dsId) {
-    if (_id2connName.containsKey(dsId)) {
-      return _id2connName[dsId];
+  String getConnPath(String dsId) {
+    if (_id2connPath.containsKey(dsId)) {
+      return _id2connPath[dsId];
       // TODO is it possible same link get added twice?
     } else if (dsId.length < 43) {
       // user link
-      String connName = dsId;
+      String connPath = '/conns/$dsId';
       int count = 0;
       // find a connName for it
-      while (_connName2id.containsKey(connName)) {
-        connName = '$dsId-${count++}';
+      while (_connPath2id.containsKey(connPath)) {
+        connPath = '/conns/$dsId-${count++}';
       }
-      _connName2id[connName] = dsId;
-      _id2connName[dsId] = connName;
-      return connName;
+      _connPath2id[connPath] = dsId;
+      _id2connPath[dsId] = connPath;
+      return connPath;
     } else {
       // device link
-      String connName;
+      String connPath;
 
       // find a connName for it, keep append characters until find a new name
       int i = 43;
-      if (dsId == '') i = 42;
+      if (dsId.length == 43) i = 42;
       for (; i >= 0; --i) {
-        connName = dsId.substring(0, dsId.length - i);
-        if (i == 43 && connName.length > 1 && connName.endsWith('-')) {
+        connPath = '/conns/${dsId.substring(0, dsId.length - i)}';
+        if (i == 43 && connPath.length > 8 && connPath.endsWith('-')) {
           // remove the last - in the name;
-          connName = connName.substring(0, connName.length - 1);
+          connPath = connPath.substring(0, connPath.length - 1);
         }
-        if (!_connName2id.containsKey(connName)) {
-          _connName2id[connName] = dsId;
-          _id2connName[dsId] = connName;
+        if (!_connPath2id.containsKey(connPath)) {
+          _connPath2id[connPath] = dsId;
+          _id2connPath[dsId] = connPath;
           break;
         }
       }
       DsTimer.timerOnceAfter(saveConns, 3000);
-      return connName;
+      return connPath;
     }
   }
 
@@ -195,7 +205,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       str = '$str ${link.session}';
     }
 
-    String connName;
+    String connPath;
     // TODO update children list of /conns node
     if (_links.containsKey(str)) {
       // TODO is it possible same link get added twice?
@@ -203,34 +213,27 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _links[str] = link;
       if (link.session == null) {
         // don't create node for requester node with session
-        connName = getConnName(str);
-        getNode('/conns/$connName').configs[r'$$dsId'] = link.dsId;
-        logger.info('new node added at /conns/$connName');
+        connPath = getConnPath(str);
+        getNode(connPath).configs[r'$$dsId'] = link.dsId;
+        logger.info('new node added at $connPath');
       }
     }
   }
 
-  /// [deviceId] is not a secure method of create link, only use it in https
-  ServerLink getLink(String dsId, {String sessionId:'', String deviceId}) {
-    if (deviceId != null && _pendingDevices.containsKey(deviceId)) {
-      _id2connName[dsId] = _pendingDevices[deviceId];
-      _connName2id[_pendingDevices[deviceId]] = dsId;
-      _pendingDevices.remove(deviceId);
-      DsTimer.timerOnceAfter(saveConns, 3000);
-    }
+  ServerLink getLink(String dsId, {String sessionId:''}) {
     String str = dsId;
     if (sessionId != null && sessionId != '') {
       str = '$dsId sessionId';
     }
     if (_links[str] != null) {
-      String connName = getConnName(str);
-      RemoteLinkNode node = getNode('/conns/$connName');
-      var conn = node._linkManager;
+      String connPath = getConnPath(str);
+      RemoteLinkNode node = getNode(connPath);
+      RemoteLinkManager conn = node._linkManager;
       if (!conn.inTree) {
-        connsNode.children[connName] = conn.rootNode;
+        connsNode.children[conn.name] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
         conn.inTree = true;
-        connsNode.updateList(connName);
+        connsNode.updateList(conn.name);
       }
     }
     return _links[str];
@@ -243,23 +246,23 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   Requester getRequester(String dsId) {
-    String connName = getConnName(dsId);
-    if (conns.containsKey(connName)) {
-      return conns[connName].requester;
+    String connPath = getConnPath(dsId);
+    if (conns.containsKey(getConnPath)) {
+      return conns[connPath].requester;
     }
     /// create the RemoteLinkManager
-    RemoteLinkNode node = getNode('/conns/$connName');
+    RemoteLinkNode node = getNode(connPath);
     return node._linkManager.requester;
   }
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
                          [String sessionId = '']) {
-    String connName = getConnName(dsId);
-    if (conns.containsKey(connName)) {
-      return conns[connName].getResponder(nodeProvider, sessionId);
+    String connPath = getConnPath(dsId);
+    if (conns.containsKey(connPath)) {
+      return conns[connPath].getResponder(nodeProvider, sessionId);
     }
     /// create the RemoteLinkManager
-    RemoteLinkNode node = getNode('/conns/$connName');
+    RemoteLinkNode node = getNode(connPath);
     return node._linkManager.getResponder(nodeProvider, sessionId);
   }
 }

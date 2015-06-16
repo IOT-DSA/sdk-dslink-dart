@@ -104,7 +104,7 @@ abstract class ServerLinkManager {
 
   void removeLink(ServerLink link);
 
-  ServerLink getLink(String dsId, {String sessionId:'', String deviceId});
+  ServerLink getLink(String dsId, {String sessionId:''});
 
   Requester getRequester(String dsId);
 
