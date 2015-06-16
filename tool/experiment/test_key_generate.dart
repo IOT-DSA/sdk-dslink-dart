@@ -14,8 +14,11 @@ void main() {
   DSRandom.instance.randomize(rslt);
 
   var t1 = (new DateTime.now()).millisecondsSinceEpoch;
+  PrivateKey key ;
+  for (int i=0; i< 50; ++i)
   // generate private key
-  PrivateKey key = new PrivateKey.generate();
+  key = new PrivateKey.generate();
+  
   var t2 = (new DateTime.now()).millisecondsSinceEpoch;
 
   print('takes ${t2-t1} ms to generate key');

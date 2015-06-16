@@ -1,7 +1,8 @@
 import "package:dslink/dslink.dart";
-import "package:dslink/utils.dart" show DsTimer;
+import "package:dslink/utils.dart" show BinaryData, ByteDataUtil, DsTimer;
 
 import "dart:math" as Math;
+import 'dart:typed_data';
 
 LinkProvider link;
 int lastNum;
@@ -14,14 +15,14 @@ class AddNodeAction extends SimpleNode {
   Object onInvoke(Map params) {
     addNode.configs[r'$lastNum'] = ++lastNum;
 
-    String nodeName = '/node_$lastNum';
+    String nodeName = '/node%2F_$lastNum';
     link.addNode(nodeName, {
-      r'$type':'number',
+      r'$type':'string',
       r'$is':'rng',
-      '?value':0,
+      '?value':'123',//ByteDataUtil.fromList([1,2,3,1,2,3]),
       'remove': { // an action to delete the node
         r'$is':'removeSelfAction',
-        r'$invokable': 'read',
+        r'$invokable': 'write',
       }
     });
     link.save(); // save json
@@ -50,12 +51,12 @@ class RngNode extends SimpleNode {
 
   @override
   void onCreated() {
-    updateValue(rng.nextDouble());
+    //updateValue(rng.nextDouble());
   }
 
   void updateRng() {
     if (!removed) {
-      updateValue(rng.nextDouble());
+      updateValue(ByteDataUtil.fromList([1,2,3,1,2,3]));
       DsTimer.timerOnceAfter(updateRng, 1000);
     }
   }
@@ -66,9 +67,9 @@ main(List<String> args) {
   Map defaultNodes = {
     'add': {
       r'$is': 'addNodeAction',
-      r'$params':{"name":{"type":"string"}, "source":{"type":"string"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"string"}, "copyToPath":{"type":"string"}},
+      r'$params':{"name":{"type":"string","placeholder":'ccc',"description":"abcd"}, "source":{"type":"string",'editor':"password"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"string"}, "copyToPath":{"type":"string"}},
       //r'$columns':[{'name':'name','type':'string'}],
-      r'$invokable': 'read',
+      r'$invokable': 'write',
       r'$lastNum':0
     }
   };

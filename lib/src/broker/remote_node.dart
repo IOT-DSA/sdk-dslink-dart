@@ -94,29 +94,14 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     return null;
   }
 
-  PermissionList permissions;
-  // TODO, implement this in rootNode and use its configs and parent node
-  int getPermission(Responder responder) {
-    PermissionList ps = permissions;
-    if (ps != null) {
-      ps.getPermission(responder);
-    }
-    // TODO Permission temp workaround before user permission is implemented
-    return Permission.CONFIG;
-    return Permission.NONE;
-  }
-
   LocalNode operator ~()=>this['/'];
+
+  IPermissionManager get permissions => broker.permissions;
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
 
   ListController createListController(Requester requester) {
    return new RemoteLinkListController(this, requester);
-  }
-
-  PermissionList get permissions => null;
-  int getPermission(Responder responder) {
-    return _linkManager.getPermission(responder);
   }
 
   BroadcastStreamController<String> _listChangeController;

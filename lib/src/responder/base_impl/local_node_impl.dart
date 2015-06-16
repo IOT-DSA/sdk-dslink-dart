@@ -7,8 +7,6 @@ abstract class NodeProviderImpl extends NodeProvider {
 class LocalNodeImpl extends LocalNode {
   LocalNode parentNode;
 
-  PermissionList permissions;
-
   LocalNodeImpl(String path) : super(path);
   Map serialize(bool withChildren) {
     var rslt = {};
@@ -57,46 +55,25 @@ class LocalNodeImpl extends LocalNode {
     _loaded = true;
   }
 
-  /// get the permission of a responder on this node;
-  int getPermission(Responder responder) {
-    PermissionList ps = permissions;
-    if (ps != null) {
-      return ps.getPermission(responder);
-    }
-    if (parentNode != null) {
-      return parentNode.getPermission(responder);
-    }
-    // TODO Permission permission should be NONE
-    return Permission.CONFIG;
-  }
-
-  void updateList(String name, [int permission = Permission.READ]) {
+  void updateList(String name) {
     listChangeController.add(name);
   }
   Response setAttribute(
-      String name, Object value, Responder responder, Response response) {
-    if (getPermission(responder) >= Permission.WRITE) {
-      if (!attributes.containsKey(name) || attributes[name] != value) {
-        attributes[name] = value;
-        updateList(name);
-      }
-      return response..close();
-    } else {
-      return response..close(DSError.PERMISSION_DENIED);
+    String name, Object value, Responder responder, Response response) {
+    if (!attributes.containsKey(name) || attributes[name] != value) {
+      attributes[name] = value;
+      updateList(name);
     }
+    return response..close();
   }
 
   Response removeAttribute(
-      String name, Responder responder, Response response) {
-    if (getPermission(responder) >= Permission.WRITE) {
-      if (attributes.containsKey(name)) {
-        attributes.remove(name);
-        updateList(name);
-      }
-      return response..close();
-    } else {
-      return response..close(DSError.PERMISSION_DENIED);
+    String name, Responder responder, Response response) {
+    if (attributes.containsKey(name)) {
+      attributes.remove(name);
+      updateList(name);
     }
+    return response..close();
   }
 
   Response setConfig(
@@ -111,13 +88,8 @@ class LocalNodeImpl extends LocalNode {
   }
 
   Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
-    if (getPermission(responder) >= Permission.WRITE &&
-        this.getConfig(r'$writable') == 'write') {
-      updateValue(value);
-      // TODO check value type
-      return response..close();
-    } else {
-      return response..close(DSError.PERMISSION_DENIED);
-    }
+    updateValue(value);
+    // TODO check value type
+    return response..close();
   }
 }

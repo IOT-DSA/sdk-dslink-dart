@@ -59,15 +59,6 @@ abstract class LocalNode extends Node {
     }
   }
 
-  /// get a list of permission setting on this node
-  PermissionList get permissions => null;
-
-  /// get the permission of a responder (actually the permission of the linked requester)
-  int getPermission(Responder responder) {
-    // normal responder allow all access, this is only needed in broker
-    return Permission.CONFIG;
-  }
-
   /// list and subscribe can be called on a node that doesn't exist
   /// other api like set remove, invoke, can only be applied to existing node
   bool get exists => true;
@@ -139,4 +130,6 @@ abstract class NodeProvider {
   }
 
   LocalNode operator ~() => this["/"];
+  
+  IPermissionManager get permissions;
 }

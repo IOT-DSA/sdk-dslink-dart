@@ -6,7 +6,7 @@ class ListResponse extends Response {
   int _permission;
   ListResponse(Responder responder, int rid, this.node)
       : super(responder, rid) {
-    _permission = node.getPermission(responder);
+    _permission = responder.nodeProvider.permissions.getPermission(node.path, responder);
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
       responder.addProcessor(processor);

@@ -10,6 +10,8 @@ class TestNodeProvider extends NodeProvider {
   LocalNode getNode(String path) {
     return onlyNode;
   }
+
+  IPermissionManager permissions = new DummyPermissionManager();
 }
 
 class TestNode extends LocalNodeImpl {
@@ -17,10 +19,6 @@ class TestNode extends LocalNodeImpl {
     new Timer.periodic(const Duration(seconds: 5), updateTime);
     configs[r'$is'] = 'node';
     configs[r'$test'] = 'hello world';
-    this.permissions = new PermissionList()..updatePermissions([{
-            'group': 'default',
-            'permission': 'write'
-          }]);
   }
 
   int count = 0;
@@ -32,7 +30,7 @@ class TestNode extends LocalNodeImpl {
   bool get exists => true;
 
   @override
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, [int maxPermission]) {
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
     response.updateStream([[1, 2]], streamStatus: StreamStatus.closed, columns: [{
         'name': 'v1',
         'type': 'number'

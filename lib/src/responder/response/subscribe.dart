@@ -33,8 +33,9 @@ class SubscribeResponse extends Response {
       }
       controller.cacheLevel = cacheLevel;
     } else {
+      int permission = responder.nodeProvider.permissions.getPermission(node.path, responder);
       RespSubscribeController controller =
-          new RespSubscribeController(this, node, sid, node.getPermission(responder) > Permission.NONE, cacheLevel);
+          new RespSubscribeController(this, node, sid, permission > Permission.NONE, cacheLevel);
       subsriptions[path] = controller;
       subsriptionids[sid] = controller;
     }

@@ -157,6 +157,8 @@ class SimpleNodeProvider extends NodeProviderImpl implements SerializableNodePro
       }
     });
   }
+
+  IPermissionManager permissions = new DummyPermissionManager();
 }
 
 /// A Simple Node Implementation

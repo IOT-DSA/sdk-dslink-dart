@@ -15,43 +15,22 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
    return new RemoteLinkRootListController(this, requester);
   }
 
-  int getPermission(Responder responder) {
-    PermissionList ps = permissions;
-
-    if (ps != null) {
-      return ps.getPermission(responder);
-    }
-    if (parentNode != null) {
-      return parentNode.getPermission(responder);
-    }
-    // TODO default permission should be NONE
-    return Permission.WRITE;
-  }
-
   Response setAttribute(
       String name, Object value, Responder responder, Response response) {
-    if (getPermission(responder) >= Permission.WRITE) {
       if (!attributes.containsKey(name) || attributes[name] != value) {
         attributes[name] = value;
         updateList(name);
       }
       return response..close();
-    } else {
-      return response..close(DSError.PERMISSION_DENIED);
-    }
   }
 
   Response removeAttribute(
       String name, Responder responder, Response response) {
-    if (getPermission(responder) >= Permission.WRITE) {
-      if (attributes.containsKey(name)) {
-        attributes.remove(name);
-        updateList(name);
-      }
-      return response..close();
-    } else {
-      return response..close(DSError.PERMISSION_DENIED);
+    if (attributes.containsKey(name)) {
+      attributes.remove(name);
+      updateList(name);
     }
+    return response..close();
   }
 
   Response setConfig(
@@ -84,8 +63,6 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl{
     });
     return rslt;
   }
-
-  PermissionList permissions;
 
   void updateList(String name, [int permission = Permission.READ]) {
     listChangeController.add(name);

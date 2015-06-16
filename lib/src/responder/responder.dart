@@ -167,7 +167,7 @@ class Responder extends ConnectionHandler {
       int rid = m['rid'];
       LocalNode node = nodeProvider.getNode(path.path);
       
-      int permission = node.getPermission(this);
+      int permission = nodeProvider.permissions.getPermission(node.path, this);
       int maxPermit = Permission.parse(m['permit']);
       if (maxPermit < permission) {
         permission = maxPermit;
@@ -196,7 +196,7 @@ class Responder extends ConnectionHandler {
     int rid = m['rid'];
     if (path.isNode) {
       LocalNode node = nodeProvider.getNode(path.path);
-      int permission = node.getPermission(this);
+      int permission = nodeProvider.permissions.getPermission(node.path, this);
       int maxPermit = Permission.parse(m['permit']);
       if (maxPermit < permission) {
         permission = maxPermit;
@@ -208,7 +208,8 @@ class Responder extends ConnectionHandler {
       }
     } else if (path.isConfig) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
-      if (node.getPermission(this) < Permission.CONFIG) {
+      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      if (permission < Permission.CONFIG) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.setConfig(
@@ -216,7 +217,8 @@ class Responder extends ConnectionHandler {
       }
     } else if (path.isAttribute) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
-      if (node.getPermission(this) < Permission.WRITE) {
+      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      if (permission < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.setAttribute(
@@ -239,7 +241,8 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     } else if (path.isConfig) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
-      if (node.getPermission(this) < Permission.CONFIG) {
+      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      if (permission  < Permission.CONFIG) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeConfig(
@@ -247,7 +250,8 @@ class Responder extends ConnectionHandler {
       }
     } else if (path.isAttribute) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
-      if (node.getPermission(this) < Permission.WRITE) {
+      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      if (permission  < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeAttribute(

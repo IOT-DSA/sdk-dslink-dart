@@ -9,10 +9,15 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// connName to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
+  
+  
+  IPermissionManager permissions;
+    
   LocalNodeImpl connsNode;
   Map rootStructure = {'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
 
   BrokerNodeProvider() {
+    permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/');
     nodes['/'] = root;

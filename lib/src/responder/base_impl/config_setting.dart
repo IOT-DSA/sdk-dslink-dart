@@ -4,51 +4,32 @@ class ConfigSetting {
   final String name;
   final String type;
   /// need permission to read
-  final int require;
-  /// need permission to write;
-  final int writable;
-  /// default value
   final Object defaultValue;
 
   /// whether broker need to maintain the change of config value when ds link is offline
   // bool maintain
 
-  ConfigSetting(this.name, this.type, {this.require: Permission.READ,
-      this.writable: Permission.NEVER, this.defaultValue});
+  ConfigSetting(this.name, this.type, {this.defaultValue});
   ConfigSetting.fromMap(this.name, Map m)
       : type = m.containsKey('type') ? m['type'] : 'string',
-        require = m.containsKey('require')
-            ? Permission.nameParser[m['require']]
-            : Permission.READ,
-        writable = m.containsKey('writable')
-            ? Permission.nameParser[m['writable']]
-            : Permission.NEVER,
         defaultValue = m.containsKey('default') ? m['default'] : null {}
 
   DSError setConfig(Object value, LocalNodeImpl node, Responder responder) {
-    if (writable != Permission.NEVER &&
-        node.getPermission(responder) > writable) {
+
       if (node.configs[name] != value) {
         node.configs[name] = value;
-        node.updateList(name, require);
+        node.updateList(name);
       }
       return null;
-    } else {
-      return DSError.PERMISSION_DENIED;
-    }
+
   }
   DSError removeConfig(LocalNodeImpl node, Responder responder) {
-    if (writable != Permission.NEVER &&
-        node.getPermission(responder) > writable) {
-      //TODO, any config shouldn't get removed even when user has write permission?
-      if (node.configs.containsKey(name)) {
-        node.configs.remove(name);
-        node.updateList(name, require);
-      }
-      return null;
-    } else {
-      return DSError.PERMISSION_DENIED;
+    if (node.configs.containsKey(name)) {
+      node.configs.remove(name);
+      node.updateList(name);
     }
+    return null;
+
   }
 }
 
@@ -63,13 +44,13 @@ class Configs {
       'writable': Permission.CONFIG,
     },
     /// the display name
-    r'$name': const {'type': 'string', 'writable': Permission.CONFIG},
+    r'$name': const {'type': 'string'},
     /// type of subscription stream
     r'$type': const {'type': 'type'},
     /// permission needed to invoke
-    r'$invokable': const {'type': 'permission', 'default': Permission.READ},
+    r'$invokable': const {'type': 'permission', 'default': 'read'},
     /// permission needed to set
-    r'$writable': const {'type': 'permission', 'default': Permission.NEVER},
+    r'$writable': const {'type': 'permission', 'default': 'never'},
     /// config settings, only used by profile nodes
     r'$settings': const {'type': 'map'},
     /// params of invoke method

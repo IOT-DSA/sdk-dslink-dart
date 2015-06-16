@@ -12,6 +12,7 @@ class TestNodeProvider extends NodeProvider {
   LocalNode getNode(String path) {
     return onlyNode;
   }
+  IPermissionManager permissions = new DummyPermissionManager();
 }
 
 class TestNode extends LocalNodeImpl {
