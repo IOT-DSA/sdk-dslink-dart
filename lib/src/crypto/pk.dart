@@ -14,6 +14,7 @@ import 'dart:math' as Math;
 import 'dart:convert';
 import 'package:cipher/ecc/ecc_base.dart';
 import 'package:cipher/ecc/ecc_fp.dart' as fp;
+import 'dart:async';
 
 /// hard code the EC curve data here, so the compiler don't have to register all curves
 ECDomainParameters _secp256r1 = () {
@@ -45,7 +46,7 @@ abstract class ECDH {
   static ECPublicKey _cachedPublic;
   static int _cachedTime = -1;
   
-  factory ECDH.assign(PublicKey publicKeyRemote, ECDH old) {
+  static Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async{
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     /// reuse same ECDH server pair for up to 1 minute
     if (_cachedPrivate == null || ts - _cachedTime > 60000 || (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
@@ -62,7 +63,7 @@ abstract class ECDH {
               publicKeyRemote.ecPublicKey, _cachedPrivate, _cachedPublic);
    }
   
-  factory ECDH.generate(PublicKey publicKeyRemote) {
+  static Future<ECDH> generate(PublicKey publicKeyRemote) async{
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
@@ -163,7 +164,7 @@ class PrivateKey {
     publicKey = new PublicKey(ecPublicKey);
   }
 
-  factory PrivateKey.generate() {
+  static Future<PrivateKey> generate() async{
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
@@ -172,6 +173,14 @@ class PrivateKey {
     return new PrivateKey(pair.privateKey, pair.publicKey);
   }
 
+  factory PrivateKey.generateSync(){
+    var gen = new ECKeyGenerator();
+    var rsapars = new ECKeyGeneratorParameters(_secp256r1);
+    var params = new ParametersWithRandom(rsapars, DSRandom.instance);
+    gen.init(params);
+    var pair = gen.generateKeyPair();
+    return new PrivateKey(pair.privateKey, pair.publicKey);
+  }
   factory PrivateKey.loadFromString(String str) {
     if (str.contains(' ')) {
       List ss = str.split(' ');

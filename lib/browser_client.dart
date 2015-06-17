@@ -60,7 +60,7 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
     return new PrivateKey.loadFromString(await storage.get("dsa_key"));
   }
 
-  var key = new PrivateKey.generate();
+  var key = await PrivateKey.generate();
 
   await storage.store("dsa_key", key.saveToString());
 

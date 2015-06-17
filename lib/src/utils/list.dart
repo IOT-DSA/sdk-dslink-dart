@@ -2,6 +2,9 @@ part of dslink.utils;
 
 class ByteDataUtil {
   static ByteData mergeBytes(List<ByteData> bytesList) {
+    if (bytesList.length == 1) {
+      return bytesList[0];
+    }
     int totalLen = 0;
     for (ByteData bytes in bytesList) {
       totalLen += bytes.lengthInBytes;

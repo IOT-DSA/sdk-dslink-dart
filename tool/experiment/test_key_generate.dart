@@ -1,7 +1,7 @@
 import 'package:dslink/src/crypto/pk.dart';
 import 'dart:io';
 
-void main() {
+void main() async{
   String rslt;
 
   if (Platform.isWindows) {
@@ -17,7 +17,7 @@ void main() {
   PrivateKey key ;
   for (int i=0; i< 50; ++i)
   // generate private key
-  key = new PrivateKey.generate();
+  key = await PrivateKey.generate();
   
   var t2 = (new DateTime.now()).millisecondsSinceEpoch;
 

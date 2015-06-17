@@ -69,8 +69,8 @@ class HttpServerLink implements ServerLink {
   /// by default it's a responder only link
   bool isResponder = true;
 
-  void initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey,
-                {String wsUri:'/ws', String httpUri:'/http', int updateInterval:200}) {
+  initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey,
+                {String wsUri:'/ws', String httpUri:'/http', int updateInterval:200}) async {
     isRequester = clientResponder;
     isResponder = clientRequester;
 
@@ -84,7 +84,7 @@ class HttpServerLink implements ServerLink {
       "updateInterval": updateInterval
     };
     if (!trusted) {
-      tempNonce = new ECDH.assign(publicKey, verifiedNonce);
+      tempNonce = await ECDH.assign(publicKey, verifiedNonce);
       respJson["tempKey"] = tempNonce.encodePublicKey();
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];

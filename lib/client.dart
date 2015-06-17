@@ -246,7 +246,7 @@ class LinkProvider {
       }
       // randomize the PRNG with the system mac (as well as timestamp)
       DSRandom.instance.randomize(macs);
-      privateKey = new PrivateKey.generate();
+      privateKey = new PrivateKey.generateSync();
       key = privateKey.saveToString();
       keyFile.writeAsStringSync(key);
     }

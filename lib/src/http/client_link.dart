@@ -204,12 +204,12 @@ class HttpClientLink implements ClientLink {
   }
 }
 
-PrivateKey getKeyFromFile(String path) {
+Future<PrivateKey> getKeyFromFile(String path) async{
   var file = new File(path);
 
   PrivateKey key;
   if (!file.existsSync()) {
-    key = new PrivateKey.generate();
+    key = await PrivateKey.generate();
     file.createSync(recursive: true);
     file.writeAsStringSync(key.saveToString());
   } else {
