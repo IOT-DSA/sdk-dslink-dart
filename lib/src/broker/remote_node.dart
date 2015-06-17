@@ -217,6 +217,10 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   int getInvokePermission(){
     return Permission.parse(getConfig(r'$invokable'), Permission.READ);
   }
+  /// for invoke permission as responder
+  int getSetPermission(){
+    return Permission.parse(getConfig(r'$writable'), Permission.WRITE);
+  }
   Response removeAttribute(
       String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode

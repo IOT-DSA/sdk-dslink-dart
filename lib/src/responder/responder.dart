@@ -201,7 +201,7 @@ class Responder extends ConnectionHandler {
       if (maxPermit < permission) {
         permission = maxPermit;
       }
-      if (Permission.parse(node.getConfig(r'$writable')) <= permission) {
+      if (node.getSetPermission() <= permission) {
         node.setValue(value, this, addResponse(new Response(this, rid)));
       } else {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);

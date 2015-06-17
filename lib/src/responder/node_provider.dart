@@ -73,7 +73,9 @@ abstract class LocalNode extends Node {
   int getInvokePermission(){
     return Permission.parse(getConfig(r'$invokable'));
   }
-  
+  int getSetPermission(){
+    return Permission.parse(getConfig(r'$writable'));
+  }
   InvokeResponse invoke(
       Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
     return response..close();
