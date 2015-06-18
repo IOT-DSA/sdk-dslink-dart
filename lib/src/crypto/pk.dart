@@ -15,7 +15,10 @@ import 'dart:convert';
 import 'package:cipher/ecc/ecc_base.dart';
 import 'package:cipher/ecc/ecc_fp.dart' as fp;
 import 'dart:async';
+import 'dart:isolate';
+import 'dart:collection';
 
+part 'isolate.dart';
 /// hard code the EC curve data here, so the compiler don't have to register all curves
 ECDomainParameters _secp256r1 = () {
   BigInteger q = new BigInteger(
@@ -47,6 +50,13 @@ abstract class ECDH {
   static int _cachedTime = -1;
   
   static Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async{
+    if (ECDHIsolate.running) {
+      if (old is ECDHImpl) {
+        return ECDHIsolate._sendRequest(publicKeyRemote, old._ecPrivateKey.d.toRadix(16));
+      } else {
+        return ECDHIsolate._sendRequest(publicKeyRemote, null);
+      }
+    }
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     /// reuse same ECDH server pair for up to 1 minute
     if (_cachedPrivate == null || ts - _cachedTime > 60000 || (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
@@ -59,23 +69,26 @@ abstract class ECDH {
       _cachedPublic = pair.publicKey;
       _cachedTime = ts;
     }
+    var Q2 = publicKeyRemote.ecPublicKey.Q * _cachedPrivate.d;
      return new ECDHImpl(
-              publicKeyRemote.ecPublicKey, _cachedPrivate, _cachedPublic);
+              publicKeyRemote.ecPublicKey, _cachedPrivate, _cachedPublic, Q2);
    }
   
   static Future<ECDH> generate(PublicKey publicKeyRemote) async{
+    if (ECDHIsolate.running) {
+      return ECDHIsolate._sendRequest(publicKeyRemote, '');
+    }
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
     gen.init(params);
     var pair = gen.generateKeyPair();
+    
+    var Q2 = publicKeyRemote.ecPublicKey.Q * pair.privateKey.d;
     return new ECDHImpl(
-        publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey);
+        publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey, Q2);
   }
-  factory ECDH(ECPublicKey ecPublicKeyRemote, ECPrivateKey ecPrivateKey,
-      ECPublicKey ecPublicKey) {
-    return new ECDHImpl(ecPublicKeyRemote, ecPrivateKey, ecPublicKey);
-  }
+
   String encodePublicKey();
 
   String hashSalt(String salt);
@@ -90,8 +103,8 @@ class ECDHImpl implements ECDH {
 
   ECPublicKey _ecPublicKeyRemote;
 
-  ECDHImpl(this._ecPublicKeyRemote, this._ecPrivateKey, this._ecPublicKey) {
-    var Q2 = _ecPublicKeyRemote.Q * _ecPrivateKey.d;
+  ECDHImpl(this._ecPublicKeyRemote, this._ecPrivateKey, this._ecPublicKey, ECPoint Q2) {
+    //var Q2 = _ecPublicKeyRemote.Q * _ecPrivateKey.d;
     bytes = bigintToUint8List(Q2.x.toBigInteger());
     if (bytes.length > 32) {
       bytes = bytes.sublist(bytes.length - 32);
@@ -199,9 +212,11 @@ class PrivateKey {
     return '${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}';
   }
 
-  ECDHImpl decodeECDH(String key) {
+  Future<ECDHImpl> decodeECDH(String key) async{
     ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(key));
-    return new ECDH(new ECPublicKey(p, _secp256r1), ecPrivateKey, ecPublicKey);
+    ECPublicKey publicKey = new ECPublicKey(p, _secp256r1);
+    var Q2 = publicKey.Q * ecPrivateKey.d;
+    return new ECDHImpl(publicKey, ecPrivateKey, ecPublicKey, Q2);
   }
 }
 

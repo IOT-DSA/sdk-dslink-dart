@@ -19,11 +19,15 @@ class AddNodeAction extends SimpleNode {
     link.addNode(nodeName, {
       r'$type':'string',
       r'$is':'rng',
-      '?value':'123',//ByteDataUtil.fromList([1,2,3,1,2,3]),
+      '@unit':'hit',
+      '?value':'123.456',//ByteDataUtil.fromList([1,2,3,1,2,3]),
       'remove': { // an action to delete the node
         r'$is':'removeSelfAction',
         r'$invokable': 'write',
-      }
+      },
+      r'$writable':'write',
+      r'$placeholder':'abcc',
+      r'$editor':'textarea'
     });
     link.save(); // save json
 
@@ -70,7 +74,8 @@ main(List<String> args) {
       r'$params':{"name":{"type":"string","placeholder":'ccc',"description":"abcd"}, "source":{"type":"string",'editor':"password"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"string"}, "copyToPath":{"type":"string"}},
       //r'$columns':[{'name':'name','type':'string'}],
       r'$invokable': 'write',
-      r'$lastNum':0
+      r'$lastNum':0,
+
     }
   };
 

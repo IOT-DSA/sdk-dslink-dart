@@ -69,7 +69,7 @@ class BrowserECDHLink implements ClientLink {
         salts[idx] = serverConfig[name];
       });
       String tempKey = serverConfig['tempKey'];
-      _nonce = privateKey.decodeECDH(tempKey);
+      _nonce = await privateKey.decodeECDH(tempKey);
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'

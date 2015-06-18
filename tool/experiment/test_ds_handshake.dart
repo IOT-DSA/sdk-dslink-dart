@@ -52,7 +52,7 @@ void main() {
 //  __assertEqual(auth, authCompare, 'auth');
 //}
 
-void testApi() {
+void testApi() async {
   PrivateKey prikey = new PrivateKey.loadFromString(clientPrivate);
   PublicKey pubkey = prikey.publicKey;
   
@@ -72,8 +72,8 @@ void testApi() {
 
   /// Start Connection (http or ws), Client -> Server
   /// Decode
-  ECDHImpl clientEcdh = prikey.decodeECDH(tPubkey.qBase64);
-  ECDHImpl serverEcdh = tPrikey.decodeECDH(pubkey.qBase64);
+  ECDHImpl clientEcdh = await prikey.decodeECDH(tPubkey.qBase64);
+  ECDHImpl serverEcdh = await tPrikey.decodeECDH(pubkey.qBase64);
   
   __assertEqual(bytes2hex(clientEcdh.bytes), sharedSecret, 'API client ECDH');
   __assertEqual(bytes2hex(serverEcdh.bytes), sharedSecret, 'API server ECDH');
