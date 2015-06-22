@@ -134,15 +134,15 @@ class LinkProvider {
     argp.addOption("broker", abbr: "b", help: "Broker URL", defaultsTo: "http://localhost:8080/conn");
     argp.addOption("name", abbr: "n", help: "Link Name");
     argp.addOption("base-path", help: "Base Path for DSLink");
-    argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name).toList()..addAll(["AUTO"]), help: "Log Level", defaultsTo: "AUTO");
+    argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name.toLowerCase()).toList()..addAll(["auto"]), help: "Log Level", defaultsTo: "AUTO");
     argp.addFlag("help", abbr: "h", help: "Displays this Help Message", negatable: false);
     argp.addFlag("discover", abbr: "d", help: "Automatically Discover a Broker", negatable: false);
 
     ArgResults opts = argp.parse(args);
 
-    if (opts["log"] == "AUTO") {
+    if (opts["log"] == "auto") {
       if (DEBUG_MODE) {
-        updateLogLevel("ALL");
+        updateLogLevel("all");
       } else {
         updateLogLevel(defaultLogLevel);
       }
