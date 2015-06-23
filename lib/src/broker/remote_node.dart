@@ -387,7 +387,7 @@ class RemoteLinkListController extends ListController {
             }
 
             if (name == r'$base' && value is String) {
-              node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path + value;
+              value = (node as RemoteLinkNode)._linkManager.path + value;
             }
             if (name == r'$is' && !node.configs.containsKey(r'$base')) {
               node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path;
