@@ -54,7 +54,9 @@ class InvokeResponse extends Response {
 
   /// close the request from responder side and also notify the requester
   void close([DSError err = null]) {
-    _err = err;
+    if (err != null) {
+      _err = err;
+    }
     _sendingStreamStatus = StreamStatus.closed;
     responder.addProcessor(processor);
   }

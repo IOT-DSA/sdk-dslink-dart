@@ -4,9 +4,10 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   List rawColumns;
   List<TableColumn> columns;
   List updates;
-
+  DSError error;
+  
   RequesterInvokeUpdate(
-      this.updates, this.rawColumns, this.columns, String streamStatus)
+      this.updates, this.rawColumns, this.columns, String streamStatus, [this.error])
       : super(streamStatus);
 
   List<List> _rows;
@@ -103,8 +104,12 @@ class InvokeController implements RequestUpdater {
     if (_cachedColumns == null) {
       _cachedColumns = [];
     }
-
-    if (updates != null) {
+    if (error != null) {
+      streamStatus = StreamStatus.closed;
+      _controller.add(new RequesterInvokeUpdate(
+              null, null, null, streamStatus, error));
+    }
+    else if (updates != null) {
       _controller.add(new RequesterInvokeUpdate(
           updates, columns, _cachedColumns, streamStatus));
     }

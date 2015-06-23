@@ -165,16 +165,20 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
-      LocalNode node = nodeProvider.getNode(path.path);
-      
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      LocalNode parentNode = nodeProvider.getNode(path.parentPath);
+      LocalNode node = parentNode.getChild(path.name);
+      if (node == null) {
+        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        return;
+      }
+      int permission = nodeProvider.permissions.getPermission(path.path, this);
       int maxPermit = Permission.parse(m['permit']);
       if (maxPermit < permission) {
         permission = maxPermit;
       }
       if (node.getInvokePermission() <= permission) {
         node.invoke(m['params'], this,
-            addResponse(new InvokeResponse(this, rid, node)));
+            addResponse(new InvokeResponse(this, rid, node)), parentNode);
       } else {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       }

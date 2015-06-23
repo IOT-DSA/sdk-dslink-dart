@@ -30,7 +30,7 @@ class TestNode extends LocalNodeImpl {
   bool get exists => true;
 
   @override
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
     response.updateStream([[1, 2]], streamStatus: StreamStatus.closed, columns: [{
         'name': 'v1',
         'type': 'number'

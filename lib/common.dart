@@ -132,6 +132,23 @@ class DSError {
 
   DSError(this.type,
           {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
+  DSError.fromMap(Map m) {
+    if (m['type'] is String) {
+      type = m['type'];
+    }
+    if (m['msg'] is String) {
+      msg = m['msg'];
+    }
+    if (m['path'] is String) {
+      path = m['path'];
+    }
+    if (m['phase'] is String) {
+      phase = m['phase'];
+    }
+    if (m['detail'] is String) {
+      detail = m['detail'];
+    }
+  }
 
   String getMessage() {
     if (msg != null) {

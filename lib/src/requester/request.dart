@@ -34,7 +34,11 @@ class Request {
     if (streamStatus == StreamStatus.closed) {
       requester._requests.remove(rid);
     }
-    updater.onUpdate(streamStatus, updates, columns, null);
+    DSError error;
+    if (m.containsKey('error') && m['error'] is Map){
+      error = new DSError.fromMap(m['error']);
+    }
+    updater.onUpdate(streamStatus, updates, columns, error);
   }
 
   /// close the request and finish data

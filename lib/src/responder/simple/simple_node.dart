@@ -224,7 +224,7 @@ class SimpleNode extends LocalNodeImpl {
     return rslt;
   }
 
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
     Object rslt;
     try {
       rslt = onInvoke(params);

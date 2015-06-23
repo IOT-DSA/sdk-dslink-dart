@@ -31,7 +31,7 @@ class ClearConnsAction extends LocalNodeImpl {
   }
 
   @override
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
+  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
     provider.clearConns();
     return response..close();
   }

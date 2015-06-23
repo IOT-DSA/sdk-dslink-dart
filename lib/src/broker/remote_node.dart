@@ -197,14 +197,17 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   bool get exists => true;
   /// requester invoke function
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, [int maxPermission = Permission.CONFIG]) {
+      Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
     // TODO, when invoke closed without any data, also need to updateStream to close
     StreamSubscription sub = _linkManager.requester
         .invoke(remotePath, params)
         .listen((RequesterInvokeUpdate update) {
-      // TODO fix paths in the response
-      response.updateStream(update.updates,
-          streamStatus: update.streamStatus, columns: update.rawColumns);
+      if (update.error != null) {
+        response.close(update.error);
+      } else {
+        response.updateStream(update.updates,
+            streamStatus: update.streamStatus, columns: update.rawColumns);
+      }
     }, onDone: () {
       response.close();
     });
@@ -212,6 +215,10 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       sub.cancel();
     };
     return response;
+  }
+  
+  Node getChild(String name) {
+    return _linkManager.getNode('$path/$name');
   }
   /// for invoke permission as responder
   int getInvokePermission(){
