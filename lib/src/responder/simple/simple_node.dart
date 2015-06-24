@@ -159,6 +159,10 @@ class SimpleNodeProvider extends NodeProviderImpl implements SerializableNodePro
   }
 
   IPermissionManager permissions = new DummyPermissionManager();
+
+  Responder createResponder(String dsId) {
+    return new Responder(this, dsId);
+  }
 }
 
 /// A Simple Node Implementation

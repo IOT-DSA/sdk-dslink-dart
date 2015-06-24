@@ -3,6 +3,7 @@ import "package:dslink/utils.dart" show BinaryData, ByteDataUtil, DsTimer;
 
 import "dart:math" as Math;
 import 'dart:typed_data';
+import 'dart:async';
 
 LinkProvider link;
 int lastNum;
@@ -17,7 +18,7 @@ class AddNodeAction extends SimpleNode {
 
     String nodeName = '/node%2F_$lastNum';
     link.addNode(nodeName, {
-      r'$type':'string',
+      r'$type':'bool[disable,enable]',
       r'$is':'rng',
       '@unit':'hit',
       '?value':'123.456',//ByteDataUtil.fromList([1,2,3,1,2,3]),
@@ -27,11 +28,16 @@ class AddNodeAction extends SimpleNode {
       },
       r'$writable':'write',
       r'$placeholder':'abcc',
-      r'$editor':'textarea'
     });
     link.save(); // save json
 
-    return new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
+    AsyncTableResult tableRslt = new AsyncTableResult();
+    new Timer(new Duration(seconds:1),(){
+      tableRslt.columns=[{'name':'a'}];
+      tableRslt.update([[1],[2]]);
+      tableRslt.close();
+      });
+    return tableRslt;//new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
 }
 
@@ -71,7 +77,7 @@ main(List<String> args) {
   Map defaultNodes = {
     'add': {
       r'$is': 'addNodeAction',
-      r'$params':{"name":{"type":"string","placeholder":'ccc',"description":"abcd"}, "source":{"type":"string",'editor':"password"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"string"}, "copyToPath":{"type":"string"}},
+      r'$params':{"name":{"type":"string","placeholder":'ccc',"description":"abcd","default":123}, "source":{"type":"string",'editor':"password"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"bool[disable,enable]"}, "copyToPath":{"type":"enum[a,b,c]"}},
       //r'$columns':[{'name':'name','type':'string'}],
       r'$invokable': 'write',
       r'$lastNum':0,

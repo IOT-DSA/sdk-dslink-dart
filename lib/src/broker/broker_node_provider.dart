@@ -133,7 +133,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkManager conn = conns[connPath];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-        conn = new RemoteLinkManager(this, connPath, connName, this);
+        conn = new RemoteLinkManager(this, _connPath2id[connPath], connPath, connName, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
         connsNode.children[connName] = conn.rootNode;
@@ -265,5 +265,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     /// create the RemoteLinkManager
     RemoteLinkNode node = getNode(connPath);
     return node._linkManager.getResponder(nodeProvider, sessionId);
+  }
+
+  Responder createResponder(String dsId) {
+    return new Responder(this, dsId);
   }
 }

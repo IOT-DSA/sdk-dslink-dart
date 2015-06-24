@@ -13,7 +13,7 @@ class Responder extends ConnectionHandler {
   /// caching of nodes
   final NodeProvider nodeProvider;
 
-  Responder(this.nodeProvider) {
+  Responder(this.nodeProvider, [this.reqId]) {
     _subscription = new SubscribeResponse(this, 0);
     _responses[0] = _subscription;
   }
@@ -36,29 +36,29 @@ class Responder extends ConnectionHandler {
     if (m['method'] is String && m['rid'] is int) {
       if (_responses.containsKey(m['rid'])) {
         if (m['method'] == 'close') {
-          _close(m);
+          close(m);
         }
         // when rid is invalid, nothing needs to be sent back
         return;
       }
       switch (m['method']) {
         case 'list':
-          _list(m);
+          list(m);
           return;
         case 'subscribe':
-          _subscribe(m);
+          subscribe(m);
           return;
         case 'unsubscribe':
-          _unsubscribe(m);
+          unsubscribe(m);
           return;
         case 'invoke':
-          _invoke(m);
+          invoke(m);
           return;
         case 'set':
-          _set(m);
+          set(m);
           return;
         case 'remove':
-          _remove(m);
+          remove(m);
           return;
         default:
       }
@@ -105,7 +105,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void _list(Map m) {
+  void list(Map m) {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
@@ -115,7 +115,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
-  void _subscribe(Map m) {
+  void subscribe(Map m) {
     if (m['paths'] is List) {
       int rid = m['rid'];
       for (Object p in m['paths']) {
@@ -148,7 +148,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
     }
   }
-  void _unsubscribe(Map m) {
+  void unsubscribe(Map m) {
     if (m['sids'] is List) {
       int rid = m['rid'];
       for (Object sid in m['sids']) {
@@ -161,7 +161,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
     }
   }
-  void _invoke(Map m) {
+  void invoke(Map m) {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
       int rid = m['rid'];
@@ -186,7 +186,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
-  void _set(Map m) {
+  void set(Map m) {
     Path path = Path.getValidPath(m['path']);
     if (path == null || !path.absolute) {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
@@ -234,7 +234,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void _remove(Map m) {
+  void remove(Map m) {
     Path path = Path.getValidPath(m['path']);
     if (path == null || path.absolute) {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
@@ -267,7 +267,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void _close(Map m) {
+  void close(Map m) {
     if (m['rid'] is int) {
       int rid = m['rid'];
       if (_responses.containsKey(rid)) {

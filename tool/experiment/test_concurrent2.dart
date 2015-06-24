@@ -18,6 +18,9 @@ class TestNodeProvider extends NodeProvider {
     return onlyNode;
   }
   IPermissionManager permissions = new DummyPermissionManager();
+  Responder createResponder(String dsId) {
+    return new Responder(this, dsId);
+  }
 }
 
 class TestNode extends LocalNodeImpl {

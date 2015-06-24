@@ -48,6 +48,10 @@ class SingleNodeProvider extends NodeProvider {
   @override
   LocalNode getNode(String path) => node;
   IPermissionManager permissions = new DummyPermissionManager();
+
+  Responder createResponder(String dsId) {
+    return new Responder(this, dsId);
+  }
 }
 
 typedef void NodeUpgradeFunction(int from);

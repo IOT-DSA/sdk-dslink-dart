@@ -5,6 +5,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   Requester requester;
   final String path;
   final String name;
+  final String dsId;
   final BrokerNodeProvider broker;
   RemoteLinkRootNode rootNode;
 
@@ -12,7 +13,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
 
   String disconnected = ValueUpdate.getTs();
 
-  RemoteLinkManager(this.broker, this.path, this.name, NodeProviderImpl brokerProvider, [Map rootNodeData]) {
+  RemoteLinkManager(this.broker, this.dsId, this.path, this.name, NodeProviderImpl brokerProvider, [Map rootNodeData]) {
     requester = new RemoteRequester(this);
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
@@ -31,7 +32,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     if (responders.containsKey(sessionId)) {
       return responders[sessionId];
     } else {
-      var responder = new Responder(nodeProvider);
+      var responder = nodeProvider.createResponder(dsId);
       responder.reqId = path.substring(7); // remove /conns/
       //TODO set permission group
       responders[sessionId] = responder;
@@ -98,6 +99,10 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   LocalNode operator ~()=>this['/'];
 
   IPermissionManager get permissions => broker.permissions;
+
+  Responder createResponder(String dsId) {
+    throw 'not implemented';
+  }
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
 

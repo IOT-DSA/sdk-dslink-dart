@@ -130,8 +130,10 @@ abstract class NodeProvider {
   LocalNode operator [](String path) {
     return getNode(path);
   }
-
+  
   LocalNode operator ~() => this["/"];
+  
+  Responder createResponder(String dsId);
   
   IPermissionManager get permissions;
 }
