@@ -15,19 +15,34 @@ class BroadcastStreamController<T> implements StreamController<T> {
     _onStartListen = onStartListen;
     _onAllCancel = onAllCancel;
   }
-
+  /// whether there is listener or not
+  bool _listening = false;
+  /// whether _onStartListen is called 
+  bool _listenState = false;
   void _onListen(StreamSubscription<T> subscription) {
-    if (_onStartListen != null) {
-      _onStartListen();
+    if (!_listenState) {
+      if (_onStartListen != null) {
+        _onStartListen();
+      }
+      _listenState = true;
     }
+    _listening = true;
   }
 
   void _onCancel(StreamSubscription<T> subscription) {
+    _listening = false;
     if (_onAllCancel != null) {
-      _onAllCancel();
+      DsTimer.callLaterOnce(delayedCheckCancel);
+    } else {
+      _listenState = false;
     }
   }
-
+  void delayedCheckCancel(){
+    if (!_listening && _listenState) {
+      _onAllCancel();
+      _listenState = false;
+    }
+  }
   void add(T t) {
     _controller.add(t);
     _stream.lastValue = t;
