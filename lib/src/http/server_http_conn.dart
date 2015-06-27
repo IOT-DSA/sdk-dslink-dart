@@ -32,6 +32,7 @@ class HttpServerConnection implements ServerConnection {
   }
 
   void close() {}
+
   /// special server command that need to be merged into message
   /// now only 3 possible value, salt, saltS, allowed
   Map _serverCommand;
@@ -51,6 +52,7 @@ class HttpServerConnection implements ServerConnection {
   }
 
   HttpRequest _cachedInput;
+
   /// handle http long polling
   void handleInput(HttpRequest input) {
     _cachedInput = input;
@@ -65,6 +67,7 @@ class HttpServerConnection implements ServerConnection {
       _checkSend();
     });
   }
+
   /// handle http short polling
   void handleInputS(HttpRequest input, String saltS) {
     updateResponseBeforeWrite(input);
@@ -81,6 +84,7 @@ class HttpServerConnection implements ServerConnection {
     });
     input.response.write('{"saltS":"$saltS"}');
   }
+
   void paseInput(Map m) {
     if (m['responses'] is List) {
       // send responses to requester channel
@@ -99,6 +103,7 @@ class HttpServerConnection implements ServerConnection {
       _cachedInput = null;
     }
   }
+
   void _send() {
     _pendingSend = false;
     bool needSend = false;

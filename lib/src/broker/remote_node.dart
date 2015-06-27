@@ -13,7 +13,9 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
 
   String disconnected = ValueUpdate.getTs();
 
-  RemoteLinkManager(this.broker, this.dsId, this.path, this.name, NodeProviderImpl brokerProvider, [Map rootNodeData]) {
+  RemoteLinkManager(this.broker, this.dsId, this.path, this.name,
+      NodeProviderImpl brokerProvider,
+      [Map rootNodeData]) {
     requester = new RemoteRequester(this);
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
@@ -23,6 +25,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   }
 
   Map<String, Responder> responders;
+
   /// multiple-requester is allowed, like from different browser tabs
   /// in this case they need multiple responders on broker side.
   Responder getResponder(NodeProvider nodeProvider, [String sessionId = '']) {
@@ -52,10 +55,12 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return node;
   }
+
   /// get an existing node or create a dummy node for requester to listen on
   LocalNode operator [](String path) {
     return getNode(path);
   }
+
   RemoteNode getRemoteNode(String rPath) {
     String fullPath = path + rPath;
     if (rPath == '') {
@@ -68,6 +73,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return node;
   }
+
   Node getDefNode(String rPath, String defName) {
     if (DefaultDefNodes.nameMap.containsKey(defName)) {
       return DefaultDefNodes.nameMap[defName];
@@ -81,6 +87,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     return getRemoteNode(rPath);
   }
+
   RemoteNode updateRemoteChildNode(RemoteNode parent, String name, Map m) {
     String path;
     if (parent.remotePath == '/') {
@@ -96,7 +103,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     return null;
   }
 
-  LocalNode operator ~()=>this['/'];
+  LocalNode operator ~() => this['/'];
 
   IPermissionManager get permissions => broker.permissions;
 
@@ -104,10 +111,10 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     throw 'not implemented';
   }
 }
-class RemoteLinkNode extends RemoteNode implements LocalNode {
 
+class RemoteLinkNode extends RemoteNode implements LocalNode {
   ListController createListController(Requester requester) {
-   return new RemoteLinkListController(this, requester);
+    return new RemoteLinkListController(this, requester);
   }
 
   BroadcastStreamController<String> _listChangeController;
@@ -118,6 +125,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
     return _listChangeController;
   }
+
   Stream<String> get listStream => listChangeController.stream;
   StreamSubscription _listReqListener;
 
@@ -153,6 +161,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     _linkManager.requester.subscribe(remotePath, updateValue, cachelevel);
     return rslt;
   }
+
   void unsubscribe(callback(ValueUpdate)) {
     if (callbacks.containsKey(callback)) {
       callbacks.remove(callback);
@@ -174,7 +183,9 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       callbacks.forEach((callback, cacheLevel) {
         callback(_lastValueUpdate);
       });
-    } else if (_lastValueUpdate == null || _lastValueUpdate.value != update || force) {
+    } else if (_lastValueUpdate == null ||
+        _lastValueUpdate.value != update ||
+        force) {
       _lastValueUpdate = new ValueUpdate(update);
       callbacks.forEach((callback, cacheLevel) {
         callback(_lastValueUpdate);
@@ -184,6 +195,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   final String path;
+
   /// root of the link
   RemoteLinkManager _linkManager;
 
@@ -191,18 +203,22 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
       : super(remotePath) {}
 
   bool _listReady = false;
+
   /// whether broker is already listing, can send data directly for new list request
   bool get listReady => _listReady;
   String get disconnected => _linkManager.disconnected;
 
   bool _valueReady = false;
+
   /// whether broker is already subscribing, can send value directly for new subscribe request
   bool get valueReady => _valueReady;
 
   bool get exists => true;
+
   /// requester invoke function
-  InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
+  InvokeResponse invoke(Map params, Responder responder,
+      InvokeResponse response, LocalNode parentNode,
+      [int maxPermission = Permission.CONFIG]) {
     // TODO, when invoke closed without any data, also need to updateStream to close
     StreamSubscription sub = _linkManager.requester
         .invoke(remotePath, params)
@@ -221,18 +237,21 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     };
     return response;
   }
-  
+
   Node getChild(String name) {
     return _linkManager.getNode('$path/$name');
   }
+
   /// for invoke permission as responder
-  int getInvokePermission(){
+  int getInvokePermission() {
     return Permission.parse(getConfig(r'$invokable'), Permission.READ);
   }
+
   /// for invoke permission as responder
-  int getSetPermission(){
+  int getSetPermission() {
     return Permission.parse(getConfig(r'$writable'), Permission.WRITE);
   }
+
   Response removeAttribute(
       String name, Responder responder, Response response) {
     // TODO check permission on RemoteLinkRootNode
@@ -296,7 +315,8 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     return response;
   }
 
-  Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
     // TODO check permission on RemoteLinkRootNode
     _linkManager.requester.set(remotePath, value, maxPermission).then((update) {
       response.close();
@@ -342,89 +362,93 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   operator []=(String name, Object value) {
     if (name.startsWith(r"$")) {
       configs[name] = value;
-    } else if (name.startsWith(r"@")){
+    } else if (name.startsWith(r"@")) {
       attributes[name] = value;
-    } else if (value is Node){
+    } else if (value is Node) {
       addChild(name, value);
     }
   }
 }
 
 class RemoteLinkListController extends ListController {
-  RemoteLinkListController(RemoteNode node, Requester requester) : super(node, requester);
+  RemoteLinkListController(RemoteNode node, Requester requester)
+      : super(node, requester);
 
   void onUpdate(String streamStatus, List updates, List columns,
-        [DSError error]) {
-      bool reseted = false;
-      // TODO implement error handling
-      if (updates != null) {
-        for (Object update in updates) {
-          String name;
-          Object value;
-          bool removed = false;
-          if (update is Map) {
-            if (update['name'] is String) {
-              name = update['name'];
-            } else {
-              continue; // invalid response
-            }
-            if (update['change'] == 'remove') {
-              removed = true;
-            } else {
-              value = update['value'];
-            }
-          } else if (update is List) {
-            if (update.length > 0 && update[0] is String) {
-              name = update[0];
-              if (update.length > 1) {
-                value = update[1];
-              }
-            } else {
-              continue; // invalid response
+      [DSError error]) {
+    bool reseted = false;
+    // TODO implement error handling
+    if (updates != null) {
+      for (Object update in updates) {
+        String name;
+        Object value;
+        bool removed = false;
+        if (update is Map) {
+          if (update['name'] is String) {
+            name = update['name'];
+          } else {
+            continue; // invalid response
+          }
+          if (update['change'] == 'remove') {
+            removed = true;
+          } else {
+            value = update['value'];
+          }
+        } else if (update is List) {
+          if (update.length > 0 && update[0] is String) {
+            name = update[0];
+            if (update.length > 1) {
+              value = update[1];
             }
           } else {
             continue; // invalid response
           }
-          if (name.startsWith(r'$')) {
-            if (!reseted && (name == r'$is' || name == r'$base' || (name == r'$disconnectedTs' && value is String))) {
-              reseted = true;
-              node.resetNodeCache();
-            }
+        } else {
+          continue; // invalid response
+        }
+        if (name.startsWith(r'$')) {
+          if (!reseted &&
+              (name == r'$is' ||
+                  name == r'$base' ||
+                  (name == r'$disconnectedTs' && value is String))) {
+            reseted = true;
+            node.resetNodeCache();
+          }
 
-            if (name == r'$base' && value is String) {
-              value = (node as RemoteLinkNode)._linkManager.path + value;
-            }
-            if (name == r'$is' && !node.configs.containsKey(r'$base')) {
-              node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path;
-              changes.add(r'$base');
-            }
-            changes.add(name);
-            if (removed) {
-              node.configs.remove(name);
-            } else {
-              node.configs[name] = value;
-            }
-          } else if (name.startsWith('@')) {
-            changes.add(name);
-            if (removed) {
-              node.attributes.remove(name);
-            } else {
-              node.attributes[name] = value;
-            }
+          if (name == r'$base' && value is String) {
+            value = (node as RemoteLinkNode)._linkManager.path + value;
+          }
+          if (name == r'$is' && !node.configs.containsKey(r'$base')) {
+            node.configs[r'$base'] = (node as RemoteLinkNode)._linkManager.path;
+            changes.add(r'$base');
+          }
+          changes.add(name);
+          if (removed) {
+            node.configs.remove(name);
           } else {
-            changes.add(name);
-            if (removed) {
-              node.children.remove(name);
-            } else if (value is Map) {
-              node.children[name] =
-                  requester.nodeCache.updateRemoteChildNode(node, name, value);
-            }
+            node.configs[name] = value;
+          }
+        } else if (name.startsWith('@')) {
+          changes.add(name);
+          if (removed) {
+            node.attributes.remove(name);
+          } else {
+            node.attributes[name] = value;
+          }
+        } else {
+          changes.add(name);
+          if (removed) {
+            node.children.remove(name);
+          } else if (value is Map) {
+            node.children[name] =
+                requester.nodeCache.updateRemoteChildNode(node, name, value);
           }
         }
-        if (request.streamStatus != StreamStatus.initialize) {
-          node.listed = true;
-        }
-        onProfileUpdated();
       }
+      if (request.streamStatus != StreamStatus.initialize) {
+        node.listed = true;
+      }
+      onProfileUpdated();
     }
+  }
 }

@@ -31,7 +31,8 @@ class BrokerDiscoveryClient {
 
   Stream<String> discover({Duration timeout: const Duration(seconds: 5)}) {
     _send("DISCOVER", "239.255.255.230", 1900);
-    return _brokerController.stream.timeout(timeout, onTimeout: (EventSink sink) {
+    return _brokerController.stream
+        .timeout(timeout, onTimeout: (EventSink sink) {
       sink.close();
     });
   }
@@ -54,7 +55,8 @@ class BrokerDiscoveryClient {
     }
   }
 
-  StreamController<BrokerDiscoverRequest> _discoverController = new StreamController.broadcast();
+  StreamController<BrokerDiscoverRequest> _discoverController =
+      new StreamController.broadcast();
   StreamController<String> _brokerController = new StreamController.broadcast();
 
   void close() {

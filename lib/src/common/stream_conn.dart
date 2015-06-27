@@ -19,8 +19,10 @@ class StreamConnection implements ClientConnection, ServerConnection {
   ConnectionChannel get responderChannel => _responderChannel;
   PassiveChannel _requesterChannel;
   ConnectionChannel get requesterChannel => _requesterChannel;
-  Completer<ConnectionChannel> onRequestReadyCompleter = new Completer<ConnectionChannel>();
-  Future<ConnectionChannel> get onRequesterReady => onRequestReadyCompleter.future;
+  Completer<ConnectionChannel> onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
+  Future<ConnectionChannel> get onRequesterReady =>
+      onRequestReadyCompleter.future;
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
@@ -44,7 +46,7 @@ class StreamConnection implements ClientConnection, ServerConnection {
       this.close();
       return;
     }
-    _dataReceiveCount ++;
+    _dataReceiveCount++;
 
     if (_dataSent) {
       _dataSent = false;
@@ -86,7 +88,8 @@ class StreamConnection implements ClientConnection, ServerConnection {
         m = DsJson.decode(UTF8.decode(data));
         logger.fine("Stream JSON (bytes): ${m}");
       } catch (err, stack) {
-        logger.fine("Failed to decode JSON bytes in Stream Connection", err, stack);
+        logger.fine(
+            "Failed to decode JSON bytes in Stream Connection", err, stack);
         close();
         return;
       }
@@ -103,7 +106,8 @@ class StreamConnection implements ClientConnection, ServerConnection {
         m = DsJson.decode(data);
         logger.fine("Stream JSON: ${m}");
       } catch (err, stack) {
-        logger.severe("Failed to decode JSON from Stream Connection", err, stack);
+        logger.severe(
+            "Failed to decode JSON from Stream Connection", err, stack);
         close();
         return;
       }

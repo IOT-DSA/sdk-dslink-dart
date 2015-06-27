@@ -29,37 +29,53 @@ typedef void OptionResultsHandler(ArgResults results);
 class LinkProvider {
   /// The Link Object
   HttpClientLink link;
+
   /// The Node Provider
   NodeProvider provider;
+
   /// The Private Key
   PrivateKey privateKey;
+
   /// The Broker URL
   String brokerUrl;
   File _nodesFile;
+
   /// The Link Name
   String prefix;
+
   /// The Command-line Arguments
   List<String> args;
+
   /// Are we a requester?
   bool isRequester = false;
+
   /// The Command Name
   String command = 'link';
+
   /// Are we a responder?
   bool isResponder = true;
+
   /// Default Nodes
   Map defaultNodes;
+
   /// Profiles
   Map profiles;
+
   /// Enable HTTP Fallback?
   bool enableHttp = true;
+
   /// Encode Pretty JSON?
   bool encodePrettyJson = false;
+
   /// Strict Options?
   bool strictOptions = false;
+
   /// Exit on Failure?
   bool exitOnFailure = true;
+
   /// Load the nodes.json?
   bool loadNodesJson = true;
+
   /// Default Log Level.
   String defaultLogLevel = "INFO";
 
@@ -80,11 +96,8 @@ class LinkProvider {
   /// [loadNodesJson] specifies whether to load the nodes.json file or not.
   /// [defaultLogLevel] specifies the default log level.
   /// [nodeProvider] is the same as [provider]. It is provided for backwards compatibility.
-  LinkProvider(
-    this.args,
-    this.prefix,
-    {
-      this.isRequester: false,
+  LinkProvider(this.args, this.prefix,
+      {this.isRequester: false,
       this.command: 'link',
       this.isResponder: true,
       this.defaultNodes,
@@ -98,7 +111,7 @@ class LinkProvider {
       this.loadNodesJson: true,
       this.defaultLogLevel: "INFO",
       NodeProvider nodeProvider // For Backwards Compatibility
-    }) {
+      }) {
     if (nodeProvider != null) {
       provider = nodeProvider;
     }
@@ -131,12 +144,22 @@ class LinkProvider {
       argp = new ArgParser(allowTrailingOptions: !strictOptions);
     }
 
-    argp.addOption("broker", abbr: "b", help: "Broker URL", defaultsTo: "http://localhost:8080/conn");
+    argp.addOption("broker",
+        abbr: "b",
+        help: "Broker URL",
+        defaultsTo: "http://localhost:8080/conn");
     argp.addOption("name", abbr: "n", help: "Link Name");
     argp.addOption("base-path", help: "Base Path for DSLink");
-    argp.addOption("log", abbr: "l", allowed: Level.LEVELS.map((it) => it.name.toLowerCase()).toList()..addAll(["auto"]), help: "Log Level", defaultsTo: "AUTO");
-    argp.addFlag("help", abbr: "h", help: "Displays this Help Message", negatable: false);
-    argp.addFlag("discover", abbr: "d", help: "Automatically Discover a Broker", negatable: false);
+    argp.addOption("log",
+        abbr: "l",
+        allowed: Level.LEVELS.map((it) => it.name.toLowerCase()).toList()
+          ..addAll(["auto"]),
+        help: "Log Level",
+        defaultsTo: "AUTO");
+    argp.addFlag("help",
+        abbr: "h", help: "Displays this Help Message", negatable: false);
+    argp.addFlag("discover",
+        abbr: "d", help: "Automatically Discover a Broker", negatable: false);
 
     ArgResults opts = argp.parse(args);
 
@@ -158,7 +181,8 @@ class LinkProvider {
       }
     }
 
-    String helpStr = "usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]";
+    String helpStr =
+        "usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]";
 
     if (opts["help"]) {
       print(helpStr);
@@ -172,7 +196,8 @@ class LinkProvider {
 
     brokerUrl = opts['broker'];
     if (brokerUrl == null && !opts["discover"]) {
-      print("No Broker URL Specified. One of [--broker, --discover] is required.");
+      print(
+          "No Broker URL Specified. One of [--broker, --discover] is required.");
       print(helpStr);
       print(argp.usage);
       if (exitOnFailure) {
@@ -222,14 +247,15 @@ class LinkProvider {
       }
     }
 
-    File keyFile = getConfig('key') == null ? new File("${_basePath}/.dslink.key") : new File.fromUri(Uri.parse(getConfig('key')));
+    File keyFile = getConfig('key') == null
+        ? new File("${_basePath}/.dslink.key")
+        : new File.fromUri(Uri.parse(getConfig('key')));
     String key;
 
     try {
       key = keyFile.readAsStringSync();
       privateKey = new PrivateKey.loadFromString(key);
-    } catch (err) {
-    }
+    } catch (err) {}
 
     if (key == null || key.length != 131) {
       // 43 bytes d, 87 bytes Q, 1 space
@@ -325,15 +351,18 @@ class LinkProvider {
       provider = new SimpleNodeProvider(null, profiles);
     }
 
-    if (loadNodesJson && provider is SerializableNodeProvider && !_reconnecting) {
-      _nodesFile = getConfig('nodes') == null ? new File("${_basePath}/nodes.json") : new File.fromUri(Uri.parse(getConfig('nodes')));
+    if (loadNodesJson &&
+        provider is SerializableNodeProvider &&
+        !_reconnecting) {
+      _nodesFile = getConfig('nodes') == null
+          ? new File("${_basePath}/nodes.json")
+          : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
 
       try {
         String nodesStr = _nodesFile.readAsStringSync();
         loadedNodesData = DsJson.decode(nodesStr);
-      } catch (err) {
-      }
+      } catch (err) {}
 
       if (loadedNodesData != null) {
         (provider as SerializableNodeProvider).init(loadedNodesData);
@@ -343,15 +372,11 @@ class LinkProvider {
     }
 
     void doRun() {
-      link = new HttpClientLink(
-          brokerUrl,
-          prefix,
-          privateKey,
+      link = new HttpClientLink(brokerUrl, prefix, privateKey,
           isRequester: isRequester,
           isResponder: isResponder,
           nodeProvider: provider,
-          enableHttp: enableHttp
-      );
+          enableHttp: enableHttp);
       _ready = true;
 
       if (_connectOnReady) {
@@ -384,9 +409,9 @@ class LinkProvider {
   /// Gets a configuration value from the dslink.json
   Object getConfig(String key) {
     if (dslinkJson != null &&
-      dslinkJson['configs'] is Map &&
-      dslinkJson['configs'][key] is Map &&
-      dslinkJson['configs'][key].containsKey('value')) {
+        dslinkJson['configs'] is Map &&
+        dslinkJson['configs'][key] is Map &&
+        dslinkJson['configs'][key].containsKey('value')) {
       return dslinkJson['configs'][key]['value'];
     }
     return null;
@@ -440,6 +465,7 @@ class LinkProvider {
 
   /// Checks if the link object is null.
   bool get didInitializationFail => link == null;
+
   /// Checks if the link object is not null.
   bool get isInitialized => link != null;
 
@@ -450,7 +476,9 @@ class LinkProvider {
         return;
       }
 
-      _nodesFile.writeAsStringSync(DsJson.encode((provider as SerializableNodeProvider).save(), pretty: encodePrettyJson));
+      _nodesFile.writeAsStringSync(DsJson.encode(
+          (provider as SerializableNodeProvider).save(),
+          pretty: encodePrettyJson));
     }
   }
 
@@ -461,7 +489,8 @@ class LinkProvider {
         return;
       }
 
-      var encoded = DsJson.encode((provider as SerializableNodeProvider).save(), pretty: encodePrettyJson);
+      var encoded = DsJson.encode((provider as SerializableNodeProvider).save(),
+          pretty: encodePrettyJson);
 
       await _nodesFile.writeAsString(encoded);
     }

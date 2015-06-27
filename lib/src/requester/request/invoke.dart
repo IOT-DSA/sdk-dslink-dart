@@ -5,9 +5,10 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   List<TableColumn> columns;
   List updates;
   DSError error;
-  
+
   RequesterInvokeUpdate(
-      this.updates, this.rawColumns, this.columns, String streamStatus, [this.error])
+      this.updates, this.rawColumns, this.columns, String streamStatus,
+      [this.error])
       : super(streamStatus);
 
   List<List> _rows;
@@ -63,7 +64,8 @@ class InvokeController implements RequestUpdater {
   Request _request;
   List<TableColumn> _cachedColumns;
 
-  InvokeController(this.node, this.requester, Map params, [int maxPermission = Permission.CONFIG]) {
+  InvokeController(this.node, this.requester, Map params,
+      [int maxPermission = Permission.CONFIG]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
@@ -84,8 +86,8 @@ class InvokeController implements RequestUpdater {
 //    }
   }
 
-  void _onUnsubscribe(obj){
-    if (_request != null && _request.streamStatus != StreamStatus.closed){
+  void _onUnsubscribe(obj) {
+    if (_request != null && _request.streamStatus != StreamStatus.closed) {
       _request.close();
     }
   }
@@ -106,10 +108,9 @@ class InvokeController implements RequestUpdater {
     }
     if (error != null) {
       streamStatus = StreamStatus.closed;
-      _controller.add(new RequesterInvokeUpdate(
-              null, null, null, streamStatus, error));
-    }
-    else if (updates != null) {
+      _controller.add(
+          new RequesterInvokeUpdate(null, null, null, streamStatus, error));
+    } else if (updates != null) {
       _controller.add(new RequesterInvokeUpdate(
           updates, columns, _cachedColumns, streamStatus));
     }
@@ -119,8 +120,6 @@ class InvokeController implements RequestUpdater {
     }
   }
 
-  void onDisconnect() {
-  }
-  void onReconnect() {
-  }
+  void onDisconnect() {}
+  void onReconnect() {}
 }

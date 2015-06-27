@@ -5,6 +5,7 @@ class Request {
   final Requester requester;
   final int rid;
   final Map data;
+
   /// raw request callback
   final RequestUpdater updater;
   bool _isClosed = false;
@@ -18,6 +19,7 @@ class Request {
   void resend() {
     requester.addToSendList(data);
   }
+
   void _update(Map m) {
     if (m['stream'] is String) {
       streamStatus = m['stream'];
@@ -35,7 +37,7 @@ class Request {
       requester._requests.remove(rid);
     }
     DSError error;
-    if (m.containsKey('error') && m['error'] is Map){
+    if (m.containsKey('error') && m['error'] is Map) {
       error = new DSError.fromMap(m['error']);
     }
     updater.onUpdate(streamStatus, updates, columns, error);

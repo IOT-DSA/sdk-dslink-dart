@@ -19,9 +19,13 @@ part 'src/http/server_link.dart';
 part 'src/http/server.dart';
 part 'src/http/server_websocket.dart';
 
-ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
+ContentType _jsonContentType =
+    new ContentType("application", "json", charset: "utf-8");
 
-void updateResponseBeforeWrite(HttpRequest request, [int statusCode = HttpStatus.OK, ContentType contentType, bool noContentType = false]) {
+void updateResponseBeforeWrite(HttpRequest request,
+    [int statusCode = HttpStatus.OK,
+    ContentType contentType,
+    bool noContentType = false]) {
   var response = request.response;
 
   if (statusCode != null) {

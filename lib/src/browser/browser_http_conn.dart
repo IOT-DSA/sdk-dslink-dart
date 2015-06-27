@@ -19,7 +19,8 @@ class HttpBrowserConnection implements ClientConnection {
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   bool _connectedOnce = false;
-  void connected(){
+  void connected() {
+    logger.info('Connected');
     if (_connectedOnce) return;
     _connectedOnce = true;
     _responderChannel.updateConnect();
@@ -65,6 +66,7 @@ class HttpBrowserConnection implements ClientConnection {
       }
     }
   }
+
   _sendL() async {
     Uri connUri =
         Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
@@ -81,6 +83,7 @@ class HttpBrowserConnection implements ClientConnection {
     }
     _onDataL(request.responseText);
   }
+
   void _onDataErrorL(Object err) {
     logger.fine('http long error:$err');
     if (!_connectedOnce) {
@@ -90,10 +93,11 @@ class HttpBrowserConnection implements ClientConnection {
       _needRetryL = true;
       DsTimer.timerOnceBefore(retry, retryDelay * 1000);
       if (retryDelay < 60) {
-        retryDelay ++;
+        retryDelay++;
       }
     }
   }
+
   bool _needRetryL = false;
   void retryL() {
     _needRetryL = false;
@@ -150,6 +154,7 @@ class HttpBrowserConnection implements ClientConnection {
       DsTimer.timerOnceBefore(retry, retryDelay * 1000);
     }
   }
+
   String _lastRequestS;
   bool _needRetryS = false;
   void retryS() {
@@ -194,6 +199,7 @@ class HttpBrowserConnection implements ClientConnection {
       _responderChannel.onReceiveController.add(m['requests']);
     }
   }
+
   void _onDataS(String response) {
     connected();
     _sendingS = false;

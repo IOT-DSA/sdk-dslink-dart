@@ -43,7 +43,8 @@ class LocalDataStorage extends DataStorage {
   Future<bool> has(String key) async => window.localStorage.containsKey(key);
 
   @override
-  Future store(String key, String value) async => window.localStorage[key] = value;
+  Future store(String key, String value) async =>
+      window.localStorage[key] = value;
 
   @override
   Future<String> remove(String key) async => window.localStorage.remove(key);

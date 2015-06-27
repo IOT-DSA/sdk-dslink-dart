@@ -9,8 +9,7 @@ class DefinitionNode extends LocalNodeImpl {
 }
 
 class RootNode extends LocalNodeImpl {
-  RootNode(String path) : super(path) {
-  }
+  RootNode(String path) : super(path) {}
 
   bool _loaded = false;
 

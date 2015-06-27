@@ -5,13 +5,14 @@ class ReqSubscribeListener implements StreamSubscription {
   Requester requester;
   String path;
   ReqSubscribeListener(this.requester, this.path, this.callback);
-  Future cancel(){
+  Future cancel() {
     if (callback != null) {
       requester.unsubscribe(path, callback);
       callback = null;
     }
     return null;
   }
+
   // TODO  define a custom class to replace StreamSubscription
   Future asFuture([futureValue]) {
     return null;
@@ -19,20 +20,15 @@ class ReqSubscribeListener implements StreamSubscription {
 
   bool get isPaused => false;
 
-  void onData(void handleData(data)) {
-  }
+  void onData(void handleData(data)) {}
 
-  void onDone(void handleDone()) {
-  }
+  void onDone(void handleDone()) {}
 
-  void onError(Function handleError) {
-  }
+  void onError(Function handleError) {}
 
-  void pause([Future resumeSignal]) {
-  }
+  void pause([Future resumeSignal]) {}
 
-  void resume() {
-  }
+  void resume() {}
 }
 
 /// only a place holder for reconnect and disconnect
@@ -52,6 +48,7 @@ class SubscribeController implements RequestUpdater {
     // do nothing
   }
 }
+
 class SubscribeRequest extends Request {
   final Map<String, ReqSubscribeController> subsriptions =
       new Map<String, ReqSubscribeController>();
@@ -71,12 +68,13 @@ class SubscribeRequest extends Request {
 
   @override
   void _close([DSError error]) {
-    if (subsriptions.isNotEmpty){
+    if (subsriptions.isNotEmpty) {
       subsriptions.forEach((String path, ReqSubscribeController controller) {
         _changedPaths.add(path);
       });
     }
   }
+
   @override
   void _update(Map m) {
     List updates = m['updates'];
@@ -134,6 +132,7 @@ class SubscribeRequest extends Request {
     requester.addProcessor(_sendSubscriptionReuests);
     _changedPaths.add(path);
   }
+
   void removeSubscription(ReqSubscribeController controller) {
     String path = controller.node.remotePath;
     if (subsriptions.containsKey(path)) {
@@ -146,6 +145,7 @@ class SubscribeRequest extends Request {
           'unexpected remoteSubscription in the requester, sid: ${controller.sid}');
     }
   }
+
   List toRemove = [];
   void _sendSubscriptionReuests() {
     if (requester.connection == null) {
@@ -169,12 +169,12 @@ class SubscribeRequest extends Request {
       requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
     }
     if (!toRemove.isEmpty) {
-      requester._sendRequest(
-          {'method': 'unsubscribe', 'sids': toRemove}, null);
+      requester._sendRequest({'method': 'unsubscribe', 'sids': toRemove}, null);
       toRemove = [];
     }
   }
 }
+
 class ReqSubscribeController {
   final RemoteNode node;
   final Requester requester;
@@ -208,6 +208,7 @@ class ReqSubscribeController {
       }
     }
   }
+
   void unlisten(callback(ValueUpdate)) {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
@@ -218,6 +219,7 @@ class ReqSubscribeController {
       }
     }
   }
+
   void updateCacheLevel() {
     int maxCacheLevel = 1;
     callbacks.forEach((callback, level) {
@@ -230,12 +232,14 @@ class ReqSubscribeController {
       requester._subsciption.addSubscription(this, maxCache);
     }
   }
+
   ValueUpdate _lastUpdate;
   void addValue(ValueUpdate update) {
     _lastUpdate = update;
     for (Function callback in callbacks.keys.toList()) {
       callback(_lastUpdate);
-    };
+    }
+    ;
   }
 
   void _destroy() {

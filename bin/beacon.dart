@@ -2,13 +2,15 @@ import "dart:io";
 
 import "package:args/args.dart";
 
-import "package:dslink/broker.dart" show BrokerDiscoveryClient, BrokerDiscoverRequest;
+import "package:dslink/broker.dart"
+    show BrokerDiscoveryClient, BrokerDiscoverRequest;
 
 main(List<String> args) async {
   var argp = new ArgParser(allowTrailingOptions: true);
   var discovery = new BrokerDiscoveryClient();
 
-  argp.addFlag("help", abbr: "h", help: "Display Help Message", negatable: false);
+  argp.addFlag("help",
+      abbr: "h", help: "Display Help Message", negatable: false);
 
   var opts = argp.parse(args);
 
@@ -28,7 +30,8 @@ main(List<String> args) async {
       }
     });
   } catch (e) {
-    print("Error: Failed to start the beacon service. Are you running another beacon or broker on this machine?");
+    print(
+        "Error: Failed to start the beacon service. Are you running another beacon or broker on this machine?");
     exit(1);
   }
 

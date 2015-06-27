@@ -10,10 +10,10 @@ class WebSocketConnection implements ClientConnection {
   ConnectionChannel get requesterChannel => _requesterChannel;
 
   Completer<ConnectionChannel> _onRequestReadyCompleter =
-  new Completer<ConnectionChannel>();
+      new Completer<ConnectionChannel>();
 
   Future<ConnectionChannel> get onRequesterReady =>
-  _onRequestReadyCompleter.future;
+      _onRequestReadyCompleter.future;
 
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
@@ -35,7 +35,7 @@ class WebSocketConnection implements ClientConnection {
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
 
-    pingTimer = new Timer.periodic(new Duration(seconds:20), onPingTimer);
+    pingTimer = new Timer.periodic(new Duration(seconds: 20), onPingTimer);
   }
 
   Timer pingTimer;
@@ -46,12 +46,12 @@ class WebSocketConnection implements ClientConnection {
   /// when the count is 3, disconnect the link
   int _dataReceiveCount = 0;
 
-  void onPingTimer(Timer t){
+  void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
       this._onDone();
       return;
     }
-    _dataReceiveCount ++;
+    _dataReceiveCount++;
 
     if (_dataSent) {
       _dataSent = false;
@@ -63,13 +63,16 @@ class WebSocketConnection implements ClientConnection {
     _msgCommand['ping'] = ++pingCount;
     requireSend();
   }
+
   Map _msgCommand;
 
   void requireSend() {
     DsTimer.callLaterOnce(_send);
   }
+
   bool _opened = false;
   void _onOpen(Event e) {
+    logger.info('Connected');
     _opened = true;
     if (onConnect != null) {
       onConnect();
@@ -79,6 +82,7 @@ class WebSocketConnection implements ClientConnection {
     socket.sendString('{}');
     requireSend();
   }
+
   BinaryInCache binaryInCache = new BinaryInCache();
   void _onData(MessageEvent e) {
     logger.fine('onData:');
@@ -92,7 +96,7 @@ class WebSocketConnection implements ClientConnection {
           binaryInCache.receiveData(bytes);
           return;
         }
-        
+
         // TODO(rick): JSONUtf8Decoder
         m = DsJson.decodeFrame(UTF8.decode(bytes), binaryInCache);
         logger.fine('$m');
@@ -136,6 +140,7 @@ class WebSocketConnection implements ClientConnection {
       }
     }
   }
+
   BinaryOutCache binaryOutCache = new BinaryOutCache();
   void _send() {
     if (socket.readyState != WebSocket.OPEN) {
@@ -151,7 +156,6 @@ class WebSocketConnection implements ClientConnection {
     } else {
       m = {};
     }
-
 
     if (_responderChannel.getData != null) {
       List rslt = _responderChannel.getData();
@@ -210,7 +214,7 @@ class WebSocketConnection implements ClientConnection {
 
   void close() {
     if (socket.readyState == WebSocket.OPEN ||
-    socket.readyState == WebSocket.CONNECTING) {
+        socket.readyState == WebSocket.CONNECTING) {
       socket.close();
     }
     _onDone();

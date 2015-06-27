@@ -11,7 +11,8 @@ class InvokeResponse extends Response {
   List _columns;
   List _updates;
   String _sendingStreamStatus = StreamStatus.initialize;
-  void updateStream(List updates, {List columns, String streamStatus: StreamStatus.open}) {
+  void updateStream(List updates,
+      {List columns, String streamStatus: StreamStatus.open}) {
     if (columns != null) {
       _columns = columns;
     }

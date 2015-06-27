@@ -19,9 +19,8 @@ abstract class ConnectionHandler {
     if (_conn.connected) {
       onReconnected();
     } else {
-      _conn.onConnected.then((conn)=>onReconnected());
+      _conn.onConnected.then((conn) => onReconnected());
     }
-    
   }
 
   void _onDisconnected(ConnectionChannel conn) {
@@ -41,6 +40,7 @@ abstract class ConnectionHandler {
       _conn.sendWhenReady(doSend);
     }
   }
+
   void onData(List m);
 
   List _toSendList = [];

@@ -4,8 +4,7 @@ part of dslink.requester;
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
   Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
-  RemoteNodeCache() {
-  }
+  RemoteNodeCache() {}
   RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
       if (path.startsWith('defs')) {
@@ -16,12 +15,14 @@ class RemoteNodeCache {
     }
     return _nodes[path];
   }
+
   Node getDefNode(String path, String defName) {
     if (DefaultDefNodes.nameMap.containsKey(defName)) {
       return DefaultDefNodes.nameMap[defName];
     }
     return getRemoteNode(path);
   }
+
   /// update node with a map.
   RemoteNode updateRemoteChildNode(RemoteNode parent, String name, Map m) {
     String path;
@@ -71,6 +72,7 @@ class RemoteNode extends Node {
     }
     return true;
   }
+
   /// whether the node's own data is updated
   bool isSelfUpdated() {
     return _listController != null && _listController.initialized;
@@ -82,9 +84,10 @@ class RemoteNode extends Node {
     }
     return _listController.stream;
   }
+
   /// need a factory function for children class to override
   ListController createListController(Requester requester) {
-   return new ListController(this, requester);
+    return new ListController(this, requester);
   }
 
   void _subscribe(Requester requester, callback(ValueUpdate), int cacheLevel) {
@@ -93,13 +96,15 @@ class RemoteNode extends Node {
     }
     _subscribeController.listen(callback, cacheLevel);
   }
+
   void _unsubscribe(Requester requester, callback(ValueUpdate)) {
     if (_subscribeController != null) {
       _subscribeController.unlisten(callback);
     }
   }
 
-  Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester, [int maxPermission = Permission.CONFIG]) {
+  Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester,
+      [int maxPermission = Permission.CONFIG]) {
     return new InvokeController(this, requester, params, maxPermission)._stream;
   }
 
@@ -125,7 +130,7 @@ class RemoteNode extends Node {
       }
     });
   }
-  
+
   /// clear all configs attributes and children
   void resetNodeCache() {
     configs.clear();

@@ -37,11 +37,17 @@ class HttpServerLink implements ServerLink {
     salts[type] = '${_saltBases[type]}${_saltInc[type].toRadixString(16)}';
   }
 
-  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager, {NodeProvider nodeProvider, String sessionId, this.trusted: false, this.enableTimeout:false})
-  : dsId = id,
-  session = sessionId,
-  requester = linkManager.getRequester(id),
-  responder = (nodeProvider != null) ? linkManager.getResponder(id, nodeProvider, sessionId) : null {
+  HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
+      {NodeProvider nodeProvider,
+      String sessionId,
+      this.trusted: false,
+      this.enableTimeout: false})
+      : dsId = id,
+        session = sessionId,
+        requester = linkManager.getRequester(id),
+        responder = (nodeProvider != null)
+            ? linkManager.getResponder(id, nodeProvider, sessionId)
+            : null {
     if (!trusted) {
       for (int i = 0; i < 3; ++i) {
         List<int> bytes = new List<int>(12);
@@ -69,14 +75,18 @@ class HttpServerLink implements ServerLink {
   /// by default it's a responder only link
   bool isResponder = true;
 
-  initLink(HttpRequest request, bool clientRequester, bool clientResponder, String serverDsId, String serverKey,
-                {String wsUri:'/ws', String httpUri:'/http', int updateInterval:200}) async {
+  initLink(HttpRequest request, bool clientRequester, bool clientResponder,
+      String serverDsId, String serverKey,
+      {String wsUri: '/ws',
+      String httpUri: '/http',
+      int updateInterval: 200}) async {
     isRequester = clientResponder;
     isResponder = clientRequester;
 
     // TODO(rinick): don't use a hardcoded id and public key
     Map respJson = {
-      "id": serverDsId, //"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
+      "id":
+          serverDsId, //"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
       "publicKey": serverKey,
       //"vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": wsUri,
@@ -102,8 +112,7 @@ class HttpServerLink implements ServerLink {
     if (hash == null) {
       return false;
     }
-    if (verifiedNonce != null &&
-    verifiedNonce.verifySalt(salts[type], hash)) {
+    if (verifiedNonce != null && verifiedNonce.verifySalt(salts[type], hash)) {
       _updateSalt(type);
       return true;
     } else if (tempNonce != null && tempNonce.verifySalt(salts[type], hash)) {
@@ -192,7 +201,8 @@ class HttpServerLink implements ServerLink {
       });
 
       if (connection is! HttpServerConnection) {
-        sconnection.onRequestReadyCompleter.complete(sconnection.requesterChannel);
+        sconnection.onRequestReadyCompleter
+            .complete(sconnection.requesterChannel);
       }
     });
   }
@@ -228,7 +238,9 @@ class HttpServerLink implements ServerLink {
       if (connection is! HttpServerConnection) {
         // work around for backward compatibility
         // TODO(rinick): remove this when all clients send blank data to initialize ws
-        wsconnection.onRequestReadyCompleter.complete(wsconnection.requesterChannel);;
+        wsconnection.onRequestReadyCompleter
+            .complete(wsconnection.requesterChannel);
+        ;
       }
     }).catchError((e) {
       try {
@@ -239,14 +251,13 @@ class HttpServerLink implements ServerLink {
           request.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
           request.response.writeln("Internal Server Error");
         }
-      } catch (e) {
-      }
+      } catch (e) {}
       return request.response.close();
     });
   }
 
   ServerWebSocket createWsConnection(WebSocket websocket) {
-    return new ServerWebSocket(websocket, enableTimeout:enableTimeout);
+    return new ServerWebSocket(websocket, enableTimeout: enableTimeout);
   }
 
   StreamConnection createStreamConnection(StreamConnectionAdapter adapter) {

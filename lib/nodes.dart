@@ -13,8 +13,8 @@ class DeleteActionNode extends SimpleNode {
   DeleteActionNode(String path, this.provider, this.targetPath) : super(path);
 
   /// When this action is invoked, [provider.removeNode] will be called with the parent of this action.
-  DeleteActionNode.forParent(String path, NodeProvider provider) :
-    this(path, provider, new Path(path).parentPath);
+  DeleteActionNode.forParent(String path, NodeProvider provider)
+      : this(path, provider, new Path(path).parentPath);
 
   /// Handles an action invocation and deletes the target path.
   @override
@@ -78,7 +78,8 @@ class UpgradableNode extends SimpleNode {
 
 typedef void SimpleCallback();
 typedef void ChildChangedCallback(String name, Node node);
-typedef SimpleNode LoadChildCallback(String name, Map data, SimpleNodeProvider provider);
+typedef SimpleNode LoadChildCallback(
+    String name, Map data, SimpleNodeProvider provider);
 
 /// A Simple Node which delegates all basic methods to given functions.
 class CallbackNode extends SimpleNode {
@@ -89,20 +90,19 @@ class CallbackNode extends SimpleNode {
   final ActionFunction onActionInvoke;
   final LoadChildCallback onLoadChildCallback;
 
-  CallbackNode(String path, {
-    this.onActionInvoke,
-    ChildChangedCallback onChildAdded,
-    ChildChangedCallback onChildRemoved,
-    SimpleCallback onCreated,
-    SimpleCallback onRemoving,
-    LoadChildCallback onLoadChild
-  }) :
-    super(path),
-    onChildAddedCallback = onChildAdded,
-    onChildRemovedCallback = onChildRemoved,
-    onCreatedCallback = onCreated,
-    onRemovingCallback = onRemoving,
-    onLoadChildCallback = onLoadChild;
+  CallbackNode(String path,
+      {this.onActionInvoke,
+      ChildChangedCallback onChildAdded,
+      ChildChangedCallback onChildRemoved,
+      SimpleCallback onCreated,
+      SimpleCallback onRemoving,
+      LoadChildCallback onLoadChild})
+      : super(path),
+        onChildAddedCallback = onChildAdded,
+        onChildRemovedCallback = onChildRemoved,
+        onCreatedCallback = onCreated,
+        onRemovingCallback = onRemoving,
+        onLoadChildCallback = onLoadChild;
 
   @override
   onInvoke(Map<String, dynamic> params) {

@@ -28,7 +28,9 @@ Future<String> getNetworkAddress() async {
     return null;
   }
   NetworkInterface interface = interfaces.first;
-  List<InternetAddress> addresses = interface.addresses.where((it) => !it.isLinkLocal && !it.isLoopback).toList();
+  List<InternetAddress> addresses = interface.addresses
+      .where((it) => !it.isLinkLocal && !it.isLoopback)
+      .toList();
   if (addresses.isEmpty) {
     return null;
   }
@@ -84,9 +86,12 @@ main(List<String> _args) async {
   }
 
   broker = new BrokerNodeProvider();
-  server = new DsHttpServer.start(getConfig("host", "0.0.0.0"), httpPort: getConfig("port", -1),
-    httpsPort: getConfig("https_port", -1),
-    certificateName: getConfig("certificate_name"), nodeProvider: broker, linkManager: broker);
+  server = new DsHttpServer.start(getConfig("host", "0.0.0.0"),
+      httpPort: getConfig("port", -1),
+      httpsPort: getConfig("https_port", -1),
+      certificateName: getConfig("certificate_name"),
+      nodeProvider: broker,
+      linkManager: broker);
 
   https = getConfig("https_port", -1) != -1;
 
@@ -96,7 +101,8 @@ main(List<String> _args) async {
   }
 
   if (args.any((it) => it.startsWith("--broker")) || args.contains("-b")) {
-    link = new LinkProvider(args, getConfig("link_prefix", "broker-"), provider: broker)..connect();
+    link = new LinkProvider(args, getConfig("link_prefix", "broker-"),
+        provider: broker)..connect();
   }
 
   if (getConfig("broadcast", false)) {
@@ -112,7 +118,8 @@ main(List<String> _args) async {
         request.reply(url);
       });
     } catch (e) {
-      print("Warning: Failed to start broker broadcast service. Are you running more than one broker on this machine?");
+      print(
+          "Warning: Failed to start broker broadcast service. Are you running more than one broker on this machine?");
     }
   }
 }

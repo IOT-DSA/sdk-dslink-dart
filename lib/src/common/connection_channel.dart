@@ -24,14 +24,16 @@ class PassiveChannel implements ConnectionChannel {
   }
 
   bool connected = true;
-  
-  final Completer<ConnectionChannel> onDisconnectController = new Completer<ConnectionChannel>();
+
+  final Completer<ConnectionChannel> onDisconnectController =
+      new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onDisconnected => onDisconnectController.future;
-  
-  final Completer<ConnectionChannel> onConnectController = new Completer<ConnectionChannel>();
+
+  final Completer<ConnectionChannel> onConnectController =
+      new Completer<ConnectionChannel>();
   Future<ConnectionChannel> get onConnected => onConnectController.future;
-  
-  void updateConnect(){
+
+  void updateConnect() {
     if (connected) return;
     connected = true;
     onConnectController.complete(this);

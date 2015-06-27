@@ -19,6 +19,7 @@ import 'dart:isolate';
 import 'dart:collection';
 
 part 'isolate.dart';
+
 /// hard code the EC curve data here, so the compiler don't have to register all curves
 ECDomainParameters _secp256r1 = () {
   BigInteger q = new BigInteger(
@@ -44,22 +45,25 @@ ECDomainParameters _secp256r1 = () {
 }();
 
 abstract class ECDH {
-  
   static ECPrivateKey _cachedPrivate;
   static ECPublicKey _cachedPublic;
   static int _cachedTime = -1;
-  
-  static Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async{
+
+  static Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async {
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
-        return ECDHIsolate._sendRequest(publicKeyRemote, old._ecPrivateKey.d.toRadix(16));
+        return ECDHIsolate._sendRequest(
+            publicKeyRemote, old._ecPrivateKey.d.toRadix(16));
       } else {
         return ECDHIsolate._sendRequest(publicKeyRemote, null);
       }
     }
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
+
     /// reuse same ECDH server pair for up to 1 minute
-    if (_cachedPrivate == null || ts - _cachedTime > 60000 || (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
+    if (_cachedPrivate == null ||
+        ts - _cachedTime > 60000 ||
+        (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
       var gen = new ECKeyGenerator();
       var rsapars = new ECKeyGeneratorParameters(_secp256r1);
       var params = new ParametersWithRandom(rsapars, DSRandom.instance);
@@ -70,11 +74,11 @@ abstract class ECDH {
       _cachedTime = ts;
     }
     var Q2 = publicKeyRemote.ecPublicKey.Q * _cachedPrivate.d;
-     return new ECDHImpl(
-              publicKeyRemote.ecPublicKey, _cachedPrivate, _cachedPublic, Q2);
-   }
-  
-  static Future<ECDH> generate(PublicKey publicKeyRemote) async{
+    return new ECDHImpl(
+        publicKeyRemote.ecPublicKey, _cachedPrivate, _cachedPublic, Q2);
+  }
+
+  static Future<ECDH> generate(PublicKey publicKeyRemote) async {
     if (ECDHIsolate.running) {
       return ECDHIsolate._sendRequest(publicKeyRemote, '');
     }
@@ -83,7 +87,7 @@ abstract class ECDH {
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
     gen.init(params);
     var pair = gen.generateKeyPair();
-    
+
     var Q2 = publicKeyRemote.ecPublicKey.Q * pair.privateKey.d;
     return new ECDHImpl(
         publicKeyRemote.ecPublicKey, pair.privateKey, pair.publicKey, Q2);
@@ -95,6 +99,7 @@ abstract class ECDH {
 
   bool verifySalt(String salt, String hash);
 }
+
 class ECDHImpl implements ECDH {
   Uint8List bytes;
 
@@ -103,7 +108,8 @@ class ECDHImpl implements ECDH {
 
   ECPublicKey _ecPublicKeyRemote;
 
-  ECDHImpl(this._ecPublicKeyRemote, this._ecPrivateKey, this._ecPublicKey, ECPoint Q2) {
+  ECDHImpl(this._ecPublicKeyRemote, this._ecPrivateKey, this._ecPublicKey,
+      ECPoint Q2) {
     //var Q2 = _ecPublicKeyRemote.Q * _ecPrivateKey.d;
     bytes = bigintToUint8List(Q2.x.toBigInteger());
     if (bytes.length > 32) {
@@ -126,9 +132,7 @@ class ECDHImpl implements ECDH {
   }
 
   String hashSalt(String salt) {
-    List raw = []
-      ..addAll(UTF8.encode(salt))
-      ..addAll(bytes);
+    List raw = []..addAll(UTF8.encode(salt))..addAll(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     var hashed = sha256.process(new Uint8List.fromList(raw));
     return Base64.encode(hashed);
@@ -177,7 +181,7 @@ class PrivateKey {
     publicKey = new PublicKey(ecPublicKey);
   }
 
-  static Future<PrivateKey> generate() async{
+  static Future<PrivateKey> generate() async {
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
@@ -186,7 +190,7 @@ class PrivateKey {
     return new PrivateKey(pair.privateKey, pair.publicKey);
   }
 
-  factory PrivateKey.generateSync(){
+  factory PrivateKey.generateSync() {
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, DSRandom.instance);
@@ -212,7 +216,7 @@ class PrivateKey {
     return '${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}';
   }
 
-  Future<ECDHImpl> decodeECDH(String key) async{
+  Future<ECDHImpl> decodeECDH(String key) async {
     ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(key));
     ECPublicKey publicKey = new ECPublicKey(p, _secp256r1);
     var Q2 = publicKey.Q * ecPrivateKey.d;
@@ -307,13 +311,13 @@ String bytes2hex(List<int> bytes) {
 /// this version also remove the byte for sign, so it's not able to serialize negative number
 Uint8List bigintToUint8List(BigInteger input) {
   List rslt = input.toByteArray();
-  if (rslt.length > 32 && rslt[0] == 0){
+  if (rslt.length > 32 && rslt[0] == 0) {
     rslt = rslt.sublist(1);
   }
   int len = rslt.length;
   for (int i = 0; i < len; ++i) {
     if (rslt[i] < 0) {
-      rslt[i] &= 0xff; 
+      rslt[i] &= 0xff;
     }
   }
   return new Uint8List.fromList(rslt);
