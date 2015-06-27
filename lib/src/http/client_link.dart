@@ -78,7 +78,7 @@ class HttpClientLink implements ClientLink {
         salts[idx] = serverConfig[name];
       });
       String tempKey = serverConfig['tempKey'];
-      _nonce = await privateKey.decodeECDH(tempKey);
+      _nonce = await privateKey.getSecret(tempKey);
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'

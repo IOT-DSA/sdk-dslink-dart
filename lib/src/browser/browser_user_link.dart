@@ -107,10 +107,9 @@ class BrowserUserLink implements ClientLink {
 }
 
 class DummyECDH implements ECDH {
+  final String encodedPublicKey = "";
+
   const DummyECDH();
-  String encodePublicKey() {
-    return '';
-  }
 
   String hashSalt(String salt) {
     return '';

@@ -234,18 +234,20 @@ class LinkProvider {
     if (key == null || key.length != 131) {
       // 43 bytes d, 87 bytes Q, 1 space
       // generate the key
-      String macs;
-      if (Platform.isWindows) {
-        macs = Process.runSync("getmac", []).stdout.toString();
-      } else {
-        try {
-          macs = Process.runSync("arp", ["-an"]).stdout.toString();
-        } catch (e) {
-          macs = Process.runSync("ifconfig", []).stdout.toString();
+      if(DSRandom.instance.needsEntropy) {
+        String macs;
+        if (Platform.isWindows) {
+          macs = Process.runSync("getmac", []).stdout.toString();
+        } else {
+          try {
+            macs = Process.runSync("arp", ["-an"]).stdout.toString();
+          } catch (e) {
+            macs = Process.runSync("ifconfig", []).stdout.toString();
+          }
         }
+        // randomize the PRNG with the system mac (as well as timestamp)
+        DSRandom.instance.addEntropy(macs);
       }
-      // randomize the PRNG with the system mac (as well as timestamp)
-      DSRandom.instance.randomize(macs);
       privateKey = new PrivateKey.generateSync();
       key = privateKey.saveToString();
       keyFile.writeAsStringSync(key);

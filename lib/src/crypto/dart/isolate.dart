@@ -1,9 +1,10 @@
-part of dslink.pk;
+part of dslink.pk.dart;
 
 ECPrivateKey _cachedPrivate;
 ECPublicKey _cachedPublic;
 int _cachedTime = -1;
 String cachedPrivateStr;
+
 List generate(List publicKeyRemote, String oldPriKeyStr) {
   ECPoint publicPointRemote = _secp256r1.curve.decodePoint(publicKeyRemote);
   ECPrivateKey privateKey;
@@ -15,7 +16,8 @@ List generate(List publicKeyRemote, String oldPriKeyStr) {
       oldPriKeyStr == '') {
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
-    var params = new ParametersWithRandom(rsapars, DSRandom.instance);
+    var params = new ParametersWithRandom(rsapars,
+        DartCryptoProvider.INSTANCE.random);
     gen.init(params);
     var pair = gen.generateKeyPair();
     privateKey = pair.privateKey;
@@ -68,8 +70,8 @@ class ECDHIsolate {
         var d1 = new BigInteger.fromBytes(1, message[0]);
         var Q1 = _secp256r1.curve.decodePoint(message[1]);
         var Q2 = _secp256r1.curve.decodePoint(message[2]);
-        var ecdh = new ECDHImpl(_waitingReq.publicKeyRemote.ecPublicKey,
-            new ECPrivateKey(d1, _secp256r1), new ECPublicKey(Q1, _secp256r1),
+        var ecdh = new ECDHImpl(
+          new ECPrivateKey(d1, _secp256r1), new ECPublicKey(Q1, _secp256r1),
             Q2);
         _waitingReq._completer.complete(ecdh);
         _waitingReq = null;
@@ -100,7 +102,7 @@ class ECDHIsolate {
 }
 
 class ECDHIsoltateRequest {
-  PublicKey publicKeyRemote;
+  PublicKeyImpl publicKeyRemote;
   String oldPrivate;
 
   ECDHIsoltateRequest(this.publicKeyRemote, this.oldPrivate);

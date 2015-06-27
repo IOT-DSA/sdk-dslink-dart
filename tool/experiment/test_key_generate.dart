@@ -11,14 +11,14 @@ void main() async{
   }
 
   // randomize the PRNG with the system mac
-  DSRandom.instance.randomize(rslt);
+  DSRandom.instance.addEntropy(rslt);
 
   var t1 = (new DateTime.now()).millisecondsSinceEpoch;
   PrivateKey key ;
   for (int i=0; i< 50; ++i)
   // generate private key
   key = await PrivateKey.generate();
-  
+
   var t2 = (new DateTime.now()).millisecondsSinceEpoch;
 
   print('takes ${t2-t1} ms to generate key');

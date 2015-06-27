@@ -1,4 +1,5 @@
 import 'package:dslink/src/crypto/pk.dart';
+import 'package:dslink/src/crypto/dart/pk.dart';
 
 String clientPrivate = "M6S41GAL0gH0I97Hhy7A2-icf8dHnxXPmYIRwem03HE";
 String clientPublic = "BEACGownMzthVjNFT7Ry-RPX395kPSoUqhQ_H_vz0dZzs5RYoVJKA16XZhdYd__ksJP0DOlwQXAvoDjSMWAhkg4";
@@ -55,9 +56,9 @@ void main() {
 void testApi() async {
   PrivateKey prikey = new PrivateKey.loadFromString(clientPrivate);
   PublicKey pubkey = prikey.publicKey;
-  
+
   __assertEqual(pubkey.qBase64, clientPublic, 'API public key');
-  
+
   /// Initialize connection , Client -> Server
 
   String dsId = pubkey.getDsId('test-');
@@ -68,16 +69,16 @@ void testApi() async {
   PublicKey tPubkey = tPrikey.publicKey;
 
   __assertEqual(tPubkey.qBase64, serverTempPublic, 'API temp key');
-    
+
 
   /// Start Connection (http or ws), Client -> Server
   /// Decode
-  ECDHImpl clientEcdh = await prikey.decodeECDH(tPubkey.qBase64);
-  ECDHImpl serverEcdh = await tPrikey.decodeECDH(pubkey.qBase64);
-  
+  ECDHImpl clientEcdh = await prikey.getSecret(tPubkey.qBase64);
+  ECDHImpl serverEcdh = await tPrikey.getSecret(pubkey.qBase64);
+
   __assertEqual(bytes2hex(clientEcdh.bytes), sharedSecret, 'API client ECDH');
   __assertEqual(bytes2hex(serverEcdh.bytes), sharedSecret, 'API server ECDH');
-  
+
   /// Make Auth
   String auth = serverEcdh.hashSalt('0000');
   __assertEqual(auth, hashedAuth, 'API auth');
