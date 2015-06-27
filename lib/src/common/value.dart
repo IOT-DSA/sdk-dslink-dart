@@ -21,12 +21,16 @@ class ValueUpdate {
   String ts;
   String status;
   int count;
-  num sum = 0,
-      min,
-      max;
+  num sum = 0, min, max;
 
-  ValueUpdate(this.value, {this.ts, Map meta, this.status, this.count: 1,
-    this.sum: double.NAN, this.min: double.NAN, this.max: double.NAN}) {
+  ValueUpdate(this.value,
+      {this.ts,
+      Map meta,
+      this.status,
+      this.count: 1,
+      this.sum: double.NAN,
+      this.min: double.NAN,
+      this.max: double.NAN}) {
     if (ts == null) {
       ts = getTs();
     }

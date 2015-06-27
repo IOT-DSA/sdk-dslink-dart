@@ -7,14 +7,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   /// connName to connection
-  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns =
+      new Map<String, RemoteLinkManager>();
 
-  
-  
   IPermissionManager permissions;
-    
+
   LocalNodeImpl connsNode;
-  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
+  Map rootStructure = {
+    'users': {},
+    'conns': {},
+    'defs': {},
+    'quarantine': {},
+    'sys': {}
+  };
 
   BrokerNodeProvider() {
     permissions = new BrokerPermissions();
@@ -60,8 +65,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           _connPath2id[path] = node.configs[r'$$dsId'];
         }
       });
-    } catch (err) {
-    }
+    } catch (err) {}
   }
 
   Map saveConns() {
@@ -94,7 +98,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void setNode(String path, LocalNode newNode) {
     LocalNode node = nodes[path];
     if (node != null) {
-      logger.severe('error, BrokerNodeProvider.setNode same node can not be set twice');
+      logger.severe(
+          'error, BrokerNodeProvider.setNode same node can not be set twice');
       return;
     }
 
@@ -121,19 +126,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       int pos = path.indexOf('/#');
       if (pos > 0) {
         // link node
-        
+
       } else {
         // user node
-        
+
       }
-      
     } else if (path.startsWith('/conns/')) {
       String connName = path.split('/')[2];
       String connPath = '/conns/$connName';
       RemoteLinkManager conn = conns[connPath];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-        conn = new RemoteLinkManager(this, _connPath2id[connPath], connPath, connName, this);
+        conn = new RemoteLinkManager(
+            this, _connPath2id[connPath], connPath, connName, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
         connsNode.children[connName] = conn.rootNode;
@@ -221,7 +226,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
   }
 
-  ServerLink getLink(String dsId, {String sessionId:''}) {
+  ServerLink getLink(String dsId, {String sessionId: ''}) {
     String str = dsId;
     if (sessionId != null && sessionId != '') {
       str = '$dsId sessionId';
@@ -251,17 +256,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (conns.containsKey(getConnPath)) {
       return conns[connPath].requester;
     }
+
     /// create the RemoteLinkManager
     RemoteLinkNode node = getNode(connPath);
     return node._linkManager.requester;
   }
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
-                         [String sessionId = '']) {
+      [String sessionId = '']) {
     String connPath = getConnPath(dsId);
     if (conns.containsKey(connPath)) {
       return conns[connPath].getResponder(nodeProvider, sessionId);
     }
+
     /// create the RemoteLinkManager
     RemoteLinkNode node = getNode(connPath);
     return node._linkManager.getResponder(nodeProvider, sessionId);

@@ -2,14 +2,15 @@ part of dslink.responder;
 
 /// a responder for one connection
 class Responder extends ConnectionHandler {
-
   /// reqId can be a dsId or a user name
   String reqId;
+
   /// list of permission group
   List<String> groups = [];
 
   final Map<int, Response> _responses = new Map<int, Response>();
   SubscribeResponse _subscription;
+
   /// caching of nodes
   final NodeProvider nodeProvider;
 
@@ -67,6 +68,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     }
   }
+
   /// close the response from responder side and notify requester
   void _closeResponse(int rid, {Response response, DSError error}) {
     if (response != null) {
@@ -115,6 +117,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
+
   void subscribe(Map m) {
     if (m['paths'] is List) {
       int rid = m['rid'];
@@ -148,6 +151,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
     }
   }
+
   void unsubscribe(Map m) {
     if (m['sids'] is List) {
       int rid = m['rid'];
@@ -161,6 +165,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
     }
   }
+
   void invoke(Map m) {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.absolute) {
@@ -186,6 +191,7 @@ class Responder extends ConnectionHandler {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
+
   void set(Map m) {
     Path path = Path.getValidPath(m['path']);
     if (path == null || !path.absolute) {
@@ -246,7 +252,7 @@ class Responder extends ConnectionHandler {
     } else if (path.isConfig) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
       int permission = nodeProvider.permissions.getPermission(node.path, this);
-      if (permission  < Permission.CONFIG) {
+      if (permission < Permission.CONFIG) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeConfig(
@@ -255,7 +261,7 @@ class Responder extends ConnectionHandler {
     } else if (path.isAttribute) {
       LocalNode node = nodeProvider.getNode(path.parentPath);
       int permission = nodeProvider.permissions.getPermission(node.path, this);
-      if (permission  < Permission.WRITE) {
+      if (permission < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeAttribute(

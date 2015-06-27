@@ -20,7 +20,15 @@ export "package:dslink/common.dart";
 export "package:dslink/requester.dart";
 export "package:dslink/responder.dart";
 export "package:dslink/browser_client.dart";
-export "package:dslink/utils.dart" show Scheduler, Interval, DSLinkJSON, updateLogLevel, buildEnumType, buildActionIO, ByteDataUtil;
+export "package:dslink/utils.dart"
+    show
+        Scheduler,
+        Interval,
+        DSLinkJSON,
+        updateLogLevel,
+        buildEnumType,
+        buildActionIO,
+        ByteDataUtil;
 export "package:dslink/src/crypto/pk.dart" show PrivateKey;
 
 /// DSLink Provider for the Browser
@@ -37,15 +45,14 @@ class LinkProvider {
   bool isRequester;
   bool isResponder;
 
-  LinkProvider(this.brokerUrl, this.prefix, {
-    this.defaultNodes,
-    this.profiles,
-    this.provider,
-    this.dataStore,
-    this.loadNodes: false,
-    this.isRequester: true,
-    this.isResponder: true
-  }) {
+  LinkProvider(this.brokerUrl, this.prefix,
+      {this.defaultNodes,
+      this.profiles,
+      this.provider,
+      this.dataStore,
+      this.loadNodes: false,
+      this.isRequester: true,
+      this.isResponder: true}) {
     if (dataStore == null) {
       dataStore = LocalDataStorage.INSTANCE;
     }
@@ -66,7 +73,8 @@ class LinkProvider {
       if (!(await dataStore.has("dsa_nodes"))) {
         (provider as SerializableNodeProvider).init(defaultNodes);
       } else {
-        (provider as SerializableNodeProvider).init(DsJson.decode(await dataStore.get("dsa_nodes")));
+        (provider as SerializableNodeProvider)
+            .init(DsJson.decode(await dataStore.get("dsa_nodes")));
       }
     } else {
       (provider as SerializableNodeProvider).init(defaultNodes);
@@ -103,7 +111,8 @@ class LinkProvider {
       return;
     }
 
-    await dataStore.store("dsa_nodes", DsJson.encode((provider as SerializableNodeProvider).save()));
+    await dataStore.store("dsa_nodes",
+        DsJson.encode((provider as SerializableNodeProvider).save()));
   }
 
   void syncValue(String path) {
@@ -113,14 +122,10 @@ class LinkProvider {
 
   Future connect() {
     Future run() {
-      link = new BrowserECDHLink(
-          brokerUrl,
-          prefix,
-          privateKey,
+      link = new BrowserECDHLink(brokerUrl, prefix, privateKey,
           nodeProvider: provider,
           isRequester: isRequester,
-          isResponder: isResponder
-      );
+          isResponder: isResponder);
 
       link.connect();
       return link.onConnected;
@@ -188,7 +193,8 @@ class LinkProvider {
 }
 
 class BrowserUtils {
-  static Future<String> fetchBrokerUrlFromPath(String path, String otherwise) async {
+  static Future<String> fetchBrokerUrlFromPath(
+      String path, String otherwise) async {
     try {
       return (await HttpRequest.getString(path)).trim();
     } catch (e) {
@@ -196,7 +202,8 @@ class BrowserUtils {
     }
   }
 
-  static String createBinaryUrl(ByteData input, {String type: "application/octet-stream"}) {
+  static String createBinaryUrl(ByteData input,
+      {String type: "application/octet-stream"}) {
     Uint8List data = ByteDataUtil.toUint8List(input);
     return "data:${type};base64,${CryptoUtils.bytesToBase64(data)}";
   }

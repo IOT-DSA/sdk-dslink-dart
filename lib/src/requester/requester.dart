@@ -14,6 +14,7 @@ class RequesterUpdate {
 
 class Requester extends ConnectionHandler {
   Map<int, Request> _requests = new Map<int, Request>();
+
   /// caching of nodes
   final RemoteNodeCache nodeCache;
 
@@ -63,28 +64,31 @@ class Requester extends ConnectionHandler {
     return req;
   }
 
-  ReqSubscribeListener subscribe(String path, callback(ValueUpdate), [int cacheLevel = 1]) {
+  ReqSubscribeListener subscribe(String path, callback(ValueUpdate),
+      [int cacheLevel = 1]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     node._subscribe(this, callback, cacheLevel);
     return new ReqSubscribeListener(this, path, callback);
   }
 
   void unsubscribe(String path, callback(ValueUpdate)) {
-     RemoteNode node = nodeCache.getRemoteNode(path);
-     node._unsubscribe(this, callback);
-   }
+    RemoteNode node = nodeCache.getRemoteNode(path);
+    node._unsubscribe(this, callback);
+  }
 
   Stream<RequesterListUpdate> list(String path) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     return node._list(this);
   }
 
-  Stream<RequesterInvokeUpdate> invoke(String path, Map params, [int maxPermission = Permission.CONFIG]) {
+  Stream<RequesterInvokeUpdate> invoke(String path, Map params,
+      [int maxPermission = Permission.CONFIG]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission);
   }
 
-  Future<RequesterUpdate> set(String path, Object value, [int maxPermission = Permission.CONFIG]) {
+  Future<RequesterUpdate> set(String path, Object value,
+      [int maxPermission = Permission.CONFIG]) {
     return new SetController(this, path, value, maxPermission).future;
   }
 
@@ -113,8 +117,7 @@ class Requester extends ConnectionHandler {
     ;
     newRequests[0] = _subsciption;
     _requests.forEach((n, req) {
-      if (req.rid <= lastSentId &&
-          req.updater is! ListController) {
+      if (req.rid <= lastSentId && req.updater is! ListController) {
         req._close(DSError.DISCONNECTED);
       } else {
         newRequests[req.rid] = req;

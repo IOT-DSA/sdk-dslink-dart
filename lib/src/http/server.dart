@@ -7,7 +7,7 @@ class DsSimpleLinkManager implements ServerLinkManager {
     _links[link.dsId] = link;
   }
 
-  ServerLink getLink(String dsId, {String sessionId:''}) {
+  ServerLink getLink(String dsId, {String sessionId: ''}) {
     return _links[dsId];
   }
 
@@ -21,25 +21,29 @@ class DsSimpleLinkManager implements ServerLinkManager {
     return new Requester();
   }
 
-  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']) {
+  Responder getResponder(String dsId, NodeProvider nodeProvider,
+      [String sessionId = '']) {
     return new Responder(nodeProvider);
   }
 }
 
 class DsHttpServer {
   String dsId = "broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g";
-  String publicKey = "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w";
+  String publicKey =
+      "vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w";
   int updateInterval = 200;
   final NodeProvider nodeProvider;
   final ServerLinkManager _linkManager;
 
   /// to open a secure server, SecureSocket.initialize() need to be called before start()
   DsHttpServer.start(dynamic address, //
-      {int httpPort: 8080, int httpsPort: 8443, String certificateName,
-      linkManager, this.nodeProvider})
-      : _linkManager = (linkManager == null)
-          ? new DsSimpleLinkManager()
-          : linkManager {
+      {int httpPort: 8080,
+      int httpsPort: 8443,
+      String certificateName,
+      linkManager,
+      this.nodeProvider})
+      : _linkManager =
+            (linkManager == null) ? new DsSimpleLinkManager() : linkManager {
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
         logger.info('Listening on HTTP port $httpPort');
@@ -70,7 +74,8 @@ class DsHttpServer {
           response.statusCode = HttpStatus.NOT_FOUND;
         }
 
-        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
+        response.headers
+            .set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
         response.headers.set("Access-Control-Allow-Headers", "Content-Type");
 
         String origin = request.headers.value("origin");
@@ -120,7 +125,7 @@ class DsHttpServer {
           break;
       }
     } catch (err) {
-      if(err is int) {
+      if (err is int) {
         request.response.statusCode = err;
       }
       request.response.close();
@@ -131,12 +136,12 @@ class DsHttpServer {
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
-          updateResponseBeforeWrite(request/*, HttpStatus.BAD_REQUEST*/);
+          updateResponseBeforeWrite(request /*, HttpStatus.BAD_REQUEST*/);
           // invalid connection request
           request.response.close();
           return;
         } else if (merged.length == 0) {
-          updateResponseBeforeWrite(request/*, HttpStatus.BAD_REQUEST*/);
+          updateResponseBeforeWrite(request /*, HttpStatus.BAD_REQUEST*/);
           request.response.close();
           return;
         }
@@ -152,15 +157,16 @@ class DsHttpServer {
           }
           link = new HttpServerLink(
               dsId, new PublicKey.fromBytes(bytes), _linkManager,
-              nodeProvider: nodeProvider,
-              enableTimeout: true);
+              nodeProvider: nodeProvider, enableTimeout: true);
           if (!link.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
           }
           _linkManager.addLink(link);
         }
-        link.initLink(request, m['isRequester'] == true, m['isResponder'] == true, dsId, publicKey, updateInterval:updateInterval);
+        link.initLink(request, m['isRequester'] == true,
+            m['isResponder'] == true, dsId, publicKey,
+            updateInterval: updateInterval);
       } catch (err) {
         if (err is int) {
           // TODO need protection because changing statusCode itself can throw

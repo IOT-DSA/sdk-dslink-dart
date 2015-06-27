@@ -37,7 +37,8 @@ class BrowserECDHLink implements ClientLink {
   String _conn;
 
   BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider, bool isRequester: true,
+      {NodeProvider nodeProvider,
+      bool isRequester: true,
       bool isResponder: true})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
@@ -50,7 +51,7 @@ class BrowserECDHLink implements ClientLink {
   connect() async {
     if (_closed) return;
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
-    logger.info('connecting: $connUri');
+    logger.info('Connecting: $connUri');
     try {
       Map requestJson = {
         'publicKey': privateKey.publicKey.qBase64,
@@ -121,6 +122,7 @@ class BrowserECDHLink implements ClientLink {
       });
     }
     _wsConnection.onDisconnected.then((connection) {
+      logger.info('Disconnected');
       if (_closed) return;
       if (_wsConnection._opened) {
         _wsDelay = 1;

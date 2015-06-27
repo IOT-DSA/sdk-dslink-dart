@@ -22,7 +22,11 @@ class HttpClientLink implements ClientLink {
   WebSocketConnection _wsConnection;
   HttpClientConnection _httpConnection;
 
-  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1, 'saltL': 2};
+  static const Map<String, int> saltNameMap = const {
+    'salt': 0,
+    'saltS': 1,
+    'saltL': 2
+  };
 
   /// 2 salts, salt and saltS
   final List<String> salts = new List<String>(3);
@@ -37,15 +41,16 @@ class HttpClientLink implements ClientLink {
   bool enableHttp;
 
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-                 {NodeProvider nodeProvider, bool isRequester: true,
-                 bool isResponder: true, this.enableHttp:false})
-  : privateKey = privateKey,
-  dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
-  requester = isRequester ? new Requester() : null,
-  responder = (isResponder && nodeProvider != null)
-  ? new Responder(nodeProvider)
-  : null {
-  }
+      {NodeProvider nodeProvider,
+      bool isRequester: true,
+      bool isResponder: true,
+      this.enableHttp: false})
+      : privateKey = privateKey,
+        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
+        requester = isRequester ? new Requester() : null,
+        responder = (isResponder && nodeProvider != null)
+            ? new Responder(nodeProvider)
+            : null {}
 
   int _connDelay = 1;
 
@@ -82,12 +87,13 @@ class HttpClientLink implements ClientLink {
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
-        .replaceFirst('http', 'ws');
+            .replaceFirst('http', 'ws');
       }
 
       if (serverConfig['httpUri'] is String) {
         // TODO(rinick): implement http
-        _httpUpdateUri = '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
+        _httpUpdateUri =
+            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
 
       initWebsocket(false);
@@ -97,7 +103,7 @@ class HttpClientLink implements ClientLink {
 
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
-      if (_connDelay < 60)_connDelay++;
+      if (_connDelay < 60) _connDelay++;
     }
   }
 
@@ -111,8 +117,9 @@ class HttpClientLink implements ClientLink {
     }
     try {
       var socket = await WebSocket
-      .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-      _wsConnection = new WebSocketConnection(socket, clientLink: this, enableTimeout: true);
+          .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      _wsConnection = new WebSocketConnection(socket,
+          clientLink: this, enableTimeout: true);
 
       logger.info("Connected");
       if (!_onConnectedCompleter.isCompleted) {
@@ -136,11 +143,12 @@ class HttpClientLink implements ClientLink {
       });
     } catch (error) {
       logger.fine(error);
-      if (error is WebSocketException && error.message.contains('was not upgraded to websocket')) {
+      if (error is WebSocketException &&
+          error.message.contains('was not upgraded to websocket')) {
         DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       } else if (reconnect) {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
-        if (_wsDelay < 60)_wsDelay++;
+        if (_wsDelay < 60) _wsDelay++;
       } else {
         initHttp();
         _wsDelay = 5;
@@ -156,7 +164,8 @@ class HttpClientLink implements ClientLink {
 
     if (_closed) return;
 
-    _httpConnection = new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
+    _httpConnection =
+        new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
 
     logger.info("Connected");
     if (!_onConnectedCompleter.isCompleted) {
@@ -204,7 +213,7 @@ class HttpClientLink implements ClientLink {
   }
 }
 
-Future<PrivateKey> getKeyFromFile(String path) async{
+Future<PrivateKey> getKeyFromFile(String path) async {
   var file = new File(path);
 
   PrivateKey key;

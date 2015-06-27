@@ -6,7 +6,8 @@ class ListResponse extends Response {
   int _permission;
   ListResponse(Responder responder, int rid, this.node)
       : super(responder, rid) {
-    _permission = responder.nodeProvider.permissions.getPermission(node.path, responder);
+    _permission =
+        responder.nodeProvider.permissions.getPermission(node.path, responder);
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
       responder.addProcessor(processor);
@@ -31,6 +32,7 @@ class ListResponse extends Response {
       changes.add(key);
     }
   }
+
   bool _disconnectSent = false;
   void processor() {
     Object updateIs;
@@ -40,13 +42,18 @@ class ListResponse extends Response {
     List updateChildren = [];
 
     if (node.disconnected != null) {
-      responder.updateResponse(this, [[r'$disconnectedTs',node.disconnected]], streamStatus: StreamStatus.open);
+      responder.updateResponse(
+          this,
+          [
+            [r'$disconnectedTs', node.disconnected]
+          ],
+          streamStatus: StreamStatus.open);
       _disconnectSent = true;
       changes.clear();
       return;
     } else if (_disconnectSent && !changes.contains(r'$disconnectedTs')) {
       _disconnectSent = false;
-      updateConfigs.add({'name':r'$disconnectedTs', 'change': 'remove'});
+      updateConfigs.add({'name': r'$disconnectedTs', 'change': 'remove'});
       if (node.configs.containsKey(r'$disconnectedTs')) {
         node.configs.remove(r'$disconnectedTs');
       }
@@ -61,7 +68,8 @@ class ListResponse extends Response {
           updateIs = update;
         } else if (name == r'$base') {
           updateBase = update;
-        } else if (_permission == Permission.CONFIG || !name.startsWith(r'$$')) {
+        } else if (_permission == Permission.CONFIG ||
+            !name.startsWith(r'$$')) {
           updateConfigs.add(update);
         }
       });
@@ -106,7 +114,6 @@ class ListResponse extends Response {
 
     changes.clear();
 
-
     List updates = [];
     if (updateBase != null) {
       updates.add(updateBase);
@@ -121,6 +128,7 @@ class ListResponse extends Response {
 
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
+
   void _close() {
     _nodeChangeListener.cancel();
   }

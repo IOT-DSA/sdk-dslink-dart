@@ -68,10 +68,12 @@ class DsTimer {
     }
   }
 
-
-  static LinkedList<TimerFunctions> _pendingTimer = new LinkedList<TimerFunctions>();
-  static Map<int, TimerFunctions> _pendingTimerMap = new Map<int, TimerFunctions>();
-  static Map<Function, TimerFunctions> _functionsMap = new Map<Function, TimerFunctions>();
+  static LinkedList<TimerFunctions> _pendingTimer =
+      new LinkedList<TimerFunctions>();
+  static Map<int, TimerFunctions> _pendingTimerMap =
+      new Map<int, TimerFunctions>();
+  static Map<Function, TimerFunctions> _functionsMap =
+      new Map<Function, TimerFunctions>();
 
   static TimerFunctions _getTimerFunctions(int time50) {
     if (_pendingTimerMap.containsKey(time50)) {
@@ -120,7 +122,8 @@ class DsTimer {
 
   /// do nothng if the callback is already in the list and will get called after 0 ~ N ms
   static void timerOnceBefore(Function callback, int ms) {
-    int desiredTime50 = (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
+    int desiredTime50 =
+        (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
       if (existTf.ts50 <= desiredTime50) {
@@ -140,7 +143,8 @@ class DsTimer {
 
   /// do nothng if the callback is already in the list and will get called after N or more ms
   static void timerOnceAfter(Function callback, int ms) {
-    int desiredTime50 = (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
+    int desiredTime50 =
+        (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
       if (existTf.ts50 >= desiredTime50) {
@@ -160,8 +164,10 @@ class DsTimer {
 
   /// do nothing if the callback is already in the list and will get called after M to N ms
   static void timerOnceBetween(Function callback, int after, int before) {
-    int desiredTime50_0 = (((new DateTime.now()).millisecondsSinceEpoch + after) / 50).ceil();
-    int desiredTime50_1 = (((new DateTime.now()).millisecondsSinceEpoch + before) / 50).ceil();
+    int desiredTime50_0 =
+        (((new DateTime.now()).millisecondsSinceEpoch + after) / 50).ceil();
+    int desiredTime50_1 =
+        (((new DateTime.now()).millisecondsSinceEpoch + before) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
       TimerFunctions existTf = _functionsMap[callback];
       if (existTf.ts50 >= desiredTime50_0 && existTf.ts50 <= desiredTime50_1) {
@@ -222,7 +228,9 @@ class DsTimer {
           if (timerTimer != null && timerTimer.isActive) {
             timerTimer.cancel();
           }
-          timerTimer = new Timer(new Duration(milliseconds:timerTs50*50 + 1 - currentTime),_startTimer); 
+          timerTimer = new Timer(
+              new Duration(milliseconds: timerTs50 * 50 + 1 - currentTime),
+              _startTimer);
         }
       }
     } else if (timerTimer != null) {
@@ -232,6 +240,7 @@ class DsTimer {
       timerTimer = null;
     }
   }
+
   static int timerTs50 = -1;
   static Timer timerTimer;
 

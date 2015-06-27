@@ -19,9 +19,10 @@ class ByteDataUtil {
   }
 
   static ByteData fromUint8List(Uint8List uintsList) {
-    return uintsList.buffer.asByteData(
-        uintsList.offsetInBytes, uintsList.lengthInBytes);
+    return uintsList.buffer
+        .asByteData(uintsList.offsetInBytes, uintsList.lengthInBytes);
   }
+
   static Uint8List toUint8List(ByteData bytes) {
     return bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
   }

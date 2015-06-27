@@ -18,9 +18,8 @@ class ListDefListener {
   bool ready = false;
   ListDefListener(
       this.node, this.requester, void callback(RequesterListUpdate)) {
-    listener = requester
-        .list(node.remotePath)
-        .listen((RequesterListUpdate update) {
+    listener =
+        requester.list(node.remotePath).listen((RequesterListUpdate update) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
     });
@@ -43,6 +42,7 @@ class ListController implements RequestUpdater {
   bool get initialized {
     return request != null && request.streamStatus != StreamStatus.initialize;
   }
+
   String disconnectTs;
   void onDisconnect() {
     disconnectTs = ValueUpdate.getTs();
@@ -50,6 +50,7 @@ class ListController implements RequestUpdater {
     _controller.add(new RequesterListUpdate(
         node, [r'$disconnectedTs'], request.streamStatus));
   }
+
   void onReconnect() {
     if (disconnectTs != null) {
       node.configs.remove(r'$disconnectedTs');
@@ -92,7 +93,10 @@ class ListController implements RequestUpdater {
           continue; // invalid response
         }
         if (name.startsWith(r'$')) {
-          if (!reseted && (name == r'$is' || name == r'$base' || (name == r'$disconnectedTs' && value is String))) {
+          if (!reseted &&
+              (name == r'$is' ||
+                  name == r'$base' ||
+                  (name == r'$disconnectedTs' && value is String))) {
             reseted = true;
             node.resetNodeCache();
           }
@@ -151,7 +155,7 @@ class ListController implements RequestUpdater {
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
       _profileLoader =
-             new ListDefListener(node.profile, requester, _onProfileUpdate);
+          new ListDefListener(node.profile, requester, _onProfileUpdate);
     }
   }
 
@@ -167,6 +171,7 @@ class ListController implements RequestUpdater {
     onProfileUpdated();
     logger.fine('_onDefUpdated');
   }
+
   bool _ready = true;
   void onProfileUpdated() {
     if (_ready) {
@@ -180,6 +185,7 @@ class ListController implements RequestUpdater {
       }
     }
   }
+
   bool _pendingRemoveDef = false;
   void _checkRemoveDef() {
     _pendingRemoveDef = false;
@@ -191,6 +197,7 @@ class ListController implements RequestUpdater {
           {'method': 'list', 'path': node.remotePath}, this);
     }
   }
+
   void _onListen(callback(RequesterListUpdate)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {

@@ -10,14 +10,18 @@ class BroadcastStreamController<T> implements StreamController<T> {
 
   BroadcastStreamController(
       [void onStartListen(), void onAllCancel(), void onListen(callback(T))]) {
-    _stream = new CachedStreamWrapper(_controller.stream.asBroadcastStream(
-        onListen: _onListen, onCancel: _onCancel), onListen);
+    _stream = new CachedStreamWrapper(
+        _controller.stream
+            .asBroadcastStream(onListen: _onListen, onCancel: _onCancel),
+        onListen);
     _onStartListen = onStartListen;
     _onAllCancel = onAllCancel;
   }
+
   /// whether there is listener or not
   bool _listening = false;
-  /// whether _onStartListen is called 
+
+  /// whether _onStartListen is called
   bool _listenState = false;
   void _onListen(StreamSubscription<T> subscription) {
     if (!_listenState) {
@@ -37,12 +41,14 @@ class BroadcastStreamController<T> implements StreamController<T> {
       _listenState = false;
     }
   }
-  void delayedCheckCancel(){
+
+  void delayedCheckCancel() {
     if (!_listening && _listenState) {
       _onAllCancel();
       _listenState = false;
     }
   }
+
   void add(T t) {
     _controller.add(t);
     _stream.lastValue = t;

@@ -66,7 +66,8 @@ abstract class MutableNodeProvider {
   void removeNode(String path);
 }
 
-class SimpleNodeProvider extends NodeProviderImpl implements SerializableNodeProvider, MutableNodeProvider {
+class SimpleNodeProvider extends NodeProviderImpl
+    implements SerializableNodeProvider, MutableNodeProvider {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   @override
@@ -228,7 +229,9 @@ class SimpleNode extends LocalNodeImpl {
     return rslt;
   }
 
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
+  InvokeResponse invoke(Map params, Responder responder,
+      InvokeResponse response, LocalNode parentNode,
+      [int maxPermission = Permission.CONFIG]) {
     Object rslt;
     try {
       rslt = onInvoke(params);
@@ -246,7 +249,8 @@ class SimpleNode extends LocalNodeImpl {
       rtype = configs[r"$result"];
     }
 
-    if (rslt == null) { // Create a default result based on the result type
+    if (rslt == null) {
+      // Create a default result based on the result type
       if (rtype == "values") {
         rslt = {};
       } else if (rtype == "table") {
@@ -261,12 +265,14 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is Map) {
       response.updateStream([rslt], streamStatus: StreamStatus.closed);
     } else if (rslt is SimpleTableResult) {
-      response.updateStream(rslt.rows, columns: rslt.columns, streamStatus: StreamStatus.closed);
+      response.updateStream(rslt.rows,
+          columns: rslt.columns, streamStatus: StreamStatus.closed);
     } else if (rslt is AsyncTableResult) {
       rslt.write(response);
       return response;
     } else if (rslt is Table) {
-      response.updateStream(rslt.rows, columns: rslt.columns, streamStatus: StreamStatus.closed);
+      response.updateStream(rslt.rows,
+          columns: rslt.columns, streamStatus: StreamStatus.closed);
     } else if (rslt is Stream) {
       var r = new AsyncTableResult();
       Stream stream = rslt;
@@ -340,24 +346,19 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   // called before a subscription request is returned
-  void onSubscribe() {
-  }
+  void onSubscribe() {}
 
   /// after node is created
-  void onCreated() {
-  }
+  void onCreated() {}
 
   /// before node gets removed
-  void onRemoving() {
-  }
+  void onRemoving() {}
 
   /// after child node is removed
-  void onChildRemoved(String name, Node node) {
-  }
+  void onChildRemoved(String name, Node node) {}
 
   /// after child node is created
-  void onChildAdded(String name, Node node) {
-  }
+  void onChildAdded(String name, Node node) {}
 
   @override
   RespSubscribeListener subscribe(callback(ValueUpdate), [int cacheLevel = 1]) {
@@ -378,7 +379,6 @@ class SimpleNode extends LocalNodeImpl {
     addChild(name, child);
     return child;
   }
-
 
   void addChild(String name, Node node) {
     super.addChild(name, node);

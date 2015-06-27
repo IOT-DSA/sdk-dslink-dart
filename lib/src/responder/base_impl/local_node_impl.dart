@@ -58,8 +58,9 @@ class LocalNodeImpl extends LocalNode {
   void updateList(String name) {
     listChangeController.add(name);
   }
+
   Response setAttribute(
-    String name, Object value, Responder responder, Response response) {
+      String name, Object value, Responder responder, Response response) {
     if (!attributes.containsKey(name) || attributes[name] != value) {
       attributes[name] = value;
       updateList(name);
@@ -68,7 +69,7 @@ class LocalNodeImpl extends LocalNode {
   }
 
   Response removeAttribute(
-    String name, Responder responder, Response response) {
+      String name, Responder responder, Response response) {
     if (attributes.containsKey(name)) {
       attributes.remove(name);
       updateList(name);
@@ -87,7 +88,8 @@ class LocalNodeImpl extends LocalNode {
     return response..close(config.removeConfig(this, responder));
   }
 
-  Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
     updateValue(value);
     // TODO check value type
     return response..close();

@@ -71,7 +71,7 @@ class ECDHIsolate {
         var Q1 = _secp256r1.curve.decodePoint(message[1]);
         var Q2 = _secp256r1.curve.decodePoint(message[2]);
         var ecdh = new ECDHImpl(
-          new ECPrivateKey(d1, _secp256r1), new ECPublicKey(Q1, _secp256r1),
+            new ECPrivateKey(d1, _secp256r1), new ECPublicKey(Q1, _secp256r1),
             Q2);
         _waitingReq._completer.complete(ecdh);
         _waitingReq = null;
@@ -79,6 +79,7 @@ class ECDHIsolate {
     }
     _checkRequest();
   }
+
   static ECDHIsoltateRequest _waitingReq;
   static void _checkRequest() {
     if (_waitingReq == null && _requests.length > 0) {
@@ -89,9 +90,11 @@ class ECDHIsolate {
       ]);
     }
   }
+
   static ListQueue<ECDHIsoltateRequest> _requests =
       new ListQueue<ECDHIsoltateRequest>();
-/// when oldprivate is '', don't use cache
+
+  /// when oldprivate is '', don't use cache
   static Future<ECDH> _sendRequest(
       PublicKey publicKeyRemote, String oldprivate) {
     var req = new ECDHIsoltateRequest(publicKeyRemote, oldprivate);

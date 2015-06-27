@@ -38,7 +38,8 @@ class Base64 {
     return table;
   })();
 
-  static String encodeString(String content, [int lineSize = 0, int paddingSpace = 0]) {
+  static String encodeString(String content,
+      [int lineSize = 0, int paddingSpace = 0]) {
     return Base64.encode(UTF8.encode(content), lineSize, paddingSpace);
   }
 
@@ -67,9 +68,7 @@ class Base64 {
     List<int> out = new List<int>(outputLen);
 
     // Encode 24 bit chunks.
-    int j = 0,
-        i = 0,
-        c = 0;
+    int j = 0, i = 0, c = 0;
     for (int i = 0; i < paddingSpace; ++i) {
       out[j++] = SP;
     }

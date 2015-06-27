@@ -10,13 +10,13 @@ abstract class LocalNode extends Node {
     }
     return _listChangeController;
   }
+
   Stream<String> get listStream => listChangeController.stream;
   StreamSubscription _listReqListener;
 
   void onStartListListen() {}
 
   void onAllListCancel() {}
-  
 
   final String path;
 
@@ -70,14 +70,17 @@ abstract class LocalNode extends Node {
 
   bool get hasSubscriber => callbacks.isNotEmpty;
 
-  int getInvokePermission(){
+  int getInvokePermission() {
     return Permission.parse(getConfig(r'$invokable'));
   }
-  int getSetPermission(){
+
+  int getSetPermission() {
     return Permission.parse(getConfig(r'$writable'));
   }
+
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode, [int maxPermission = Permission.CONFIG]) {
+      Map params, Responder responder, InvokeResponse response, Node parentNode,
+      [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
@@ -101,7 +104,8 @@ abstract class LocalNode extends Node {
   }
 
   /// set node value
-  Response setValue(Object value, Responder responder, Response response, [int maxPermission = Permission.CONFIG]) {
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
@@ -130,10 +134,10 @@ abstract class NodeProvider {
   LocalNode operator [](String path) {
     return getNode(path);
   }
-  
+
   LocalNode operator ~() => this["/"];
-  
+
   Responder createResponder(String dsId);
-  
+
   IPermissionManager get permissions;
 }

@@ -15,10 +15,11 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
 
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> onRequestReadyCompleter = new Completer<ConnectionChannel>();
+  Completer<ConnectionChannel> onRequestReadyCompleter =
+      new Completer<ConnectionChannel>();
 
   Future<ConnectionChannel> get onRequesterReady =>
-  onRequestReadyCompleter.future;
+      onRequestReadyCompleter.future;
 
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
 
@@ -29,13 +30,14 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   final WebSocket socket;
 
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, {this.clientLink, bool enableTimeout:false}) {
+  WebSocketConnection(this.socket,
+      {this.clientLink, bool enableTimeout: false}) {
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
     socket.listen(onData, onDone: _onDone);
     socket.add(fixedBlankData);
     if (enableTimeout) {
-      pingTimer = new Timer.periodic(new Duration(seconds:20), onPingTimer);
+      pingTimer = new Timer.periodic(new Duration(seconds: 20), onPingTimer);
     }
     // TODO(rinick): when it's used in client link, wait for the server to send {allowed} before complete this
   }
@@ -53,14 +55,14 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   int _dataReceiveCount = 0;
 
   int throughput = 0;
-  
+
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
       this.close();
       return;
     }
-    
-    _dataReceiveCount ++;
+
+    _dataReceiveCount++;
 
     if (_dataSent) {
       _dataSent = false;
@@ -89,6 +91,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     _serverCommand[key] = value;
     DsTimer.callLaterOnce(_send);
   }
+
   BinaryInCache binaryInCache = new BinaryInCache();
   void onData(dynamic data) {
     if (_onDisconnectedCompleter.isCompleted) {
@@ -112,7 +115,8 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         m = DsJson.decodeFrame(UTF8.decode(data), binaryInCache);
         logger.fine("WebSocket JSON (bytes): ${m}");
       } catch (err, stack) {
-        logger.fine("Failed to decode JSON bytes in WebSocket Connection", err, stack);
+        logger.fine(
+            "Failed to decode JSON bytes in WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -179,9 +183,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       _dataSent = true;
     }
   }
+
   BinaryOutCache binaryOutCache = new BinaryOutCache();
   void addData(Map m) {
-    String json =  DsJson.encodeFrame(m, binaryOutCache);
+    String json = DsJson.encodeFrame(m, binaryOutCache);
     if (binaryOutCache.hasData) {
       logger.finest("send binary");
       socket.add(binaryOutCache.export());
@@ -214,11 +219,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void close() {
-    if (socket.readyState == WebSocket.OPEN || socket.readyState == WebSocket.CONNECTING) {
+    if (socket.readyState == WebSocket.OPEN ||
+        socket.readyState == WebSocket.CONNECTING) {
       socket.close();
     }
     _onDone();
   }
 }
-
-

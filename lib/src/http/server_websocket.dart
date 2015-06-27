@@ -1,7 +1,8 @@
 part of dslink.server;
 
 class ServerWebSocket extends WebSocketConnection {
-  ServerWebSocket(WebSocket socket, {bool enableTimeout:false}) : super(socket, enableTimeout:enableTimeout);
+  ServerWebSocket(WebSocket socket, {bool enableTimeout: false})
+      : super(socket, enableTimeout: enableTimeout);
   void onPingTimer(Timer t) {
     if (throughput > 0) {
       ThroughPutNode.instance.addThroughput(throughput);

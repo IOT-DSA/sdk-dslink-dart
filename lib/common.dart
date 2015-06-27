@@ -21,8 +21,7 @@ part 'src/common/permission.dart';
 final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));
 
 List foldList(List a, List b) {
-  return a
-    ..addAll(b);
+  return a..addAll(b);
 }
 
 abstract class Connection {
@@ -48,8 +47,7 @@ abstract class ServerConnection extends Connection {
   void addServerCommand(String key, Object value);
 }
 
-abstract class ClientConnection extends Connection {
-}
+abstract class ClientConnection extends Connection {}
 
 abstract class ConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
@@ -104,11 +102,12 @@ abstract class ServerLinkManager {
 
   void removeLink(ServerLink link);
 
-  ServerLink getLink(String dsId, {String sessionId:''});
+  ServerLink getLink(String dsId, {String sessionId: ''});
 
   Requester getRequester(String dsId);
 
-  Responder getResponder(String dsId, NodeProvider nodeProvider, [String sessionId = '']);
+  Responder getResponder(String dsId, NodeProvider nodeProvider,
+      [String sessionId = '']);
 }
 
 class StreamStatus {
@@ -131,7 +130,7 @@ class DSError {
   String phase;
 
   DSError(this.type,
-          {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
+      {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
   DSError.fromMap(Map m) {
     if (m['type'] is String) {
       type = m['type'];
@@ -186,7 +185,8 @@ class DSError {
   static final DSError INVALID_PATH = new DSError('invalidPath');
   static final DSError INVALID_PATHS = new DSError('invalidPaths');
   static final DSError INVALID_VALUE = new DSError('invalidValue');
-  static final DSError DISCONNECTED = new DSError('disconnected', phase: ErrorPhase.request);
+  static final DSError DISCONNECTED =
+      new DSError('disconnected', phase: ErrorPhase.request);
 }
 
 const Unspecified unspecified = const Unspecified();

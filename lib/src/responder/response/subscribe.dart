@@ -4,7 +4,7 @@ class RespSubscribeListener {
   Function callback;
   LocalNode node;
   RespSubscribeListener(this.node, this.callback);
-  void cancel(){
+  void cancel() {
     if (callback != null) {
       node.unsubscribe(callback);
       callback = null;
@@ -33,13 +33,15 @@ class SubscribeResponse extends Response {
       }
       controller.cacheLevel = cacheLevel;
     } else {
-      int permission = responder.nodeProvider.permissions.getPermission(node.path, responder);
-      RespSubscribeController controller =
-          new RespSubscribeController(this, node, sid, permission > Permission.NONE, cacheLevel);
+      int permission = responder.nodeProvider.permissions
+          .getPermission(node.path, responder);
+      RespSubscribeController controller = new RespSubscribeController(
+          this, node, sid, permission > Permission.NONE, cacheLevel);
       subsriptions[path] = controller;
       subsriptionids[sid] = controller;
     }
   }
+
   void remove(int sid) {
     if (subsriptionids[sid] != null) {
       RespSubscribeController controller = subsriptionids[sid];
@@ -53,6 +55,7 @@ class SubscribeResponse extends Response {
     changed.add(controller);
     responder.addProcessor(processor);
   }
+
   void processor() {
     List updates = [];
     for (RespSubscribeController controller in changed) {
@@ -61,6 +64,7 @@ class SubscribeResponse extends Response {
     responder.updateResponse(this, updates);
     changed.clear();
   }
+
   void _close() {
     subsriptions.forEach((path, controller) {
       controller.destroy();
@@ -83,18 +87,21 @@ class RespSubscribeController {
       response.subscriptionChanged(this);
     }
   }
-    
+
   ListQueue<ValueUpdate> lastValues = new ListQueue<ValueUpdate>();
 
   int _cachedLevel;
   int get cacheLevel {
     return _cachedLevel;
   }
+
   void set cacheLevel(int v) {
     if (v < 1) v = 1;
     _cachedLevel = v;
   }
-  RespSubscribeController(this.response, this.node, this.sid, this._permitted, int cacheLevel) {
+
+  RespSubscribeController(
+      this.response, this.node, this.sid, this._permitted, int cacheLevel) {
     this.cacheLevel = cacheLevel;
     _listener = node.subscribe(addValue, this.cacheLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
@@ -113,6 +120,7 @@ class RespSubscribeController {
       response.subscriptionChanged(this);
     }
   }
+
   void mergeValues() {
     int toRemove = lastValues.length - _cachedLevel;
     ValueUpdate rslt = lastValues.removeFirst();
@@ -147,6 +155,7 @@ class RespSubscribeController {
     lastValues.clear();
     return rslts;
   }
+
   void destroy() {
     _listener.cancel();
   }

@@ -82,9 +82,12 @@ class Interval {
   static final Interval SIXTEEN_MILLISECONDS = new Interval.forMilliseconds(16);
   static final Interval THIRTY_MILLISECONDS = new Interval.forMilliseconds(30);
   static final Interval FIFTY_MILLISECONDS = new Interval.forMilliseconds(50);
-  static final Interval ONE_HUNDRED_MILLISECONDS = new Interval.forMilliseconds(100);
-  static final Interval TWO_HUNDRED_MILLISECONDS = new Interval.forMilliseconds(200);
-  static final Interval THREE_HUNDRED_MILLISECONDS = new Interval.forMilliseconds(300);
+  static final Interval ONE_HUNDRED_MILLISECONDS =
+      new Interval.forMilliseconds(100);
+  static final Interval TWO_HUNDRED_MILLISECONDS =
+      new Interval.forMilliseconds(200);
+  static final Interval THREE_HUNDRED_MILLISECONDS =
+      new Interval.forMilliseconds(300);
   static final Interval QUARTER_SECOND = new Interval.forMilliseconds(250);
   static final Interval HALF_SECOND = new Interval.forMilliseconds(500);
   static final Interval ONE_SECOND = new Interval.forSeconds(1);
@@ -127,9 +130,7 @@ class Scheduler {
     }
 
     return new Timer.periodic(duration, (timer) async {
-      await runZoned(action, zoneValues: {
-        "dslink.scheduler.timer": timer
-      });
+      await runZoned(action, zoneValues: {"dslink.scheduler.timer": timer});
     });
   }
 
@@ -141,7 +142,8 @@ class Scheduler {
 
   static Future tick(int times, Interval interval, action()) async {
     for (var i = 1; i <= times; i++) {
-      await new Future.delayed(new Duration(milliseconds: interval.inMilliseconds));
+      await new Future.delayed(
+          new Duration(milliseconds: interval.inMilliseconds));
       await action();
     }
   }
@@ -169,14 +171,15 @@ List<String> parseEnumType(String type) {
   if (!type.startsWith("enum[") || !type.endsWith("]")) {
     throw new FormatException("Invalid Enum Type");
   }
-  return type.substring(4, type.length - 1).split(",").map((it) => it.trim()).toList();
+  return type
+      .substring(4, type.length - 1)
+      .split(",")
+      .map((it) => it.trim())
+      .toList();
 }
 
 List<Map<String, dynamic>> buildActionIO(Map<String, String> types) {
-  return types.keys.map((it) => {
-    "name": it,
-    "type": types[it]
-  }).toList();
+  return types.keys.map((it) => {"name": it, "type": types[it]}).toList();
 }
 
 Random _random = new Random();
@@ -241,26 +244,6 @@ const List<String> alphabet = const [
   "Z"
 ];
 
-const List<int> numbers = const [
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9
-];
+const List<int> numbers = const [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const List<String> specials = const [
-  "@",
-  "=",
-  "_",
-  "+",
-  "-",
-  "!",
-  "."
-];
-
+const List<String> specials = const ["@", "=", "_", "+", "-", "!", "."];

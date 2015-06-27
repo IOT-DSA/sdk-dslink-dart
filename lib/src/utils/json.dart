@@ -13,6 +13,7 @@ class BinaryData {
     bytes = ByteDataUtil.fromList(list);
   }
 }
+
 class BinaryInCache {
   Map<String, BinaryData> caches = new Map<String, BinaryData>();
   ByteData fetchData(String id) {
@@ -23,6 +24,7 @@ class BinaryInCache {
     }
     return null;
   }
+
   void receiveData(List<int> inputList) {
     Uint8List input;
     if (inputList is Uint8List) {
@@ -73,17 +75,20 @@ class BinaryInCache {
     }
   }
 }
+
 class BinaryOutCache {
   int id = 0;
   Map<int, BinaryData> caches = new Map<int, BinaryData>();
   bool get hasData {
     return !caches.isEmpty;
   }
+
   int addBinaryData(ByteData data) {
     int newId = ++id;
     caches[newId] = new BinaryData(data);
     return newId;
   }
+
   Uint8List export() {
     //TODO send partial data;
     int count = 0;
@@ -148,6 +153,7 @@ class DsJsonCodecImpl implements DsJson {
   static dynamic _safeEncoder(value) {
     return null;
   }
+
   JsonEncoder encoder = new JsonEncoder(_safeEncoder);
 
   JsonDecoder decoder = new JsonDecoder();

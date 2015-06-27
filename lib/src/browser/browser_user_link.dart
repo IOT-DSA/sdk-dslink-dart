@@ -27,8 +27,12 @@ class BrowserUserLink implements ClientLink {
   String wsUpdateUri;
   String httpUpdateUri;
 
-  BrowserUserLink({NodeProvider nodeProvider, bool isRequester: true,
-      bool isResponder: true, this.wsUpdateUri, this.httpUpdateUri})
+  BrowserUserLink(
+      {NodeProvider nodeProvider,
+      bool isRequester: true,
+      bool isResponder: true,
+      this.wsUpdateUri,
+      this.httpUpdateUri})
       : requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
@@ -64,6 +68,7 @@ class BrowserUserLink implements ClientLink {
       });
     }
     _wsConnection.onDisconnected.then((connection) {
+      logger.info('Disconnected');
       if (_wsConnection._opened) {
         _wsDelay = 1;
         initWebsocket(false);

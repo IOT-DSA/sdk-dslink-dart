@@ -16,9 +16,7 @@ class RemoveController implements RequestUpdater {
     completer.complete(new RequesterUpdate(status));
   }
 
-  void onDisconnect() {
-  }
+  void onDisconnect() {}
 
-  void onReconnect() {
-  }
+  void onReconnect() {}
 }

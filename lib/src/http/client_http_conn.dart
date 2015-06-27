@@ -16,12 +16,13 @@ class HttpClientConnection implements ClientConnection {
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   bool _connectedOnce = false;
-  void connected(){
+  void connected() {
     if (_connectedOnce) return;
     _connectedOnce = true;
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
   }
+
   final String url;
   final ClientLink clientLink;
 
@@ -77,12 +78,13 @@ class HttpClientConnection implements ClientConnection {
     }
     _onDataL(resp);
   }
+
   void _onDataErrorL(Object err) {
     logger.fine('http long error: $err');
     if (!_connectedOnce) {
       _onDone();
       return;
-    } else if (!_done){
+    } else if (!_done) {
       _needRetryL = true;
       DsTimer.timerOnceBefore(retry, retryDelay * 1000);
       if (retryDelay < 60) {
@@ -90,15 +92,17 @@ class HttpClientConnection implements ClientConnection {
       }
     }
   }
+
   bool _needRetryL = false;
   void retryL() {
     _needRetryL = false;
     _sendL();
   }
+
   void _onDataL(HttpClientResponse response) {
-    if (response.statusCode != 200){
+    if (response.statusCode != 200) {
       logger.fine('http long response.statusCode: ${response.statusCode}');
-      if (response.statusCode == HttpStatus.UNAUTHORIZED){
+      if (response.statusCode == HttpStatus.UNAUTHORIZED) {
         _authError = true;
         _onDone();
         return;
@@ -131,7 +135,7 @@ class HttpClientConnection implements ClientConnection {
     });
   }
 
-  _sendS() async{
+  _sendS() async {
     _pendingSendS = false;
     bool needSend = false;
     Map m = {};
@@ -153,7 +157,7 @@ class HttpClientConnection implements ClientConnection {
     if (needSend) {
       HttpClientResponse resp;
       logger.fine('http send: $m');
-      try{
+      try {
         _sendingS = true;
         HttpClient client = new HttpClient();
         Uri connUri =
@@ -163,7 +167,7 @@ class HttpClientConnection implements ClientConnection {
         _lastRequestS = UTF8.encode(JSON.encode(m));
         request.add(_lastRequestS);
         resp = await request.close();
-      } catch(err) {
+      } catch (err) {
         _onDataErrorS(err);
         return;
       }
@@ -176,14 +180,15 @@ class HttpClientConnection implements ClientConnection {
     if (!_connectedOnce) {
       _onDone();
       return;
-    } else if (!_done){
+    } else if (!_done) {
       _needRetryS = true;
-      DsTimer.timerOnceBefore(retry, retryDelay*1000);
+      DsTimer.timerOnceBefore(retry, retryDelay * 1000);
     }
   }
+
   List<int> _lastRequestS;
   bool _needRetryS = false;
-  void retryS(){
+  void retryS() {
     _needRetryS = false;
     HttpClient client = new HttpClient();
     Uri connUri =
@@ -195,13 +200,13 @@ class HttpClientConnection implements ClientConnection {
   }
 
   void _onDataS(HttpClientResponse response) {
-    if (response.statusCode != 200){
-       logger.fine('http short response.statusCode: ${response.statusCode}');
-       if (response.statusCode == HttpStatus.UNAUTHORIZED){
-         _authError = true;
-         _onDone();
-       }
-     }
+    if (response.statusCode != 200) {
+      logger.fine('http short response.statusCode: ${response.statusCode}');
+      if (response.statusCode == HttpStatus.UNAUTHORIZED) {
+        _authError = true;
+        _onDone();
+      }
+    }
     response.fold([], foldList).then((List<int> merged) {
       connected();
       _sendingS = false;
@@ -222,7 +227,7 @@ class HttpClientConnection implements ClientConnection {
   }
 
   /// retry when network is disconnected
-  void retry(){
+  void retry() {
     if (_needRetryL) {
       retryL();
     }

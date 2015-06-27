@@ -38,7 +38,7 @@ class Node {
   void addChild(String name, Node node) {
     children[name] = node;
   }
-  
+
   /// remove node and return name
   String removeChild(dynamic input) {
     if (input is String) {
@@ -153,6 +153,7 @@ class Path {
 
   String path;
   String parentPath;
+
   /// root node has the name '/';
   String name;
   bool valid = true;
