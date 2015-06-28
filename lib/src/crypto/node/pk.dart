@@ -8,26 +8,44 @@ import 'dart:js';
 
 require(String input) => context.callMethod("require", [input]);
 
+String _urlSafe(String base64) {
+  return base64.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+
 JsObject _crypto = require('crypto');
 JsObject _curve = require('dhcurve');
 
 String _hash(obj) {
   JsObject hash = _crypto.callMethod("createHash", ["sha256"]);
   hash.callMethod('update', [obj]);
-  return hash.callMethod('digest', ['base64']).callMethod('toString', ['base64']);
+  return _urlSafe(hash.callMethod('digest', ['base64']));
 }
 
 class NodeCryptoProvider implements CryptoProvider {
+  static final NodeCryptoProvider INSTANCE = new NodeCryptoProvider();
   final DSRandom random = new DSRandomImpl();
 
-  Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) {
-    // TODO(mbullington) implement
-    return null;
+  PrivateKey _cachedPrivate;
+  int _cachedTime = -1;
+
+  Future<ECDH> assign(PublicKeyImpl publicKeyRemote, ECDH old) async {
+    int ts = (new DateTime.now()).millisecondsSinceEpoch;
+
+    /// reuse same ECDH server pair for up to 1 minute
+    if (_cachedPrivate == null ||
+        ts - _cachedTime > 60000 ||
+        (old is ECDHImpl && old.privateKey == _cachedPrivate)) {
+
+      _cachedPrivate = generateSync();
+
+      _cachedTime = ts;
+    }
+
+    return _cachedPrivate.getSecret(publicKeyRemote.qBase64);
   }
 
-  Future<ECDH> getSecret(PublicKey publicKeyRemote) {
-    // TODO(mbullington) implement
-    return null;
+  Future<ECDH> getSecret(PublicKeyImpl publicKeyRemote) async {
+    return generateSync().getSecret(publicKeyRemote.qBase64);
   }
 
   Future<PrivateKey> generate() async {
@@ -62,10 +80,11 @@ class ECDHImpl extends ECDH {
   String get encodedPublicKey => publicKey._point.callMethod("toEncoded");
 
   PublicKeyImpl publicKey;
+  PrivateKeyImpl privateKey;
 
   JsObject _buffer;
 
-  ECDHImpl(this._buffer, this.publicKey);
+  ECDHImpl(this._buffer, this.publicKey, this.privateKey);
 
   String hashSalt(String salt) {
     var saltBuffer = new JsObject(context["Buffer"], [salt]);
@@ -88,7 +107,7 @@ class PublicKeyImpl extends PublicKey {
   PublicKeyImpl(this._point) {
     var encoded = _point.callMethod('getEncoded', []);
 
-    qBase64 = encoded.callMethod('toString', ['base64']);
+    qBase64 = _urlSafe(encoded.callMethod('toString', ['base64']));
     qHash64 = _hash(encoded);
   }
 }
@@ -100,7 +119,7 @@ class PrivateKeyImpl implements PrivateKey {
   PrivateKeyImpl(this.publicKey, this._privateKey);
 
   String saveToString() {
-    return _privateKey["d"].callMethod("toString", ["base64"]) + " ${publicKey.qBase64}";
+    return _urlSafe(_privateKey["d"].callMethod("toString", ["base64"])) + " ${publicKey.qBase64}";
   }
 
   Future<ECDH> getSecret(String key) async {
@@ -108,7 +127,7 @@ class PrivateKeyImpl implements PrivateKey {
     var point = _curve["Point"].callMethod("fromEncoded", ["prime256v1", buf]);
     var secret = _privateKey.callMethod("getSharedSecret", [point]);
 
-    return new Future.value(new ECDHImpl(secret, publicKey));
+    return new Future.value(new ECDHImpl(secret, publicKey, this));
   }
 }
 
