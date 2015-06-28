@@ -213,7 +213,7 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
 
   String get algorithmName => _delegate.algorithmName;
 
-  DSRandom([int seed = -1]) {
+  DSRandomImpl([int seed = -1]) {
     _aes = new AESFastEngine();
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
