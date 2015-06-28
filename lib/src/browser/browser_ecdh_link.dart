@@ -50,6 +50,7 @@ class BrowserECDHLink implements ClientLink {
   int _connDelay = 1;
   connect() async {
     if (_closed) return;
+    lockCryptoProvider();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     logger.info('Connecting: $connUri');
     try {
@@ -70,7 +71,7 @@ class BrowserECDHLink implements ClientLink {
         salts[idx] = serverConfig[name];
       });
       String tempKey = serverConfig['tempKey'];
-      _nonce = await privateKey.decodeECDH(tempKey);
+      _nonce = await privateKey.getSecret(tempKey);
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'

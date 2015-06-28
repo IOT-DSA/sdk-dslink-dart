@@ -95,7 +95,7 @@ class HttpServerLink implements ServerLink {
     };
     if (!trusted) {
       tempNonce = await ECDH.assign(publicKey, verifiedNonce);
-      respJson["tempKey"] = tempNonce.encodePublicKey();
+      respJson["tempKey"] = tempNonce.encodedPublicKey;
       respJson["salt"] = salts[0];
       respJson["saltS"] = salts[1];
       respJson["saltL"] = salts[2];
