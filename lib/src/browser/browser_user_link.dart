@@ -43,6 +43,7 @@ class BrowserUserLink implements ClientLink {
   }
 
   void connect() {
+    lockCryptoProvider();
     initWebsocket(false);
     //initHttp();
   }

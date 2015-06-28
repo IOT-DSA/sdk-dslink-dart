@@ -6,9 +6,16 @@ import 'dart:typed_data';
 import 'package:dslink/src/crypto/dart/pk.dart' show DartCryptoProvider;
 
 CryptoProvider _CRYPTO_PROVIDER = DartCryptoProvider.INSTANCE;
+bool _isCryptoProviderLocked = false;
 
-setCryptoProvider(CryptoProvider provider) =>
+setCryptoProvider(CryptoProvider provider) {
+  if(_isCryptoProviderLocked)
+    throw new StateError("crypto provider is locked");
   _CRYPTO_PROVIDER = provider;
+  _isCryptoProviderLocked = true;
+}
+
+lockCryptoProvider() => _isCryptoProviderLocked = true;
 
 abstract class CryptoProvider {
   DSRandom get random;

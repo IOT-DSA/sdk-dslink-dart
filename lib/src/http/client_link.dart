@@ -57,6 +57,7 @@ class HttpClientLink implements ClientLink {
   connect() async {
     if (_closed) return;
 
+    lockCryptoProvider();
     DsTimer.timerCancel(initWebsocket);
 
     HttpClient client = new HttpClient();

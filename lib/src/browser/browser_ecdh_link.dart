@@ -50,6 +50,7 @@ class BrowserECDHLink implements ClientLink {
   int _connDelay = 1;
   connect() async {
     if (_closed) return;
+    lockCryptoProvider();
     Uri connUri = Uri.parse('$_conn?dsId=$dsId');
     logger.info('Connecting: $connUri');
     try {
