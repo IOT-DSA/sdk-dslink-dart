@@ -183,7 +183,7 @@ class Responder extends ConnectionHandler {
       }
       if (node.getInvokePermission() <= permission) {
         node.invoke(m['params'], this,
-            addResponse(new InvokeResponse(this, rid, node)), parentNode);
+            addResponse(new InvokeResponse(this, rid, node)), parentNode, permission);
       } else {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       }

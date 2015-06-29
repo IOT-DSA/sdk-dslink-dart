@@ -57,8 +57,8 @@ class Node {
       return children[name];
     }
 
-    if (profile != null && profile.configs.containsKey(name)) {
-      return profile.configs[name];
+    if (profile != null && profile.children.containsKey(name)) {
+      return profile.children[name];
     }
     return null;
   }
@@ -110,6 +110,7 @@ class Node {
 /// Util class for ds node path and config/attribute path
 class Path {
   static final RegExp invalidChar = new RegExp(r'[\.\\\?\*:|"<>]');
+  static final RegExp invalidNameChar = new RegExp(r'[\/\.\\\?\*:|"<>]');
 
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {

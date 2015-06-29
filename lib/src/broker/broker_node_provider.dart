@@ -7,19 +7,16 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   /// connName to connection
-  final Map<String, RemoteLinkManager> conns =
-      new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
+  
+  
   IPermissionManager permissions;
-
+    
   LocalNodeImpl connsNode;
-  Map rootStructure = {
-    'users': {},
-    'conns': {},
-    'defs': {},
-    'quarantine': {},
-    'sys': {}
-  };
+  LocalNodeImpl usersNode;
+  LocalNodeImpl defsNode;
+  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
 
   BrokerNodeProvider() {
     permissions = new BrokerPermissions();
@@ -28,6 +25,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     nodes['/'] = root;
     root.load(rootStructure, this);
     connsNode = nodes['/conns'];
+    usersNode = nodes['/users'];
+    defsNode = nodes['/defs'];
+    loadDef();
+    registerInvokableProfile(userNodeFunctions);
     initSys();
   }
 
@@ -41,15 +42,55 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool _defsLoaded = false;
 
   /// load a fixed profile map
-  void loadDefs(Map m) {
-    _defsLoaded = false;
-    (getNode('/defs') as LocalNodeImpl).load(m, this);
-    _defsLoaded = true;
-    // TODO send requester an update says: all profiles changed
+  void loadDef() {
+    File connsFile = new File("defs.json");
+     try {
+       String data = connsFile.readAsStringSync();
+       Map m = DsJson.decode(data);
+       m.forEach((String name, Map m) {
+         String path = '/defs/$name';
+         DefinitionNode node = getNode(path);
+         node.load(m, this);
+         defsNode.children[name] = node;
+       });
+     } catch (err) {
+     }
   }
-
-  Map _pendingDevices = {};
-
+  void registerInvokableProfile(Map m) {
+    void register(Map m, String path) {
+      m.forEach((String key, Object val) {
+        if (val is Map) {
+          register(val, '$path$key/');
+        } else if (val is InvokeCallback) {
+          (getNode('$path$key') as DefinitionNode).setInvokeCallback(val);
+        }
+      });
+    }
+    register(m, '/defs/profile/');
+  }
+  void loadUserNodes() {
+    File connsFile = new File("usernodes.json");
+     try {
+       String data = connsFile.readAsStringSync();
+       Map m = DsJson.decode(data);
+       m.forEach((String name, Map m) {
+         String path = '/users/$name';
+         UserRootNode node = getNode(path);
+         node.load(m, this);
+         usersNode.children[name] = node;
+       });
+     } catch (err) {
+     }
+  }
+  Map saveUsrNodes() {
+    Map m = {};
+    usersNode.children.forEach((String name, UserRootNode node) {
+      m[name] = node.save();
+    });
+    File connsFile = new File("usernodes.json");
+    connsFile.writeAsStringSync(DsJson.encode(m));
+    return m;
+  }
   void loadConns() {
     // loadConns from file
     File connsFile = new File("conns.json");
@@ -65,7 +106,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           _connPath2id[path] = node.configs[r'$$dsId'];
         }
       });
-    } catch (err) {}
+    } catch (err) {
+    }
   }
 
   Map saveConns() {
@@ -98,8 +140,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void setNode(String path, LocalNode newNode) {
     LocalNode node = nodes[path];
     if (node != null) {
-      logger.severe(
-          'error, BrokerNodeProvider.setNode same node can not be set twice');
+      logger.severe('error, BrokerNodeProvider.setNode same node can not be set twice');
       return;
     }
 
@@ -122,14 +163,32 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       return node;
     }
     if (path.startsWith('/users/')) {
+      List paths = path.split('/');
       String username = path.split('/')[2];
-      int pos = path.indexOf('/#');
-      if (pos > 0) {
-        // link node
-
+      if (paths.length == 3) {
+        node = new UserRootNode(path, username, this);
       } else {
-        // user node
-
+        int pos = path.indexOf('/#');
+        if (pos < 0) {
+          node = new UserNode(path, this);
+        } else {
+          String connPath;
+           int pos2 = path.indexOf('/', pos+1);
+           if (pos2 < 0) {
+             connPath = path;
+           } else {
+             connPath = path.substring(0, pos2);
+           }
+           RemoteLinkManager conn = conns[connPath];
+           if (conn == null) {
+             // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+             conn = new RemoteLinkManager(this, connPath, this);
+             conns[connPath] = conn;
+             nodes[connPath] = conn.rootNode;
+             conn.rootNode.parentNode = getNode(path.substring(0, pos));
+           }
+           node = conn.getNode(path);
+        }
       }
     } else if (path.startsWith('/conns/')) {
       String connName = path.split('/')[2];
@@ -137,8 +196,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkManager conn = conns[connPath];
       if (conn == null) {
         // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-        conn = new RemoteLinkManager(
-            this, _connPath2id[connPath], connPath, connName, this);
+        conn = new RemoteLinkManager(this, connPath, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
         connsNode.children[connName] = conn.rootNode;
@@ -148,10 +206,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       }
       node = conn.getNode(path);
     } else if (path.startsWith('/defs/')) {
-      if (!_defsLoaded) {
+      //if (!_defsLoaded) {
         node = new DefinitionNode(path);
-      }
-      // can't create arbitrary profile at runtime
+      //}
     } else {
       node = new BrokerNode(path);
     }
@@ -226,7 +283,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
   }
 
-  ServerLink getLink(String dsId, {String sessionId: ''}) {
+  ServerLink getLink(String dsId, {String sessionId:''}) {
     String str = dsId;
     if (sessionId != null && sessionId != '') {
       str = '$dsId sessionId';
@@ -236,10 +293,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkNode node = getNode(connPath);
       RemoteLinkManager conn = node._linkManager;
       if (!conn.inTree) {
-        connsNode.children[conn.name] = conn.rootNode;
+        String connName = conn.path.split('/').last;
+        connsNode.children[connName] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
         conn.inTree = true;
-        connsNode.updateList(conn.name);
+        connsNode.updateList(connName);
       }
     }
     return _links[str];
@@ -256,22 +314,20 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (conns.containsKey(getConnPath)) {
       return conns[connPath].requester;
     }
-
     /// create the RemoteLinkManager
     RemoteLinkNode node = getNode(connPath);
     return node._linkManager.requester;
   }
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
-      [String sessionId = '']) {
+                         [String sessionId = '']) {
     String connPath = getConnPath(dsId);
     if (conns.containsKey(connPath)) {
-      return conns[connPath].getResponder(nodeProvider, sessionId);
+      return conns[connPath].getResponder(nodeProvider, dsId, sessionId);
     }
-
     /// create the RemoteLinkManager
     RemoteLinkNode node = getNode(connPath);
-    return node._linkManager.getResponder(nodeProvider, sessionId);
+    return node._linkManager.getResponder(nodeProvider, dsId, sessionId);
   }
 
   Responder createResponder(String dsId) {

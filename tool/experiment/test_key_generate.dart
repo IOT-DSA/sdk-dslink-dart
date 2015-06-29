@@ -1,7 +1,8 @@
 import 'package:dslink/src/crypto/pk.dart';
 import 'dart:io';
+import '../../lib/utils.dart';
 
-void main() async{
+ main() async{
   String rslt;
 
   if (Platform.isWindows) {

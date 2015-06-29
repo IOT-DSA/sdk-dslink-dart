@@ -182,9 +182,11 @@ class DSError {
 
   static final DSError PERMISSION_DENIED = new DSError('permissionDenied');
   static final DSError INVALID_METHOD = new DSError('invalidMethod');
+  static final DSError NOT_IMPLEMENTED = new DSError('notImplemented');
   static final DSError INVALID_PATH = new DSError('invalidPath');
   static final DSError INVALID_PATHS = new DSError('invalidPaths');
   static final DSError INVALID_VALUE = new DSError('invalidValue');
+  static final DSError INVALID_PARAMETER = new DSError('invalidParameter');
   static final DSError DISCONNECTED =
       new DSError('disconnected', phase: ErrorPhase.request);
 }

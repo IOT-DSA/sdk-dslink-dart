@@ -196,8 +196,8 @@ class SimpleNode extends LocalNodeImpl {
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
-        String childPathpath = '$childPathPre$key';
-        (provider as SimpleNodeProvider).addNode(childPathpath, value);
+        String childPath = '$childPathPre$key';
+        (provider as SimpleNodeProvider).addNode(childPath, value);
         // Node node = provider.getNode('$childPathPre$key');
         // children[key] = node;
         // if (node is LocalNodeImpl) {
