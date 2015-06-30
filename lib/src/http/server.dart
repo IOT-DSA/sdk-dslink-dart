@@ -113,9 +113,9 @@ class DsHttpServer {
         case '/conn':
           _handleConn(request, dsId);
           break;
-        case '/http':
-          _handleHttpUpdate(request, dsId);
-          break;
+//        case '/http':
+//          _handleHttpUpdate(request, dsId);
+//          break;
         case '/ws':
           _handleWsUpdate(request, dsId);
           break;
@@ -181,16 +181,16 @@ class DsHttpServer {
     });
   }
 
-  void _handleHttpUpdate(HttpRequest request, String dsId) {
-    bool trusted = request.requestedUri.host == '127.0.0.1';
-    
-    HttpServerLink link = _linkManager.getLink(dsId);
-    if (link != null) {
-      link.handleHttpUpdate(request, trusted);
-    } else {
-      throw HttpStatus.UNAUTHORIZED;
-    }
-  }
+//  void _handleHttpUpdate(HttpRequest request, String dsId) {
+//    bool trusted = request.requestedUri.host == '127.0.0.1';
+//    
+//    HttpServerLink link = _linkManager.getLink(dsId);
+//    if (link != null) {
+//      link.handleHttpUpdate(request, trusted);
+//    } else {
+//      throw HttpStatus.UNAUTHORIZED;
+//    }
+//  }
 
   void _handleWsUpdate(HttpRequest request, String dsId) {
     bool trusted = request.requestedUri.host == '127.0.0.1';

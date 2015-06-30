@@ -123,43 +123,43 @@ class HttpServerLink implements ServerLink {
     }
   }
 
-  void handleHttpUpdate(HttpRequest request, bool trusted) {
-    String saltS = request.uri.queryParameters['authS'];
-    if (saltS != null) {
-      if (connection is HttpServerConnection && verifySalt(1, saltS)) {
-        // handle http short polling
-        (connection as HttpServerConnection).handleInputS(request, salts[1]);
-        return;
-      } else {
-        throw HttpStatus.UNAUTHORIZED;
-      }
-    }
-
-    if (!trusted && !verifySalt(2, request.uri.queryParameters['authL'])) {
-      throw HttpStatus.UNAUTHORIZED;
-    }
-//    if (requester == null) {
-//      throw HttpStatus.FORBIDDEN;
+//  void handleHttpUpdate(HttpRequest request, bool trusted) {
+//    String saltS = request.uri.queryParameters['authS'];
+//    if (saltS != null) {
+//      if (connection is HttpServerConnection && verifySalt(1, saltS)) {
+//        // handle http short polling
+//        (connection as HttpServerConnection).handleInputS(request, salts[1]);
+//        return;
+//      } else {
+//        throw HttpStatus.UNAUTHORIZED;
+//      }
 //    }
-    if (connection != null && connection is! HttpServerConnection) {
-      connection.close();
-      connection = null;
-    }
-    if (connection == null) {
-      connection = new HttpServerConnection();
-      if (responder != null && isResponder) {
-        responder.connection = connection.responderChannel;
-      }
-      if (requester != null && isRequester) {
-        requester.connection = connection.requesterChannel;
-        if (!onRequesterReadyCompleter.isCompleted) {
-          onRequesterReadyCompleter.complete(requester);
-        }
-      }
-    }
-    connection.addServerCommand('saltL', salts[2]);
-    (connection as HttpServerConnection).handleInput(request);
-  }
+//
+//    if (!trusted && !verifySalt(2, request.uri.queryParameters['authL'])) {
+//      throw HttpStatus.UNAUTHORIZED;
+//    }
+////    if (requester == null) {
+////      throw HttpStatus.FORBIDDEN;
+////    }
+//    if (connection != null && connection is! HttpServerConnection) {
+//      connection.close();
+//      connection = null;
+//    }
+//    if (connection == null) {
+//      connection = new HttpServerConnection();
+//      if (responder != null && isResponder) {
+//        responder.connection = connection.responderChannel;
+//      }
+//      if (requester != null && isRequester) {
+//        requester.connection = connection.requesterChannel;
+//        if (!onRequesterReadyCompleter.isCompleted) {
+//          onRequesterReadyCompleter.complete(requester);
+//        }
+//      }
+//    }
+//    connection.addServerCommand('saltL', salts[2]);
+//    (connection as HttpServerConnection).handleInput(request);
+//  }
 
   void handleStreamUpdate(StreamConnectionAdapter adapter, bool trusted) {
     adapter.auth().then((auth) async {
