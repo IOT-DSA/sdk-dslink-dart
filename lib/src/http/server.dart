@@ -133,6 +133,8 @@ class DsHttpServer {
   }
 
   void _handleConn(HttpRequest request, String dsId) {
+    bool trusted = (request.requestedUri.host == '127.0.0.1');
+    
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
@@ -157,7 +159,7 @@ class DsHttpServer {
           }
           link = new HttpServerLink(
               dsId, new PublicKey.fromBytes(bytes), _linkManager,
-              nodeProvider: nodeProvider, enableTimeout: true);
+              nodeProvider: nodeProvider, enableTimeout: true, trusted:trusted);
           if (!link.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;

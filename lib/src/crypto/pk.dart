@@ -94,3 +94,17 @@ abstract class DSRandom {
 
   void addEntropy(String str);
 }
+
+class DummyECDH implements ECDH {
+  final String encodedPublicKey = "";
+
+  const DummyECDH();
+
+  String hashSalt(String salt) {
+    return '';
+  }
+
+  bool verifySalt(String salt, String hash) {
+    return true;
+  }
+}

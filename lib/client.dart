@@ -35,6 +35,9 @@ class LinkProvider {
 
   /// The Private Key
   PrivateKey privateKey;
+  
+  /// a trusted link can only be run from http://127.0.0.1
+  bool trusted = false;
 
   /// The Broker URL
   String brokerUrl;
@@ -147,7 +150,7 @@ class LinkProvider {
     argp.addOption("broker",
         abbr: "b",
         help: "Broker URL",
-        defaultsTo: "http://localhost:8080/conn");
+        defaultsTo: "http://127.0.0.1:8080/conn");
     argp.addOption("name", abbr: "n", help: "Link Name");
     argp.addOption("base-path", help: "Base Path for DSLink");
     argp.addOption("log",
@@ -247,6 +250,9 @@ class LinkProvider {
       }
     }
 
+    Uri brokerUri = Uri.parse(brokerUrl);
+    trusted = brokerUri.host == '127.0.0.1' && brokerUri.scheme == 'http';
+    
     File keyFile = getConfig('key') == null
         ? new File("${_basePath}/.dslink.key")
         : new File.fromUri(Uri.parse(getConfig('key')));
@@ -378,7 +384,8 @@ class LinkProvider {
           isRequester: isRequester,
           isResponder: isResponder,
           nodeProvider: provider,
-          enableHttp: enableHttp);
+          enableHttp: enableHttp,
+          trusted: trusted);
       _ready = true;
 
       if (_connectOnReady) {
