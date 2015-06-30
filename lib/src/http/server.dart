@@ -159,8 +159,8 @@ class DsHttpServer {
           }
           link = new HttpServerLink(
               dsId, new PublicKey.fromBytes(bytes), _linkManager,
-              nodeProvider: nodeProvider, enableTimeout: true, trusted:trusted);
-          if (!link.valid) {
+              nodeProvider: nodeProvider, enableTimeout: true);
+          if (!trusted && !link.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
           }
@@ -182,18 +182,21 @@ class DsHttpServer {
   }
 
   void _handleHttpUpdate(HttpRequest request, String dsId) {
+    bool trusted = request.requestedUri.host == '127.0.0.1';
+    
     HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
-      link.handleHttpUpdate(request);
+      link.handleHttpUpdate(request, trusted);
     } else {
       throw HttpStatus.UNAUTHORIZED;
     }
   }
 
   void _handleWsUpdate(HttpRequest request, String dsId) {
+    bool trusted = request.requestedUri.host == '127.0.0.1';
     HttpServerLink link = _linkManager.getLink(dsId);
     if (link != null) {
-      link.handleWsUpdate(request);
+      link.handleWsUpdate(request, trusted);
     } else {
       throw HttpStatus.UNAUTHORIZED;
     }

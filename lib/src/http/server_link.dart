@@ -2,7 +2,6 @@ part of dslink.server;
 
 /// a server link for both http and ws
 class HttpServerLink implements ServerLink {
-  final bool trusted;
   final String dsId;
   final String session;
   Completer<Requester> onRequesterReadyCompleter = new Completer<Requester>();
@@ -40,7 +39,6 @@ class HttpServerLink implements ServerLink {
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider,
       String sessionId,
-      this.trusted: false,
       this.enableTimeout: false})
       : dsId = id,
         session = sessionId,
@@ -48,7 +46,6 @@ class HttpServerLink implements ServerLink {
         responder = (nodeProvider != null)
             ? linkManager.getResponder(id, nodeProvider, sessionId)
             : null {
-    if (!trusted) {
       for (int i = 0; i < 3; ++i) {
         List<int> bytes = new List<int>(12);
         for (int j = 0; j < 12; ++j) {
@@ -57,16 +54,12 @@ class HttpServerLink implements ServerLink {
         _saltBases[i] = Base64.encode(bytes);
         _updateSalt(i);
       }
-    }
 
     // TODO(rinick): need a requester ready property? because client can disconnect and reconnect and change isResponder value
   }
 
   /// check if public key matches the dsId
   bool get valid {
-    if (trusted) {
-      return true;
-    }
     return publicKey.verifyDsId(dsId);
   }
 
@@ -79,7 +72,8 @@ class HttpServerLink implements ServerLink {
       String serverDsId, String serverKey,
       {String wsUri: '/ws',
       String httpUri: '/http',
-      int updateInterval: 200}) async {
+      int updateInterval: 200,
+      bool trusted:false}) async {
     isRequester = clientResponder;
     isResponder = clientRequester;
 
@@ -106,9 +100,6 @@ class HttpServerLink implements ServerLink {
   }
 
   bool verifySalt(int type, String hash) {
-    if (trusted) {
-      return true;
-    }
     if (hash == null) {
       return false;
     }
@@ -132,7 +123,7 @@ class HttpServerLink implements ServerLink {
     }
   }
 
-  void handleHttpUpdate(HttpRequest request) {
+  void handleHttpUpdate(HttpRequest request, bool trusted) {
     String saltS = request.uri.queryParameters['authS'];
     if (saltS != null) {
       if (connection is HttpServerConnection && verifySalt(1, saltS)) {
@@ -144,7 +135,7 @@ class HttpServerLink implements ServerLink {
       }
     }
 
-    if (!verifySalt(2, request.uri.queryParameters['authL'])) {
+    if (!trusted && !verifySalt(2, request.uri.queryParameters['authL'])) {
       throw HttpStatus.UNAUTHORIZED;
     }
 //    if (requester == null) {
@@ -170,9 +161,9 @@ class HttpServerLink implements ServerLink {
     (connection as HttpServerConnection).handleInput(request);
   }
 
-  void handleStreamUpdate(StreamConnectionAdapter adapter) {
+  void handleStreamUpdate(StreamConnectionAdapter adapter, bool trusted) {
     adapter.auth().then((auth) async {
-      if (!verifySalt(0, auth)) {
+      if (!trusted && !verifySalt(0, auth)) {
         adapter.close(1011);
         return;
       }
@@ -207,8 +198,8 @@ class HttpServerLink implements ServerLink {
     });
   }
 
-  void handleWsUpdate(HttpRequest request) {
-    if (!verifySalt(0, request.uri.queryParameters['auth'])) {
+  void handleWsUpdate(HttpRequest request, bool trusted) {
+    if (!trusted && !verifySalt(0, request.uri.queryParameters['auth'])) {
       logger.warning("$dsId was rejected due to an improper auth value");
       throw HttpStatus.UNAUTHORIZED;
     }
