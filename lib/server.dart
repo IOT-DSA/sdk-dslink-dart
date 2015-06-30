@@ -1,3 +1,4 @@
+/// DSA Broker Server
 library dslink.server;
 
 import 'dart:async';

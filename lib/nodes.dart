@@ -76,8 +76,13 @@ class UpgradableNode extends SimpleNode {
   }
 }
 
+/// Represents a Simple Callback Function
 typedef void SimpleCallback();
+
+/// Represents a function that is called when a child node has changed.
 typedef void ChildChangedCallback(String name, Node node);
+
+/// Represents a function that is called on a node when a child is loading.
 typedef SimpleNode LoadChildCallback(
     String name, Map data, SimpleNodeProvider provider);
 

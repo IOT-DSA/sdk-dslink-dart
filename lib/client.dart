@@ -1,3 +1,4 @@
+/// Provides the base APIs for the DSLink SDK on the Dart VM.
 library dslink.client;
 
 import 'dart:async';
@@ -35,7 +36,7 @@ class LinkProvider {
 
   /// The Private Key
   PrivateKey privateKey;
-  
+
   /// The Broker URL
   String brokerUrl;
   File _nodesFile;
@@ -248,7 +249,7 @@ class LinkProvider {
     }
 
     Uri brokerUri = Uri.parse(brokerUrl);
-    
+
     File keyFile = getConfig('key') == null
         ? new File("${_basePath}/.dslink.key")
         : new File.fromUri(Uri.parse(getConfig('key')));
@@ -538,8 +539,12 @@ class LinkProvider {
   /// Gets the node specified at [path].
   LocalNode operator [](String path) => provider[path];
 
+  /// Gets the root node.
   LocalNode operator ~() => this["/"];
 
+  /// If only [path] is specified, this method fetches the value of the node at the given path.
+  /// If [value] is also specified, it will set the value of the
+  /// node at the given path to the specified value, and return that value.
   dynamic val(String path, [value = unspecified]) {
     if (value is Unspecified) {
       return this[path].lastValueUpdate.value;

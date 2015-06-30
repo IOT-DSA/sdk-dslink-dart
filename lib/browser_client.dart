@@ -1,3 +1,4 @@
+/// Base API for DSA in the Browser
 library dslink.browser_client;
 
 import 'dart:async';

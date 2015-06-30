@@ -1,3 +1,4 @@
+/// DSA Responder API
 library dslink.responder;
 
 import 'dart:async';

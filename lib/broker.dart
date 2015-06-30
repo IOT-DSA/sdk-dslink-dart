@@ -1,3 +1,4 @@
+/// DSA Broker Implementation
 library dslink.broker;
 
 import 'responder.dart';

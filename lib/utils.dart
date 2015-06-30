@@ -1,3 +1,4 @@
+/// Common Utilities for DSA Components
 library dslink.utils;
 
 import "dart:async";

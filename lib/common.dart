@@ -1,3 +1,4 @@
+/// Shared APIs between all DSA Components.
 library dslink.common;
 
 import 'dart:async';

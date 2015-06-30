@@ -1,3 +1,4 @@
+/// API for distributing work across multiple independent isolates.
 library dslink.worker;
 
 import "dart:async";

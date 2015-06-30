@@ -1,5 +1,4 @@
-/// DSLink SDK for the Dart VM
-/// Requires dart:io
+/// Entry Point for the DSLink SDK for the Dart VM
 library dslink;
 
 export "package:dslink/common.dart";
