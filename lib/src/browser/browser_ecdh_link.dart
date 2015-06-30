@@ -122,12 +122,17 @@ class BrowserECDHLink implements ClientLink {
         }
       });
     }
-    _wsConnection.onDisconnected.then((connection) {
+    _wsConnection.onDisconnected.then((authError) {
       logger.info('Disconnected');
       if (_closed) return;
+
       if (_wsConnection._opened) {
         _wsDelay = 1;
-        initWebsocket(false);
+        if (authError) {
+          connect();
+        } else {
+          initWebsocket(false);
+        }
       } else if (reconnect) {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;

@@ -72,20 +72,36 @@ class HttpBrowserConnection implements ClientConnection {
         Uri.parse('$url&authL=${this.clientLink.nonce.hashSalt(saltL)}');
     HttpRequest request;
     try {
-      request = await HttpRequest.request(connUri.toString(),
-          method: 'POST',
-          withCredentials: withCredentials,
-          mimeType: 'application/json',
-          sendData: '{}');
+      request = new HttpRequest();
+      var c = new Completer();
+
+      request.withCredentials = withCredentials;
+      request.overrideMimeType("application/json");
+
+      request.open("POST", connUri.toString());
+      request.send("{}");
+
+      request.onLoad.listen((e) {
+        c.complete();
+      });
+
+      request.onError.listen((e) {
+        c.completeError(e);
+      });
+
+      await c.future;
     } catch (err) {
-      _onDataErrorL(err);
+      _onDataErrorL(err, request.status == 401);
       return;
     }
     _onDataL(request.responseText);
   }
 
-  void _onDataErrorL(Object err) {
+  void _onDataErrorL(Object err, bool isAuthError) {
     logger.fine('http long error:$err');
+
+    _authError = isAuthError;
+
     if (!_connectedOnce) {
       _onDone();
       return;

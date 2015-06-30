@@ -186,6 +186,13 @@ class WebSocketConnection implements ClientConnection {
 
   bool _authError = false;
   void _onDone([Object o]) {
+    if (o is CloseEvent) {
+      CloseEvent e = o;
+      if (e.code == 1006) {
+        _authError = true;
+      }
+    }
+
     logger.fine('socket disconnected');
 
     if (!_requesterChannel.onReceiveController.isClosed) {
