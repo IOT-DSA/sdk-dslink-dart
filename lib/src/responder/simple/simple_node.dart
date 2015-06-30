@@ -15,6 +15,8 @@ class AsyncTableResult {
   List rows;
   String status = StreamStatus.initialize;
 
+  OnInvokeClosed onClose;
+  
   AsyncTableResult([this.columns]);
 
   void update(List rows, [String stat]) {
@@ -268,7 +270,12 @@ class SimpleNode extends LocalNodeImpl {
       response.updateStream(rslt.rows,
           columns: rslt.columns, streamStatus: StreamStatus.closed);
     } else if (rslt is AsyncTableResult) {
-      rslt.write(response);
+      (rslt as AsyncTableResult).write(response);
+      response.onClose = (var response){
+        if ((rslt as AsyncTableResult).onClose != null){
+          (rslt as AsyncTableResult).onClose(response);
+        }
+      };
       return response;
     } else if (rslt is Table) {
       response.updateStream(rslt.rows,
