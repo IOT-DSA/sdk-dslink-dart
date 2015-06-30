@@ -18,12 +18,14 @@ part "src/utils/json.dart";
 part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
 
+/// The DSA Version
 const String DSA_VERSION = '1.0.2';
 
 Logger _logger;
 
 bool _DEBUG_MODE;
 
+/// Gets if we are in checked mode.
 bool get DEBUG_MODE {
   if (_DEBUG_MODE != null) {
     return _DEBUG_MODE;
@@ -38,6 +40,7 @@ bool get DEBUG_MODE {
   return _DEBUG_MODE;
 }
 
+/// Fetches the logger instance.
 Logger get logger {
   if (_logger != null) {
     return _logger;
@@ -60,6 +63,7 @@ Logger get logger {
   return _logger;
 }
 
+/// Updates the log level to the level specified [name].
 void updateLogLevel(String name) {
   name = name.trim().toUpperCase();
 
@@ -110,6 +114,7 @@ class Interval {
   int get inMilliseconds => duration.inMilliseconds;
 }
 
+/// Schedule Tasks
 class Scheduler {
   static Timer get currentTimer => Zone.current["dslink.scheduler.timer"];
 
