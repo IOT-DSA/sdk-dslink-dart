@@ -2,7 +2,6 @@ part of dslink.client;
 
 /// a client link for both http and ws
 class HttpClientLink implements ClientLink {
-  final bool trusted;
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Completer _onConnectedCompleter = new Completer();
 
@@ -45,8 +44,7 @@ class HttpClientLink implements ClientLink {
       {NodeProvider nodeProvider,
       bool isRequester: true,
       bool isResponder: true,
-      this.enableHttp: false,
-      this.trusted:false})
+      this.enableHttp: false})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
@@ -86,7 +84,8 @@ class HttpClientLink implements ClientLink {
         salts[idx] = serverConfig[name];
       });
       String tempKey = serverConfig['tempKey'];
-      if (trusted) {
+      if (tempKey == null) {
+        // trusted client, don't do ECDH handshake
         _nonce = const DummyECDH();
       } else {
         _nonce = await privateKey.getSecret(tempKey);

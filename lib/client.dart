@@ -36,9 +36,6 @@ class LinkProvider {
   /// The Private Key
   PrivateKey privateKey;
   
-  /// a trusted link can only be run from http://127.0.0.1
-  bool trusted = false;
-
   /// The Broker URL
   String brokerUrl;
   File _nodesFile;
@@ -251,7 +248,6 @@ class LinkProvider {
     }
 
     Uri brokerUri = Uri.parse(brokerUrl);
-    trusted = brokerUri.host == '127.0.0.1' && brokerUri.scheme == 'http';
     
     File keyFile = getConfig('key') == null
         ? new File("${_basePath}/.dslink.key")
@@ -384,8 +380,7 @@ class LinkProvider {
           isRequester: isRequester,
           isResponder: isResponder,
           nodeProvider: provider,
-          enableHttp: enableHttp,
-          trusted: trusted);
+          enableHttp: enableHttp);
       _ready = true;
 
       if (_connectOnReady) {
