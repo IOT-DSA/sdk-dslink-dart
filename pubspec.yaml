@@ -3,12 +3,8 @@ version: 1.0.0
 description: DSLink SDK for Dart
 dependencies:
   args: ">=0.12.0 <0.14.0"
-  bignum:
-    # path: ../dart-bignum
-    git: "git://github.com/IOT-DSA/dart-bignum"
-  cipher:
-    # path: ../cipher
-    git: "git://github.com/IOT-DSA/cipher"
+  bignum: '>=0.0.5 <0.1.0'
+  cipher: '>=0.7.1 <1.0.0'
   logging: ">=0.9.0 <0.13.0"
   crypto: "^0.9.0"
 dev_dependencies:
