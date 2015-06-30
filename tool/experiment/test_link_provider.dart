@@ -30,12 +30,20 @@ class AddNodeAction extends SimpleNode {
       r'$placeholder':'abcc',
     });
     link.save(); // save json
-
+    
+    Timer timer;
+    void stopTimer(InvokeResponse resp){
+      if (timer != null ) {
+        timer.cancel();
+        timer = null;
+      }
+    }
     AsyncTableResult tableRslt = new AsyncTableResult();
-    new Timer(new Duration(seconds:1),(){
+    tableRslt.onClose = stopTimer;
+    timer = new Timer.periodic(new Duration(seconds:1),(Timer t){
       tableRslt.columns=[{'name':'a'}];
       tableRslt.update([[1],[2]]);
-      tableRslt.close();
+      //tableRslt.close();
       });
     return tableRslt;//new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
@@ -81,7 +89,7 @@ main(List<String> args) {
       //r'$columns':[{'name':'name','type':'string'}],
       r'$invokable': 'write',
       r'$lastNum':0,
-
+      r'$result':'stream'
     }
   };
 
