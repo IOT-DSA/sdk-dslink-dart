@@ -9,13 +9,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// connName to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
-
   IPermissionManager permissions;
 
   LocalNodeImpl connsNode;
   LocalNodeImpl usersNode;
   LocalNodeImpl defsNode;
   Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
+
+  bool shouldSaveFiles = true;
 
   BrokerNodeProvider() {
     permissions = new BrokerPermissions();
@@ -90,7 +91,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m[name] = node.save();
     });
     File connsFile = new File("usernodes.json");
-    connsFile.writeAsStringSync(DsJson.encode(m));
+    if (shouldSaveFiles) {
+      connsFile.writeAsStringSync(DsJson.encode(m));
+    }
     return m;
   }
 
@@ -120,7 +123,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m[name] = manager.rootNode.serialize(false);
     });
     File connsFile = new File("conns.json");
-    connsFile.writeAsStringSync(DsJson.encode(m));
+    if (shouldSaveFiles) {
+      connsFile.writeAsStringSync(DsJson.encode(m));
+    }
     return m;
   }
 
