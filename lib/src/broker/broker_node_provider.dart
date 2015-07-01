@@ -9,10 +9,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// connName to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
-  
-  
+
   IPermissionManager permissions;
-    
+
   LocalNodeImpl connsNode;
   LocalNodeImpl usersNode;
   LocalNodeImpl defsNode;
@@ -44,18 +43,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// load a fixed profile map
   void loadDef() {
     File connsFile = new File("defs.json");
-     try {
-       String data = connsFile.readAsStringSync();
-       Map m = DsJson.decode(data);
-       m.forEach((String name, Map m) {
-         String path = '/defs/$name';
-         DefinitionNode node = getNode(path);
-         node.load(m, this);
-         defsNode.children[name] = node;
-       });
-     } catch (err) {
-     }
+    try {
+      String data = connsFile.readAsStringSync();
+      Map m = DsJson.decode(data);
+      m.forEach((String name, Map m) {
+        String path = '/defs/$name';
+        DefinitionNode node = getNode(path);
+        node.load(m, this);
+        defsNode.children[name] = node;
+      });
+    } catch (err) {
+    }
   }
+
   void registerInvokableProfile(Map m) {
     void register(Map m, String path) {
       m.forEach((String key, Object val) {
@@ -68,20 +68,22 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     register(m, '/defs/profile/');
   }
+
   void loadUserNodes() {
     File connsFile = new File("usernodes.json");
-     try {
-       String data = connsFile.readAsStringSync();
-       Map m = DsJson.decode(data);
-       m.forEach((String name, Map m) {
-         String path = '/users/$name';
-         UserRootNode node = getNode(path);
-         node.load(m, this);
-         usersNode.children[name] = node;
-       });
-     } catch (err) {
-     }
+    try {
+      String data = connsFile.readAsStringSync();
+      Map m = DsJson.decode(data);
+      m.forEach((String name, Map m) {
+        String path = '/users/$name';
+        UserRootNode node = getNode(path);
+        node.load(m, this);
+        usersNode.children[name] = node;
+      });
+    } catch (err) {
+    }
   }
+
   Map saveUsrNodes() {
     Map m = {};
     usersNode.children.forEach((String name, UserRootNode node) {
@@ -91,6 +93,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     connsFile.writeAsStringSync(DsJson.encode(m));
     return m;
   }
+
   void loadConns() {
     // loadConns from file
     File connsFile = new File("conns.json");
@@ -173,21 +176,21 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           node = new UserNode(path, this);
         } else {
           String connPath;
-           int pos2 = path.indexOf('/', pos+1);
-           if (pos2 < 0) {
-             connPath = path;
-           } else {
-             connPath = path.substring(0, pos2);
-           }
-           RemoteLinkManager conn = conns[connPath];
-           if (conn == null) {
-             // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
-             conn = new RemoteLinkManager(this, connPath, this);
-             conns[connPath] = conn;
-             nodes[connPath] = conn.rootNode;
-             conn.rootNode.parentNode = getNode(path.substring(0, pos));
-           }
-           node = conn.getNode(path);
+          int pos2 = path.indexOf('/', pos + 1);
+          if (pos2 < 0) {
+            connPath = path;
+          } else {
+            connPath = path.substring(0, pos2);
+          }
+          RemoteLinkManager conn = conns[connPath];
+          if (conn == null) {
+            // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+            conn = new RemoteLinkManager(this, connPath, this);
+            conns[connPath] = conn;
+            nodes[connPath] = conn.rootNode;
+            conn.rootNode.parentNode = getNode(path.substring(0, pos));
+          }
+          node = conn.getNode(path);
         }
       }
     } else if (path.startsWith('/conns/')) {
@@ -207,7 +210,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       node = conn.getNode(path);
     } else if (path.startsWith('/defs/')) {
       //if (!_defsLoaded) {
-        node = new DefinitionNode(path);
+      node = new DefinitionNode(path);
       //}
     } else {
       node = new BrokerNode(path);
