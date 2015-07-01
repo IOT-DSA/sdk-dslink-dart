@@ -20,7 +20,7 @@ class HttpClientLink implements ClientLink {
   ECDH get nonce => _nonce;
 
   WebSocketConnection _wsConnection;
-  HttpClientConnection _httpConnection;
+//  HttpClientConnection _httpConnection;
 
   static const Map<String, int> saltNameMap = const {
     'salt': 0,
@@ -36,7 +36,7 @@ class HttpClientLink implements ClientLink {
   }
 
   String _wsUpdateUri;
-  String _httpUpdateUri;
+//  String _httpUpdateUri;
   String _conn;
   bool enableHttp;
 
@@ -97,11 +97,10 @@ class HttpClientLink implements ClientLink {
             .replaceFirst('http', 'ws');
       }
 
-      if (serverConfig['httpUri'] is String) {
-        // TODO(rinick): implement http
-        _httpUpdateUri =
-            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
-      }
+//      if (serverConfig['httpUri'] is String) {
+//        _httpUpdateUri =
+//            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
+//      }
 
       initWebsocket(false);
       _connDelay = 1;
@@ -119,9 +118,9 @@ class HttpClientLink implements ClientLink {
   initWebsocket([bool reconnect = true]) async {
     if (_closed) return;
 
-    if (reconnect && _httpConnection == null) {
-      initHttp();
-    }
+//    if (reconnect && _httpConnection == null) {
+//      initHttp();
+//    }
     try {
       var socket = await WebSocket
           .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
@@ -156,52 +155,53 @@ class HttpClientLink implements ClientLink {
       } else if (reconnect) {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;
-      } else {
-        initHttp();
-        _wsDelay = 5;
-        DsTimer.timerOnceAfter(initWebsocket, 5000);
-      }
+      } 
+//      else {
+//        initHttp();
+//        _wsDelay = 5;
+//        DsTimer.timerOnceAfter(initWebsocket, 5000);
+//      }
     }
   }
 
-  initHttp() async {
-    if (!enableHttp) {
-      return;
-    }
-
-    if (_closed) return;
-
-    _httpConnection =
-        new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
-
-    logger.info("Connected");
-    if (!_onConnectedCompleter.isCompleted) {
-      _onConnectedCompleter.complete();
-    }
-
-    if (responder != null) {
-      responder.connection = _httpConnection.responderChannel;
-    }
-
-    if (requester != null) {
-      _httpConnection.onRequesterReady.then((channel) {
-        requester.connection = channel;
-        if (!_onRequesterReadyCompleter.isCompleted) {
-          _onRequesterReadyCompleter.complete(requester);
-        }
-      });
-    }
-
-    _httpConnection.onDisconnected.then((bool authFailed) {
-      if (_closed) return;
-      _httpConnection = null;
-      if (authFailed) {
-        DsTimer.timerOnceAfter(connect, _connDelay * 1000);
-      } else {
-        // reconnection of websocket should handle this case
-      }
-    });
-  }
+//  initHttp() async {
+//    if (!enableHttp) {
+//      return;
+//    }
+//
+//    if (_closed) return;
+//
+//    _httpConnection =
+//        new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
+//
+//    logger.info("Connected");
+//    if (!_onConnectedCompleter.isCompleted) {
+//      _onConnectedCompleter.complete();
+//    }
+//
+//    if (responder != null) {
+//      responder.connection = _httpConnection.responderChannel;
+//    }
+//
+//    if (requester != null) {
+//      _httpConnection.onRequesterReady.then((channel) {
+//        requester.connection = channel;
+//        if (!_onRequesterReadyCompleter.isCompleted) {
+//          _onRequesterReadyCompleter.complete(requester);
+//        }
+//      });
+//    }
+//
+//    _httpConnection.onDisconnected.then((bool authFailed) {
+//      if (_closed) return;
+//      _httpConnection = null;
+//      if (authFailed) {
+//        DsTimer.timerOnceAfter(connect, _connDelay * 1000);
+//      } else {
+//        // reconnection of websocket should handle this case
+//      }
+//    });
+//  }
 
   bool _closed = false;
 
@@ -213,10 +213,10 @@ class HttpClientLink implements ClientLink {
       _wsConnection.close();
       _wsConnection = null;
     }
-    if (_httpConnection != null) {
-      _httpConnection.close();
-      _httpConnection = null;
-    }
+//    if (_httpConnection != null) {
+//      _httpConnection.close();
+//      _httpConnection = null;
+//    }
   }
 }
 
