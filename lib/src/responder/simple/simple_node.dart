@@ -352,6 +352,10 @@ class SimpleNode extends LocalNodeImpl {
     return null;
   }
 
+  void onSetValue(Object val) {}
+  void onSetConfig(String name, String value){}
+  void onSetAttribute(String name, String value){}
+  
   // called before a subscription request is returned
   void onSubscribe() {}
 
@@ -399,6 +403,28 @@ class SimpleNode extends LocalNodeImpl {
     }
     return name;
   }
+  
+  Response setAttribute(
+      String name, Object value, Responder responder, Response response) {
+    Response resp = super.setAttribute(name, value, responder, response);
+    onSetAttribute(name, value);
+    return resp;
+  }
+
+  Response setConfig(
+      String name, Object value, Responder responder, Response response) {
+    Response resp = super.setConfig(name, value, responder, response);
+    onSetConfig(name, value);
+    return resp;
+  }
+
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
+    Response resp = super.setValue(value, responder, response, maxPermission);
+    onSetValue(value);
+    return resp;
+  }
+  
 
   operator []=(String name, value) {
     if (name.startsWith(r"$") || name.startsWith(r"@")) {
