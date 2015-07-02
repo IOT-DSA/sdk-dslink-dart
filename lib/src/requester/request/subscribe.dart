@@ -136,9 +136,7 @@ class SubscribeRequest extends Request {
   void removeSubscription(ReqSubscribeController controller) {
     String path = controller.node.remotePath;
     if (subsriptions.containsKey(path)) {
-      toRemove.add(subsriptions[path].sid);
-      subsriptions.remove(path);
-      subsriptionids.remove(controller.sid);
+      toRemove[subsriptions[path].sid] = subsriptions[path];
       requester.addProcessor(_sendSubscriptionReuests);
     } else if (subsriptionids.containsKey(controller.sid)) {
       logger.severe(
@@ -146,7 +144,7 @@ class SubscribeRequest extends Request {
     }
   }
 
-  List toRemove = [];
+  Map<int, ReqSubscribeController> toRemove = new Map<int, ReqSubscribeController>();
   void _sendSubscriptionReuests() {
     if (requester.connection == null) {
       return;
@@ -169,8 +167,17 @@ class SubscribeRequest extends Request {
       requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
     }
     if (!toRemove.isEmpty) {
-      requester._sendRequest({'method': 'unsubscribe', 'sids': toRemove}, null);
-      toRemove = [];
+      List removeSids = [];
+      toRemove.forEach((int sid, ReqSubscribeController sub) {
+        if (sub.callbacks.isEmpty) {
+          removeSids.add(sid);
+          subsriptions.remove(sub.node.remotePath);
+          subsriptionids.remove(sub.sid);
+          sub._destroy();
+        }
+      });
+      requester._sendRequest({'method': 'unsubscribe', 'sids': removeSids}, null);
+      toRemove.clear();
     }
   }
 }
@@ -213,7 +220,7 @@ class ReqSubscribeController {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
-        DsTimer.callLater(_destroy);
+        requester._subsciption.removeSubscription(this);
       } else if (cacheLevel == maxCache && maxCache > 1) {
         updateCacheLevel();
       }
@@ -241,12 +248,9 @@ class ReqSubscribeController {
     }
     ;
   }
-
+  
   void _destroy() {
-    if (callbacks.isEmpty) {
-      requester._subsciption.removeSubscription(this);
-      callbacks.clear();
-      node._subscribeController = null;
-    }
+    callbacks.clear();
+    node._subscribeController = null;
   }
 }
