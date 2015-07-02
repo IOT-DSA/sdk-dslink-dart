@@ -213,7 +213,7 @@ class ReqSubscribeController {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
-        _destroy();
+        DsTimer.callLater(_destroy);
       } else if (cacheLevel == maxCache && maxCache > 1) {
         updateCacheLevel();
       }
@@ -243,8 +243,10 @@ class ReqSubscribeController {
   }
 
   void _destroy() {
-    requester._subsciption.removeSubscription(this);
-    callbacks.clear();
-    node._subscribeController = null;
+    if (callbacks.isEmpty) {
+      requester._subsciption.removeSubscription(this);
+      callbacks.clear();
+      node._subscribeController = null;
+    }
   }
 }
