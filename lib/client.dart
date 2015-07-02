@@ -4,6 +4,7 @@ library dslink.client;
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 
@@ -28,6 +29,8 @@ typedef void OptionResultsHandler(ArgResults results);
 
 /// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
+  static bool _hasExitListener = false;
+
   /// The Link Object
   HttpClientLink link;
 
@@ -113,12 +116,28 @@ class LinkProvider {
       this.defaultLogLevel: "INFO",
       NodeProvider nodeProvider // For Backwards Compatibility
       }) {
+    exitOnFailure = !(const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false));
+
     if (nodeProvider != null) {
       provider = nodeProvider;
     }
 
     if (autoInitialize) {
       init();
+    }
+
+    if (!_hasExitListener) {
+      _hasExitListener = true;
+      try {
+        var rp = new ReceivePort();
+        Isolate.current.addOnExitListener(rp.sendPort);
+        rp.listen((e) {
+          try {
+            rp.close();
+            close();
+          } catch (e) {}
+        });
+      } catch (e) {}
     }
   }
 
