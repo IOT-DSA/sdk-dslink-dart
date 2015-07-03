@@ -13,7 +13,7 @@ import 'src/crypto/pk.dart';
 
 part 'src/browser/browser_user_link.dart';
 part 'src/browser/browser_ecdh_link.dart';
-part 'src/browser/browser_http_conn.dart';
+//part 'src/browser/browser_http_conn.dart';
 part 'src/browser/browser_ws_conn.dart';
 
 /// A Storage System for DSA Data

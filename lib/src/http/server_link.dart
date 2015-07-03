@@ -191,10 +191,10 @@ class HttpServerLink implements ServerLink {
         }
       });
 
-      if (connection is! HttpServerConnection) {
-        sconnection.onRequestReadyCompleter
-            .complete(sconnection.requesterChannel);
-      }
+//      if (connection is! HttpServerConnection) {
+//        sconnection.onRequestReadyCompleter
+//            .complete(sconnection.requesterChannel);
+//      }
     });
   }
 
@@ -226,13 +226,13 @@ class HttpServerLink implements ServerLink {
         }
       });
 
-      if (connection is! HttpServerConnection) {
-        // work around for backward compatibility
-        // TODO(rinick): remove this when all clients send blank data to initialize ws
-        wsconnection.onRequestReadyCompleter
-            .complete(wsconnection.requesterChannel);
-        ;
-      }
+//      if (connection is! HttpServerConnection) {
+//        // work around for backward compatibility
+//        // TODO(rinick): remove this when all clients send blank data to initialize ws
+//        wsconnection.onRequestReadyCompleter
+//            .complete(wsconnection.requesterChannel);
+//        ;
+//      }
     }).catchError((e) {
       try {
         if (e is WebSocketException) {

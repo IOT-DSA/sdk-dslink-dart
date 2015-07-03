@@ -22,7 +22,7 @@ import "package:dslink/broker.dart" show BrokerDiscoveryClient;
 export "src/crypto/pk.dart";
 
 part 'src/http/client_link.dart';
-part 'src/http/client_http_conn.dart';
+//part 'src/http/client_http_conn.dart';
 
 /// A Handler for Argument Results
 typedef void OptionResultsHandler(ArgResults results);

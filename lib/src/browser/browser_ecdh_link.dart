@@ -17,7 +17,7 @@ class BrowserECDHLink implements ClientLink {
   ECDH get nonce => _nonce;
 
   WebSocketConnection _wsConnection;
-  HttpBrowserConnection _httpConnection;
+//  HttpBrowserConnection _httpConnection;
 
   static const Map<String, int> saltNameMap = const {
     'salt': 0,
@@ -98,9 +98,9 @@ class BrowserECDHLink implements ClientLink {
   int _wsDelay = 1;
   initWebsocket([bool reconnect = true]) {
     if (_closed) return;
-    if (reconnect && _httpConnection == null) {
-      initHttp();
-    }
+//    if (reconnect && _httpConnection == null) {
+//      initHttp();
+//    }
     var socket =
         new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
     _wsConnection = new WebSocketConnection(socket, this, onConnect: () {
@@ -137,45 +137,45 @@ class BrowserECDHLink implements ClientLink {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;
       } else {
-        initHttp();
+//        initHttp();
         _wsDelay = 5;
         DsTimer.timerOnceAfter(initWebsocket, 5000);
       }
     });
   }
 
-  initHttp() {
-    if (_closed) return;
-    _httpConnection =
-        new HttpBrowserConnection(_httpUpdateUri, this, salts[2], salts[1]);
-
-    if (!_onConnectedCompleter.isCompleted) {
-      _onConnectedCompleter.complete();
-    }
-
-    if (responder != null) {
-      responder.connection = _httpConnection.responderChannel;
-    }
-
-    if (requester != null) {
-      _httpConnection.onRequesterReady.then((channel) {
-        requester.connection = channel;
-        if (!_onRequesterReadyCompleter.isCompleted) {
-          _onRequesterReadyCompleter.complete(requester);
-        }
-      });
-    }
-    _httpConnection.onDisconnected.then((bool authFailed) {
-      if (_closed) return;
-      _httpConnection = null;
-      if (authFailed) {
-        DsTimer.timerCancel(initWebsocket);
-        connect();
-      } else {
-        // reconnection of websocket should handle this case
-      }
-    });
-  }
+//  initHttp() {
+//    if (_closed) return;
+//    _httpConnection =
+//        new HttpBrowserConnection(_httpUpdateUri, this, salts[2], salts[1]);
+//
+//    if (!_onConnectedCompleter.isCompleted) {
+//      _onConnectedCompleter.complete();
+//    }
+//
+//    if (responder != null) {
+//      responder.connection = _httpConnection.responderChannel;
+//    }
+//
+//    if (requester != null) {
+//      _httpConnection.onRequesterReady.then((channel) {
+//        requester.connection = channel;
+//        if (!_onRequesterReadyCompleter.isCompleted) {
+//          _onRequesterReadyCompleter.complete(requester);
+//        }
+//      });
+//    }
+//    _httpConnection.onDisconnected.then((bool authFailed) {
+//      if (_closed) return;
+//      _httpConnection = null;
+//      if (authFailed) {
+//        DsTimer.timerCancel(initWebsocket);
+//        connect();
+//      } else {
+//        // reconnection of websocket should handle this case
+//      }
+//    });
+//  }
 
   bool _closed = false;
   void close() {
@@ -186,9 +186,9 @@ class BrowserECDHLink implements ClientLink {
       _wsConnection.close();
       _wsConnection = null;
     }
-    if (_httpConnection != null) {
-      _httpConnection.close();
-      _httpConnection = null;
-    }
+//    if (_httpConnection != null) {
+//      _httpConnection.close();
+//      _httpConnection = null;
+//    }
   }
 }
