@@ -14,15 +14,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   LocalNodeImpl connsNode;
   LocalNodeImpl usersNode;
   LocalNodeImpl defsNode;
-  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'quarantine': {}, 'sys': {}};
+  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'sys': {}};
 
   bool shouldSaveFiles = true;
-
-  BrokerNodeProvider() {
+  bool enabledQuarantine = false;
+  bool acceptAll = true;
+  BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAll:true}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/');
     nodes['/'] = root;
+    if (enabledQuarantine) {
+      rootStructure['quarantine'] = {};
+    }
     root.load(rootStructure, this);
     connsNode = nodes['/conns'];
     usersNode = nodes['/users'];
@@ -178,7 +182,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       } else {
         int pos = path.indexOf('/#');
         if (pos < 0) {
-          node = new UserNode(path, this);
+          node = new UserNode(path, username, this);
         } else {
           String connPath;
           int pos2 = path.indexOf('/', pos + 1);
@@ -231,41 +235,49 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, String> _id2connPath = new Map<String, String>();
   final Map<String, String> _connPath2id = new Map<String, String>();
 
-  String getConnPath(String dsId) {
-    if (_id2connPath.containsKey(dsId)) {
-      return _id2connPath[dsId];
+  String getConnPath(String udsId) {
+    if (_id2connPath.containsKey(udsId)) {
+      return _id2connPath[udsId];
       // TODO is it possible same link get added twice?
-    } else if (dsId.length < 43) {
+    } else if (udsId.length < 43) {
       // user link
-      String connPath = '/conns/$dsId';
+      String connPath = '/conns/$udsId';
       int count = 0;
       // find a connName for it
       while (_connPath2id.containsKey(connPath)) {
-        connPath = '/conns/$dsId-${count++}';
+        connPath = '/conns/$udsId-${count++}';
       }
-      _connPath2id[connPath] = dsId;
-      _id2connPath[dsId] = connPath;
+      _connPath2id[connPath] = udsId;
+      _id2connPath[udsId] = connPath;
       return connPath;
     } else {
       // device link
       String connPath;
+      
+      String folderPath = '/conns/';
+      if (udsId.contains(':')) {
+        // uname:dsId
+        List<String> u_id = udsId.split(':');
+        folderPath = '/conns/${u_id[0]}/';
+        udsId = u_id[1];
+      }
 
       // find a connName for it, keep append characters until find a new name
       int i = 43;
-      if (dsId.length == 43) i = 42;
+      if (udsId.length == 43) i = 42;
       for (; i >= 0; --i) {
-        connPath = '/conns/${dsId.substring(0, dsId.length - i)}';
+        connPath = '/conns/${udsId.substring(0, udsId.length - i)}';
         if (i == 43 && connPath.length > 8 && connPath.endsWith('-')) {
           // remove the last - in the name;
           connPath = connPath.substring(0, connPath.length - 1);
         }
         if (!_connPath2id.containsKey(connPath)) {
-          _connPath2id[connPath] = dsId;
-          _id2connPath[dsId] = connPath;
+          _connPath2id[connPath] = udsId;
+          _id2connPath[udsId] = connPath;
           break;
         }
       }
-      DsTimer.timerOnceAfter(saveConns, 3000);
+      DsTimer.timerOnceBefore(saveConns, 3000);
       return connPath;
     }
   }

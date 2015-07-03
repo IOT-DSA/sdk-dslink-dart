@@ -42,7 +42,11 @@ class HttpClientConnection implements ClientConnection {
     _pendingSendS = true;
     if (!_pendingCheck) {
       _pendingCheck = true;
-      DsTimer.callLaterOnce(_checkSend);
+      if (!_checkingSend) {
+        _checkingSend = true;
+        DsTimer.callLater(_checkSend);
+      }
+    
     }
   }
 

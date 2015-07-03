@@ -76,7 +76,10 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   void requireSend() {
-    DsTimer.callLaterOnce(_send);
+    if (!_sending) {
+      _sending = true;
+      DsTimer.callLater(_send);
+    }
   }
 
   /// special server command that need to be merged into message
@@ -89,7 +92,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       _serverCommand = {};
     }
     _serverCommand[key] = value;
-    DsTimer.callLaterOnce(_send);
+    requireSend();
   }
 
   BinaryInCache binaryInCache = new BinaryInCache();
@@ -154,7 +157,9 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
     logger.finest("end WebSocketConnection.onData");
   }
 
+  bool _sending = false;
   void _send() {
+    _sending = false;
     bool needSend = false;
     Map m;
     if (_serverCommand != null) {

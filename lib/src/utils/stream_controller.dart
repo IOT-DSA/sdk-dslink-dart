@@ -36,13 +36,18 @@ class BroadcastStreamController<T> implements StreamController<T> {
   void _onCancel(StreamSubscription<T> subscription) {
     _listening = false;
     if (_onAllCancel != null) {
-      DsTimer.callLaterOnce(delayedCheckCancel);
+      if (!_delayedCheckCanceling) {
+        _delayedCheckCanceling = true;
+        DsTimer.callLater(delayedCheckCancel);
+      }
     } else {
       _listenState = false;
     }
   }
 
+  bool _delayedCheckCanceling = false;
   void delayedCheckCancel() {
+    _delayedCheckCanceling = false;
     if (!_listening && _listenState) {
       _onAllCancel();
       _listenState = false;

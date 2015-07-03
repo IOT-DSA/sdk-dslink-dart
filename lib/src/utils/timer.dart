@@ -44,29 +44,19 @@ class DsTimer {
     _callbacks.add(callback);
   }
 
-  /// multiple calls to callLaterOnce will only run function once
-  static void callLaterOnce(Function callback) {
-    if (!_callbacks.contains(callback)) {
-      if (!_pending) {
-        _startTimer();
-      }
-      _callbacks.add(callback);
-    }
-  }
-
-  /// call the function and remove it from the pending listh
-  static void callNow(Function callback) {
-    if (_callbacks.contains(callback)) {
-      _callbacks.remove(callback);
-    }
-    callback();
-  }
-
-  static void cancel(Function callback) {
-    if (_callbacks.contains(callback)) {
-      _callbacks.remove(callback);
-    }
-  }
+//  /// call the function and remove it from the pending listh
+//  static void callNow(Function callback) {
+//    if (_callbacks.contains(callback)) {
+//      _callbacks.remove(callback);
+//    }
+//    callback();
+//  }
+//
+//  static void cancel(Function callback) {
+//    if (_callbacks.contains(callback)) {
+//      _callbacks.remove(callback);
+//    }
+//  }
 
   static LinkedList<TimerFunctions> _pendingTimer =
       new LinkedList<TimerFunctions>();
@@ -133,7 +123,7 @@ class DsTimer {
       }
     }
     if (desiredTime50 <= _lastTimeRun) {
-      callLaterOnce(callback);
+      callLater(callback);
       return;
     }
     TimerFunctions tf = _getTimerFunctions(desiredTime50);
@@ -154,7 +144,7 @@ class DsTimer {
       }
     }
     if (desiredTime50 <= _lastTimeRun) {
-      callLaterOnce(callback);
+      callLater(callback);
       return;
     }
     TimerFunctions tf = _getTimerFunctions(desiredTime50);
@@ -177,7 +167,7 @@ class DsTimer {
       }
     }
     if (desiredTime50_1 <= _lastTimeRun) {
-      callLaterOnce(callback);
+      callLater(callback);
       return;
     }
     TimerFunctions tf = _getTimerFunctions(desiredTime50_1);

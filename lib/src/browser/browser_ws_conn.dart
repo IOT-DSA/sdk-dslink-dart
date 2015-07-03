@@ -67,7 +67,10 @@ class WebSocketConnection implements ClientConnection {
   Map _msgCommand;
 
   void requireSend() {
-    DsTimer.callLaterOnce(_send);
+    if (!_sending) {
+      _sending = true;
+      DsTimer.callLater(_send);
+    }
   }
 
   bool _opened = false;
@@ -142,7 +145,10 @@ class WebSocketConnection implements ClientConnection {
   }
 
   BinaryOutCache binaryOutCache = new BinaryOutCache();
+  
+  bool _sending = false;
   void _send() {
+    _sending = false;
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }

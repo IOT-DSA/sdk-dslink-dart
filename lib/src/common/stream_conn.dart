@@ -60,7 +60,10 @@ class StreamConnection implements ClientConnection, ServerConnection {
   }
 
   void requireSend() {
-    DsTimer.callLaterOnce(_send);
+    if (!_sending) {
+      _sending = true;
+      DsTimer.callLater(_send);
+    }
   }
 
   Map _serverCommand;
@@ -70,7 +73,10 @@ class StreamConnection implements ClientConnection, ServerConnection {
       _serverCommand = {};
     }
     _serverCommand[key] = value;
-    DsTimer.callLaterOnce(_send);
+    if (!_sending) {
+      _sending = true;
+      DsTimer.callLater(_send);
+    }
   }
 
   void onData(dynamic data) {
@@ -130,7 +136,10 @@ class StreamConnection implements ClientConnection, ServerConnection {
     logger.finest("end StreamConnection.onData");
   }
 
+  // whether _send is in callLater queue
+  bool _sending = false;
   void _send() {
+    _sending = false;
     bool needSend = false;
     Map m;
     if (_serverCommand != null) {

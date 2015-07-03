@@ -1,7 +1,8 @@
 part of dslink.broker;
 
 class UserNode extends LocalNodeImpl {
-  UserNode(String path, BrokerNodeProvider provider) : super(path) {
+  final String username;
+  UserNode(String path, this.username, BrokerNodeProvider provider) : super(path) {
     configs[r'$is'] = 'broker/unode';
     profile = provider.getNode('/defs/profile/broker/unode');
   }
@@ -35,8 +36,9 @@ class UserNode extends LocalNodeImpl {
           node.load(value, provider);
           node._linkManager.inTree = true;
           if (node.configs[r'$$dsId'] is String) {
-            provider._id2connPath[node.configs[r'$$dsId']] = childPath;
-            provider._connPath2id[childPath] = node.configs[r'$$dsId'];
+            String userDsId = '$username:${node.configs[r'$$dsId']}';
+            provider._id2connPath[userDsId] = childPath;
+            provider._connPath2id[childPath] = userDsId;
           }
         }
       }
@@ -59,9 +61,8 @@ class UserNode extends LocalNodeImpl {
 }
 
 class UserRootNode extends UserNode {
-  final String username;
-  UserRootNode(String path, this.username, BrokerNodeProvider provider)
-      : super(path, provider) {
+  UserRootNode(String path, String username, BrokerNodeProvider provider)
+      : super(path, username, provider) {
     configs[r'$is'] = 'broker/unoderoot';
     profile = provider.getNode('/defs/profile/broker/unoderoot');
   }
@@ -91,7 +92,25 @@ InvokeResponse addChildNode(Map params, Responder responder,
 
 InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
     LocalNode parentNode) {
-  return response..close();
+  Object name = params['name'];
+  if (parentNode is UserNode &&
+      name is String &&
+      name != '' &&
+      !name.contains(Path.invalidNameChar) &&
+      !name.startsWith(r'$') &&
+      !name.startsWith(r'!') &&
+      !name.startsWith(r'#')) {
+    if (parentNode.children.containsKey(name)) {
+      return response
+        ..close(new DSError('invalidParameter', msg: 'node already exist'));
+    }
+    UserNode node = responder.nodeProvider.getNode('${parentNode.path}/$name');
+    parentNode.children[name] = node;
+    parentNode.updateList(name);
+    DsTimer.timerOnceBefore((responder.nodeProvider as BrokerNodeProvider).saveUsrNodes, 1000);
+    
+  }
+  return response..close(DSError.INVALID_PARAMETER);
 }
 Map userNodeFunctions = {
   "broker": {
