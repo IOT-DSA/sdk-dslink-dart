@@ -11,7 +11,8 @@ class DefaultDefNodes {
         {"name": "Timerange", "type": "string", 'editor': "daterange"},
         {
           "name": "Interval",
-          "type": buildEnumType([
+          "type":"enum",
+          "editor": buildEnumType([
             "default",
             "none",
             "1Y",
