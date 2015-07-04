@@ -13,7 +13,7 @@ ImageElement image;
 main() async {
   image = querySelector("#image");
 
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://127.0.0.1:8080/conn");
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://localhost:8080/conn");
 
   link = new LinkProvider(brokerUrl, "ImageDisplay-", isRequester: true);
 

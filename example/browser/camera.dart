@@ -40,7 +40,7 @@ main() async {
     }
   });
 
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://127.0.0.1:8080/conn");
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://localhost:8080/conn");
 
   link = new LinkProvider(brokerUrl, "Webcam-", defaultNodes: {
     "Image": {
@@ -50,7 +50,7 @@ main() async {
 
   await link.connect();
 
-  Scheduler.every(new Interval.forMilliseconds(64), () {
+  Scheduler.every(new Interval.forMilliseconds(16 * 4), () {
     takePicture();
   });
 }

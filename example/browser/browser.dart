@@ -150,7 +150,7 @@ ParagraphElement textElement = querySelector("#text");
 AudioElement audio;
 
 main() async {
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://127.0.0.1:8080/conn");
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://localhost:8080/conn");
   link = new LinkProvider(brokerUrl, "Browser-", defaultNodes: DEFAULT_NODES, profiles: {
     "playSound": (String path) =>
       new SimpleActionNode(path, (Map<String, dynamic> params) {

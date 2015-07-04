@@ -13,3 +13,4 @@ pubspec.lock
 /conns.json
 /nodes.json
 /tool/personal
+.packages
