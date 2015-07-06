@@ -179,7 +179,7 @@ class SimpleNodeProvider extends NodeProviderImpl
 class SimpleNode extends LocalNodeImpl {
   final SimpleNodeProvider provider;
   SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path)
-    ,provider = nodeprovider == null? nodeprovider:SimpleNodeProvider.instance;
+    ,provider = nodeprovider == null? SimpleNodeProvider.instance:nodeprovider;
 
   bool removed = false;
 
