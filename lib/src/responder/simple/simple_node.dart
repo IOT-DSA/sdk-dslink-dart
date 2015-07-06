@@ -16,7 +16,7 @@ class AsyncTableResult {
   String status = StreamStatus.initialize;
 
   OnInvokeClosed onClose;
-  
+
   AsyncTableResult([this.columns]);
 
   void update(List rows, [String stat]) {
@@ -71,7 +71,7 @@ abstract class MutableNodeProvider {
 class SimpleNodeProvider extends NodeProviderImpl
     implements SerializableNodeProvider, MutableNodeProvider {
   static SimpleNodeProvider instance;
-  
+
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   @override
@@ -86,7 +86,7 @@ class SimpleNodeProvider extends NodeProviderImpl
 
   SimpleNodeProvider([Map m, Map profiles]) {
     // by defaut, the first SimpleNodeProvider is the static instance
-    if (instance != null) {
+    if (instance == null) {
       instance = this;
     }
     init(m, profiles);
@@ -363,7 +363,7 @@ class SimpleNode extends LocalNodeImpl {
   void onSetValue(Object val) {}
   void onSetConfig(String name, String value){}
   void onSetAttribute(String name, String value){}
-  
+
   // called before a subscription request is returned
   void onSubscribe() {}
 
@@ -411,7 +411,7 @@ class SimpleNode extends LocalNodeImpl {
     }
     return name;
   }
-  
+
   Response setAttribute(
       String name, Object value, Responder responder, Response response) {
     Response resp = super.setAttribute(name, value, responder, response);
@@ -432,7 +432,7 @@ class SimpleNode extends LocalNodeImpl {
     onSetValue(value);
     return resp;
   }
-  
+
 
   operator []=(String name, value) {
     if (name.startsWith(r"$") || name.startsWith(r"@")) {
