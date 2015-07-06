@@ -77,7 +77,6 @@ class ListResponse extends Response {
         updateAttributes.add([name, value]);
       });
       node.children.forEach((name, LocalNode value) {
-        print('$name $value');
         updateChildren.add([name, value.getSimpleMap()]);
       });
       if (updateIs == null) {
