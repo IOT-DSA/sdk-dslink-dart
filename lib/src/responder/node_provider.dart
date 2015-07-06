@@ -18,6 +18,7 @@ abstract class LocalNode extends Node {
 
   void onAllListCancel() {}
 
+  NodeProvider get provider;
   final String path;
 
   LocalNode(this.path);

@@ -16,7 +16,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
     if (rootNodeData != null) {
-      rootNode.load(rootNodeData, brokerProvider);
+      rootNode.load(rootNodeData);
     }
   }
 
@@ -45,7 +45,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     RemoteLinkNode node = nodes[rPath];
     if (node == null) {
-      node = new RemoteLinkNode(fullPath, rPath, this);
+      node = new RemoteLinkNode(fullPath, broker, rPath, this);
       nodes[rPath] = node;
     }
     return node;
@@ -61,7 +61,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     }
     RemoteLinkNode node = nodes[rPath];
     if (node == null) {
-      node = new RemoteLinkNode(fullPath, rPath, this);
+      node = new RemoteLinkNode(fullPath, broker, rPath, this);
       nodes[rPath] = node;
     }
     return node;
@@ -103,7 +103,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   }
 }
 class RemoteLinkNode extends RemoteNode implements LocalNode {
-
+  final BrokerNodeProvider provider;
   ListController createListController(Requester requester) {
    return new RemoteLinkListController(this, requester);
   }
@@ -185,7 +185,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   /// root of the link
   RemoteLinkManager _linkManager;
 
-  RemoteLinkNode(this.path, String remotePath, this._linkManager)
+  RemoteLinkNode(this.path, this.provider, String remotePath, this._linkManager)
       : super(remotePath) {}
 
   bool _listReady = false;

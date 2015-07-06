@@ -1,15 +1,15 @@
 part of dslink.broker;
 
-class UserNode extends LocalNodeImpl {
+class UserNode extends BrokerNode {
   final String username;
-  UserNode(String path, this.username, BrokerNodeProvider provider) : super(path) {
+  UserNode(String path, BrokerNodeProvider provider, this.username) : super(path, provider) {
     configs[r'$is'] = 'broker/unode';
     profile = provider.getNode('/defs/profile/broker/unode');
   }
 
   bool _loaded = false;
   /// Load this node from the provided map as [m].
-  void load(Map m, [BrokerNodeProvider provider]) {
+  void load(Map m) {
     if (_loaded) {
       configs.clear();
       attributes.clear();
@@ -31,9 +31,9 @@ class UserNode extends LocalNodeImpl {
         LocalNode node = provider.getNode(childPath);
         children[key] = node;
         if (node is UserNode) {
-          node.load(value, provider);
+          node.load(value);
         } else if (node is RemoteLinkRootNode) {
-          node.load(value, provider);
+          node.load(value);
           node._linkManager.inTree = true;
           if (node.configs[r'$$dsId'] is String) {
             String userDsId = '$username:${node.configs[r'$$dsId']}';
@@ -62,7 +62,7 @@ class UserNode extends LocalNodeImpl {
 
 class UserRootNode extends UserNode {
   UserRootNode(String path, String username, BrokerNodeProvider provider)
-      : super(path, username, provider) {
+      : super(path, provider, username) {
     configs[r'$is'] = 'broker/unoderoot';
     profile = provider.getNode('/defs/profile/broker/unoderoot');
   }

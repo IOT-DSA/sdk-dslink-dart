@@ -4,7 +4,7 @@ abstract class NodeProviderImpl extends NodeProvider {
   Map<String, LocalNode> get nodes;
 }
 
-class LocalNodeImpl extends LocalNode {
+abstract class LocalNodeImpl extends LocalNode {
   LocalNode parentNode;
 
   LocalNodeImpl(String path) : super(path);
@@ -27,7 +27,7 @@ class LocalNodeImpl extends LocalNode {
   bool _loaded = false;
   bool get loaded => _loaded;
 
-  void load(Map m, NodeProviderImpl provider) {
+  void load(Map m) {
     if (_loaded) {
       configs.clear();
       attributes.clear();
@@ -47,7 +47,7 @@ class LocalNodeImpl extends LocalNode {
       } else if (value is Map) {
         Node node = provider.getNode('$childPathPre$key');
         if (node is LocalNodeImpl) {
-          node.load(value, provider);
+          node.load(value);
         }
         children[key] = node;
       }

@@ -7,13 +7,12 @@ import "package:dslink/responder.dart";
 /// An Action for Deleting a Given Node
 class DeleteActionNode extends SimpleNode {
   final String targetPath;
-  final SimpleNodeProvider provider;
 
   /// When this action is invoked, [provider.removeNode] will be called with [targetPath].
-  DeleteActionNode(String path, this.provider, this.targetPath) : super(path);
+  DeleteActionNode(String path, SimpleNodeProvider provider, this.targetPath) : super(path, provider);
 
   /// When this action is invoked, [provider.removeNode] will be called with the parent of this action.
-  DeleteActionNode.forParent(String path, NodeProvider provider)
+  DeleteActionNode.forParent(String path, SimpleNodeProvider provider)
       : this(path, provider, new Path(path).parentPath);
 
   /// Handles an action invocation and deletes the target path.
@@ -33,7 +32,7 @@ class SimpleActionNode extends SimpleNode {
 
   /// When this action is invoked, the given [function] will be called with the parameters
   /// and then the result of the function will be returned.
-  SimpleActionNode(String path, this.function) : super(path);
+  SimpleActionNode(String path, this.function, [SimpleNodeProvider provider]) : super(path, provider);
 
   @override
   Object onInvoke(Map<String, dynamic> params) => function(params);
@@ -60,7 +59,7 @@ class UpgradableNode extends SimpleNode {
   final int latestVersion;
   final NodeUpgradeFunction upgrader;
 
-  UpgradableNode(String path, this.latestVersion, this.upgrader) : super(path);
+  UpgradableNode(String path, this.latestVersion, this.upgrader, [SimpleNodeProvider provider]) : super(path, provider);
 
   @override
   void onCreated() {
@@ -96,13 +95,14 @@ class CallbackNode extends SimpleNode {
   final LoadChildCallback onLoadChildCallback;
 
   CallbackNode(String path,
-      {this.onActionInvoke,
+      {SimpleNodeProvider provider,
+        this.onActionInvoke,
       ChildChangedCallback onChildAdded,
       ChildChangedCallback onChildRemoved,
       SimpleCallback onCreated,
       SimpleCallback onRemoving,
       LoadChildCallback onLoadChild})
-      : super(path),
+      : super(path, provider),
         onChildAddedCallback = onChildAdded,
         onChildRemovedCallback = onChildRemoved,
         onCreatedCallback = onCreated,

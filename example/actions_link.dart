@@ -30,7 +30,7 @@ main(List<String> args) async {
 
 // A simple node that resets the message value.
 class ResetNode extends SimpleNode {
-  ResetNode(String path) : super(path);
+  ResetNode(String path, [SimpleNodeProvider provider]) : super(path, provider);
 
   @override
   onInvoke(Map<String, dynamic> params) {

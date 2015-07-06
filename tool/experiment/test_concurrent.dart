@@ -7,7 +7,10 @@ import "package:logging/logging.dart";
 import "package:args/args.dart";
 
 class TestNodeProvider extends NodeProvider {
-  TestNode onlyNode = new TestNode('/');
+  TestNode onlyNode;
+  TestNodeProvider(){
+    onlyNode = new TestNode('/', this);
+  }
 
   LocalNode getNode(String path) {
     return onlyNode;
@@ -19,7 +22,8 @@ class TestNodeProvider extends NodeProvider {
 }
 
 class TestNode extends LocalNodeImpl {
-  TestNode(String path) : super(path) {
+  NodeProvider provider;
+  TestNode(String path, this.provider) : super(path) {
     configs[r'$is'] = 'node';
     configs[r'$test'] = 'hello world';
     configs[r'$type'] = 'number';

@@ -13,11 +13,11 @@ class ServerWebSocket extends WebSocketConnection {
 }
 
 class ThroughPutNode extends LocalNodeImpl {
-  static ThroughPutNode instance = new ThroughPutNode("/sys/throughput");
-
+  static ThroughPutNode instance;
+  final NodeProvider provider;
   int throughput = 0;
-
-  ThroughPutNode(String path) : super(path) {
+  ThroughPutNode(String path, this.provider) : super(path) {
+    instance = this;
     configs[r"$type"] = "number";
     // TODO(rinick): load initial value from encrypted file
     throughput = 0;

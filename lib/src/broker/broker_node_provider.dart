@@ -22,12 +22,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAll:true}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
-    RootNode root = new RootNode('/');
+    RootNode root = new RootNode('/', this);
     nodes['/'] = root;
     if (enabledQuarantine) {
       rootStructure['quarantine'] = {};
     }
-    root.load(rootStructure, this);
+    root.load(rootStructure);
     connsNode = nodes['/conns'];
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
@@ -37,10 +37,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   void initSys() {
-    setNode("/sys/version", new BrokerVersionNode("/sys/version", DSA_VERSION));
-    setNode("/sys/startTime", new StartTimeNode("/sys/startTime"));
+    setNode("/sys/version", new BrokerVersionNode("/sys/version", this, DSA_VERSION));
+    setNode("/sys/startTime", new StartTimeNode("/sys/startTime", this));
     setNode("/sys/clearConns", new ClearConnsAction("/sys/clearConns", this));
-    setNode("/sys/throughput", ThroughPutNode.instance);
+    setNode("/sys/throughput", new ThroughPutNode("/sys/throughput", this));
   }
 
   bool _defsLoaded = false;
@@ -54,7 +54,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m.forEach((String name, Map m) {
         String path = '/defs/$name';
         DefinitionNode node = getNode(path);
-        node.load(m, this);
+        node.load(m);
         defsNode.children[name] = node;
       });
     } catch (err) {
@@ -82,7 +82,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m.forEach((String name, Map m) {
         String path = '/users/$name';
         UserRootNode node = getNode(path);
-        node.load(m, this);
+        node.load(m);
         usersNode.children[name] = node;
       });
     } catch (err) {
@@ -110,7 +110,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m.forEach((String name, Map m) {
         String path = '/conns/$name';
         RemoteLinkRootNode node = getNode(path);
-        node.load(m, this);
+        node.load(m);
         if (node.configs[r'$$dsId'] is String) {
           _id2connPath[node.configs[r'$$dsId']] = path;
           _connPath2id[path] = node.configs[r'$$dsId'];
@@ -182,7 +182,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       } else {
         int pos = path.indexOf('/#');
         if (pos < 0) {
-          node = new UserNode(path, username, this);
+          node = new UserNode(path, this, username);
         } else {
           String connPath;
           int pos2 = path.indexOf('/', pos + 1);
@@ -219,10 +219,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       node = conn.getNode(path);
     } else if (path.startsWith('/defs/')) {
       //if (!_defsLoaded) {
-      node = new DefinitionNode(path);
+      node = new DefinitionNode(path, this);
       //}
     } else {
-      node = new BrokerNode(path);
+      node = new BrokerNode(path, this);
     }
     if (node != null) {
       nodes[path] = node;

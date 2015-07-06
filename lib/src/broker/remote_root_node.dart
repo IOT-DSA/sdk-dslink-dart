@@ -4,7 +4,7 @@ part of dslink.broker;
 class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl {
   RemoteLinkRootNode(
       String path, String remotePath, RemoteLinkManager linkManager)
-      : super(path, remotePath, linkManager);
+      : super(path, linkManager.broker, remotePath, linkManager);
 
   bool get loaded => true;
 
@@ -44,7 +44,7 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl {
     return response..close(config.removeConfig(this, responder));
   }
 
-  void load(Map m, NodeProviderImpl provider) {
+  void load(Map m) {
     m.forEach((String name, Object value) {
       if (name.startsWith(r'$')) {
         configs[name] = value;

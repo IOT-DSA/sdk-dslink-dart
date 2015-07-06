@@ -70,6 +70,8 @@ abstract class MutableNodeProvider {
 
 class SimpleNodeProvider extends NodeProviderImpl
     implements SerializableNodeProvider, MutableNodeProvider {
+  static SimpleNodeProvider instance;
+  
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   @override
@@ -77,12 +79,16 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (nodes.containsKey(path)) {
       return nodes[path];
     }
-    var node = new SimpleNode(path);
+    var node = new SimpleNode(path, this);
     nodes[path] = node;
     return node;
   }
 
   SimpleNodeProvider([Map m, Map profiles]) {
+    // by defaut, the first SimpleNodeProvider is the static instance
+    if (instance != null) {
+      instance = this;
+    }
     init(m, profiles);
   }
 
@@ -95,7 +101,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
 
     if (m != null) {
-      root.load(m, this);
+      root.load(m);
     }
   }
 
@@ -128,7 +134,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
 
     nodes[path] = node;
-    node.load(m, this);
+    node.load(m);
 
     node.onCreated();
     pnode.children[p.name] = node;
@@ -171,12 +177,14 @@ class SimpleNodeProvider extends NodeProviderImpl
 /// A Simple Node Implementation
 /// A flexible node implementation that should fit most use cases.
 class SimpleNode extends LocalNodeImpl {
-  SimpleNode(String path) : super(path);
+  final SimpleNodeProvider provider;
+  SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path)
+    ,provider = nodeprovider == null? nodeprovider:SimpleNodeProvider.instance;
 
   bool removed = false;
 
   /// Load this node from the provided map as [m].
-  void load(Map m, [NodeProviderImpl provider]) {
+  void load(Map m) {
     if (_loaded) {
       configs.clear();
       attributes.clear();
@@ -199,7 +207,7 @@ class SimpleNode extends LocalNodeImpl {
         attributes[key] = value;
       } else if (value is Map) {
         String childPath = '$childPathPre$key';
-        (provider as SimpleNodeProvider).addNode(childPath, value);
+        provider.addNode(childPath, value);
         // Node node = provider.getNode('$childPathPre$key');
         // children[key] = node;
         // if (node is LocalNodeImpl) {
@@ -383,9 +391,9 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   SimpleNode createChild(String name, [Map m]) {
-    var child = new SimpleNode("${path}/${name}");
+    var child = new SimpleNode("${path}/${name}", provider);
     if (m != null) {
-      child.load(m, null);
+      child.load(m);
     }
     addChild(name, child);
     return child;
