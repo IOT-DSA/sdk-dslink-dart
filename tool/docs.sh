@@ -14,6 +14,7 @@ then
   mkdir -p build/tmp/sdks/dart
   cp -R build/docs/* build/tmp/sdks/dart/
   cd build/tmp
+  set +e
   git add .
   git commit -m "Update Docs for Dart SDK"
   git push origin gh-pages
