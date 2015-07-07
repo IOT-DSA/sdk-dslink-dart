@@ -67,6 +67,10 @@ Logger get logger {
 void updateLogLevel(String name) {
   name = name.trim().toUpperCase();
 
+  if (name == "debug") {
+    name = "ALL";
+  }
+
   Map<String, Level> levels = {};
   for (var l in Level.LEVELS) {
     levels[l.name] = l;

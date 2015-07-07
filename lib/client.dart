@@ -173,7 +173,7 @@ class LinkProvider {
     argp.addOption("log",
         abbr: "l",
         allowed: Level.LEVELS.map((it) => it.name.toLowerCase()).toList()
-          ..addAll(["auto"]),
+          ..addAll(["auto", "debug"]),
         help: "Log Level",
         defaultsTo: "AUTO");
     argp.addFlag("help",
