@@ -66,10 +66,14 @@ simpleTests() {
 
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
-    RequesterListUpdate firstParentUpdate = await requester.list("/conns/DataHost").first.timeout(new Duration(seconds: 5));
+    RequesterListUpdate firstParentUpdate = await requester.list("/conns/DataHost")
+      .first
+      .timeout(new Duration(seconds: 5));
     expect(firstParentUpdate.node.children, hasLength(1));
     expect(firstParentUpdate.node.children.keys, contains("Message"));
-    RequesterListUpdate firstMessageUpdate = await requester.list("/conns/DataHost/Message").first.timeout(new Duration(seconds: 5));
+    RequesterListUpdate firstMessageUpdate = await requester.list("/conns/DataHost/Message")
+      .first
+      .timeout(new Duration(seconds: 5));
     expect(firstMessageUpdate.node.getConfig(r"$type"), equals("string"));
     var i = 0;
     ReqSubscribeListener listener;
