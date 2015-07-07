@@ -60,6 +60,8 @@ Logger get logger {
     }
   });
 
+  _logger.level = Level.INFO;
+
   return _logger;
 }
 
