@@ -44,10 +44,16 @@ class DsHttpServer {
       this.nodeProvider})
       : _linkManager =
             (linkManager == null) ? new DsSimpleLinkManager() : linkManager {
+    var completer = new Completer();
+    onServerReady = completer.future;
     if (httpPort > 0) {
       HttpServer.bind(address, httpPort).then((server) {
         logger.info('Listening on HTTP port $httpPort');
         server.listen(_handleRequest);
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+        httpServer = server;
       }).catchError((Object err) {
         logger.severe(err);
       });
@@ -63,6 +69,13 @@ class DsHttpServer {
         logger.severe(err);
       });
     }
+  }
+
+  HttpServer httpServer;
+  Future onServerReady;
+
+  Future stop() async {
+    await httpServer.close();
   }
 
   void _handleRequest(HttpRequest request) {
@@ -134,7 +147,7 @@ class DsHttpServer {
 
   void _handleConn(HttpRequest request, String dsId) {
     bool trusted = (request.requestedUri.host == '127.0.0.1');
-    
+
     request.fold([], foldList).then((List<int> merged) {
       try {
         if (merged.length > 1024) {
@@ -183,7 +196,7 @@ class DsHttpServer {
 
 //  void _handleHttpUpdate(HttpRequest request, String dsId) {
 //    bool trusted = request.requestedUri.host == '127.0.0.1';
-//    
+//
 //    HttpServerLink link = _linkManager.getLink(dsId);
 //    if (link != null) {
 //      link.handleHttpUpdate(request, trusted);

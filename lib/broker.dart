@@ -19,3 +19,15 @@ part 'src/broker/broker_discovery.dart';
 part 'src/broker/broker_permissions.dart';
 part 'src/broker/broker_alias.dart';
 part 'src/broker/user_node.dart';
+
+Future<DsHttpServer> startBrokerServer(int port) async {
+  var broker = new BrokerNodeProvider();
+  var server = new DsHttpServer.start(
+      "0.0.0.0",
+      httpPort: port,
+      linkManager: broker,
+      nodeProvider: broker
+  );
+  await server.onServerReady;
+  return server;
+}

@@ -51,3 +51,11 @@ class HttpHelper {
     return JSON.decode(await fetchUrl(url, headers: headers));
   }
 }
+
+/// Generates a random socket port.
+Future<int> getRandomSocketPort() async {
+  var server = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4.address, 0);
+  var port = server.port;
+  await server.close();
+  return port;
+}
