@@ -10,7 +10,7 @@ class HttpClientLink implements ClientLink {
   Future get onConnected => _onConnectedCompleter.future;
 
   final String dsId;
-
+  final String home;
   final Requester requester;
   final Responder responder;
   final PrivateKey privateKey;
@@ -44,6 +44,7 @@ class HttpClientLink implements ClientLink {
       {NodeProvider nodeProvider,
       bool isRequester: true,
       bool isResponder: true,
+      this.home,
       this.enableHttp: false})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
@@ -61,7 +62,11 @@ class HttpClientLink implements ClientLink {
     DsTimer.timerCancel(initWebsocket);
 
     HttpClient client = new HttpClient();
-    Uri connUri = Uri.parse('$_conn?dsId=$dsId');
+    String connUrl = '$_conn?dsId=$dsId';
+    if (home != null) {
+      connUrl = '$connUrl&home=$home';
+    }
+    Uri connUri = Uri.parse(connUrl);
     logger.info("Connecting to ${_conn}");
     try {
       HttpClientRequest request = await client.postUrl(connUri);
@@ -95,6 +100,9 @@ class HttpClientLink implements ClientLink {
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
             .replaceFirst('http', 'ws');
+        if (home != null) {
+          _wsUpdateUri = '$_wsUpdateUri&home=$home';
+        }
       }
 
 //      if (serverConfig['httpUri'] is String) {

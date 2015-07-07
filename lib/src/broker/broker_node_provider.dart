@@ -14,6 +14,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   LocalNodeImpl connsNode;
   LocalNodeImpl usersNode;
   LocalNodeImpl defsNode;
+  LocalNodeImpl quarantineNode;
   Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'sys': {}};
 
   bool shouldSaveFiles = true;
@@ -31,6 +32,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     connsNode = nodes['/conns'];
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
+    quarantineNode = nodes['/quarantine'];
+    
     loadDef();
     registerInvokableProfile(userNodeFunctions);
     initSys();
@@ -84,6 +87,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         UserRootNode node = getNode(path);
         node.load(m);
         usersNode.children[name] = node;
+        if (enabledQuarantine) {
+          String path = '/quarantine/$name';
+          BrokerNode node = getNode(path);
+          quarantineNode.children[name] = node;
+        }
       });
     } catch (err) {
     }
@@ -217,6 +225,28 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         connsNode.updateList(connName);
       }
       node = conn.getNode(path);
+    } else if (path.startsWith('/quarantine/')) {
+      List paths = path.split('/');
+      String user = paths[2];
+      if (paths.length > 3) {
+        String connName = paths[3];
+        String connPath = '/quarantine/$user/$connName';
+        RemoteLinkManager conn = conns[connPath];
+        if (conn == null) {
+          // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+          conn = new RemoteLinkManager(this, connPath, this);
+          conns[connPath] = conn;
+          nodes[connPath] = conn.rootNode;
+          BrokerNode quarantineUser = getNode('/quarantine/$user');
+          quarantineUser.children[connName] = conn.rootNode;
+          conn.rootNode.parentNode = quarantineUser;
+          conn.inTree = true;
+          quarantineUser.updateList(connName);
+        }
+        node = conn.getNode(path);
+      } else {
+        node = new BrokerNode(path, this);
+      }
     } else if (path.startsWith('/defs/')) {
       //if (!_defsLoaded) {
       node = new DefinitionNode(path, this);
@@ -235,45 +265,46 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, String> _id2connPath = new Map<String, String>();
   final Map<String, String> _connPath2id = new Map<String, String>();
 
-  String getConnPath(String udsId) {
-    if (_id2connPath.containsKey(udsId)) {
-      return _id2connPath[udsId];
+  String getConnPath(String fullId) {
+    if (_id2connPath.containsKey(fullId)) {
+      return _id2connPath[fullId];
       // TODO is it possible same link get added twice?
-    } else if (udsId.length < 43) {
+    } else if (fullId.length < 43) {
       // user link
-      String connPath = '/conns/$udsId';
+      String connPath = '/conns/$fullId';
       int count = 0;
       // find a connName for it
       while (_connPath2id.containsKey(connPath)) {
-        connPath = '/conns/$udsId-${count++}';
+        connPath = '/conns/$fullId-${count++}';
       }
-      _connPath2id[connPath] = udsId;
-      _id2connPath[udsId] = connPath;
+      _connPath2id[connPath] = fullId;
+      _id2connPath[fullId] = connPath;
       return connPath;
     } else {
       // device link
       String connPath;
       
       String folderPath = '/conns/';
-      if (udsId.contains(':')) {
+      String dsId = fullId;
+      if (fullId.contains(':')) {
         // uname:dsId
-        List<String> u_id = udsId.split(':');
-        folderPath = '/conns/${u_id[0]}/';
-        udsId = u_id[1];
+        List<String> u_id = fullId.split(':');
+        folderPath = '/quarantine/${u_id[0]}/';
+        dsId = u_id[1];
       }
 
       // find a connName for it, keep append characters until find a new name
       int i = 43;
-      if (udsId.length == 43) i = 42;
+      if (dsId.length == 43) i = 42;
       for (; i >= 0; --i) {
-        connPath = '/conns/${udsId.substring(0, udsId.length - i)}';
+        connPath = '$folderPath${dsId.substring(0, dsId.length - i)}';
         if (i == 43 && connPath.length > 8 && connPath.endsWith('-')) {
           // remove the last - in the name;
           connPath = connPath.substring(0, connPath.length - 1);
         }
         if (!_connPath2id.containsKey(connPath)) {
-          _connPath2id[connPath] = udsId;
-          _id2connPath[udsId] = connPath;
+          _connPath2id[connPath] = fullId;
+          _id2connPath[fullId] = connPath;
           break;
         }
       }

@@ -82,6 +82,9 @@ class LinkProvider {
 
   /// Default Log Level.
   String defaultLogLevel = "INFO";
+  
+  /// connect to user home space 
+  String home;
 
   /// Create a Link Provider.
   /// [args] are the command-line arguments to pass in.
@@ -114,6 +117,7 @@ class LinkProvider {
       this.exitOnFailure: true,
       this.loadNodesJson: true,
       this.defaultLogLevel: "INFO",
+      this.home: null,
       NodeProvider nodeProvider // For Backwards Compatibility
       }) {
     exitOnFailure = !(const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false));
@@ -400,7 +404,8 @@ class LinkProvider {
           isRequester: isRequester,
           isResponder: isResponder,
           nodeProvider: provider,
-          enableHttp: enableHttp);
+          enableHttp: enableHttp,
+          home: home);
       _ready = true;
 
       if (_connectOnReady) {
