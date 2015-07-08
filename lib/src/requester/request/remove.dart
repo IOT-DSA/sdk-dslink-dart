@@ -11,7 +11,7 @@ class RemoveController implements RequestUpdater {
     _request = requester._sendRequest(reqMap, this);
   }
 
-  void onUpdate(String status, List updates, List columns, [DSError error]) {
+  void onUpdate(String status, List updates, List columns, Map meta, DSError error) {
     // TODO implement error
     completer.complete(new RequesterUpdate(status));
   }

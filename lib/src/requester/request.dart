@@ -26,11 +26,15 @@ class Request {
     }
     List updates;
     List columns;
+    Map meta;
     if (m['updates'] is List) {
       updates = m['updates'];
     }
     if (m['columns'] is List) {
       columns = m['columns'];
+    }
+    if (m['meta'] is Map) {
+      meta = m['meta'];
     }
     // remove the request from global Map
     if (streamStatus == StreamStatus.closed) {
@@ -40,14 +44,15 @@ class Request {
     if (m.containsKey('error') && m['error'] is Map) {
       error = new DSError.fromMap(m['error']);
     }
-    updater.onUpdate(streamStatus, updates, columns, error);
+    
+    updater.onUpdate(streamStatus, updates, columns, meta, error);
   }
 
   /// close the request and finish data
   void _close([DSError error]) {
     if (streamStatus != StreamStatus.closed) {
       streamStatus = StreamStatus.closed;
-      updater.onUpdate(StreamStatus.closed, null, null, error);
+      updater.onUpdate(StreamStatus.closed, null, null, null, error);
     }
   }
 

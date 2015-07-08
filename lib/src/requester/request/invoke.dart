@@ -5,10 +5,11 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   List<TableColumn> columns;
   List updates;
   DSError error;
+  Map meta;
 
   RequesterInvokeUpdate(
       this.updates, this.rawColumns, this.columns, String streamStatus,
-      [this.error])
+      {this.meta, this.error})
       : super(streamStatus);
 
   List<List> _rows;
@@ -96,8 +97,7 @@ class InvokeController implements RequestUpdater {
     //TODO, close the stream when configs are loaded
   }
 
-  void onUpdate(String streamStatus, List updates, List columns,
-      [DSError error]) {
+  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
     // TODO implement error
     if (columns != null) {
       _cachedColumns = TableColumn.parseColumns(columns);
@@ -109,10 +109,10 @@ class InvokeController implements RequestUpdater {
     if (error != null) {
       streamStatus = StreamStatus.closed;
       _controller.add(
-          new RequesterInvokeUpdate(null, null, null, streamStatus, error));
+          new RequesterInvokeUpdate(null, null, null, streamStatus, error:error, meta:meta));
     } else if (updates != null) {
       _controller.add(new RequesterInvokeUpdate(
-          updates, columns, _cachedColumns, streamStatus));
+          updates, columns, _cachedColumns, streamStatus, meta:meta));
     }
 
     if (streamStatus == StreamStatus.closed) {

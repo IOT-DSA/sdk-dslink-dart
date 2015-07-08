@@ -87,7 +87,7 @@ class Responder extends ConnectionHandler {
   }
 
   void updateResponse(Response response, List updates,
-      {String streamStatus, List<TableColumn> columns}) {
+      {String streamStatus, List<TableColumn> columns, Map meta}) {
     if (_responses[response.rid] == response) {
       Map m = {'rid': response.rid};
       if (streamStatus != null && streamStatus != response._sentStreamStatus) {
@@ -99,6 +99,9 @@ class Responder extends ConnectionHandler {
       }
       if (updates != null) {
         m['updates'] = updates;
+      }
+      if (meta != null) {
+        m['meta'] = meta;
       }
       addToSendList(m);
       if (response._sentStreamStatus == StreamStatus.closed) {

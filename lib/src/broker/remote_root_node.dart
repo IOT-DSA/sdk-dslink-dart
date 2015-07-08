@@ -79,8 +79,7 @@ class RemoteLinkRootListController extends ListController {
   RemoteLinkRootListController(RemoteNode node, Requester requester)
       : super(node, requester);
 
-  void onUpdate(String streamStatus, List updates, List columns,
-      [DSError error]) {
+  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
     bool reseted = false;
     // TODO implement error handling
     if (updates != null) {
