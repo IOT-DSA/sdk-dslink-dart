@@ -1,4 +1,5 @@
 @TestOn("vm")
+@Timeout(const Duration(seconds: 10))
 library dslink.test.vm.simple;
 
 import "dart:async";
@@ -8,6 +9,8 @@ import "package:dslink/server.dart";
 import "package:dslink/dslink.dart";
 import "package:dslink/io.dart";
 import "package:test/test.dart";
+
+import "common.dart";
 
 main() {
   group("Simple Links", simpleTests);
@@ -19,7 +22,7 @@ simpleTests() {
   setUp(() async {
     updateLogLevel("WARNING");
     port = await getRandomSocketPort();
-    server = await startBrokerServer(port);
+    server = await startBrokerServer(port, persist: false);
   });
 
   List<LinkProvider> _links = [];
@@ -62,30 +65,18 @@ simpleTests() {
         r"$type": "string",
         "?value": "Hello World"
       }
-    }).timeout(new Duration(seconds: 5));
+    });
 
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
-    RequesterListUpdate firstParentUpdate = await requester.list("/conns/DataHost")
-      .first
-      .timeout(new Duration(seconds: 5));
+    var firstParentUpdate = await firstListUpdate(requester, "/conns/DataHost");
     expect(firstParentUpdate.node.children, hasLength(1));
     expect(firstParentUpdate.node.children.keys, contains("Message"));
-    RequesterListUpdate firstMessageUpdate = await requester.list("/conns/DataHost/Message")
-      .first
-      .timeout(new Duration(seconds: 5));
+    var firstMessageUpdate = await firstListUpdate(requester, "/conns/DataHost/Message");
     expect(firstMessageUpdate.node.getConfig(r"$type"), equals("string"));
-    var i = 0;
-    ReqSubscribeListener listener;
-    listener = requester.subscribe("/conns/DataHost/Message", (ValueUpdate update) async {
-      if (i == 0) {
-        expect(update.value, equals("Hello World"));
-        host.val("/conns/DataHost/Message", "Goodbye World");
-        i++;
-      } else if (i == 1) {
-        expect(update.value, equals("Goodbye World"));
-        await listener.cancel();
-      }
-    });
+    await expectNodeValue(requester, "/conns/DataHost/Message", "Hello World");
+    host.val("/Message", "Goodbye World");
+    await gap();
+    await expectNodeValue(requester, "/conns/DataHost/Message", "Goodbye World");
   });
 }
