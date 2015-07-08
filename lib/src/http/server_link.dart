@@ -198,16 +198,20 @@ class HttpServerLink implements ServerLink {
     });
   }
 
+  ServerWebSocket wsconnection;
   void handleWsUpdate(HttpRequest request, bool trusted) {
     if (!trusted && !verifySalt(0, request.uri.queryParameters['auth'])) {
       logger.warning("$dsId was rejected due to an improper auth value");
       throw HttpStatus.UNAUTHORIZED;
     }
-
+    if (wsconnection != null) {
+      wsconnection.close();
+    }
     updateResponseBeforeWrite(request, null, null, true);
 
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
-      ServerWebSocket wsconnection = createWsConnection(websocket);
+      
+      wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
 
       wsconnection.onRequesterReady.then((channel) {
@@ -245,6 +249,12 @@ class HttpServerLink implements ServerLink {
       } catch (e) {}
       return request.response.close();
     });
+  }
+  
+  void close() {
+    if (wsconnection != null) {
+      wsconnection.close();
+    }
   }
 
   ServerWebSocket createWsConnection(WebSocket websocket) {

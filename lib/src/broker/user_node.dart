@@ -45,19 +45,6 @@ class UserNode extends BrokerNode {
     });
     _loaded = true;
   }
-  Map save() {
-    Map rslt = {};
-    configs.forEach((str, val) {
-      rslt[str] = val;
-    });
-    attributes.forEach((str, val) {
-      rslt[str] = val;
-    });
-    children.forEach((str, Node node) {
-      if (node is UserNode) rslt[str] = node.save();
-    });
-    return rslt;
-  }
 }
 
 class UserRootNode extends UserNode {
@@ -69,7 +56,7 @@ class UserRootNode extends UserNode {
 }
 InvokeResponse addChildNode(Map params, Responder responder,
     InvokeResponse response, LocalNode parentNode) {
-  Object name = params['name'];
+  Object name = params['Name'];
   if (parentNode is UserNode &&
       name is String &&
       name != '' &&
@@ -90,21 +77,41 @@ InvokeResponse addChildNode(Map params, Responder responder,
   return response..close(DSError.INVALID_PARAMETER);
 }
 
+
 InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
     LocalNode parentNode) {
-  Object name = params['name'];
+  Object name = params['Name'];
+  Object dsId = params['Id'];
   if (parentNode is UserNode &&
       name is String &&
       name != '' &&
       !name.contains(Path.invalidNameChar) &&
       !name.startsWith(r'$') &&
-      !name.startsWith(r'!') &&
-      !name.startsWith(r'#')) {
+      !name.startsWith('!')) {
+    if (!(name as String).startsWith('#')) {
+      name = '#$name';
+    }
     if (parentNode.children.containsKey(name)) {
       return response
         ..close(new DSError('invalidParameter', msg: 'node already exist'));
     }
-    UserNode node = responder.nodeProvider.getNode('${parentNode.path}/$name');
+    String userDsId = '${parentNode.username}:$dsId';
+    String existingPath = parentNode.provider._id2connPath[userDsId];
+    if (existingPath != null && existingPath.startsWith('/users/')) {
+      return response
+             ..close(new DSError('invalidParameter', msg: 'id already in use'));
+    }
+    String path = '${parentNode.path}/$name';
+    parentNode.provider._id2connPath[userDsId] = path;
+    parentNode.provider._connPath2id[path] = userDsId;
+    
+    ServerLink link = parentNode.provider.getLink(userDsId);
+    if (link != null) {
+      link.close();
+      parentNode.provider.removeLink(link);
+    }
+    LocalNode node = responder.nodeProvider.getNode(path);
+    node.configs[r'$$dsId'] = dsId;
     parentNode.children[name] = node;
     parentNode.updateList(name);
     DsTimer.timerOnceBefore((responder.nodeProvider as BrokerNodeProvider).saveUsrNodes, 1000);

@@ -6,7 +6,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// but instance is still there
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
-  /// connName to connection
+  /// connPath to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
   IPermissionManager permissions;
@@ -99,8 +99,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   Map saveUsrNodes() {
     Map m = {};
-    usersNode.children.forEach((String name, UserRootNode node) {
-      m[name] = node.save();
+    usersNode.children.forEach((String name, LocalNodeImpl node) {
+      m[name] = node.serialize(true);
     });
     File connsFile = new File("usernodes.json");
     if (shouldSaveFiles) {
@@ -265,7 +265,16 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, String> _id2connPath = new Map<String, String>();
   final Map<String, String> _connPath2id = new Map<String, String>();
 
-  String getConnPath(String fullId) {
+  RemoteLinkManager getConnById(String id) {
+    if (_id2connPath.containsKey(id)) {
+      return conns[_id2connPath[id]]; 
+    }
+    return null;
+  }
+  RemoteLinkManager getConnPath(String path) {
+    return conns[path];
+  }
+  String makeConnPath(String fullId) {
     if (_id2connPath.containsKey(fullId)) {
       return _id2connPath[fullId];
       // TODO is it possible same link get added twice?
@@ -327,7 +336,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _links[str] = link;
       if (link.session == null) {
         // don't create node for requester node with session
-        connPath = getConnPath(str);
+        connPath = makeConnPath(str);
         getNode(connPath).configs[r'$$dsId'] = link.dsId;
         logger.info('new node added at $connPath');
       }
@@ -340,7 +349,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       str = '$dsId sessionId';
     }
     if (_links[str] != null) {
-      String connPath = getConnPath(str);
+      String connPath = makeConnPath(str);
       RemoteLinkNode node = getNode(connPath);
       RemoteLinkManager conn = node._linkManager;
       if (!conn.inTree) {
@@ -361,8 +370,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   Requester getRequester(String dsId) {
-    String connPath = getConnPath(dsId);
-    if (conns.containsKey(getConnPath)) {
+    String connPath = makeConnPath(dsId);
+    if (conns.containsKey(makeConnPath)) {
       return conns[connPath].requester;
     }
     /// create the RemoteLinkManager
@@ -372,7 +381,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
                          [String sessionId = '']) {
-    String connPath = getConnPath(dsId);
+    String connPath = makeConnPath(dsId);
     if (conns.containsKey(connPath)) {
       return conns[connPath].getResponder(nodeProvider, dsId, sessionId);
     }

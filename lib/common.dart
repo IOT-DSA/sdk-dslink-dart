@@ -86,6 +86,8 @@ abstract class ServerLink extends Link {
   String get session;
 
   PublicKey get publicKey;
+  
+  void close();
 }
 
 abstract class ClientLink extends Link {
