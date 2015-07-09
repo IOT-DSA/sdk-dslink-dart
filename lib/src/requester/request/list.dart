@@ -60,8 +60,7 @@ class ListController implements RequestUpdater {
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
-  void onUpdate(String streamStatus, List updates, List columns,
-      [DSError error]) {
+  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
     bool reseted = false;
     // TODO implement error handling
     if (updates != null) {

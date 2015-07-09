@@ -1,7 +1,7 @@
 part of dslink.requester;
 
 abstract class RequestUpdater {
-  void onUpdate(String status, List updates, List columns, DSError error);
+  void onUpdate(String status, List updates, List columns, Map meta, DSError error);
   void onDisconnect();
   void onReconnect();
 }

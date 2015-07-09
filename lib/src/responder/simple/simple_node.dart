@@ -14,18 +14,18 @@ class AsyncTableResult {
   List columns;
   List rows;
   String status = StreamStatus.initialize;
-
+  Map meta;
   OnInvokeClosed onClose;
 
   AsyncTableResult([this.columns]);
 
-  void update(List rows, [String stat]) {
+  void update(List rows, [String stat, Map meta]) {
     if (this.rows == null) {
       this.rows = rows;
     } else {
       this.rows.addAll(rows);
     }
-
+    this.meta = meta;
     if (stat != null) {
       status = stat;
     }
@@ -42,7 +42,7 @@ class AsyncTableResult {
     }
 
     if (response != null && (rows != null || status == StreamStatus.closed)) {
-      response.updateStream(rows, columns: columns, streamStatus: status);
+      response.updateStream(rows, columns: columns, streamStatus: status, meta:meta);
       rows = null;
       columns = null;
     }

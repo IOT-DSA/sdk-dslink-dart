@@ -209,7 +209,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
         response.close(update.error);
       } else {
         response.updateStream(update.updates,
-            streamStatus: update.streamStatus, columns: update.rawColumns);
+            streamStatus: update.streamStatus, columns: update.rawColumns, meta:update.meta);
       }
     }, onDone: () {
       response.close();
@@ -351,8 +351,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
 class RemoteLinkListController extends ListController {
   RemoteLinkListController(RemoteNode node, Requester requester) : super(node, requester);
 
-  void onUpdate(String streamStatus, List updates, List columns,
-        [DSError error]) {
+  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
       bool reseted = false;
       // TODO implement error handling
       if (updates != null) {

@@ -44,7 +44,7 @@ class SubscribeController implements RequestUpdater {
     // TODO: implement onReconnect
   }
 
-  void onUpdate(String status, List updates, List columns, DSError error) {
+  void onUpdate(String status, List updates, List columns, Map meta, DSError error) {
     // do nothing
   }
 }

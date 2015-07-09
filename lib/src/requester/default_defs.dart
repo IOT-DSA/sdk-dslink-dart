@@ -45,7 +45,7 @@ class DefaultDefNodes {
         }
       ],
       r"$columns": [
-        {"name": "ts", "type": "time"},
+        {"name": "timestamp", "type": "time"},
         {"name": "value", "type": "dynamic"}
       ]
     }
