@@ -4,7 +4,6 @@ library dslink.client;
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:isolate';
 
 import 'package:args/args.dart';
 
@@ -29,8 +28,6 @@ typedef void OptionResultsHandler(ArgResults results);
 
 /// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
-  static bool _hasExitListener = false;
-
   /// The Link Object
   HttpClientLink link;
 
@@ -82,8 +79,8 @@ class LinkProvider {
 
   /// Default Log Level.
   String defaultLogLevel = "INFO";
-  
-  /// connect to user home space 
+
+  /// connect to user home space
   String home;
 
   /// Create a Link Provider.
@@ -129,23 +126,11 @@ class LinkProvider {
     if (autoInitialize) {
       init();
     }
-
-    if (!_hasExitListener) {
-      _hasExitListener = true;
-      try {
-        var rp = new ReceivePort();
-        Isolate.current.addOnExitListener(rp.sendPort);
-        rp.listen((e) {
-          try {
-            rp.close();
-            close();
-          } catch (e) {}
-        });
-      } catch (e) {}
-    }
   }
 
   String _basePath = ".";
+  String _watchFile;
+  String _logFile;
 
   bool _configured = false;
 
@@ -174,6 +159,8 @@ class LinkProvider {
         defaultsTo: "http://127.0.0.1:8080/conn");
     argp.addOption("name", abbr: "n", help: "Link Name");
     argp.addOption("base-path", help: "Base Path for DSLink");
+    argp.addOption("watch-file", help: "Watch File for DSLink", hide: true);
+    argp.addOption("log-file", help: "Log File for DSLink");
     argp.addOption("log",
         abbr: "l",
         allowed: Level.LEVELS.map((it) => it.name.toLowerCase()).toList()
@@ -203,6 +190,48 @@ class LinkProvider {
       if (_basePath.endsWith("/")) {
         _basePath = _basePath.substring(0, _basePath.length - 1);
       }
+    }
+
+    if (opts["watch-file"] != null) {
+      _watchFile = opts["watch-file"];
+    }
+
+    _logFile = opts["log-file"];
+
+    if (_logFile != null) {
+      var file = new File(_logFile);
+      if (!file.existsSync()) {
+        file.createSync(recursive: true);
+      }
+      logger.clearListeners();
+      IOSink out = _logFileOut = file.openWrite(mode: FileMode.APPEND);
+      logger.onRecord.listen((record) {
+        out.writeln("[${new DateTime.now()}][${record.level.name}] ${record.message}");
+        if (record.error != null) {
+          out.writeln(record.error);
+        }
+
+        if (record.stackTrace != null) {
+          out.writeln(record.stackTrace);
+        }
+
+        out.flush();
+      });
+    }
+
+    if (_watchFile != null) {
+      var file = new File(_watchFile);
+      StreamSubscription sub;
+      sub = file.watch(events: FileSystemEvent.DELETE).listen((_) {
+        close();
+        sub.cancel();
+
+        if (_logFileOut != null) {
+          try {
+            _logFileOut.close();
+          } catch (e) {}
+        }
+      });
     }
 
     String helpStr =
@@ -354,6 +383,7 @@ class LinkProvider {
     n.updateValue(n.lastValueUpdate.value, force: true);
   }
 
+  IOSink _logFileOut;
   bool _reconnecting = false;
 
   /// Initializes the Link.
