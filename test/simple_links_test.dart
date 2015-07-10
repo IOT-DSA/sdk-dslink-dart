@@ -1,6 +1,6 @@
 @TestOn("vm")
 @Timeout(const Duration(seconds: 10))
-library dslink.test.vm.simple;
+library dslink.test.vm.links.simple;
 
 import "dart:async";
 
@@ -13,10 +13,10 @@ import "package:test/test.dart";
 import "common.dart";
 
 main() {
-  group("Simple Links", simpleTests);
+  group("Simple Links", simpleLinksTests);
 }
 
-simpleTests() {
+simpleLinksTests() {
   DsHttpServer server;
   int port;
   setUp(() async {
