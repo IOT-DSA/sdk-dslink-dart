@@ -466,11 +466,11 @@ class SimpleNode extends LocalNodeImpl {
 
 class SimpleHiddenNode extends SimpleNode {
   SimpleHiddenNode(String path, SimpleNodeProvider provider) : super(path, provider) {
-    configs[r'$hide'] = true;
+    configs[r'$hidden'] = true;
   }
   
   Map getSimpleMap() {
-    Map rslt = {r'$hide':true};
+    Map rslt = {r'$hidden':true};
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }
