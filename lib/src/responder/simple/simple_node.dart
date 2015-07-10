@@ -89,21 +89,20 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (instance == null) {
        instance = this;
     }
-     
+
     root = getNode("/");
     defs = new SimpleHiddenNode('/defs', this);
     nodes['/defs'] = defs;
     sys = new SimpleHiddenNode('/sys', this);
     nodes['/sys'] = sys;
-    
-    
+
     init(m, profiles);
   }
 
   SimpleNode root;
   SimpleHiddenNode defs;
   SimpleHiddenNode sys;
-  
+
   @override
   void init([Map m, Map profiles]) {
     if (profiles != null) {
@@ -192,6 +191,10 @@ class SimpleNode extends LocalNodeImpl {
     ,provider = nodeprovider == null? SimpleNodeProvider.instance:nodeprovider;
 
   bool removed = false;
+  /// Marks this node as being serializable.
+  /// If true, this node can be serialized into a JSON file and then loaded back.
+  /// If false, this node can't be serialized into a JSON file.
+  bool serializable = true;
 
   /// Load this node from the provided map as [m].
   void load(Map m) {
@@ -234,6 +237,7 @@ class SimpleNode extends LocalNodeImpl {
     configs.forEach((str, val) {
       rslt[str] = val;
     });
+
     attributes.forEach((str, val) {
       rslt[str] = val;
     });
@@ -243,7 +247,7 @@ class SimpleNode extends LocalNodeImpl {
     }
 
     children.forEach((str, Node node) {
-      if (node is SimpleNode) rslt[str] = node.save();
+      if (node is SimpleNode && node.serializable == true) rslt[str] = node.save();
     });
 
     return rslt;
@@ -468,7 +472,7 @@ class SimpleHiddenNode extends SimpleNode {
   SimpleHiddenNode(String path, SimpleNodeProvider provider) : super(path, provider) {
     configs[r'$hidden'] = true;
   }
-  
+
   Map getSimpleMap() {
     Map rslt = {r'$hidden':true};
     if (configs.containsKey(r'$is')) {
