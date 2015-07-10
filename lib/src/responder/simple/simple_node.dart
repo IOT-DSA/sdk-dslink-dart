@@ -87,13 +87,23 @@ class SimpleNodeProvider extends NodeProviderImpl
   SimpleNodeProvider([Map m, Map profiles]) {
     // by defaut, the first SimpleNodeProvider is the static instance
     if (instance == null) {
-      instance = this;
+       instance = this;
     }
+     
+    root = getNode("/");
+    defs = new SimpleHiddenNode('/defs', this);
+    nodes['/defs'] = defs;
+    sys = new SimpleHiddenNode('/sys', this);
+    nodes['/sys'] = sys;
+    
+    
     init(m, profiles);
   }
 
-  SimpleNode get root => getNode("/");
-
+  SimpleNode root;
+  SimpleHiddenNode defs;
+  SimpleHiddenNode sys;
+  
   @override
   void init([Map m, Map profiles]) {
     if (profiles != null) {
@@ -451,5 +461,32 @@ class SimpleNode extends LocalNodeImpl {
         return value;
       }
     }
+  }
+}
+
+class SimpleHiddenNode extends SimpleNode {
+  SimpleHiddenNode(String path, SimpleNodeProvider provider) : super(path, provider) {
+    configs[r'$hide'] = true;
+  }
+  
+  Map getSimpleMap() {
+    Map rslt = {r'$hide':true};
+    if (configs.containsKey(r'$is')) {
+      rslt[r'$is'] = configs[r'$is'];
+    }
+    if (configs.containsKey(r'$type')) {
+      rslt[r'$type'] = configs[r'$type'];
+    }
+    if (configs.containsKey(r'$name')) {
+      rslt[r'$name'] = configs[r'$name'];
+    }
+    if (configs.containsKey(r'$invokable')) {
+      rslt[r'$invokable'] = configs[r'$invokable'];
+    }
+    if (configs.containsKey(r'$writable')) {
+      rslt[r'$writable'] = configs[r'$writable'];
+    }
+    // TODO add permission of current requester
+    return rslt;
   }
 }
