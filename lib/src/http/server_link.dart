@@ -214,7 +214,7 @@ class HttpServerLink implements ServerLink {
       wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
 
-      wsconnection.onRequesterReady.then((channel) {
+      //wsconnection.onRequesterReady.then((channel) {
         if (connection != null) {
           connection.close();
         }
@@ -228,7 +228,7 @@ class HttpServerLink implements ServerLink {
             onRequesterReadyCompleter.complete(requester);
           }
         }
-      });
+      //});
 
 //      if (connection is! HttpServerConnection) {
 //        // work around for backward compatibility
