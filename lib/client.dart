@@ -315,7 +315,7 @@ class LinkProvider {
     if (key == null || key.length != 131) {
       // 43 bytes d, 87 bytes Q, 1 space
       // generate the key
-      if(DSRandom.instance.needsEntropy) {
+      if (DSRandom.instance.needsEntropy) {
         String macs;
         if (Platform.isWindows) {
           macs = Process.runSync("getmac", []).stdout.toString();
@@ -323,7 +323,13 @@ class LinkProvider {
           try {
             macs = Process.runSync("arp", ["-an"]).stdout.toString();
           } catch (e) {
-            macs = Process.runSync("ifconfig", []).stdout.toString();
+            try {
+              var envs = "";
+              for (var i in Platform.environment.keys) {
+                envs += "${i}=${Platform.environment[i]}\n";
+              }
+              macs = envs;
+            } catch (e) {}
           }
         }
         // randomize the PRNG with the system mac (as well as timestamp)
