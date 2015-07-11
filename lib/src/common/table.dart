@@ -52,6 +52,19 @@ class TableColumn {
 class Table {
   List<TableColumn> columns;
   List<List> rows;
+  Map meta;
 
-  Table(this.columns, this.rows);
+  Table(this.columns, this.rows, {this.meta});
+}
+
+class TableColumns {
+  final List<TableColumn> columns;
+
+  TableColumns(this.columns);
+}
+
+class TableMetadata {
+  final Map meta;
+
+  TableMetadata(this.meta);
 }

@@ -265,7 +265,7 @@ class SimpleNode extends LocalNodeImpl {
         error.detail = stack.toString();
       } catch (e) {}
       response.close(error);
-      return error;
+      return response;
     }
 
     var rtype = "values";
@@ -293,7 +293,7 @@ class SimpleNode extends LocalNodeImpl {
           columns: rslt.columns, streamStatus: StreamStatus.closed);
     } else if (rslt is AsyncTableResult) {
       (rslt as AsyncTableResult).write(response);
-      response.onClose = (var response){
+      response.onClose = (var response) {
         if ((rslt as AsyncTableResult).onClose != null){
           (rslt as AsyncTableResult).onClose(response);
         }
@@ -305,54 +305,73 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is Stream) {
       var r = new AsyncTableResult();
       Stream stream = rslt;
-      if (rtype == "stream") {
-        stream.listen((v) {
-          if (v is Iterable) {
-            r.update(v.toList());
-          } else if (v is Map) {
-            r.update([v]);
-          } else {
-            throw new Exception("Unknown Value from Stream");
+      stream.listen((v) {
+        if (v is Iterable) {
+          r.update(v.toList());
+        } else if (v is Map) {
+          var meta;
+          if (v.containsKey("__META__")) {
+            meta = v["__META__"];
           }
-        }, onDone: () {
-          r.close();
-        }, onError: (e, stack) {
-          var error = new DSError("invokeException", msg: e.toString());
-          try {
-            error.detail = stack.toString();
-          } catch (e) {}
-          response.close(error);
-        }, cancelOnError: true);
-        r.write(response);
-        return response;
-      } else {
-        var list = [];
-        stream.listen((v) {
-          if (v is Iterable) {
-            list.addAll(v);
-          } else if (v is Map) {
-            list.add(v);
-          } else {
-            throw new Exception("Unknown Value from Stream");
-          }
-        }, onDone: () {
-          r.update(list);
-          r.close();
-        }, onError: (e, stack) {
-          var error = new DSError("invokeException", msg: e.toString());
-          try {
-            error.detail = stack.toString();
-          } catch (e) {}
-          response.close(error);
-        }, cancelOnError: true);
-      }
+          r.update([v], null, meta);
+        } else {
+          throw new Exception("Unknown Value from Stream");
+        }
+      }, onDone: () {
+        r.close();
+      }, onError: (e, stack) {
+        var error = new DSError("invokeException", msg: e.toString());
+        try {
+          error.detail = stack.toString();
+        } catch (e) {}
+        response.close(error);
+      }, cancelOnError: true);
       r.write(response);
       return response;
     } else if (rslt is Future) {
       var r = new AsyncTableResult();
       rslt.then((value) {
-        r.update(value is Iterable ? value.toList() : [value]);
-        r.close();
+        if (value is Stream) {
+          Stream stream = value;
+          stream.listen((v) {
+            if (v is TableMetadata) {
+              r.meta = v.meta;
+              return;
+            } else if (v is TableColumns) {
+              r.columns = v.columns.map((x) => x.getData()).toList();
+              return;
+            }
+
+            if (v is Iterable) {
+              r.update(v.toList());
+            } else if (v is Map) {
+              var meta;
+              if (v.containsKey("__META__")) {
+                meta = v["__META__"];
+              }
+              r.update([v], null, meta);
+            } else {
+              throw new Exception("Unknown Value from Stream");
+            }
+          }, onDone: () {
+            r.close();
+          }, onError: (e, stack) {
+            var error = new DSError("invokeException", msg: e.toString());
+            try {
+              error.detail = stack.toString();
+            } catch (e) {
+            }
+            response.close(error);
+          }, cancelOnError: true);
+        } else if (value is Table) {
+          Table table = value;
+          r.columns = table.columns.map((x) => x.getData()).toList();
+          r.update(table.rows, StreamStatus.closed, table.meta);
+          r.close();
+        } else {
+          r.update(value is Iterable ? value.toList() : [value]);
+          r.close();
+        }
       }).catchError((e, stack) {
         var error = new DSError("invokeException", msg: e.toString());
         try {
