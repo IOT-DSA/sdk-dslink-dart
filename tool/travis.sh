@@ -3,3 +3,4 @@ set -e
 
 ./tool/analyze.sh
 ./tool/test.sh
+./tool/docs.sh --upload
