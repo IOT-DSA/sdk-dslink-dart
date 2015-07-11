@@ -447,6 +447,7 @@ class SimpleNode extends LocalNodeImpl {
     return resp;
   }
 
+  operator [](String name) => get(name);
 
   operator []=(String name, value) {
     if (name.startsWith(r"$") || name.startsWith(r"@")) {
