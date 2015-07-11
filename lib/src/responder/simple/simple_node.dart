@@ -305,27 +305,68 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is Stream) {
       var r = new AsyncTableResult();
       Stream stream = rslt;
-      stream.listen((v) {
-        if (v is Iterable) {
-          r.update(v.toList());
-        } else if (v is Map) {
-          var meta;
-          if (v.containsKey("__META__")) {
-            meta = v["__META__"];
+
+      if (rtype == "stream") {
+        stream.listen((v) {
+          if (v is TableMetadata) {
+            r.meta = v.meta;
+            return;
+          } else if (v is TableColumns) {
+            r.columns = v.columns.map((x) => x.getData()).toList();
+            return;
           }
-          r.update([v], null, meta);
-        } else {
-          throw new Exception("Unknown Value from Stream");
-        }
-      }, onDone: () {
-        r.close();
-      }, onError: (e, stack) {
-        var error = new DSError("invokeException", msg: e.toString());
-        try {
-          error.detail = stack.toString();
-        } catch (e) {}
-        response.close(error);
-      }, cancelOnError: true);
+
+          if (v is Iterable) {
+            r.update(v.toList());
+          } else if (v is Map) {
+            var meta;
+            if (v.containsKey("__META__")) {
+              meta = v["__META__"];
+            }
+            r.update([v], null, meta);
+          } else {
+            throw new Exception("Unknown Value from Stream");
+          }
+        }, onDone: () {
+          r.close();
+        }, onError: (e, stack) {
+          var error = new DSError("invokeException", msg: e.toString());
+          try {
+            error.detail = stack.toString();
+          } catch (e) {}
+          response.close(error);
+        }, cancelOnError: true);
+        r.write(response);
+        return response;
+      } else {
+        var list = [];
+        stream.listen((v) {
+          if (v is TableMetadata) {
+            r.meta = v.meta;
+            return;
+          } else if (v is TableColumns) {
+            r.columns = v.columns.map((x) => x.getData()).toList();
+            return;
+          }
+
+          if (v is Iterable) {
+            list.addAll(v);
+          } else if (v is Map) {
+            list.add(v);
+          } else {
+            throw new Exception("Unknown Value from Stream");
+          }
+        }, onDone: () {
+          r.update(list);
+          r.close();
+        }, onError: (e, stack) {
+          var error = new DSError("invokeException", msg: e.toString());
+          try {
+            error.detail = stack.toString();
+          } catch (e) {}
+          response.close(error);
+        }, cancelOnError: true);
+      }
       r.write(response);
       return response;
     } else if (rslt is Future) {
