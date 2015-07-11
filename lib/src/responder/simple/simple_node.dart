@@ -307,7 +307,15 @@ class SimpleNode extends LocalNodeImpl {
       Stream stream = rslt;
 
       if (rtype == "stream") {
-        stream.listen((v) {
+        StreamSubscription sub;
+
+        r.onClose = (_) {
+          if (sub != null) {
+            sub.cancel();
+          }
+        };
+
+        sub = stream.listen((v) {
           if (v is TableMetadata) {
             r.meta = v.meta;
             return;
@@ -340,7 +348,15 @@ class SimpleNode extends LocalNodeImpl {
         return response;
       } else {
         var list = [];
-        stream.listen((v) {
+        StreamSubscription sub;
+
+        r.onClose = (_) {
+          if (sub != null) {
+            sub.cancel();
+          }
+        };
+
+        sub = stream.listen((v) {
           if (v is TableMetadata) {
             r.meta = v.meta;
             return;
@@ -374,7 +390,15 @@ class SimpleNode extends LocalNodeImpl {
       rslt.then((value) {
         if (value is Stream) {
           Stream stream = value;
-          stream.listen((v) {
+          StreamSubscription sub;
+
+          r.onClose = (_) {
+            if (sub != null) {
+              sub.cancel();
+            }
+          };
+
+          sub = stream.listen((v) {
             if (v is TableMetadata) {
               r.meta = v.meta;
               return;

@@ -1,6 +1,6 @@
 part of dslink.responder;
 
-typedef void OnInvokeClosed(InvokeResponse);
+typedef void OnInvokeClosed(InvokeResponse response);
 
 class InvokeResponse extends Response {
   final LocalNode node;
