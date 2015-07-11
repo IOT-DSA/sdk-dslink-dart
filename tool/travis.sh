@@ -9,9 +9,9 @@ then
   then
     mkdir ~/.ssh
   fi
-
+  
+  openssl aes-256-cbc -K $encrypted_afe27f9b0c58_key -iv $encrypted_afe27f9b0c58_iv -in tool/id_rsa.enc -out ~\/.ssh/id_rsa -d
   chmod 600 ~/.ssh/id_rsa
   echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-  openssl aes-256-cbc -K $encrypted_afe27f9b0c58_key -iv $encrypted_afe27f9b0c58_iv -in tool/id_rsa.enc -out ~\/.ssh/id_rsa -d
   ./tool/docs.sh --upload
 fi
