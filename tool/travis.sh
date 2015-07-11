@@ -3,4 +3,7 @@ set -e
 
 ./tool/analyze.sh
 ./tool/test.sh
-./tool/docs.sh --upload
+if [ "${TRAVIS_DART_VERSION}" == "stable" ]
+then
+  ./tool/docs.sh --upload
+fi
