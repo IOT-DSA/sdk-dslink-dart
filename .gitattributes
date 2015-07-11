@@ -1,1 +1,5 @@
-*.dart text eol=lf
+*.dart text
+*.sh text
+*.md text
+*.json text
+*.html text
