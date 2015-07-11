@@ -17,6 +17,10 @@ FILES=(
     lib/socket_server.dart
     lib/utils.dart
     lib/worker.dart
+    lib/io.dart
 )
 
-dartanalyzer ${FILES[@]}
+for FILE in ${FILES[@]}
+do
+  dartanalyzer ${FILE}
+done
