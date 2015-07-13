@@ -80,7 +80,7 @@ class ListResponse extends Response {
         updateChildren.add([name, value.getSimpleMap()]);
       });
       if (updateIs == null) {
-        updateIs = 'node';
+        updateIs = [r'$is', 'node'];
       }
     } else {
       for (String change in changes) {
