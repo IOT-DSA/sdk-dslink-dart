@@ -14,28 +14,38 @@ class RequesterInvokeUpdate extends RequesterUpdate {
 
   List<List> _rows;
   List<List> get rows {
+    int colLen = -1;
+    if (columns != null) {
+      colLen = columns.length;
+    }
     if (_rows == null) {
       _rows = [];
       for (Object obj in updates) {
         List row;
         if (obj is List) {
-          if (obj.length < columns.length) {
+          if (obj.length < colLen) {
             row = obj.toList();
-            for (int i = obj.length; i < columns.length; ++i) {
+            for (int i = obj.length; i < colLen; ++i) {
               row.add(columns[i].defaultValue);
             }
-          } else if (obj.length > columns.length) {
-            row = obj.sublist(0, columns.length);
+          } else if (obj.length > colLen) {
+            if (colLen == -1) { // when column is unknown, just return all values
+              row = obj.toList();
+            } else {
+              row = obj.sublist(0, colLen);
+            }
           } else {
             row = obj;
           }
         } else if (obj is Map) {
           row = [];
-          for (TableColumn column in columns) {
-            if (obj.containsKey(column.name)) {
-              row.add(obj[column.name]);
-            } else {
-              row.add(column.defaultValue);
+          if (columns != null) {
+            for (TableColumn column in columns) {
+              if (obj.containsKey(column.name)) {
+                row.add(obj[column.name]);
+              } else {
+                row.add(column.defaultValue);
+              }
             }
           }
         }
@@ -103,9 +113,9 @@ class InvokeController implements RequestUpdater {
       _cachedColumns = TableColumn.parseColumns(columns);
     }
 
-    if (_cachedColumns == null) {
-      _cachedColumns = [];
-    }
+//    if (_cachedColumns == null) {
+//      _cachedColumns = [];
+//    }
     if (error != null) {
       streamStatus = StreamStatus.closed;
       _controller.add(
