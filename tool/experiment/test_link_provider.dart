@@ -42,7 +42,7 @@ class AddNodeAction extends SimpleNode {
     tableRslt.onClose = stopTimer;
     timer = new Timer.periodic(new Duration(seconds:1),(Timer t){
       tableRslt.columns=[{'name':'a'}];
-      tableRslt.update([[1],[2]]);
+      tableRslt.update([[1],[2]], null, {'a':'abc'});
       //tableRslt.close();
       });
     return tableRslt;//new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
@@ -83,6 +83,9 @@ class RngNode extends SimpleNode {
 main(List<String> args) {
 
   Map defaultNodes = {
+    'defs':{
+      'a':{}
+    },
     'add': {
       r'$is': 'addNodeAction',
       r'$params':{"name":{"type":"string","placeholder":'ccc',"description":"abcd","default":123}, "source":{"type":"string",'editor':"password"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"bool[disable,enable]"}, "copyToPath":{"type":"enum[a,b,c]"}},
@@ -106,7 +109,7 @@ main(List<String> args) {
     }
   };
 
-  link = new LinkProvider(args, 'quicklink-', defaultNodes:defaultNodes, profiles:profiles);
+  link = new LinkProvider(['-b','http://localhost:8080/conn','--log','finest'], 'quicklink-', defaultNodes:defaultNodes, profiles:profiles, home:'dgSuper');
   if (link.link == null) {
     // initialization failed
     return;

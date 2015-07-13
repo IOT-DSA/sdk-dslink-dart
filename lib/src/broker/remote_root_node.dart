@@ -1,7 +1,7 @@
 part of dslink.broker;
 
 // TODO, implement special configs and attribute merging
-class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl {
+class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implements BrokerNode {
   RemoteLinkRootNode(
       String path, String remotePath, RemoteLinkManager linkManager)
       : super(path, linkManager.broker, remotePath, linkManager);
@@ -50,8 +50,13 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl {
         configs[name] = value;
       } else if (name.startsWith('@')) {
         attributes[name] = value;
+      } else if (value is Map) {
+        pchildren[name] = new VirtualNodePermissioin() ..load(value);
       }
     });
+    if (m['?permissions'] is List) {
+      loadPermission(m['?permissions']);
+    }
   }
 
   Map serialize(bool withChildren) {
@@ -62,6 +67,13 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl {
     attributes.forEach((String name, Object val) {
       rslt[name] = val;
     });
+    pchildren.forEach((String name, VirtualNodePermissioin val) {
+      rslt[name] = val.serialize();
+    });
+    List permissionData = this.serializePermission();
+    if (permissionData != null) {
+      rslt['?permissions'] = permissionData;
+    }
     return rslt;
   }
 
@@ -73,6 +85,25 @@ class RemoteLinkRootNode extends RemoteLinkNode implements LocalNodeImpl {
     children.clear();
     configs.remove(r'$disconnectedTs');
   }
+
+  /// children list only for permissions
+  Map<String, VirtualNodePermissioin> pchildren = new Map<String, VirtualNodePermissioin>();
+  
+  @override
+  int getPermission (Iterator<String> paths, Responder responder, int permission) {
+    permission = super.getPermission(paths, responder, permission);
+    if (permission == Permission.CONFIG) {
+      return Permission.CONFIG;
+    }
+    if (paths.moveNext()) {
+      String name = paths.current;
+      if (pchildren[name] is BrokerNodePermission) {
+        return pchildren[name].getPermission(paths, responder, permission);
+      }
+    }
+    return permission;
+  }
+  
 }
 
 class RemoteLinkRootListController extends ListController {

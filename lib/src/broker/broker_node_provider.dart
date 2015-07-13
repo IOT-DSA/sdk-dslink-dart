@@ -9,21 +9,23 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// connPath to connection
   final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
-  IPermissionManager permissions;
+  BrokerPermissions permissions;
 
-  LocalNodeImpl connsNode;
-  LocalNodeImpl usersNode;
-  LocalNodeImpl defsNode;
-  LocalNodeImpl quarantineNode;
+  BrokerNode connsNode;
+  BrokerNode usersNode;
+  BrokerNode defsNode;
+  BrokerNode quarantineNode;
   Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'sys': {}};
 
   bool shouldSaveFiles = true;
   bool enabledQuarantine = false;
-  bool acceptAll = true;
-  BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAll:true}) {
+  bool enabledPermission = false;
+  bool acceptAllConns = true;
+  BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAllConns:true, List defaultPermission}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/', this);
+
     nodes['/'] = root;
     if (enabledQuarantine) {
       rootStructure['quarantine'] = {};
@@ -33,6 +35,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
+    
+    enabledPermission = defaultPermission != null;
+    if (enabledPermission) {
+      root.loadPermission(defaultPermission);//['dgSuper','config','default','write']
+      defsNode.loadPermission(['default','read']);
+      permissions.root = root;
+    }
     
     loadDef();
     registerInvokableProfile(userNodeFunctions);
@@ -50,6 +59,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   /// load a fixed profile map
   void loadDef() {
+    DefinitionNode profileNode = getNode('/defs/profile');
+    defsNode.children['profile'] = profileNode;
+    defaultProfileMap.forEach((String name, Map m) {
+      String path = '/defs/profile/$name';
+      DefinitionNode node = getNode(path);
+      node.load(m);
+      profileNode.children[name] = node;
+    });
     File connsFile = new File("defs.json");
     try {
       String data = connsFile.readAsStringSync();

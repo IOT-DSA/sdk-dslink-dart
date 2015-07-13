@@ -31,8 +31,9 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
       return responders[sessionId];
     } else {
       var responder = nodeProvider.createResponder(dsId);
-      responder.reqId = path.substring(7); // remove /conns/
-      //TODO set permission group
+      responder.reqId = dsId;
+      //TODO set permission group from user node
+      responder.updateGroups([]);
       responders[sessionId] = responder;
       return responder;
     }

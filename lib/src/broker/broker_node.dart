@@ -1,16 +1,48 @@
 part of dslink.broker;
 
 /// Wrapper node for brokers
-class BrokerNode extends LocalNodeImpl {
+class BrokerNode extends LocalNodeImpl with BrokerNodePermission{
   final BrokerNodeProvider provider;
   BrokerNode(String path, this.provider) : super(path);
+  
+  @override
+  void load(Map m) {
+    super.load(m);
+    if (m['?permissions'] is List) {
+      loadPermission(m['?permissions']);
+    }
+  }
+  
+  @override 
+  Map serialize(bool withChildren) {
+    Map rslt = super.serialize(withChildren);
+    List permissionData = this.serializePermission();
+    if (permissionData != null) {
+      rslt['?permissions'] = permissionData;
+    }
+    return rslt;
+  }
+  
+  @override
+  int getPermission (Iterator<String> paths, Responder responder, int permission) {
+    permission = super.getPermission(paths, responder, permission);
+    if (permission == Permission.CONFIG) {
+      return Permission.CONFIG;
+    }
+    if (paths.moveNext()) {
+      String name = paths.current;
+      if (children[name] is BrokerNodePermission) {
+        return (children[name] as BrokerNodePermission).getPermission(paths, responder, permission);
+      }
+    }
+    return permission;
+  }
 }
 
 /// Version node
-class BrokerVersionNode extends LocalNodeImpl {
+class BrokerVersionNode extends BrokerNode {
   static BrokerVersionNode instance;
-  final NodeProvider provider;
-  BrokerVersionNode(String path, this.provider, String version) : super(path) {
+  BrokerVersionNode(String path, BrokerNodeProvider provider, String version) : super(path, provider) {
     instance = this;
     configs[r"$type"] = "string";
     updateValue(version);
@@ -18,10 +50,9 @@ class BrokerVersionNode extends LocalNodeImpl {
 }
 
 /// Start Time node
-class StartTimeNode extends LocalNodeImpl {
+class StartTimeNode extends BrokerNode {
   static StartTimeNode instance;
-  final NodeProvider provider;
-  StartTimeNode(String path, this.provider) : super(path) {
+  StartTimeNode(String path, BrokerNodeProvider provider) : super(path, provider) {
     instance = this;
     configs[r"$type"] = "time";
     updateValue(ValueUpdate.getTs());
@@ -29,10 +60,9 @@ class StartTimeNode extends LocalNodeImpl {
 }
 
 /// Clear Conns node
-class ClearConnsAction extends LocalNodeImpl {
-  BrokerNodeProvider provider;
+class ClearConnsAction extends BrokerNode {
 
-  ClearConnsAction(String path, this.provider) : super(path) {
+  ClearConnsAction(String path, BrokerNodeProvider provider) : super(path, provider) {
     configs[r"$name"] = "Clear Conns";
     configs[r"$invokable"] = "read";
   }
@@ -46,9 +76,8 @@ class ClearConnsAction extends LocalNodeImpl {
   }
 }
 
-class RootNode extends LocalNodeImpl {
-  final BrokerNodeProvider provider;
-  RootNode(String path, this.provider) : super(path) {}
+class RootNode extends BrokerNode {
+  RootNode(String path, BrokerNodeProvider provider) : super(path, provider) {}
 
   bool _loaded = false;
 
