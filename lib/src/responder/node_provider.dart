@@ -87,21 +87,56 @@ abstract class LocalNode extends Node {
 
   Response setAttribute(
       String name, Object value, Responder responder, Response response) {
-    return response..close();
+    if (response != null) {
+      return response..close();
+    } else {
+      if (!name.startsWith("@")) {
+        name = "@${name}";
+      }
+
+      attributes[name] = value;
+      return null;
+    }
   }
 
   Response removeAttribute(
-      String name, Responder responder, Response response) {
-    return response..close();
+      String name, [Responder responder, Response response]) {
+    if (response != null) {
+      return response..close();
+    } else {
+      if (!name.startsWith("@")) {
+        name = "@${name}";
+      }
+
+      attributes.remove(name);
+      return null;
+    }
   }
 
   Response setConfig(
-      String name, Object value, Responder responder, Response response) {
-    return response..close();
+      String name, Object value, [Responder responder, Response response]) {
+    if (response != null) {
+      return response..close();
+    } else {
+      if (!name.startsWith(r"$")) {
+        name = "\$${name}";
+      }
+
+      configs[name] = value;
+      return null;
+    }
   }
 
-  Response removeConfig(String name, Responder responder, Response response) {
-    return response..close();
+  Response removeConfig(String name, [Responder responder, Response response]) {
+    if (response != null) {
+      return response..close();
+    } else {
+      if (!name.startsWith(r"$")) {
+        name = "\$${name}";
+      }
+      configs.remove(name);
+      return null;
+    }
   }
 
   /// set node value
