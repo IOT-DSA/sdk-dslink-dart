@@ -458,9 +458,12 @@ class SimpleNode extends LocalNodeImpl {
     return null;
   }
 
-  void onSetValue(Object val) {}
-  void onSetConfig(String name, String value){}
-  void onSetAttribute(String name, String value){}
+  /// return true when value is rejected
+  bool onSetValue(Object val) => false;
+  /// return true when value is rejected
+  bool onSetConfig(String name, String value) => false;
+  /// return true when value is rejected
+  bool onSetAttribute(String name, String value) => false;
 
   // called before a subscription request is returned
   void onSubscribe() {}
@@ -512,23 +515,26 @@ class SimpleNode extends LocalNodeImpl {
 
   Response setAttribute(
       String name, Object value, Responder responder, Response response) {
-    Response resp = super.setAttribute(name, value, responder, response);
-    onSetAttribute(name, value);
-    return resp;
+    if (onSetAttribute(name, value) != true)
+      // when callback returns true, value is rejected
+      Response resp = super.setAttribute(name, value, responder, response);
+    return response;
   }
 
   Response setConfig(
       String name, Object value, Responder responder, Response response) {
-    Response resp = super.setConfig(name, value, responder, response);
-    onSetConfig(name, value);
-    return resp;
+    if (onSetConfig(name, value) != true)
+      // when callback returns true, value is rejected
+      Response resp = super.setConfig(name, value, responder, response);
+    return response;
   }
 
   Response setValue(Object value, Responder responder, Response response,
       [int maxPermission = Permission.CONFIG]) {
-    Response resp = super.setValue(value, responder, response, maxPermission);
-    onSetValue(value);
-    return resp;
+    if (onSetValue(value) !=  true)
+      // when callback returns true, value is rejected
+      super.setValue(value, responder, response, maxPermission);
+    return response;
   }
 
   operator [](String name) => get(name);
