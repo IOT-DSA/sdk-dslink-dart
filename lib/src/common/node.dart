@@ -179,7 +179,10 @@ class Path {
   Path get parent => new Path(parentPath);
 
   /// Get a child of this path.
-  Path child(String name) => new Path(path + "/" + (name.startsWith("/") ? name.substring(1) : name));
+  Path child(String name) =>
+    new Path((path.endsWith("/") ? path.substring(0, path.length - 1) : path) +
+      "/" +
+      (name.startsWith("/") ? name.substring(1) : name));
 
   /// The name of this path.
   /// This is the last component of the path.

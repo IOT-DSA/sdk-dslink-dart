@@ -575,8 +575,9 @@ class SimpleNode extends LocalNodeImpl {
   /// Creates a child with the given [name].
   /// If [m] is specified, the node is loaded with that map.
   SimpleNode createChild(String name, [Map m]) {
-    provider.addNode("${path}/${name}", m == null ? {} : m);
-    return provider.getNode("${path}/${name}");
+    var tp = new Path(path).child(name).path;
+    print(tp);
+    return provider.addNode(tp, m == null ? {} : m);
   }
 
   /// Gets the name of this node.
