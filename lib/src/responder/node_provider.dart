@@ -1,8 +1,11 @@
 part of dslink.responder;
 
-/// a node that can be subscribed or listed by multiple responders
+/// Base Class for responder-side nodes.
 abstract class LocalNode extends Node {
   BroadcastStreamController<String> _listChangeController;
+
+  /// Changes to nodes will be added to this controller's stream.
+  /// See [updateList].
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
       _listChangeController = new BroadcastStreamController<String>(
@@ -11,32 +14,44 @@ abstract class LocalNode extends Node {
     return _listChangeController;
   }
 
+  /// List Stream.
+  /// See [listChangeController].
   Stream<String> get listStream => listChangeController.stream;
   StreamSubscription _listReqListener;
 
+  /// Callback for when listing this node has started.
   void onStartListListen() {}
 
+  /// Callback for when all lists are canceled.
   void onAllListCancel() {}
 
+  /// Node Provider
   NodeProvider get provider;
+
+  /// Node Path
   final String path;
 
   LocalNode(this.path);
 
+  /// Subscription Callbacks
   Map<Function, int> callbacks = new Map<Function, int>();
 
+  /// Subscribes the given [callback] to this node.
   RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]) {
     callbacks[callback] = cachelevel;
     return new RespSubscribeListener(this, callback);
   }
 
-  void unsubscribe(callback(ValueUpdate)) {
+  /// Unsubscribe the given [callback] from this node.
+  void unsubscribe(callback(ValueUpdate update)) {
     if (callbacks.containsKey(callback)) {
       callbacks.remove(callback);
     }
   }
 
   ValueUpdate _lastValueUpdate;
+
+  /// Gets the last value update of this node.
   ValueUpdate get lastValueUpdate {
     if (_lastValueUpdate == null) {
       _lastValueUpdate = new ValueUpdate(null);
@@ -44,6 +59,10 @@ abstract class LocalNode extends Node {
     return _lastValueUpdate;
   }
 
+  /// Gets the current value of this node.
+  dynamic get value => lastValueUpdate.value;
+
+  /// Updates this node's value to the specified [value].
   void updateValue(Object update, {bool force: false}) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
@@ -60,31 +79,42 @@ abstract class LocalNode extends Node {
     }
   }
 
+  /// Checks if this node exists.
   /// list and subscribe can be called on a node that doesn't exist
-  /// other api like set remove, invoke, can only be applied to existing node
+  /// Other things like set remove, and invoke can only be applied to an existing node.
   bool get exists => true;
 
   /// whether the node is ready for returning a list response
   bool get listReady => true;
+
+  /// Disconnected Timestamp
   String get disconnected => null;
+  /// Is the value ready?
   bool get valueReady => true;
 
+  /// Checks if this node has a subscriber.
+  /// Use this for things like polling when you
+  /// only want to do something if the node is subscribed to.
   bool get hasSubscriber => callbacks.isNotEmpty;
 
+  /// Gets the invoke permission for this node.
   int getInvokePermission() {
     return Permission.parse(getConfig(r'$invokable'));
   }
 
+  /// Gets the set permission for this node.
   int getSetPermission() {
     return Permission.parse(getConfig(r'$writable'));
   }
 
+  /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
       Map params, Responder responder, InvokeResponse response, Node parentNode,
       [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
+  /// Called by the link internals to set an attribute on this node.
   Response setAttribute(
       String name, Object value, Responder responder, Response response) {
     if (response != null) {
@@ -99,6 +129,7 @@ abstract class LocalNode extends Node {
     }
   }
 
+  /// Called by the link internals to remove an attribute from this node.
   Response removeAttribute(
       String name, Responder responder, Response response) {
     if (response != null) {
@@ -113,6 +144,7 @@ abstract class LocalNode extends Node {
     }
   }
 
+  /// Called by the link internals to set a config on this node.
   Response setConfig(
       String name, Object value, Responder responder, Response response) {
     if (response != null) {
@@ -127,6 +159,7 @@ abstract class LocalNode extends Node {
     }
   }
 
+  /// Called by the link internals to remove a config from this node.
   Response removeConfig(String name, Responder responder, Response response) {
     if (response != null) {
       return response..close();
@@ -139,16 +172,18 @@ abstract class LocalNode extends Node {
     }
   }
 
-  /// set node value
+  /// Called by the link internals to set a value of a node.
   Response setValue(Object value, Responder responder, Response response,
       [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
+  /// Shortcut to [get].
   operator [](String name) {
     return get(name);
   }
 
+  /// Set a config, attribute, or child on this node.
   operator []=(String name, Object value) {
     if (name.startsWith(r"$")) {
       configs[name] = value;
@@ -160,20 +195,23 @@ abstract class LocalNode extends Node {
   }
 }
 
-/// node provider for responder
-/// one NodeProvider can be reused by multiple responders.
+/// Provides Nodes for a responder.
+/// A single node provider can be reused by multiple responder.
 abstract class NodeProvider {
-  /// get an existing node or create a dummy node for requester to listen on
+  /// Gets an existing node, or creates a dummy node for a requester to listen on.
   LocalNode getNode(String path);
 
-  /// get an existing node or create a dummy node for requester to listen on
+  /// Gets an existing node, or creates a dummy node for a requester to listen on.
   LocalNode operator [](String path) {
     return getNode(path);
   }
 
+  /// Get the root node.
   LocalNode operator ~() => this["/"];
 
+  /// Create a Responder
   Responder createResponder(String dsId);
 
+  /// Get Permissions.
   IPermissionManager get permissions;
 }

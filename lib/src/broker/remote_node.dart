@@ -220,7 +220,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     };
     return response;
   }
-  
+
   Node getChild(String name) {
     return _linkManager.getNode('$path/$name');
   }

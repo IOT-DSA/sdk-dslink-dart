@@ -65,11 +65,11 @@ class PermissionList {
     }
   }
 
-  bool FORCE_CONFIG = true;
+  bool _FORCE_CONFIG = true;
 
   int getPermission(Responder responder) {
     // TODO Permission temp workaround before user permission is implemented
-    if (FORCE_CONFIG) {
+    if (_FORCE_CONFIG) {
       return Permission.CONFIG;
     }
     if (idMatchs.containsKey(responder.reqId)) {
