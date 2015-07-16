@@ -45,7 +45,8 @@ simpleLinksTests() {
         isResponder: isResponder,
         defaultNodes: nodes,
         profiles: profiles,
-        autoInitialize: false
+        autoInitialize: false,
+        loadNodesJson: false
     );
 
     _links.add(link);
