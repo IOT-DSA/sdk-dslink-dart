@@ -102,6 +102,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m.forEach((String name, Map m) {
         String path = '/users/$name';
         UserRootNode node = getNode(path);
+        if (enabledPermission) {
+          node.loadPermission([[name,'config'],['default','none']]);
+        }
         node.load(m);
         usersNode.children[name] = node;
         if (enabledQuarantine) {
@@ -165,6 +168,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkNode node = connsNode.children[name];
       RemoteLinkManager manager = node._linkManager;
       if (manager.disconnected != null) {
+        
+        String fullId = _connPath2id[manager.path];
+        _connPath2id.remove(manager.path);
+        _id2connPath.remove(fullId);
         connsNode.children.remove(name);
         manager.inTree = false;
         connsNode.updateList(name);
