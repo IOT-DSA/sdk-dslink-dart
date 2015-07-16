@@ -5,6 +5,7 @@ export "package:dslink/common.dart";
 export "package:dslink/requester.dart";
 export "package:dslink/responder.dart";
 export "package:dslink/client.dart";
+export "package:dslink/broker.dart" show BrokerDiscoveryClient, BrokerDiscoverRequest;
 export "package:dslink/utils.dart"
     show
         Scheduler,
