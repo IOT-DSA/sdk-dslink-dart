@@ -14,16 +14,27 @@ class SimpleTableResult {
   SimpleTableResult([this.rows, this.columns]);
 }
 
+/// An Asynchronous Table Result
+/// This can be used to return asynchronous tables from actions.
 class AsyncTableResult {
+  /// Invoke Response.
   InvokeResponse response;
+  /// Table Columns
   List columns;
+  /// Table Rows
   List rows;
+  /// Stream Status
   String status = StreamStatus.initialize;
+  /// Table Metadata
   Map meta;
+  /// Handler for when this is closed.
   OnInvokeClosed onClose;
 
   AsyncTableResult([this.columns]);
 
+  /// Updates table rows to [rows].
+  /// [stat] is the stream status.
+  /// [meta] is the action result metadata.
   void update(List rows, [String stat, Map meta]) {
     if (this.rows == null) {
       this.rows = rows;
@@ -37,6 +48,7 @@ class AsyncTableResult {
     write();
   }
 
+  /// Write this result to the result given by [resp].
   void write([InvokeResponse resp]) {
     if (resp != null) {
       if (response == null) {
@@ -53,6 +65,7 @@ class AsyncTableResult {
     }
   }
 
+  /// Closes this response.
   void close() {
     if (response != null) {
       response.close();
@@ -62,21 +75,32 @@ class AsyncTableResult {
   }
 }
 
+/// Interface for node providers that are serializable.
 abstract class SerializableNodeProvider {
+  /// Initialize the node provider.
   void init([Map m, Map profiles]);
+
+  /// Save the node provider to a map.
   Map save();
 }
 
+/// Interface for node providers that are mutable.
 abstract class MutableNodeProvider {
+  /// Updates the value of the node at [path] to the given [value].
   void updateValue(String path, Object value);
+  /// Adds a node at the given [path] that is initialized with the given data in [m].
   LocalNode addNode(String path, Map m);
+  /// Removes the node specified at [path].
   void removeNode(String path);
 }
 
 class SimpleNodeProvider extends NodeProviderImpl
     implements SerializableNodeProvider, MutableNodeProvider {
+  /// Global instance.
+  /// This is by default always the first instance of [SimpleNodeProvider].
   static SimpleNodeProvider instance;
 
+  /// All the nodes in this node provider.
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   @override
@@ -89,6 +113,9 @@ class SimpleNodeProvider extends NodeProviderImpl
     return node;
   }
 
+  /// Creates a [SimpleNodeProvider].
+  /// If [m] and optionally [profiles] is specified,
+  /// the provider is initialized with these values.
   SimpleNodeProvider([Map m, Map profiles]) {
     // by default, the first SimpleNodeProvider is the static instance
     if (instance == null) {
@@ -104,8 +131,13 @@ class SimpleNodeProvider extends NodeProviderImpl
     init(m, profiles);
   }
 
+  /// Root node
   SimpleNode root;
+
+  /// defs node
   SimpleHiddenNode defs;
+
+  /// sys node
   SimpleHiddenNode sys;
 
   @override
@@ -181,8 +213,10 @@ class SimpleNodeProvider extends NodeProviderImpl
     });
   }
 
+  /// Permissions
   IPermissionManager permissions = new DummyPermissionManager();
 
+  /// Creates a responder with the given [dsId].
   Responder createResponder(String dsId) {
     return new Responder(this, dsId);
   }
@@ -192,10 +226,12 @@ class SimpleNodeProvider extends NodeProviderImpl
 /// A flexible node implementation that should fit most use cases.
 class SimpleNode extends LocalNodeImpl {
   final SimpleNodeProvider provider;
-  SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path)
-    ,provider = nodeprovider == null? SimpleNodeProvider.instance:nodeprovider;
+  SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path),
+    provider = nodeprovider == null ? SimpleNodeProvider.instance : nodeprovider;
 
+  /// Marks a node as being removed.
   bool removed = false;
+
   /// Marks this node as being serializable.
   /// If true, this node can be serialized into a JSON file and then loaded back.
   /// If false, this node can't be serialized into a JSON file.
@@ -214,6 +250,7 @@ class SimpleNode extends LocalNodeImpl {
     } else {
       childPathPre = '$path/';
     }
+
     m.forEach((String key, value) {
       if (key.startsWith('?')) {
         if (key == '?value') {
@@ -258,6 +295,8 @@ class SimpleNode extends LocalNodeImpl {
     return rslt;
   }
 
+  /// Handles the invoke method from the internals of the responder.
+  /// Use [onInvoke] to handle when a node is invoked.
   InvokeResponse invoke(Map params, Responder responder,
       InvokeResponse response, LocalNode parentNode,
       [int maxPermission = Permission.CONFIG]) {
@@ -459,30 +498,49 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   /// This is called when this node is invoked.
+  /// You can return the following types from this method:
+  /// - [Iterable]
+  /// - [Map]
+  /// - [Table]
+  /// - [Stream]
+  /// - [SimpleTableResult]
+  /// - [AsyncTableResult]
+  ///
+  /// You can also return a future (like if the method is async) of the following types:
+  /// - [Stream]
+  /// - [Iterable]
+  /// - [Map]
+  /// - [Table]
   dynamic onInvoke(Map params) {
     return null;
   }
 
-  /// return true when value is rejected
+  /// Callback used to accept or reject a value when it is set.
+  /// Return true to reject the value, and false to accept it.
   bool onSetValue(Object val) => false;
-  /// return true when value is rejected
+
+  /// Callback used to accept or reject a value of a config when it is set.
+  /// Return true to reject the value, and false to accept it.
   bool onSetConfig(String name, String value) => false;
-  /// return true when value is rejected
+
+  /// Callback used to accept or reject a value of an attribute when it is set.
+  /// Return true to reject the value, and false to accept it.
   bool onSetAttribute(String name, String value) => false;
 
-  // called before a subscription request is returned
+  // Callback used to notify a node that it is being subscribed to.
   void onSubscribe() {}
 
-  /// after node is created
+  /// Callback used to notify a node that it was created.
+  /// This is called after a node is deserialized as well.
   void onCreated() {}
 
-  /// before node gets removed
+  /// Callback used to notify a node that it is about to be removed.
   void onRemoving() {}
 
-  /// after child node is removed
+  /// Callback used to notify a node that one of it's children has been removed.
   void onChildRemoved(String name, Node node) {}
 
-  /// after child node is created
+  /// Callback used to notify a node that a child has been added to it.
   void onChildAdded(String name, Node node) {}
 
   @override
@@ -491,20 +549,21 @@ class SimpleNode extends LocalNodeImpl {
     return super.subscribe(callback, cacheLevel);
   }
 
-  /// override default node creation logic for children
+  /// Callback to override how a child of this node is loaded.
+  /// If this method returns null, the default strategy is used.
   SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider) {
     return null;
   }
 
+  /// Creates a child with the given [name].
+  /// If [m] is specified, the node is loaded with that map.
   SimpleNode createChild(String name, [Map m]) {
-    var child = new SimpleNode("${path}/${name}", provider);
-    if (m != null) {
-      child.load(m);
-    }
-    addChild(name, child);
-    return child;
+    provider.addNode("${path}/${name}", m == null ? {} : m);
+    return provider.getNode("${path}/${name}");
   }
 
+  /// Gets the name of this node.
+  /// This is the last component of this node's path.
   String get name => new Path(path).name;
 
   /// Remove this node from it's parent.
@@ -529,11 +588,16 @@ class SimpleNode extends LocalNodeImpl {
     }
   }
 
+  /// Adds the given [node] as a child of this node with the given [name].
   void addChild(String name, Node node) {
     super.addChild(name, node);
     updateList(name);
   }
 
+  /// Removes a child from this node.
+  /// If [input] is a String, a child named with the specified [input] is removed.
+  /// If [input] is a Node, the child that owns that node is removed.
+  /// The name of the removed node is returned.
   String removeChild(dynamic input) {
     String name = super.removeChild(input);
     if (name != null) {
