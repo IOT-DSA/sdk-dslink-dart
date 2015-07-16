@@ -70,6 +70,7 @@ simpleLinksTests() {
 
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
+    await gap();
     var firstParentUpdate = await firstListUpdate(requester, "/conns/DataHost");
     expect(firstParentUpdate.node.children, hasLength(1));
     expect(firstParentUpdate.node.children.keys, contains("Message"));

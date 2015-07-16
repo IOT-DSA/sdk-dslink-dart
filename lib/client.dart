@@ -415,18 +415,22 @@ class LinkProvider {
       provider = new SimpleNodeProvider(null, profiles);
     }
 
-    if (loadNodesJson &&
-        provider is SerializableNodeProvider &&
+    if (provider is SerializableNodeProvider &&
         !_reconnecting) {
       _nodesFile = getConfig('nodes') == null
           ? new File("${_basePath}/nodes.json")
           : new File.fromUri(Uri.parse(getConfig('nodes')));
       Map loadedNodesData;
 
-      try {
-        String nodesStr = _nodesFile.readAsStringSync();
-        loadedNodesData = DsJson.decode(nodesStr);
-      } catch (err) {}
+      if (loadNodesJson) {
+        _nodesFile = getConfig('nodes') == null
+          ? new File("${_basePath}/nodes.json")
+          : new File.fromUri(Uri.parse(getConfig('nodes')));
+        try {
+          String nodesStr = _nodesFile.readAsStringSync();
+          loadedNodesData = DsJson.decode(nodesStr);
+        } catch (err) {}
+      }
 
       if (loadedNodesData != null) {
         (provider as SerializableNodeProvider).init(loadedNodesData);
