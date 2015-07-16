@@ -338,7 +338,7 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is AsyncTableResult) {
       (rslt as AsyncTableResult).write(response);
       response.onClose = (var response) {
-        if ((rslt as AsyncTableResult).onClose != null){
+        if ((rslt as AsyncTableResult).onClose != null) {
           (rslt as AsyncTableResult).onClose(response);
         }
       };
@@ -348,6 +348,13 @@ class SimpleNode extends LocalNodeImpl {
           columns: rslt.columns, streamStatus: StreamStatus.closed);
     } else if (rslt is Stream) {
       var r = new AsyncTableResult();
+
+      response.onClose = (var response) {
+        if (r.onClose != null) {
+          r.onClose(response);
+        }
+      };
+
       Stream stream = rslt;
 
       if (rtype == "stream") {
@@ -431,6 +438,13 @@ class SimpleNode extends LocalNodeImpl {
       return response;
     } else if (rslt is Future) {
       var r = new AsyncTableResult();
+
+      response.onClose = (var response) {
+        if (r.onClose != null) {
+          r.onClose(response);
+        }
+      };
+
       rslt.then((value) {
         if (value is Stream) {
           Stream stream = value;
