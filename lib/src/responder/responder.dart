@@ -120,7 +120,7 @@ class Responder extends ConnectionHandler {
 
   void list(Map m) {
     Path path = Path.getValidNodePath(m['path']);
-    if (path != null && path.absolute) {
+    if (path != null && path.isAbsolute) {
       int rid = m['rid'];
       var node = nodeProvider.getNode(path.path);
       addResponse(new ListResponse(this, rid, node));
@@ -152,7 +152,7 @@ class Responder extends ConnectionHandler {
           }
         }
         Path path = Path.getValidNodePath(pathstr);
-        if (path != null && path.absolute) {
+        if (path != null && path.isAbsolute) {
           _subscription.add(
               path.path, nodeProvider.getNode(path.path), sid, cacheLevel);
         }
@@ -179,7 +179,7 @@ class Responder extends ConnectionHandler {
 
   void invoke(Map m) {
     Path path = Path.getValidNodePath(m['path']);
-    if (path != null && path.absolute) {
+    if (path != null && path.isAbsolute) {
       int rid = m['rid'];
       LocalNode parentNode = nodeProvider.getNode(path.parentPath);
       LocalNode node = parentNode.getChild(path.name);
@@ -205,7 +205,7 @@ class Responder extends ConnectionHandler {
 
   void set(Map m) {
     Path path = Path.getValidPath(m['path']);
-    if (path == null || !path.absolute) {
+    if (path == null || !path.isAbsolute) {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }
@@ -253,7 +253,7 @@ class Responder extends ConnectionHandler {
 
   void remove(Map m) {
     Path path = Path.getValidPath(m['path']);
-    if (path == null || path.absolute) {
+    if (path == null || path.isAbsolute) {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }

@@ -18,12 +18,6 @@ part 'src/common/connection_handler.dart';
 part 'src/common/stream_conn.dart';
 part 'src/common/permission.dart';
 part 'src/common/default_defs.dart';
-//final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
-final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));
-
-List foldList(List a, List b) {
-  return a..addAll(b);
-}
 
 abstract class Connection {
   ConnectionChannel get requesterChannel;
@@ -69,9 +63,9 @@ abstract class ConnectionChannel {
   Future<ConnectionChannel> get onConnected;
 }
 
+/// Base Class for Links
 abstract class Link {
   Requester get requester;
-
   Responder get responder;
 
   ECDH get nonce;
@@ -80,16 +74,18 @@ abstract class Link {
   Future<Requester> get onRequesterReady;
 }
 
+/// Base Class for Server Link implementations.
 abstract class ServerLink extends Link {
   String get dsId;
 
   String get session;
 
   PublicKey get publicKey;
-  
+
   void close();
 }
 
+/// Base Class for Client Link implementations.
 abstract class ClientLink extends Link {
   PrivateKey get privateKey;
 
@@ -113,9 +109,13 @@ abstract class ServerLinkManager {
       [String sessionId = '']);
 }
 
+/// DSA Stream Status
 class StreamStatus {
+  /// Stream should be initialized.
   static const String initialize = 'initialize';
+  /// Stream is open.
   static const String open = 'open';
+  /// Stream is closed.
   static const String closed = 'closed';
 }
 
