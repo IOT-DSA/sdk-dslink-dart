@@ -100,7 +100,7 @@ abstract class LocalNode extends Node {
   }
 
   Response removeAttribute(
-      String name, [Responder responder, Response response]) {
+      String name, Responder responder, Response response) {
     if (response != null) {
       return response..close();
     } else {
@@ -114,7 +114,7 @@ abstract class LocalNode extends Node {
   }
 
   Response setConfig(
-      String name, Object value, [Responder responder, Response response]) {
+      String name, Object value, Responder responder, Response response) {
     if (response != null) {
       return response..close();
     } else {
@@ -127,7 +127,7 @@ abstract class LocalNode extends Node {
     }
   }
 
-  Response removeConfig(String name, [Responder responder, Response response]) {
+  Response removeConfig(String name, Responder responder, Response response) {
     if (response != null) {
       return response..close();
     } else {

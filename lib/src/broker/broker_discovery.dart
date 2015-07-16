@@ -27,8 +27,16 @@ class BrokerDiscoveryClient {
     _socket.writeEventsEnabled = true;
 
     var interfaces = await NetworkInterface.list();
-    for (var interface in interfaces) {
-      _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface);
+    try {
+      for (var interface in interfaces) {
+        try {
+          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface);
+        } catch (e) {
+          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
+        }
+      }
+    } catch (e) {
+      _socket.joinMulticast(new InternetAddress("239.255.255.230"));
     }
   }
 

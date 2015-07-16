@@ -161,43 +161,6 @@ class HttpServerLink implements ServerLink {
 //    (connection as HttpServerConnection).handleInput(request);
 //  }
 
-  void handleStreamUpdate(StreamConnectionAdapter adapter, bool trusted) {
-    adapter.auth().then((auth) async {
-      if (!trusted && !verifySalt(0, auth)) {
-        adapter.close(1011);
-        return;
-      }
-
-      var salts = await adapter.salts();
-
-      StreamConnection sconnection = createStreamConnection(adapter);
-      sconnection.addServerCommand("salt", salts[0]);
-      sconnection.onRequesterReady.then((channel) {
-        if (connection != null) {
-          connection.close();
-        }
-
-        connection = sconnection;
-
-        if (responder != null && isResponder) {
-          responder.connection = connection.responderChannel;
-        }
-
-        if (requester != null && isRequester) {
-          requester.connection = connection.requesterChannel;
-          if (!onRequesterReadyCompleter.isCompleted) {
-            onRequesterReadyCompleter.complete(requester);
-          }
-        }
-      });
-
-//      if (connection is! HttpServerConnection) {
-//        sconnection.onRequestReadyCompleter
-//            .complete(sconnection.requesterChannel);
-//      }
-    });
-  }
-
   ServerWebSocket wsconnection;
   void handleWsUpdate(HttpRequest request, bool trusted) {
     if (!trusted && !verifySalt(0, request.uri.queryParameters['auth'])) {
@@ -210,7 +173,7 @@ class HttpServerLink implements ServerLink {
     updateResponseBeforeWrite(request, null, null, true);
 
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
-      
+
       wsconnection = createWsConnection(websocket);
       wsconnection.addServerCommand('salt', salts[0]);
 
@@ -250,7 +213,7 @@ class HttpServerLink implements ServerLink {
       return request.response.close();
     });
   }
-  
+
   void close() {
     if (wsconnection != null) {
       wsconnection.close();
@@ -259,9 +222,5 @@ class HttpServerLink implements ServerLink {
 
   ServerWebSocket createWsConnection(WebSocket websocket) {
     return new ServerWebSocket(websocket, enableTimeout: enableTimeout);
-  }
-
-  StreamConnection createStreamConnection(StreamConnectionAdapter adapter) {
-    return new StreamConnection(adapter, enableTimeout: enableTimeout);
   }
 }
