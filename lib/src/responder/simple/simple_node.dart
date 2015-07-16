@@ -604,7 +604,7 @@ class SimpleNode extends LocalNodeImpl {
   String get type => configs[r"$type"];
 
   /// Sets the value type of this node.
-  /// This is the $type config. If this is set to null, then the display name is removed.
+  /// This is the $type config. If this is set to null, then the value type is removed.
   set type(String value) {
     if (value == null) {
       configs.remove(r"$type");
@@ -614,6 +614,28 @@ class SimpleNode extends LocalNodeImpl {
 
     updateList(r"$type");
   }
+
+  /// Gets the current value of the $writable config.
+  /// If it does not exist, then null is returned.
+  String get writable => configs[r"$writable"];
+
+  /// Sets the value of the writable config.
+  /// If this is set to null, then the writable config is removed.
+  set writable(value) {
+    if (value == null) {
+      configs.remove(r"$writable");
+    } else {
+      configs[r"$writable"] = value is bool ? "write" : value;
+    }
+
+    updateList(r"$writable");
+  }
+
+  /// Checks if this node has the specified config.
+  bool hasConfig(String name) => configs.containsKey(name.startsWith(r"$") ? name : '\$' + name);
+
+  /// Checks if this node has the specified attribute.
+  bool hasAttribute(String name) => attributes.containsKey(name.startsWith("@") ? name : '@' + name);
 
   /// Remove this node from it's parent.
   void remove() {
