@@ -26,7 +26,10 @@ class BrokerDiscoveryClient {
 
     _socket.writeEventsEnabled = true;
 
-    _socket.joinMulticast(new InternetAddress("239.255.255.230"));
+    var interfaces = await NetworkInterface.list();
+    for (var interface in interfaces) {
+      _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface);
+    }
   }
 
   Stream<String> discover({Duration timeout: const Duration(seconds: 5)}) {
