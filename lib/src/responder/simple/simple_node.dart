@@ -583,6 +583,22 @@ class SimpleNode extends LocalNodeImpl {
   /// This is the last component of this node's path.
   String get name => new Path(path).name;
 
+  /// Gets the current display name of this node.
+  /// This is the $name config. If it does not exist, then null is returned.
+  String get displayName => configs[r"$name"];
+
+  /// Sets the display name of this node.
+  /// This is the $name config. If this is set to null, then the display name is removed.
+  set displayName(String value) {
+    if (value == null) {
+      configs.remove(r"$name");
+    } else {
+      configs[r"$name"] = value;
+    }
+
+    updateList(r"$name");
+  }
+
   /// Remove this node from it's parent.
   void remove() {
     provider.removeNode(path);
