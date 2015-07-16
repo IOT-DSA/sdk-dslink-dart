@@ -15,7 +15,6 @@ part 'src/common/table.dart';
 part 'src/common/value.dart';
 part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
-part 'src/common/stream_conn.dart';
 part 'src/common/permission.dart';
 part 'src/common/default_defs.dart';
 
@@ -194,8 +193,10 @@ class DSError {
       new DSError('disconnected', phase: ErrorPhase.request);
 }
 
+/// Marks something as being unspecified.
 const Unspecified unspecified = const Unspecified();
 
+/// Unspecified means that something has never been set.
 class Unspecified {
   const Unspecified();
 }
