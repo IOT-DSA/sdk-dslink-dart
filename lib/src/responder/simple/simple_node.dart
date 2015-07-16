@@ -163,7 +163,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   @override
-  LocalNode addNode(String path, Map m) {
+  SimpleNode addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return null;
 
     Path p = new Path(path);
