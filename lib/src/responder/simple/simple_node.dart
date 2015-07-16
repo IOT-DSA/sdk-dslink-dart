@@ -529,6 +529,9 @@ class SimpleNode extends LocalNodeImpl {
     return null;
   }
 
+  /// Gets the parent node of this node.
+  SimpleNode get parent => provider.getNode(new Path(path).parentPath);
+
   /// Callback used to accept or reject a value when it is set.
   /// Return true to reject the value, and false to accept it.
   bool onSetValue(Object val) => false;

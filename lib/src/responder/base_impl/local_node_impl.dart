@@ -5,8 +5,6 @@ abstract class NodeProviderImpl extends NodeProvider {
 }
 
 abstract class LocalNodeImpl extends LocalNode {
-  LocalNode parentNode;
-
   LocalNodeImpl(String path) : super(path);
   Map serialize(bool withChildren) {
     var rslt = {};
