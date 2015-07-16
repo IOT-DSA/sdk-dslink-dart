@@ -599,6 +599,22 @@ class SimpleNode extends LocalNodeImpl {
     updateList(r"$name");
   }
 
+  /// Gets the current value type of this node.
+  /// This is the $type config. If it does not exist, then null is returned.
+  String get type => configs[r"$type"];
+
+  /// Sets the value type of this node.
+  /// This is the $type config. If this is set to null, then the display name is removed.
+  set type(String value) {
+    if (value == null) {
+      configs.remove(r"$type");
+    } else {
+      configs[r"$type"] = value;
+    }
+
+    updateList(r"$type");
+  }
+
   /// Remove this node from it's parent.
   void remove() {
     provider.removeNode(path);
