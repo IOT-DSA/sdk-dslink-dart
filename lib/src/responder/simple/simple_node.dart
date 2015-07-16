@@ -2,8 +2,13 @@ part of dslink.responder;
 
 typedef SimpleNode _NodeFactory(String path);
 
+/// A simple table result.
+/// This is used to return simple tables from an action.
 class SimpleTableResult {
+  /// Table Columns
   List columns;
+
+  /// Table Rows
   List rows;
 
   SimpleTableResult([this.rows, this.columns]);
@@ -85,7 +90,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   SimpleNodeProvider([Map m, Map profiles]) {
-    // by defaut, the first SimpleNodeProvider is the static instance
+    // by default, the first SimpleNodeProvider is the static instance
     if (instance == null) {
        instance = this;
     }
@@ -498,6 +503,30 @@ class SimpleNode extends LocalNodeImpl {
     }
     addChild(name, child);
     return child;
+  }
+
+  String get name => new Path(path).name;
+
+  /// Remove this node from it's parent.
+  void remove() {
+    provider.removeNode(path);
+  }
+
+  /// Add this node to the given node.
+  /// If [input] is a String, it is interpreted as a node path and resolved to a node.
+  /// If [input] is a [SimpleNode], it will be attached to that.
+  void attach(input, {String name}) {
+    if (name == null) {
+      name = this.name;
+    }
+
+    if (input is String) {
+      provider.getNode(input).addChild(name, this);
+    } else if (input is SimpleNode) {
+      input.addChild(name, this);
+    } else {
+      throw "Invalid Input";
+    }
   }
 
   void addChild(String name, Node node) {
