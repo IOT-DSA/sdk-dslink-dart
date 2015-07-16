@@ -12,6 +12,7 @@ import 'common.dart';
 import 'requester.dart';
 import 'responder.dart';
 import 'utils.dart';
+import 'io.dart';
 import 'src/crypto/pk.dart';
 import 'src/http/websocket_conn.dart';
 

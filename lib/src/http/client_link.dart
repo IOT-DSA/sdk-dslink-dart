@@ -62,6 +62,11 @@ class HttpClientLink implements ClientLink {
     DsTimer.timerCancel(initWebsocket);
 
     HttpClient client = new HttpClient();
+
+    client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+      return true;
+    };
+
     String connUrl = '$_conn?dsId=$dsId';
     if (home != null) {
       connUrl = '$connUrl&home=$home';
@@ -95,7 +100,7 @@ class HttpClientLink implements ClientLink {
       } else {
         _nonce = await privateKey.getSecret(tempKey);
       }
-      
+
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
@@ -130,8 +135,7 @@ class HttpClientLink implements ClientLink {
 //      initHttp();
 //    }
     try {
-      var socket = await WebSocket
-          .connect('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      var socket = await HttpHelper.connectToWebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
       _wsConnection = new WebSocketConnection(socket,
           clientLink: this, enableTimeout: true);
 
@@ -163,7 +167,7 @@ class HttpClientLink implements ClientLink {
       } else if (reconnect) {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;
-      } 
+      }
 //      else {
 //        initHttp();
 //        _wsDelay = 5;
