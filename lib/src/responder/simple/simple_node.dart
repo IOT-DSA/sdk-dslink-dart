@@ -236,6 +236,11 @@ class SimpleNodeProvider extends NodeProviderImpl
   void removeNode(String path) {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);
+
+    if (node == null) {
+      return;
+    }
+
     node.onRemoving();
     node.removed = true;
     Path p = new Path(path);
