@@ -203,7 +203,15 @@ abstract class LocalNode extends Node {
 /// Provides Nodes for a responder.
 /// A single node provider can be reused by multiple responder.
 abstract class NodeProvider {
-  /// Gets an existing node, or creates a dummy node for a requester to listen on.
+  LocalNode getNodeForResponder(String path) {
+    var node = getNode(path);
+    if (node == null) {
+      node = new SimpleNode(path, this);
+    }
+    return node;
+  }
+
+  /// Gets an existing node.
   LocalNode getNode(String path);
 
   /// Gets an existing node, or creates a dummy node for a requester to listen on.
