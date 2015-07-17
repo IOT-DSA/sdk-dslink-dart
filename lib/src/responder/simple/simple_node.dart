@@ -162,6 +162,21 @@ class SimpleNodeProvider extends NodeProviderImpl
     node.updateValue(value);
   }
 
+
+  /// Sets the given [node] to the given [path].
+  void setNode(String path, SimpleNode node) {
+    if (path == '/' || !path.startsWith('/')) return null;
+    Path p = new Path(path);
+    SimpleNode pnode = getNode(p.parentPath);
+
+    nodes[path] = node;
+
+    node.onCreated();
+    pnode.children[p.name] = node;
+    pnode.onChildAdded(p.name, node);
+    pnode.updateList(p.name);
+  }
+
   @override
   SimpleNode addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return null;
