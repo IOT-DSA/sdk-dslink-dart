@@ -60,7 +60,7 @@ class HttpHelper {
   /// Custom WebSocket Connection logic.
   static Future<WebSocket> connectToWebSocket(
       String url, {Iterable<String> protocols, Map<String, dynamic> headers, HttpClient httpClient}) async {
-    if (const bool.fromEnvironment("dslink.sdk.js", defaultValue: false)) {
+    if (const bool.fromEnvironment("calzone.build", defaultValue: false)) {
       return await WebSocket.connect(url, protocols: protocols, headers: headers);
     }
 
