@@ -166,7 +166,14 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   ValueUpdate get lastValueUpdate {
     return _lastValueUpdate;
   }
-
+  /// Gets the current value of this node.
+  dynamic get value {
+    if (_lastValueUpdate != null) {
+      return _lastValueUpdate.value;
+    }
+    return null;
+  }
+  
   void updateValue(Object update, {bool force: false}) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
