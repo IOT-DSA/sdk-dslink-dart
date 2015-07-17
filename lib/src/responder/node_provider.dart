@@ -60,7 +60,12 @@ abstract class LocalNode extends Node {
   }
 
   /// Gets the current value of this node.
-  dynamic get value => lastValueUpdate.value;
+  dynamic get value {
+    if (_lastValueUpdate != null) {
+      return _lastValueUpdate.value;
+    }
+    return null;
+  }
 
   /// Updates this node's value to the specified [value].
   void updateValue(Object update, {bool force: false}) {
