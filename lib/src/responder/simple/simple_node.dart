@@ -162,7 +162,6 @@ class SimpleNodeProvider extends NodeProviderImpl
     node.updateValue(value);
   }
 
-
   /// Sets the given [node] to the given [path].
   void setNode(String path, SimpleNode node) {
     if (path == '/' || !path.startsWith('/')) return null;
