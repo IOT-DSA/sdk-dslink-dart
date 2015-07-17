@@ -108,8 +108,36 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (nodes.containsKey(path)) {
       return nodes[path];
     }
-    var node = new SimpleNode(path, this);
+    return null;
+  }
+
+  LocalNode getOrCreateNode(String path) {
+    if (nodes.containsKey(path)) {
+      return nodes[path];
+    }
+    return createNode(path);
+  }
+
+  /// Creates a node at [path].
+  /// If a node already exists at this path, an exception is thrown.
+  SimpleNode createNode(String path) {
+    Path p = new Path(path);
+
+    if (nodes.containsKey(path)) {
+      throw new Exception("Node at ${path} already exists.");
+    }
+
+    SimpleNode node = new SimpleNode(path, this);
     nodes[path] = node;
+    node.onCreated();
+    SimpleNode pnode = getNode(p.parentPath);
+
+    if (pnode != null) {
+      pnode.children[p.name] = node;
+      pnode.onChildAdded(p.name, node);
+      pnode.updateList(p.name);
+    }
+
     return node;
   }
 
@@ -122,11 +150,11 @@ class SimpleNodeProvider extends NodeProviderImpl
        instance = this;
     }
 
-    root = getNode("/");
+    root = getOrCreateNode("/");
     defs = new SimpleHiddenNode('/defs', this);
-    nodes['/defs'] = defs;
+    nodes[defs.path] = defs;
     sys = new SimpleHiddenNode('/sys', this);
-    nodes['/sys'] = sys;
+    nodes[sys.path] = sys;
 
     init(m, profiles);
   }
@@ -189,7 +217,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       if (_profileFactories.containsKey(profile)) {
         node = _profileFactories[profile](path);
       } else {
-        node = getNode(path);
+        node = getOrCreateNode(path);
       }
     }
 
@@ -212,9 +240,12 @@ class SimpleNodeProvider extends NodeProviderImpl
     node.removed = true;
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
-    pnode.children.remove(p.name);
-    pnode.onChildRemoved(p.name, node);
-    pnode.updateList(p.name);
+
+    if (pnode != null) {
+      pnode.children.remove(p.name);
+      pnode.onChildRemoved(p.name, node);
+      pnode.updateList(p.name);
+    }
   }
 
   Map<String, _NodeFactory> _profileFactories = new Map<String, _NodeFactory>();
