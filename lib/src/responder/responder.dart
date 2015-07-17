@@ -125,9 +125,9 @@ class Responder extends ConnectionHandler {
 
       LocalNode node;
 
-      try {
-        node = nodeProvider.getOrCreateNode(path.path);
-      } catch (e) {
+      if (nodeProvider is SimpleNodeProvider) {
+        node = nodeProvider.getOrCreateNode(path.path, temporary: true);
+      } else {
         node = nodeProvider.getNode(path.path);
       }
 
@@ -160,9 +160,18 @@ class Responder extends ConnectionHandler {
           }
         }
         Path path = Path.getValidNodePath(pathstr);
+
+        LocalNode node;
+
+        if (nodeProvider is SimpleNodeProvider) {
+          node = nodeProvider.getOrCreateNode(path.path, temporary: true);
+        } else {
+          node = nodeProvider.getNode(path.path);
+        }
+
         if (path != null && path.isAbsolute) {
           _subscription.add(
-              path.path, nodeProvider.getNode(path.path), sid, cacheLevel);
+              path.path, node, sid, cacheLevel);
         }
       }
       _closeResponse(m['rid']);
@@ -189,7 +198,14 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
-      LocalNode parentNode = nodeProvider.getNodeForResponder(path.parentPath);
+      LocalNode parentNode;
+
+      if (nodeProvider is SimpleNodeProvider) {
+        parentNode = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
+      } else {
+        parentNode = nodeProvider.getNode(path.parentPath);
+      }
+
       LocalNode node = parentNode.getChild(path.name);
       if (node == null) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
@@ -224,7 +240,14 @@ class Responder extends ConnectionHandler {
     Object value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      LocalNode node = nodeProvider.getNodeForResponder(path.path);
+      LocalNode node;
+
+      if (nodeProvider is SimpleNodeProvider) {
+        node = nodeProvider.getOrCreateNode(path.path, temporary: true);
+      } else {
+        node = nodeProvider.getNode(path.path);
+      }
+
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       int maxPermit = Permission.parse(m['permit']);
       if (maxPermit < permission) {
@@ -236,7 +259,14 @@ class Responder extends ConnectionHandler {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       }
     } else if (path.isConfig) {
-      LocalNode node = nodeProvider.getNodeForResponder(path.parentPath);
+      LocalNode node;
+
+      if (nodeProvider is SimpleNodeProvider) {
+        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
+      } else {
+        node = nodeProvider.getNode(path.parentPath);
+      }
+
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
@@ -245,7 +275,13 @@ class Responder extends ConnectionHandler {
             path.name, value, this, addResponse(new Response(this, rid)));
       }
     } else if (path.isAttribute) {
-      LocalNode node = nodeProvider.getNodeForResponder(path.parentPath);
+      LocalNode node;
+
+      if (nodeProvider is SimpleNodeProvider) {
+        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
+      } else {
+        node = nodeProvider.getNode(path.parentPath);
+      }
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
@@ -269,7 +305,14 @@ class Responder extends ConnectionHandler {
     if (path.isNode) {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     } else if (path.isConfig) {
-      LocalNode node = nodeProvider.getNodeForResponder(path.parentPath);
+      LocalNode node;
+
+      if (nodeProvider is SimpleNodeProvider) {
+        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
+      } else {
+        node = nodeProvider.getNode(path.parentPath);
+      }
+
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
@@ -278,7 +321,13 @@ class Responder extends ConnectionHandler {
             path.name, this, addResponse(new Response(this, rid)));
       }
     } else if (path.isAttribute) {
-      LocalNode node = nodeProvider.getNodeForResponder(path.parentPath);
+      LocalNode node;
+
+      if (nodeProvider is SimpleNodeProvider) {
+        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
+      } else {
+        node = nodeProvider.getNode(path.parentPath);
+      }
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);

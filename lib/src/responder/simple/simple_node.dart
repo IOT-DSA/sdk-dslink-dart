@@ -111,7 +111,11 @@ class SimpleNodeProvider extends NodeProviderImpl
     return null;
   }
 
-  LocalNode getOrCreateNode(String path) {
+  /// Gets a node at the given [path] if it exists.
+  /// If it does not exist, create a new node and return it.
+  ///
+  /// When [temporary] is true, the node will not be inserted into the node provider.
+  LocalNode getOrCreateNode(String path, {bool temporary: false}) {
     if (nodes.containsKey(path)) {
       return nodes[path];
     }
