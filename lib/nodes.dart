@@ -51,6 +51,10 @@ class SingleNodeProvider extends NodeProvider {
   Responder createResponder(String dsId) {
     return new Responder(this, dsId);
   }
+
+  LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
+    return node;
+  }
 }
 
 typedef void NodeUpgradeFunction(int from);

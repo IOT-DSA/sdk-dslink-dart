@@ -17,6 +17,9 @@ class TestNodeProvider extends NodeProvider {
   Responder createResponder(String dsId) {
     return new Responder(this, dsId);
   }
+  LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
+    return onlyNode;
+  }
 }
 
 class TestNode extends LocalNodeImpl {

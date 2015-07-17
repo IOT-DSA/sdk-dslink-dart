@@ -44,6 +44,17 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     if (rPath == '') {
       rPath = '/';
     }
+    return nodes[rPath];
+  }
+  LocalNode getOrCreateNode(String fullPath, [bool addToTree = true]) {
+    if (addToTree == true) {
+      throw 'not supported';
+    }
+    
+    String rPath = fullPath.replaceFirst(path, '');
+    if (rPath == '') {
+      rPath = '/';
+    }
     RemoteLinkNode node = nodes[rPath];
     if (node == null) {
       node = new RemoteLinkNode(fullPath, broker, rPath, this);
@@ -229,7 +240,7 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
   }
 
   Node getChild(String name) {
-    return _linkManager.getNode('$path/$name');
+    return _linkManager.getOrCreateNode('$path/$name', false);
   }
   /// for invoke permission as responder
   int getInvokePermission(){

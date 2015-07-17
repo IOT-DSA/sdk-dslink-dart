@@ -9,7 +9,7 @@ class Responder extends ConnectionHandler {
   List<String> groups = [];
   void updateGroups(List<String> vals) {
     if (reqId.length < 43 && !vals.contains(reqId)) {
-       groups = [reqId]..addAll(vals);
+      groups = [reqId]..addAll(vals);
     }
   }
   final Map<int, Response> _responses = new Map<int, Response>();
@@ -125,11 +125,7 @@ class Responder extends ConnectionHandler {
 
       LocalNode node;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        node = nodeProvider.getOrCreateNode(path.path, temporary: true);
-      } else {
-        node = nodeProvider.getNode(path.path);
-      }
+      node = nodeProvider.getOrCreateNode(path.path, false);
 
       addResponse(new ListResponse(this, rid, node));
     } else {
@@ -163,15 +159,10 @@ class Responder extends ConnectionHandler {
 
         LocalNode node;
 
-        if (nodeProvider is SimpleNodeProvider) {
-          node = nodeProvider.getOrCreateNode(path.path, temporary: true);
-        } else {
-          node = nodeProvider.getNode(path.path);
-        }
+        node = nodeProvider.getOrCreateNode(path.path, false);
 
         if (path != null && path.isAbsolute) {
-          _subscription.add(
-              path.path, node, sid, cacheLevel);
+          _subscription.add(path.path, node, sid, cacheLevel);
         }
       }
       _closeResponse(m['rid']);
@@ -200,11 +191,7 @@ class Responder extends ConnectionHandler {
       int rid = m['rid'];
       LocalNode parentNode;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        parentNode = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
-      } else {
-        parentNode = nodeProvider.getNode(path.parentPath);
-      }
+      parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
 
       LocalNode node = parentNode.getChild(path.name);
       if (node == null) {
@@ -218,7 +205,8 @@ class Responder extends ConnectionHandler {
       }
       if (node.getInvokePermission() <= permission) {
         node.invoke(m['params'], this,
-            addResponse(new InvokeResponse(this, rid, node)), parentNode, permission);
+            addResponse(new InvokeResponse(this, rid, node)), parentNode,
+            permission);
       } else {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       }
@@ -242,11 +230,7 @@ class Responder extends ConnectionHandler {
     if (path.isNode) {
       LocalNode node;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        node = nodeProvider.getOrCreateNode(path.path, temporary: true);
-      } else {
-        node = nodeProvider.getNode(path.path);
-      }
+      node = nodeProvider.getOrCreateNode(path.path, false);
 
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       int maxPermit = Permission.parse(m['permit']);
@@ -261,11 +245,7 @@ class Responder extends ConnectionHandler {
     } else if (path.isConfig) {
       LocalNode node;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
-      } else {
-        node = nodeProvider.getNode(path.parentPath);
-      }
+      node = nodeProvider.getOrCreateNode(path.parentPath, false);
 
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
@@ -277,11 +257,7 @@ class Responder extends ConnectionHandler {
     } else if (path.isAttribute) {
       LocalNode node;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
-      } else {
-        node = nodeProvider.getNode(path.parentPath);
-      }
+      node = nodeProvider.getOrCreateNode(path.parentPath, false);
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
@@ -307,11 +283,7 @@ class Responder extends ConnectionHandler {
     } else if (path.isConfig) {
       LocalNode node;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
-      } else {
-        node = nodeProvider.getNode(path.parentPath);
-      }
+      node = nodeProvider.getOrCreateNode(path.parentPath, false);
 
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
@@ -323,11 +295,7 @@ class Responder extends ConnectionHandler {
     } else if (path.isAttribute) {
       LocalNode node;
 
-      if (nodeProvider is SimpleNodeProvider) {
-        node = nodeProvider.getOrCreateNode(path.parentPath, temporary: true);
-      } else {
-        node = nodeProvider.getNode(path.parentPath);
-      }
+      node = nodeProvider.getOrCreateNode(path.parentPath, false);
       int permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);

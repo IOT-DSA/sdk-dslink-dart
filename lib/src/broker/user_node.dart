@@ -51,7 +51,7 @@ class UserRootNode extends UserNode {
   UserRootNode(String path, String username, BrokerNodeProvider provider)
       : super(path, provider, username) {
     configs[r'$is'] = 'broker/unoderoot';
-    profile = provider.getNode('/defs/profile/broker/unoderoot');
+    profile = provider.getOrCreateNode('/defs/profile/broker/unoderoot', false);
   }
 }
 InvokeResponse addChildNode(Map params, Responder responder,
@@ -68,7 +68,7 @@ InvokeResponse addChildNode(Map params, Responder responder,
       return response
         ..close(new DSError('invalidParameter', msg: 'node already exist'));
     }
-    UserNode node = responder.nodeProvider.getNode('${parentNode.path}/$name');
+    UserNode node = responder.nodeProvider.getOrCreateNode('${parentNode.path}/$name', false);
     parentNode.children[name] = node;
     parentNode.updateList(name);
     DsTimer.timerOnceBefore((responder.nodeProvider as BrokerNodeProvider).saveUsrNodes, 1000);
@@ -110,7 +110,7 @@ InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
       link.close();
       parentNode.provider.removeLink(link);
     }
-    LocalNode node = responder.nodeProvider.getNode(path);
+    LocalNode node = responder.nodeProvider.getOrCreateNode(path, false);
     node.configs[r'$$dsId'] = dsId;
     parentNode.children[name] = node;
     parentNode.updateList(name);

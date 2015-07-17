@@ -114,17 +114,19 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// Gets a node at the given [path] if it exists.
   /// If it does not exist, create a new node and return it.
   ///
-  /// When [temporary] is true, the node will not be inserted into the node provider.
-  LocalNode getOrCreateNode(String path, {bool temporary: false}) {
+  /// When [addToTree] is false, the node will not be inserted into the node provider.
+  LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     if (nodes.containsKey(path)) {
       return nodes[path];
     }
 
-    if (temporary) {
+    if (addToTree) {
+      return createNode(path);
+    } else {
       var node = new SimpleNode(path, this);
       return node;
     }
-    return createNode(path);
+    
   }
 
   /// Creates a node at [path].

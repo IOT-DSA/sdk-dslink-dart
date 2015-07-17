@@ -205,6 +205,12 @@ abstract class LocalNode extends Node {
 abstract class NodeProvider {
   /// Gets an existing node.
   LocalNode getNode(String path);
+  
+  /// Gets a node at the given [path] if it exists.
+  /// If it does not exist, create a new node and return it.
+  ///
+  /// When [addToTree] is false, the node will not be inserted into the node provider.
+  LocalNode getOrCreateNode(String path, [bool addToTree = true]);
 
   /// Gets an existing node, or creates a dummy node for a requester to listen on.
   LocalNode operator [](String path) {
@@ -212,7 +218,7 @@ abstract class NodeProvider {
   }
 
   /// Get the root node.
-  LocalNode operator ~() => this["/"];
+  LocalNode operator ~() => getOrCreateNode("/", false);
 
   /// Create a Responder
   Responder createResponder(String dsId);
