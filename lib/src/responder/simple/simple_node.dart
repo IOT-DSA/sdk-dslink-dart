@@ -119,6 +119,11 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (nodes.containsKey(path)) {
       return nodes[path];
     }
+
+    if (temporary) {
+      var node = new SimpleNode(path, this);
+      return node;
+    }
     return createNode(path);
   }
 
