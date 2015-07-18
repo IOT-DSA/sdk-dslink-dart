@@ -126,7 +126,6 @@ class SimpleNodeProvider extends NodeProviderImpl
       var node = new SimpleNode(path, this);
       return node;
     }
-    
   }
 
   /// Creates a node at [path].
@@ -141,7 +140,11 @@ class SimpleNodeProvider extends NodeProviderImpl
     SimpleNode node = new SimpleNode(path, this);
     nodes[path] = node;
     node.onCreated();
-    SimpleNode pnode = getNode(p.parentPath);
+    SimpleNode pnode;
+
+    if (p.parentPath != "") {
+      pnode = getNode(p.parentPath);
+    }
 
     if (pnode != null) {
       pnode.children[p.name] = node;
@@ -161,7 +164,8 @@ class SimpleNodeProvider extends NodeProviderImpl
        instance = this;
     }
 
-    root = getOrCreateNode("/");
+    root = new SimpleNode("/", this);
+    nodes["/"] = root;
     defs = new SimpleHiddenNode('/defs', this);
     nodes[defs.path] = defs;
     sys = new SimpleHiddenNode('/sys', this);
