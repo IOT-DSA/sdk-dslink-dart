@@ -226,7 +226,12 @@ class SimpleNodeProvider extends NodeProviderImpl
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
 
-    SimpleNode node = pnode.onLoadChild(p.name, m, this);
+    SimpleNode node;
+
+    if (pnode != null) {
+      node = pnode.onLoadChild(p.name, m, this);
+    }
+
     if (node == null) {
       String profile = m[r'$is'];
       if (_profileFactories.containsKey(profile)) {
@@ -240,9 +245,12 @@ class SimpleNodeProvider extends NodeProviderImpl
     node.load(m);
 
     node.onCreated();
-    pnode.children[p.name] = node;
-    pnode.onChildAdded(p.name, node);
-    pnode.updateList(p.name);
+
+    if (pnode != null) {
+      pnode.children[p.name] = node;
+      pnode.onChildAdded(p.name, node);
+      pnode.updateList(p.name);
+    }
 
     return node;
   }
