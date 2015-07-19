@@ -20,7 +20,7 @@ class HttpServerLink implements ServerLink {
 
   ECDH get nonce => verifiedNonce;
 
-  ServerConnection connection;
+  Connection connection;
 
   // TODO(rinick): deprecate this, all dslinks need to support it
   final bool enableTimeout;
@@ -175,7 +175,7 @@ class HttpServerLink implements ServerLink {
     WebSocketTransformer.upgrade(request).then((WebSocket websocket) {
 
       wsconnection = createWsConnection(websocket);
-      wsconnection.addServerCommand('salt', salts[0]);
+      wsconnection.addConnCommand('salt', salts[0]);
 
       //wsconnection.onRequesterReady.then((channel) {
         if (connection != null) {

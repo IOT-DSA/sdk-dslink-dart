@@ -32,16 +32,12 @@ abstract class Connection {
   /// notify the connection channel need to send data
   void requireSend();
 
+  /// send a connection command 
+  void addConnCommand(String key, Object value);
+  
   /// close the connection
   void close();
 }
-
-abstract class ServerConnection extends Connection {
-  /// send a server command to client such as salt string, or allowed:true
-  void addServerCommand(String key, Object value);
-}
-
-abstract class ClientConnection extends Connection {}
 
 abstract class ConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time

@@ -1,6 +1,6 @@
 part of dslink.browser_client;
 
-class WebSocketConnection implements ClientConnection {
+class WebSocketConnection implements Connection {
   PassiveChannel _responderChannel;
 
   ConnectionChannel get responderChannel => _responderChannel;
@@ -39,7 +39,6 @@ class WebSocketConnection implements ClientConnection {
   }
 
   Timer pingTimer;
-  int pingCount = 0;
   bool _dataSent = false;
 
   /// add this count every 20 seconds, set to 0 when receiving data
@@ -57,14 +56,8 @@ class WebSocketConnection implements ClientConnection {
       _dataSent = false;
       return;
     }
-    if (_msgCommand == null) {
-      _msgCommand = {};
-    }
-    _msgCommand['ping'] = ++pingCount;
-    requireSend();
+    addConnCommand(null, null);
   }
-
-  Map _msgCommand;
 
   void requireSend() {
     if (!_sending) {
@@ -85,6 +78,23 @@ class WebSocketConnection implements ClientConnection {
     socket.sendString('{}');
     requireSend();
   }
+  
+  /// special server command that need to be merged into message
+  /// now only 2 possible value, salt, allowed
+  Map _msgCommand;
+
+  /// add server command, will be called only when used as server connection
+  void addConnCommand(String key, Object value) {
+    if (_msgCommand == null) {
+      _msgCommand = {};
+    }
+    if (key != null) {
+      _msgCommand[key] = value;
+    }
+    requireSend();
+  }
+
+  
 
   BinaryInCache binaryInCache = new BinaryInCache();
   void _onData(MessageEvent e) {
@@ -107,15 +117,23 @@ class WebSocketConnection implements ClientConnection {
         if (m['salt'] is String) {
           clientLink.updateSalt(m['salt']);
         }
-
-        if (m['responses'] is List) {
+        bool needAck = false;
+        if (m['responses'] is List && (m['responses'] as List).length > 0) {
+          needAck = true;
           // send responses to requester channel
           _requesterChannel.onReceiveController.add(m['responses']);
         }
 
-        if (m['requests'] is List) {
+        if (m['requests'] is List && (m['requests'] as List).length > 0) {
+          needAck = true;
           // send requests to responder channel
           _responderChannel.onReceiveController.add(m['requests']);
+        }
+        if (needAck) {
+          Object msgId = m['msg'];
+          if (msgId != null) {
+            addConnCommand('ack', msgId);
+          }
         }
       } catch (err, stack) {
         logger.severe("error in onData", err, stack);
@@ -127,14 +145,23 @@ class WebSocketConnection implements ClientConnection {
         m = DsJson.decodeFrame(e.data, binaryInCache);
         logger.fine('$m');
 
-        if (m['responses'] is List) {
+        bool needAck = false;
+        if (m['responses'] is List && (m['responses'] as List).length > 0) {
+          needAck = true;
           // send responses to requester channel
           _requesterChannel.onReceiveController.add(m['responses']);
         }
 
-        if (m['requests'] is List) {
+        if (m['requests'] is List && (m['requests'] as List).length > 0) {
+          needAck = true;
           // send requests to responder channel
           _responderChannel.onReceiveController.add(m['requests']);
+        }
+        if (needAck) {
+          Object msgId = m['msg'];
+          if (msgId != null) {
+            addConnCommand('ack', msgId);
+          }
         }
       } catch (err) {
         logger.severe(err);
@@ -145,6 +172,8 @@ class WebSocketConnection implements ClientConnection {
   }
 
   BinaryOutCache binaryOutCache = new BinaryOutCache();
+  
+  int msgId = 0;
   
   bool _sending = false;
   void _send() {
@@ -178,6 +207,7 @@ class WebSocketConnection implements ClientConnection {
       }
     }
     if (needSend) {
+      m['msg'] = msgId++;
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);

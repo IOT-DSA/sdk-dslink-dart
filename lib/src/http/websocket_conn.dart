@@ -6,7 +6,7 @@ import 'dart:convert';
 import '../../common.dart';
 import '../../utils.dart';
 
-class WebSocketConnection implements ServerConnection, ClientConnection {
+class WebSocketConnection implements Connection {
   PassiveChannel _responderChannel;
 
   ConnectionChannel get responderChannel => _responderChannel;
@@ -43,7 +43,6 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   }
 
   Timer pingTimer;
-  int pingCount = 0;
 
   /// set to true when data is sent, reset the flag every 20 seconds
   /// since the previous ping message will cause the next 20 seoncd to have a message
@@ -68,11 +67,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       _dataSent = false;
       return;
     }
-    if (_serverCommand == null) {
-      _serverCommand = {};
-    }
-    _serverCommand['ping'] = ++pingCount;
-    requireSend();
+    this.addConnCommand(null, null);
   }
 
   void requireSend() {
@@ -87,11 +82,14 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
   Map _serverCommand;
 
   /// add server command, will be called only when used as server connection
-  void addServerCommand(String key, Object value) {
+  void addConnCommand(String key, Object value) {
     if (_serverCommand == null) {
       _serverCommand = {};
     }
-    _serverCommand[key] = value;
+    if (key != null) {
+      _serverCommand[key] = value;
+    }
+    
     requireSend();
   }
 
@@ -123,13 +121,22 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
         close();
         return;
       }
-      if (m['responses'] is List) {
+      bool needAck = false;
+      if (m['responses'] is List && (m['responses'] as List).length > 0) {
+        needAck = true;
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
       }
-      if (m['requests'] is List) {
+      if (m['requests'] is List && (m['requests'] as List).length > 0) {
+        needAck = true;
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
+      }
+      if (needAck) {
+        Object msgId = m['msg'];
+        if (msgId != null) {
+          addConnCommand('ack', msgId);
+        }
       }
     } else if (data is String) {
       throughput += data.length;
@@ -144,19 +151,28 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       if (m['salt'] is String && clientLink != null) {
         clientLink.updateSalt(m['salt']);
       }
-      if (m['responses'] is List) {
+      bool needAck = false;
+      if (m['responses'] is List && (m['responses'] as List).length > 0) {
+        needAck = true;
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
       }
-      if (m['requests'] is List) {
+      if (m['requests'] is List && (m['requests'] as List).length > 0) {
+        needAck = true;
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
+      }
+      if (needAck) {
+        Object msgId = m['msg'];
+        if (msgId != null) {
+          addConnCommand('ack', msgId);
+        }
       }
     }
 
     logger.finest("end WebSocketConnection.onData");
   }
-
+  int msgId = 0;
   bool _sending = false;
   void _send() {
     _sending = false;
@@ -184,6 +200,7 @@ class WebSocketConnection implements ServerConnection, ClientConnection {
       }
     }
     if (needSend) {
+      m['msg'] = msgId++;
       addData(m);
       _dataSent = true;
     }
