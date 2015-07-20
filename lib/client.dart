@@ -28,6 +28,8 @@ part 'src/http/client_link.dart';
 /// A Handler for Argument Results
 typedef void OptionResultsHandler(ArgResults results);
 
+typedef _TwoArgumentProfileFunction(String path, SimpleNodeProvider provider);
+
 /// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
   /// The Link Object
@@ -424,6 +426,10 @@ class LinkProvider {
             var paramCount = cm.parameters.length;
             var m = mirror.newInstance(const Symbol(""), paramCount == 1 ? [path] : [path, provider]);
             return m.reflectee;
+          };
+        } else if (value is _TwoArgumentProfileFunction) {
+          profiles[key] = (String path) {
+            return value(path, provider);
           };
         }
       }
