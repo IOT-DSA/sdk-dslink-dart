@@ -3,6 +3,19 @@ part of dslink.common;
 /// Base Class for any and all nodes in the SDK.
 /// If you are writing a link, please look at the [dslink.responder.SimpleNode] class.
 class Node {
+  static String getDisplayName(String nameOrPath){
+    if (nameOrPath.contains('/')) {
+      List names = nameOrPath.split('/');
+      nameOrPath = names.removeLast();
+      while(nameOrPath == '' && !names.isEmpty) {
+        nameOrPath = names.removeLast();
+      }
+    }
+    if (nameOrPath.contains('%')){
+      nameOrPath = Uri.decodeComponent(nameOrPath);
+    }
+    return nameOrPath;
+  }
   /// This node's profile.
   Node profile;
   /// Node Attributes
@@ -98,7 +111,29 @@ class Node {
       });
     }
   }
+  
+  void forEachConfig(void callback(String name, Object value)) {
+    configs.forEach(callback);
+    if (profile != null) {
+      profile.configs.forEach((String str, Object val) {
+        if (!configs.containsKey(str)) {
+          callback(str, val);
+        }
+      });
+    }
+  }
 
+  void forEachAttribute(void callback(String name, Object value)) {
+    attributes.forEach(callback);
+    if (profile != null) {
+      profile.attributes.forEach((String str, Object val) {
+        if (!attributes.containsKey(str)) {
+          callback(str, val);
+        }
+      });
+    }
+  }
+  
   /// Gets a map for the data that will be listed in the parent node's children property.
   Map getSimpleMap() {
     Map rslt = {};

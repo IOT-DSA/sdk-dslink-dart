@@ -71,6 +71,7 @@ abstract class Link {
 
 /// Base Class for Server Link implementations.
 abstract class ServerLink extends Link {
+  /// dsId or username
   String get dsId;
 
   String get session;
