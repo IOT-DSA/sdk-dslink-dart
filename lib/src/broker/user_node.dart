@@ -4,7 +4,7 @@ class UserNode extends BrokerNode {
   final String username;
   UserNode(String path, BrokerNodeProvider provider, this.username) : super(path, provider) {
     configs[r'$is'] = 'broker/unode';
-    profile = provider.getNode('/defs/profile/broker/unode');
+    profile = provider.getOrCreateNode('/defs/profile/broker/unode', false);
   }
 
   bool _loaded = false;
@@ -28,7 +28,7 @@ class UserNode extends BrokerNode {
         attributes[key] = value;
       } else if (value is Map) {
         String childPath = '$childPathPre$key';
-        LocalNode node = provider.getNode(childPath);
+        LocalNode node = provider.getOrCreateNode(childPath, false);
         children[key] = node;
         if (node is UserNode) {
           node.load(value);
