@@ -497,7 +497,7 @@ class SimpleNode extends LocalNodeImpl {
             throw new Exception("Unknown Value from Stream");
           }
         }, onDone: () {
-          r.update([list]);
+          r.update(list);
           r.close();
         }, onError: (e, stack) {
           var error = new DSError("invokeException", msg: e.toString());
