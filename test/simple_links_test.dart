@@ -3,6 +3,8 @@
 library dslink.test.vm.links.simple;
 
 import "dart:async";
+import "dart:convert";
+import "dart:typed_data";
 
 import "package:dslink/broker.dart";
 import "package:dslink/server.dart";
@@ -210,5 +212,62 @@ simpleLinksTests() {
         "lowercase": "hello world"
       }
     ]));
+  });
+
+  test("support invoking an action to receive binary data", () async {
+    LinkProvider host = await createLink("DataHost", nodes: {
+      "Get": {
+        r"$is": "get",
+        r"$invokable": "read",
+        r"$result": "values",
+        r"$params": [
+          {
+            "name": "input",
+            "type": "string"
+          }
+        ],
+        r"$columns": [
+          {
+            "name": "data",
+            "type": "binary"
+          }
+        ]
+      }
+    }, profiles: {
+      "get": (String path, SimpleNodeProvider provider) => new SimpleActionNode(path, (Map<String, dynamic> params) {
+        expect(params, hasLength(1));
+
+        var input = params["input"];
+
+        expect(input, new isInstanceOf<String>());
+        expect(input, equals("Hello World"));
+
+        var data = ByteDataUtil.fromList(UTF8.encode(input));
+
+        return [
+          {
+            "data": data
+          }
+        ];
+      }, provider)
+    });
+
+    var client = await createLink("DataClient", isRequester: true, isResponder: false);
+    var requester = await client.onRequesterReady;
+    await gap();
+    var result = await requester.invoke("/conns/DataHost/Get", {
+      "input": "Hello World"
+    }).first;
+    expect(result.updates, hasLength(1));
+    var firstUpdate = result.updates.first;
+
+    expect(firstUpdate, new isInstanceOf<Map>());
+    expect(firstUpdate, hasLength(1));
+    expect(firstUpdate, contains("data"));
+    var data = firstUpdate["data"];
+
+    expect(data, new isInstanceOf<ByteData>());
+    var decoded = UTF8.decode(ByteDataUtil.toUint8List(data));
+    expect(decoded, equals("Hello World"));
   });
 }
