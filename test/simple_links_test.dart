@@ -84,7 +84,7 @@ simpleLinksTests() {
     await expectNodeValue(requester, "/conns/DataHost/Message", "Goodbye World");
   });
 
-  test("allows invoking a simple action", () async {
+  test("supports invoking a simple action", () async {
     LinkProvider host = await createLink("DataHost", nodes: {
       "Get": {
         r"$is": "get",
@@ -113,5 +113,52 @@ simpleLinksTests() {
     expect(result.updates.first, equals({
       "message": "Hello World"
     }));
+  });
+
+  test("supports invoking a simple table action", () async
+  {
+    LinkProvider host = await
+    createLink("DataHost", nodes: {
+      "Get": {
+        r"$is": "get",
+        r"$invokable": "read",
+        r"$result": "table",
+        r"$columns": [
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    }, profiles: {
+      "get": (String path, SimpleNodeProvider provider) => new SimpleActionNode(path, (Map<String, dynamic> params) {
+        return [
+          {
+            "message": "Hello World"
+          },
+          {
+            "message": "Goodbye World"
+          }
+        ];
+      }, provider)
+    });
+
+    var client = await
+    createLink("DataClient", isRequester: true, isResponder: false);
+    var requester = await
+    client.onRequesterReady;
+    await gap
+    ();
+        var result = await requester.invoke("/conns/DataHost/Get", {
+    }).first;
+    expect(result.updates, hasLength(2));
+    expect(result.updates, equals([
+      {
+        "message": "Hello World"
+      },
+      {
+        "message": "Goodbye World"
+      }
+    ]));
   });
 }
