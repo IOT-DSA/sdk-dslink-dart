@@ -58,11 +58,11 @@ simpleLinksTests() {
     return link;
   }
 
-  test("connects to the broker", () async {
+  test("connect to the broker", () async {
     await createLink("ConnectsToServer").timeout(new Duration(seconds: 5));
   });
 
-  test("provides nodes to the broker", () async {
+  test("provide single level nodes to the broker", () async {
     LinkProvider host = await createLink("DataHost", nodes: {
       "Message": {
         r"$type": "string",
@@ -84,7 +84,7 @@ simpleLinksTests() {
     await expectNodeValue(requester, "/conns/DataHost/Message", "Goodbye World");
   });
 
-  test("supports invoking a simple action", () async {
+  test("support invoking a simple action with 0 parameters and 1 result", () async {
     LinkProvider host = await createLink("DataHost", nodes: {
       "Get": {
         r"$is": "get",
@@ -115,10 +115,8 @@ simpleLinksTests() {
     }));
   });
 
-  test("supports invoking a simple table action", () async
-  {
-    LinkProvider host = await
-    createLink("DataHost", nodes: {
+  test("support invoking a simple table action with 0 parameters and 1 column", () async {
+    LinkProvider host = await createLink("DataHost", nodes: {
       "Get": {
         r"$is": "get",
         r"$invokable": "read",
@@ -143,14 +141,10 @@ simpleLinksTests() {
       }, provider)
     });
 
-    var client = await
-    createLink("DataClient", isRequester: true, isResponder: false);
-    var requester = await
-    client.onRequesterReady;
-    await gap
-    ();
-        var result = await requester.invoke("/conns/DataHost/Get", {
-    }).first;
+    var client = await createLink("DataClient", isRequester: true, isResponder: false);
+    var requester = await client.onRequesterReady;
+    await gap();
+    var result = await requester.invoke("/conns/DataHost/Get", {}).first;
     expect(result.updates, hasLength(2));
     expect(result.updates, equals([
       {
@@ -158,6 +152,62 @@ simpleLinksTests() {
       },
       {
         "message": "Goodbye World"
+      }
+    ]));
+  });
+
+  test("support invoking a table action with 1 parameter and 2 columns", () async {
+    LinkProvider host = await createLink("DataHost", nodes: {
+      "Get": {
+        r"$is": "get",
+        r"$invokable": "read",
+        r"$result": "table",
+        r"$params": [
+          {
+            "name": "input",
+            "type": "string"
+          }
+        ],
+        r"$columns": [
+          {
+            "name": "uppercase",
+            "type": "string"
+          },
+          {
+            "name": "lowercase",
+            "type": "string"
+          }
+        ]
+      }
+    }, profiles: {
+      "get": (String path, SimpleNodeProvider provider) => new SimpleActionNode(path, (Map<String, dynamic> params) {
+        expect(params, hasLength(1));
+
+        var input = params["input"];
+
+        expect(input, new isInstanceOf<String>());
+        expect(input, equals("Hello World"));
+
+        return [
+          {
+            "uppercase": input.toUpperCase(),
+            "lowercase": input.toLowerCase()
+          }
+        ];
+      }, provider)
+    });
+
+    var client = await createLink("DataClient", isRequester: true, isResponder: false);
+    var requester = await client.onRequesterReady;
+    await gap();
+    var result = await requester.invoke("/conns/DataHost/Get", {
+      "input": "Hello World"
+    }).first;
+    expect(result.updates, hasLength(1));
+    expect(result.updates, equals([
+      {
+        "uppercase": "HELLO WORLD",
+        "lowercase": "hello world"
       }
     ]));
   });
