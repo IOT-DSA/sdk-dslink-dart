@@ -84,6 +84,9 @@ class LinkProvider {
   /// Default Log Level.
   String defaultLogLevel = "INFO";
 
+  /// Save Private Key?
+  bool savePrivateKey = false;
+
   /// connect to user home space
   String home;
 
@@ -118,6 +121,7 @@ class LinkProvider {
       this.exitOnFailure: true,
       this.loadNodesJson: true,
       this.defaultLogLevel: "INFO",
+      this.savePrivateKey: true,
       this.home: null,
       NodeProvider nodeProvider // For Backwards Compatibility
       }) {
@@ -341,7 +345,9 @@ class LinkProvider {
       }
       privateKey = new PrivateKey.generateSync();
       key = privateKey.saveToString();
-      keyFile.writeAsStringSync(key);
+      if (savePrivateKey) {
+        keyFile.writeAsStringSync(key);
+      }
     }
 
     if (opts["discover"]) {

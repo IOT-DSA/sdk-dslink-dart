@@ -8,6 +8,7 @@ import "package:dslink/broker.dart";
 import "package:dslink/server.dart";
 import "package:dslink/dslink.dart";
 import "package:dslink/io.dart";
+import "package:dslink/nodes.dart";
 import "package:test/test.dart";
 
 import "common.dart";
@@ -46,7 +47,8 @@ simpleLinksTests() {
         defaultNodes: nodes,
         profiles: profiles,
         autoInitialize: false,
-        loadNodesJson: false
+        loadNodesJson: false,
+        savePrivateKey: false
     );
 
     _links.add(link);
@@ -80,5 +82,36 @@ simpleLinksTests() {
     host.val("/Message", "Goodbye World");
     await gap();
     await expectNodeValue(requester, "/conns/DataHost/Message", "Goodbye World");
+  });
+
+  test("allows invoking a simple action", () async {
+    LinkProvider host = await createLink("DataHost", nodes: {
+      "Get": {
+        r"$is": "get",
+        r"$invokable": "read",
+        r"$result": "values",
+        r"$columns": [
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    }, profiles: {
+      "get": (String path, SimpleNodeProvider provider) => new SimpleActionNode(path, (Map<String, dynamic> params) {
+        return {
+          "message": "Hello World"
+        };
+      }, provider)
+    });
+
+    var client = await createLink("DataClient", isRequester: true, isResponder: false);
+    var requester = await client.onRequesterReady;
+    await gap();
+    var result = await requester.invoke("/conns/DataHost/Get", {}).first;
+    expect(result.updates, hasLength(1));
+    expect(result.updates.first, equals({
+      "message": "Hello World"
+    }));
   });
 }
