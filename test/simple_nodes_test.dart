@@ -27,6 +27,7 @@ simpleNodeTests() {
 
     var msg = provider.getNode("/Message");
 
+    expect(msg.configs[r"$is"], equals("node"));
     expect(msg.configs[r"$name"], equals("A Message"));
     expect(msg.configs[r"$type"], equals("string"));
     expect(msg.getConfig(r"$name"), equals("A Message"));
@@ -51,5 +52,23 @@ simpleNodeTests() {
     expect(msg.getAttribute("@type"), equals("string"));
     expect(msg.get("@name"), equals("A Message"));
     expect(msg.get("@type"), equals("string"));
+  });
+
+  test("retains children", () {
+    var provider = createSimpleNodeProvider(nodes: {
+      "Container": {
+        "Message": {
+          r"$type": "string"
+        }
+      }
+    });
+
+    var c = provider.getNode("/Container");
+
+    expect(c.configs, hasLength(1));
+    expect(c.children, hasLength(1));
+    var msg = c.children.values.first;
+    expect(msg, new isInstanceOf<SimpleNode>());
+    expect(msg.configs, hasLength(2));
   });
 }
