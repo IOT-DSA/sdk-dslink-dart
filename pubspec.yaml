@@ -7,6 +7,8 @@ dependencies:
   cipher: '>=0.7.1 <1.0.0'
   logging: ">=0.9.0 <0.13.0"
   crypto: "^0.9.0"
+  archive: "^1.0.20"
+  http: "^0.11.3"
 dev_dependencies:
   test: ">=0.12.0 <0.13.0"
   browser: any
