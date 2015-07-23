@@ -8,6 +8,12 @@ import 'dart:js';
 
 require(String input) => context.callMethod("require", [input]);
 
+JsObject _toObj(obj) {
+  if(obj is JsObject || obj == null)
+    return obj;
+  return new JsObject.fromBrowserObject(obj);
+}
+
 String _urlSafe(String base64) {
   return base64.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
@@ -55,8 +61,8 @@ class NodeCryptoProvider implements CryptoProvider {
   PrivateKey generateSync() {
     var keys = _curve.callMethod("generateKeyPair", ["prime256v1"]);
 
-    var publicKey = new PublicKeyImpl(keys["publicKey"]);
-    return new PrivateKeyImpl(publicKey, keys["privateKey"]);
+    var publicKey = new PublicKeyImpl(_toObj(keys["publicKey"]));
+    return new PrivateKeyImpl(publicKey, _toObj(keys["privateKey"]));
   }
 
   PrivateKey loadFromString(String str) {
@@ -67,12 +73,12 @@ class NodeCryptoProvider implements CryptoProvider {
     var privateKey = new JsObject(_curve["PrivateKey"], ["prime256v1", privateKeyBuf]);
     var publicKey = privateKey.callMethod("getPublicKey", []);
 
-    return new PrivateKeyImpl(new PublicKeyImpl(publicKey), privateKey);
+    return new PrivateKeyImpl(new PublicKeyImpl(_toObj(publicKey)), _toObj(privateKey));
   }
 
   PublicKey getKeyFromBytes(Uint8List bytes) {
     var buf = listToBuf(bytes);
-    return new PublicKeyImpl(_curve["Point"].callMethod("fromEncoded", ["prime256v1", buf]));
+    return new PublicKeyImpl(_toObj(_curve["Point"].callMethod("fromEncoded", ["prime256v1", buf])));
   }
 }
 
@@ -105,7 +111,7 @@ class PublicKeyImpl extends PublicKey {
   String qHash64;
 
   PublicKeyImpl(this._point) {
-    var encoded = _point.callMethod('getEncoded', []);
+    var encoded = _toObj(_point.callMethod('getEncoded', []));
 
     qBase64 = _urlSafe(encoded.callMethod('toString', ['base64']));
     qHash64 = _hash(encoded);
@@ -119,7 +125,7 @@ class PrivateKeyImpl implements PrivateKey {
   PrivateKeyImpl(this.publicKey, this._privateKey);
 
   String saveToString() {
-    return _urlSafe(_privateKey["d"].callMethod("toString", ["base64"])) + " ${publicKey.qBase64}";
+    return _urlSafe(_toObj(_privateKey["d"]).callMethod("toString", ["base64"])) + " ${publicKey.qBase64}";
   }
 
   Future<ECDH> getSecret(String key) async {
