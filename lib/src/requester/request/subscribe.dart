@@ -197,14 +197,14 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
   bool _pendingSend = false;
   bool _sendAfterAck = false;
   void prepareSending() {
-    if (_waitingAck) {
-      _sendAfterAck = true;
-    } else {
+//    if (_waitingAck) {
+//      _sendAfterAck = true;
+//    } else {
       if (!_pendingSend) {
         _pendingSend = true;
         requester.addProcessor(this);
       }
-    }
+//    }
   }
 }
 
