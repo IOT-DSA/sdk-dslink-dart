@@ -36,7 +36,7 @@ class SubscribeResponse extends Response {
       int permission = responder.nodeProvider.permissions
           .getPermission(node.path, responder);
       RespSubscribeController controller = new RespSubscribeController(
-          this, node, sid, permission > Permission.NONE, cacheLevel);
+          this, node, sid, permission >= Permission.READ, cacheLevel);
       subsriptions[path] = controller;
       subsriptionids[sid] = controller;
     }

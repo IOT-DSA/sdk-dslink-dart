@@ -4,20 +4,24 @@ class Permission {
   /// now allowed to do anything
   static const int NONE = 0;
 
+  /// list node
+  static const int LIST = 1;
+
   /// read node
-  static const int READ = 1;
+  static const int READ = 2;
 
   /// write attribute and value
-  static const int WRITE = 2;
+  static const int WRITE = 3;
 
   /// config the node
-  static const int CONFIG = 3;
+  static const int CONFIG = 4;
 
   /// something that can never happen
-  static const int NEVER = 4;
+  static const int NEVER = 5;
 
   static const List<String> names = const [
     'none',
+    'list',
     'read',
     'write',
     'config',
@@ -26,6 +30,7 @@ class Permission {
 
   static const Map<String, int> nameParser = const {
     'none': NONE,
+    'list': LIST,
     'read': READ,
     'write': WRITE,
     'config': CONFIG,
