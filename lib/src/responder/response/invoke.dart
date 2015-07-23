@@ -1,6 +1,7 @@
 part of dslink.responder;
 
 typedef void OnInvokeClosed(InvokeResponse response);
+typedef void OnInvokeAcked(InvokeResponse response, int waitingAckId, int receivedAckId);
 
 class InvokeResponse extends Response {
   final LocalNode node;
@@ -29,12 +30,12 @@ class InvokeResponse extends Response {
     }
 
     _sendingStreamStatus = streamStatus;
-    prepareSendingData();
+    prepareSending();
   }
 
   @override
   void startSendingData() {
-    _pendingSendingData = false;
+    _pendingSending = false;
     if (_err != null) {
       responder._closeResponse(rid, response: this, error: _err);
       if (_sentStreamStatus == StreamStatus.closed) {
@@ -61,15 +62,28 @@ class InvokeResponse extends Response {
       _err = err;
     }
     _sendingStreamStatus = StreamStatus.closed;
-    prepareSendingData();
+    prepareSending();
   }
 
   DSError _err;
 
+  bool _closed = false;
   OnInvokeClosed onClose;
   void _close() {
+    _closed = true;
     if (onClose != null) {
       onClose(this);
+    }
+  }
+  
+  OnInvokeAcked onAck;
+  int _waitingAckId = -1;
+  void ackWaiting(int ackId) {
+    _waitingAckId = ackId;
+  }
+  void ackReceived(int ackId) {
+    if (onAck != null && !_closed) {
+      onAck(this, _waitingAckId, ackId);
     }
   }
 }

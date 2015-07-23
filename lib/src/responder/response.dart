@@ -16,15 +16,15 @@ class Response implements ConnectionProcessor{
   void _close() {}
   
   
-  void prepareSendingData() {
-    if (!_pendingSendingData) {
-      _pendingSendingData = true;
+  void prepareSending() {
+    if (!_pendingSending) {
+      _pendingSending = true;
       responder.addProcessor(this);
     }
   }
-  bool _pendingSendingData = false;
+  bool _pendingSending = false;
   void startSendingData() {
-    _pendingSendingData = false;
+    _pendingSending = false;
   }
   
   void ackWaiting(int ackId) {

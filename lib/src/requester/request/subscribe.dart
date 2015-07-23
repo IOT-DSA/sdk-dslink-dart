@@ -145,13 +145,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
   }
 
   Map<int, ReqSubscribeController> toRemove = new Map<int, ReqSubscribeController>();
-  void prepareSending(){
-    if (!_pendingSend) {
-      _pendingSend = true;
-      requester.addProcessor(this);
-    }
-  }
-  bool _pendingSend = false;
+  
   void startSendingData() {
     _pendingSend = false;
     if (requester.connection == null) {
@@ -189,11 +183,28 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
     }
   }
 
+  bool _waitingAck = false;
   void ackWaiting(int ackId) {
-    // TODO: implement ackSent
+    _waitingAck = true;
   }
   void ackReceived(int ackId) {
-    // TODO: implement ackReceived
+    _waitingAck = false;
+    if (_sendAfterAck) {
+      _sendAfterAck = false;
+      prepareSending();
+    }
+  }
+  bool _pendingSend = false;
+  bool _sendAfterAck = false;
+  void prepareSending() {
+    if (_waitingAck) {
+      _sendAfterAck = true;
+    } else {
+      if (!_pendingSend) {
+        _pendingSend = true;
+        requester.addProcessor(this);
+      }
+    }
   }
 }
 

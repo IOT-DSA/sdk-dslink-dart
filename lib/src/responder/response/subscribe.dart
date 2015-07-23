@@ -53,11 +53,11 @@ class SubscribeResponse extends Response {
 
   void subscriptionChanged(RespSubscribeController controller) {
     changed.add(controller);
-    prepareSendingData();
+    prepareSending();
   }
   @override
   void startSendingData() {
-    _pendingSendingData = false;
+    _pendingSending = false;
     List updates = [];
     for (RespSubscribeController controller in changed) {
       updates.addAll(controller.process());
@@ -66,6 +66,27 @@ class SubscribeResponse extends Response {
     changed.clear();
   }
 
+  bool _waitingAck = false;
+  void ackWaiting(int ackId) {
+    _waitingAck = true;
+  }
+  void ackReceived(int ackId) {
+    _waitingAck = false;
+    if (_sendAfterAck) {
+      _sendAfterAck = false;
+      prepareSending();
+    }
+  }
+  
+  bool _sendAfterAck = false;
+  void prepareSending() {
+    if (_waitingAck) {
+      _sendAfterAck = true;
+    } else {
+      super.prepareSending();
+    }
+  }
+  
   void _close() {
     subsriptions.forEach((path, controller) {
       controller.destroy();

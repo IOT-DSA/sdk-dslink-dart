@@ -29,6 +29,7 @@ class AsyncTableResult {
   Map meta;
   /// Handler for when this is closed.
   OnInvokeClosed onClose;
+  OnInvokeAcked onAck;
 
   AsyncTableResult([this.columns]);
 
@@ -414,6 +415,11 @@ class SimpleNode extends LocalNodeImpl {
         if ((rslt as AsyncTableResult).onClose != null) {
           (rslt as AsyncTableResult).onClose(response);
         }
+      };
+      response.onAck = (var response, int waitingAckId, int receivedAckId) {
+         if ((rslt as AsyncTableResult).onAck != null) {
+           (rslt as AsyncTableResult).onAck(response, waitingAckId, receivedAckId);
+         }
       };
       return response;
     } else if (rslt is Table) {

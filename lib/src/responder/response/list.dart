@@ -10,9 +10,9 @@ class ListResponse extends Response {
         responder.nodeProvider.permissions.getPermission(node.path, responder);
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
-      prepareSendingData();
+      prepareSending();
     } else if (node.disconnected != null) {
-      prepareSendingData();
+      prepareSending();
     }
   }
 
@@ -27,7 +27,7 @@ class ListResponse extends Response {
     }
     if (changes.isEmpty) {
       changes.add(key);
-      prepareSendingData();
+      prepareSending();
     } else {
       changes.add(key);
     }
@@ -36,7 +36,7 @@ class ListResponse extends Response {
   bool _disconnectSent = false;
   @override
   void startSendingData() {
-    _pendingSendingData = false;
+    _pendingSending = false;
     Object updateIs;
     Object updateBase;
     List updateConfigs = [];
@@ -131,6 +131,27 @@ class ListResponse extends Response {
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
 
+  bool _waitingAck = false;
+  void ackWaiting(int ackId) {
+    _waitingAck = true;
+  }
+  void ackReceived(int ackId) {
+    _waitingAck = false;
+    if (_sendAfterAck) {
+      _sendAfterAck = false;
+      prepareSending();
+    }
+  }
+  
+  bool _sendAfterAck = false;
+  void prepareSending() {
+    if (_waitingAck) {
+      _sendAfterAck = true;
+    } else {
+      super.prepareSending();
+    }
+  }
+  
   void _close() {
     _nodeChangeListener.cancel();
   }
