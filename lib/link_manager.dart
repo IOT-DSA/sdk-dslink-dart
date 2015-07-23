@@ -17,11 +17,15 @@ abstract class LinkManager {
   List<String> _loadedLinks = [];
 
   String getBrokerUrl();
-  bool isLinkDisabled(String name);
+  Future<bool> isLinkDisabled(String name);
   enable(String name);
   disable(String name);
+  setLinkEnabled(String name);
+  Future<Map> getLinkConfig(String name);
+  Future<bool> getUseRuntimeManager();
 
   addLink(String name, String description, String version, String updateType, bool enable);
+  removeLink(String name);
   setLinkState(String name, String state);
 
   loadLink(String path, [bool shouldStartNow = false, bool skipDuplicates = false]) async {
@@ -88,7 +92,7 @@ abstract class LinkManager {
       await logFile.create(recursive: true);
     }
 
-    await addLink(name, c.description, c.version, updateType, !isLinkDisabled(name));
+    await addLink(name, c.description, c.version, updateType, !(await isLinkDisabled(name)));
 
     await setLinkState(name, "getting dependencies");
 
@@ -159,9 +163,9 @@ abstract class LinkManager {
           noRestart = false;
         }
       } else if (cmd == "start") {
-        var isDisabled = isLinkDisabled(name);
+        var isDisabled = await isLinkDisabled(name);
 
-        if (wasDisabled) {
+        if (isDisabled) {
           await setLinkEnabled(name);
         }
 
@@ -182,7 +186,7 @@ abstract class LinkManager {
       } else if (cmd == "enable") {
         enable(name);
       } else if (cmd == "disable") {
-        if (!isLinkDisabled(name)) {
+        if (!(await isLinkDisabled(name))) {
           disable(name);
         }
       } else if (cmd == "update-git") {
@@ -199,7 +203,7 @@ abstract class LinkManager {
           await new Future.delayed(const Duration(milliseconds: 25));
         }
 
-        await brokerWorkerClient.callMethod("removeLink", name);
+        await removeLink(name);
         _loadedLinks.remove(name);
         linkCommanders.remove(name);
 
@@ -222,7 +226,7 @@ abstract class LinkManager {
 
           var zipUrl = entry["zip"];
 
-          return await LinkManager.updateLinkFromZip(linkDir, zipUrl, json);
+          return await updateLinkFromZip(linkDir, zipUrl, json);
         } catch (e) {
           return e.toString();
         }
@@ -235,7 +239,7 @@ abstract class LinkManager {
 
     var canUseRuntime = json["useRuntimeManager"] != null ? json["useRuntimeManager"] : true;
 
-    canUseRuntime = canUseRuntime && !Platform.isWindows && gconfig.useRuntimeManager;
+    canUseRuntime = canUseRuntime && !Platform.isWindows && await getUseRuntimeManager();
 
     if (canUseRuntime && c.engines != null && c.engines.isNotEmpty && c.engines.keys.contains("dart")) {
       runtime = await getDartRuntimeManager(_linkProcesses);
@@ -254,7 +258,7 @@ abstract class LinkManager {
     }
 
     starter = ([onReady()]) async {
-      if (gconfig.disabledLinks.contains(name)) {
+      if (await isLinkDisabled(name)) {
         if (onReady != null) {
           onReady();
         }
@@ -318,7 +322,9 @@ abstract class LinkManager {
         cfg[x] = c.configs[x]["value"] == null ? c.configs[x]["default"] : c.configs[x]["value"];
       });
 
-      cfg.addAll(gconfig.linkConfig.containsKey(name) ? gconfig.linkConfig[name] : {});
+      var previousConfig = await getLinkConfig(name);
+
+      cfg.addAll(previousConfig == null ? {} : previousConfig);
 
       if (c.configs.containsKey("broker") && !cfg.containsKey("broker"))  {
         cfg["broker"] = getBrokerUrl();
@@ -438,12 +444,6 @@ abstract class LinkManager {
   List<Map<String, dynamic>> _basicLinkData;
 }
 
-const String LINK_REPO_URL = "https://iot-dsa.github.io/links/links.json";
-
-Future<List<Map<String, dynamic>>> fetchLinkRepositoryInfo() async {
-  return Convert.JSON.decode(Convert.UTF8.decode(await fetchUrl(LINK_REPO_URL)));
-}
-
 Future<String> updateLinkFromZip(Directory linkDir, String zipUrl, Map json) async {
   try {
     var allowDeleteUpdate = json["backupForUpdate"] == true;
@@ -483,6 +483,12 @@ Future<String> updateLinkFromZip(Directory linkDir, String zipUrl, Map json) asy
   } catch (e) {
     return e.toString();
   }
+}
+
+const String LINK_REPO_URL = "https://iot-dsa.github.io/links/links.json";
+
+Future<List<Map<String, dynamic>>> fetchLinkRepositoryInfo() async {
+  return Convert.JSON.decode(Convert.UTF8.decode(await fetchUrl(LINK_REPO_URL)));
 }
 
 Future<InstallResult> installLinkFromGit(String url, String name) async {
