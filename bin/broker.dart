@@ -85,6 +85,11 @@ main(List<String> _args) async {
     return config[key];
   }
 
+  saveConfig() async {
+    var data = new JsonEncoder.withIndent("  ").convert(config);
+    await configFile.writeAsString(data + '\n');
+  }
+
   broker = new BrokerNodeProvider();
   server = new DsHttpServer.start(getConfig("host", "0.0.0.0"),
       httpPort: getConfig("port", -1),
@@ -122,6 +127,31 @@ main(List<String> _args) async {
           "Warning: Failed to start broker broadcast service. Are you running more than one broker on this machine?");
     }
   }
+
+  if (getConfig("upstream") != null) {
+    Map<String, Map<String, dynamic>> upstream = getConfig("upstream", {});
+
+    for (var name in upstream.keys) {
+      var url = upstream[name]["url"];
+      var ourName = upstream[name]["name"];
+      var enabled = upstream[name]["enabled"];
+      broker.upstream.addUpstreamConnection(name, url, ourName, enabled);
+    }
+  }
+
+  String lastUpstreamConns = "";
+
+  new Timer.periodic(const Duration(seconds: 5), (_) async {
+    var map = broker.upstream.getConfigMap();
+    var x = JSON.encode(map);
+
+    if (lastUpstreamConns.isNotEmpty || (x != lastUpstreamConns)) {
+      lastUpstreamConns = x;
+
+      config["upstream"] = map;
+      await saveConfig();
+    }
+  });
 }
 
 const String defaultConfig = """{

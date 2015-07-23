@@ -1,6 +1,7 @@
 /// DSA Broker Implementation
 library dslink.broker;
 
+import 'client.dart' show LinkProvider;
 import 'responder.dart';
 import 'requester.dart';
 import 'common.dart';
