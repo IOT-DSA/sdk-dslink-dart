@@ -31,20 +31,21 @@ class AddNodeAction extends SimpleNode {
     });
     link.save(); // save json
     
-    Timer timer;
-    void stopTimer(InvokeResponse resp){
-      if (timer != null ) {
-        timer.cancel();
-        timer = null;
-      }
-    }
+  
     AsyncTableResult tableRslt = new AsyncTableResult();
-    tableRslt.onClose = stopTimer;
-    timer = new Timer.periodic(new Duration(seconds:1),(Timer t){
-      tableRslt.columns=[{'name':'a'}];
-      tableRslt.update([[1],[2]], null, {'a':'abc'});
-      //tableRslt.close();
-      });
+    void closed(InvokeResponse resp){
+        print('closed');
+       
+      }
+      void ackBack(InvokeResponse resp, int id1, int id2){
+        print('acked $id1 $id2');
+        tableRslt.update([[1],[2]], null, {'a':'abc'});
+      }
+    tableRslt.onClose = closed;
+    tableRslt.onAck = ackBack;
+    tableRslt.columns=[{'name':'a'}];
+    tableRslt.update([[1],[2]], null, {'a':'abc'});
+    
     return tableRslt;//new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
 }

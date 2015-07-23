@@ -79,13 +79,13 @@ class SubscribeResponse extends Response {
   }
   
   bool _sendAfterAck = false;
-  void prepareSending() {
-    if (_waitingAck) {
-      _sendAfterAck = true;
-    } else {
-      super.prepareSending();
-    }
-  }
+//  void prepareSending() {
+//    if (_waitingAck) {
+//      _sendAfterAck = true;
+//    } else {
+//      super.prepareSending();
+//    }
+//  }
   
   void _close() {
     subsriptions.forEach((path, controller) {
