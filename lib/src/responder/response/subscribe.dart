@@ -53,10 +53,11 @@ class SubscribeResponse extends Response {
 
   void subscriptionChanged(RespSubscribeController controller) {
     changed.add(controller);
-    responder.addProcessor(processor);
+    prepareSendingData();
   }
-
-  void processor() {
+  @override
+  void startSendingData() {
+    _pendingSendingData = false;
     List updates = [];
     for (RespSubscribeController controller in changed) {
       updates.addAll(controller.process());

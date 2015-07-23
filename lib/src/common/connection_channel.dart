@@ -11,12 +11,21 @@ class PassiveChannel implements ConnectionChannel {
 
   PassiveChannel(this.conn, [this.connected = false]) {}
 
-  Function getData;
-  void sendWhenReady(List getData()) {
-    this.getData = getData;
+  ConnectionHandler handler;
+  void sendWhenReady(ConnectionHandler handler) {
+    this.handler = handler;
     conn.requireSend();
   }
 
+  ProcessorResult getSendingData(){
+    if (handler != null) {
+      ProcessorResult rslt = handler.getSendingData();
+      //handler = null;
+      return rslt;
+    }
+    return null;
+  }
+  
   bool _isReady = false;
   bool get isReady => _isReady;
   void set isReady(bool val) {

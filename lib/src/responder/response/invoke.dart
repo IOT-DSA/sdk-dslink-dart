@@ -29,10 +29,12 @@ class InvokeResponse extends Response {
     }
 
     _sendingStreamStatus = streamStatus;
-    responder.addProcessor(processor);
+    prepareSendingData();
   }
 
-  void processor() {
+  @override
+  void startSendingData() {
+    _pendingSendingData = false;
     if (_err != null) {
       responder._closeResponse(rid, response: this, error: _err);
       if (_sentStreamStatus == StreamStatus.closed) {
@@ -59,7 +61,7 @@ class InvokeResponse extends Response {
       _err = err;
     }
     _sendingStreamStatus = StreamStatus.closed;
-    responder.addProcessor(processor);
+    prepareSendingData();
   }
 
   DSError _err;

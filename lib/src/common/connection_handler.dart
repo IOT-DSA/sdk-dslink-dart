@@ -1,5 +1,11 @@
 part of dslink.common;
 
+abstract class ConnectionProcessor {
+  void startSendingData();
+  void ackWaiting(int ackId);
+  void ackReceived(int ackId);
+}
+
 abstract class ConnectionHandler {
   ConnectionChannel _conn;
   StreamSubscription _connListener;
@@ -37,34 +43,31 @@ abstract class ConnectionHandler {
   void onDisconnected();
   void onReconnected() {
     if (_pendingSend) {
-      _conn.sendWhenReady(doSend);
+      _conn.sendWhenReady(this);
     }
   }
 
   void onData(List m);
 
-  List _toSendList = [];
+  List<Map> _toSendList = <Map>[];
 
   void addToSendList(Map m) {
     _toSendList.add(m);
     if (!_pendingSend && _conn != null) {
-      _conn.sendWhenReady(doSend);
+      _conn.sendWhenReady(this);
       _pendingSend = true;
     }
   }
 
-  List<Function> _processors = [];
+  List<ConnectionProcessor> _processors = [];
 
   /// a processor function that's called just before the data is sent
   /// same processor won't be added to the list twice
   /// inside processor, send() data that only need to appear once per data frame
-  void addProcessor(void processor()) {
-    if (!_processors.contains(processor)) {
-      _processors.add(processor);
-    }
-
+  void addProcessor(ConnectionProcessor processor) {
+    _processors.add(processor);
     if (!_pendingSend && _conn != null) {
-      _conn.sendWhenReady(doSend);
+      _conn.sendWhenReady(this);
       _pendingSend = true;
     }
   }
@@ -72,15 +75,15 @@ abstract class ConnectionHandler {
   bool _pendingSend = false;
 
   /// gather all the changes from
-  List doSend() {
+  ProcessorResult getSendingData() {
     _pendingSend = false;
-    var processors = _processors;
+    List<ConnectionProcessor> processors = _processors;
     _processors = [];
-    for (var proc in processors) {
-      proc();
+    for (ConnectionProcessor proc in processors) {
+      proc.startSendingData();
     }
-    List rslt = _toSendList;
+    List<Map> rslt = _toSendList;
     _toSendList = [];
-    return rslt;
+    return new ProcessorResult(rslt, processors);
   }
 }

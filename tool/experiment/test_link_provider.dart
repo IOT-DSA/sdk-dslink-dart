@@ -109,7 +109,7 @@ main(List<String> args) {
     }
   };
 
-  link = new LinkProvider(['-b','http://localhost:8080/conn','--log','finest'], 'quicklink-', defaultNodes:defaultNodes, profiles:profiles, home:'dgSuper');
+  link = new LinkProvider(['-b','http://localhost:8080/conn','--log','finest'], 'quicklink-', defaultNodes:defaultNodes, profiles:profiles/*, home:'dgSuper'*/);
   if (link.link == null) {
     // initialization failed
     return;
