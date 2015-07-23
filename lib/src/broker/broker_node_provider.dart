@@ -35,14 +35,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
-    
+
     enabledPermission = defaultPermission != null;
     if (enabledPermission) {
       root.loadPermission(defaultPermission);//['dgSuper','config','default','write']
       defsNode.loadPermission(['default','read']);
       permissions.root = root;
     }
-    
+
     loadDef();
     registerInvokableProfile(userNodeFunctions);
     initSys();
@@ -53,7 +53,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     setNode("/sys/startTime", new StartTimeNode("/sys/startTime", this));
     setNode("/sys/clearConns", new ClearConnsAction("/sys/clearConns", this));
     setNode("/sys/throughput", new ThroughPutNode("/sys/throughput", this));
+    upstream = new UpstreamNode("/sys/upstream", this);
+    setNode("/sys/upstream", upstream);
   }
+
+  UpstreamNode upstream;
 
   bool _defsLoaded = false;
 
@@ -168,7 +172,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkNode node = connsNode.children[name];
       RemoteLinkManager manager = node._linkManager;
       if (manager.disconnected != null) {
-        
+
         String fullId = _connPath2id[manager.path];
         _connPath2id.remove(manager.path);
         _id2connPath.remove(fullId);
@@ -203,12 +207,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   LocalNode getNode(String path) {
     return nodes[path];
   }
-   
+
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     if (addToTree == true) {
       throw 'not supported';
     }
-    
+
     LocalNode node = nodes[path];
 
     if (node != null) {
@@ -299,7 +303,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   RemoteLinkManager getConnById(String id) {
     if (_id2connPath.containsKey(id)) {
-      return conns[_id2connPath[id]]; 
+      return conns[_id2connPath[id]];
     }
     return null;
   }
@@ -324,7 +328,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } else {
       // device link
       String connPath;
-      
+
       String folderPath = '/conns/';
       String dsId = fullId;
       if (fullId.contains(':')) {

@@ -9,6 +9,7 @@ import 'responder.dart';
 
 import 'src/crypto/pk.dart';
 import 'utils.dart';
+import 'dart:collection';
 
 part 'src/common/node.dart';
 part 'src/common/table.dart';
@@ -37,13 +38,54 @@ abstract class Connection {
   
   /// close the connection
   void close();
+  
+  ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<ConnectionAckGroup>();
+  void ack(int ackId){
+    ConnectionAckGroup findAckGroup;
+    for (ConnectionAckGroup ackGroup in pendingAcks) {
+      if (ackGroup.ackId == ackId) {
+        findAckGroup = ackGroup;
+        break;
+      }
+    }
+    while (findAckGroup != null) {
+      ConnectionAckGroup ackGroup = pendingAcks.removeFirst();
+      ackGroup.ackAll(ackId);
+      if (ackGroup == findAckGroup) {
+        break;
+      }
+    }
+  }
+  
+}
+
+/// generate message right before sending to get the latest update
+/// return messages and the processors that need ack callback
+class ProcessorResult{
+  List<Map> messages;
+  List<ConnectionProcessor> processors;
+  ProcessorResult(this.messages, this.processors);
+}
+class ConnectionAckGroup {
+  int ackId;
+  List<ConnectionProcessor> processors;
+  ConnectionAckGroup(this.ackId, this.processors) {
+    for (ConnectionProcessor processor in processors) {
+      processor.ackWaiting(ackId);
+    }
+  }
+  void ackAll(int ackid){
+    for (ConnectionProcessor processor in processors) {
+      processor.ackReceived(ackId);
+    }
+  }
 }
 
 abstract class ConnectionChannel {
   /// raw connection need to handle error and resending of data, so it can only send one map at a time
   /// a new getData function will always overwrite the previous one;
   /// requester and responder should handle the merging of methods
-  void sendWhenReady(List getData());
+  void sendWhenReady(ConnectionHandler handler);
 
   /// receive data from method stream
   Stream<List> get onReceive;

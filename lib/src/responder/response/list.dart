@@ -10,9 +10,9 @@ class ListResponse extends Response {
         responder.nodeProvider.permissions.getPermission(node.path, responder);
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
-      responder.addProcessor(processor);
+      prepareSendingData();
     } else if (node.disconnected != null) {
-      responder.addProcessor(processor);
+      prepareSendingData();
     }
   }
 
@@ -27,14 +27,16 @@ class ListResponse extends Response {
     }
     if (changes.isEmpty) {
       changes.add(key);
-      responder.addProcessor(processor);
+      prepareSendingData();
     } else {
       changes.add(key);
     }
   }
 
   bool _disconnectSent = false;
-  void processor() {
+  @override
+  void startSendingData() {
+    _pendingSendingData = false;
     Object updateIs;
     Object updateBase;
     List updateConfigs = [];

@@ -1,6 +1,6 @@
 part of dslink.browser_client;
 
-class WebSocketConnection implements Connection {
+class WebSocketConnection extends Connection {
   PassiveChannel _responderChannel;
 
   ConnectionChannel get responderChannel => _responderChannel;
@@ -129,6 +129,9 @@ class WebSocketConnection implements Connection {
           // send requests to responder channel
           _responderChannel.onReceiveController.add(m['requests']);
         }
+        if (m['ack'] is int) {
+          ack(m['ack']);
+        }
         if (needAck) {
           Object msgId = m['msg'];
           if (msgId != null) {
@@ -156,6 +159,9 @@ class WebSocketConnection implements Connection {
           needAck = true;
           // send requests to responder channel
           _responderChannel.onReceiveController.add(m['requests']);
+        }
+        if (m['ack'] is int) {
+          ack(m['ack']);
         }
         if (needAck) {
           Object msgId = m['msg'];
@@ -192,21 +198,32 @@ class WebSocketConnection implements Connection {
       m = {};
     }
 
-    if (_responderChannel.getData != null) {
-      List rslt = _responderChannel.getData();
-      if (rslt != null && rslt.length != 0) {
-        m['responses'] = rslt;
+    List pendingAck = [];
+    ProcessorResult rslt = _responderChannel.getSendingData();
+    if (rslt != null) {
+      if (rslt.messages.length > 0) {
+        m['responses'] = rslt.messages;
         needSend = true;
       }
-    }
-    if (_requesterChannel.getData != null) {
-      List rslt = _requesterChannel.getData();
-      if (rslt != null && rslt.length != 0) {
-        m['requests'] = rslt;
-        needSend = true;
+      if (rslt.processors.length > 0) {
+        pendingAck.addAll(rslt.processors);
       }
     }
+    rslt = _requesterChannel.getSendingData();
+    if (rslt != null) {
+      if (rslt.messages.length > 0) {
+        m['requests'] = rslt.messages;
+        needSend = true;
+      }
+      if (rslt.processors.length > 0) {
+        pendingAck.addAll(rslt.processors);
+      }
+    }
+    
     if (needSend) {
+      if (pendingAck.length > 0) {
+        pendingAcks.add(new ConnectionAckGroup(msgId, pendingAck));
+      }
       m['msg'] = msgId++;
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
