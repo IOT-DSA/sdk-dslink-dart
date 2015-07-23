@@ -49,7 +49,7 @@ class SubscribeController implements RequestUpdater {
   }
 }
 
-class SubscribeRequest extends Request {
+class SubscribeRequest extends Request implements ConnectionProcessor{
   final Map<String, ReqSubscribeController> subsriptions =
       new Map<String, ReqSubscribeController>();
 
@@ -63,7 +63,7 @@ class SubscribeRequest extends Request {
 
   @override
   void resend() {
-    requester.addProcessor(_sendSubscriptionReuests);
+    prepareSending();
   }
 
   @override
@@ -129,7 +129,7 @@ class SubscribeRequest extends Request {
     String path = controller.node.remotePath;
     subsriptions[path] = controller;
     subsriptionids[controller.sid] = controller;
-    requester.addProcessor(_sendSubscriptionReuests);
+    prepareSending();
     _changedPaths.add(path);
   }
 
@@ -137,7 +137,7 @@ class SubscribeRequest extends Request {
     String path = controller.node.remotePath;
     if (subsriptions.containsKey(path)) {
       toRemove[subsriptions[path].sid] = subsriptions[path];
-      requester.addProcessor(_sendSubscriptionReuests);
+      prepareSending();
     } else if (subsriptionids.containsKey(controller.sid)) {
       logger.severe(
           'unexpected remoteSubscription in the requester, sid: ${controller.sid}');
@@ -145,7 +145,15 @@ class SubscribeRequest extends Request {
   }
 
   Map<int, ReqSubscribeController> toRemove = new Map<int, ReqSubscribeController>();
-  void _sendSubscriptionReuests() {
+  void prepareSending(){
+    if (!_pendingSend) {
+      _pendingSend = true;
+      requester.addProcessor(this);
+    }
+  }
+  bool _pendingSend = false;
+  void startSendingData() {
+    _pendingSend = false;
     if (requester.connection == null) {
       return;
     }
@@ -179,6 +187,13 @@ class SubscribeRequest extends Request {
       requester._sendRequest({'method': 'unsubscribe', 'sids': removeSids}, null);
       toRemove.clear();
     }
+  }
+
+  void ackWaiting(int ackId) {
+    // TODO: implement ackSent
+  }
+  void ackReceived(int ackId) {
+    // TODO: implement ackReceived
   }
 }
 
