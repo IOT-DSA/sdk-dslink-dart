@@ -133,7 +133,7 @@ class PrivateKeyImpl implements PrivateKey {
     var point = _curve["Point"].callMethod("fromEncoded", ["prime256v1", buf]);
     var secret = _privateKey.callMethod("getSharedSecret", [point]);
 
-    return new Future.value(new ECDHImpl(secret, publicKey, this));
+    return new Future.value(new ECDHImpl(_toObj(secret), publicKey, this));
   }
 }
 
