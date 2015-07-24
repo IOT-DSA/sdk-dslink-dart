@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 typedef void OnInvokeClosed(InvokeResponse response);
-typedef void OnInvokeAcked(InvokeResponse response, int startTime, int expectedAckTime, int currentTime);
+typedef void OnInvokeAcked(InvokeResponse response, int ackId, int startTime, int currentTime);
 
 class InvokeResponse extends Response {
   final LocalNode node;
@@ -34,7 +34,7 @@ class InvokeResponse extends Response {
   }
 
   @override
-  void startSendingData(int currentTime, int expectedAckTime, int waitingAckId) {
+  void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
     if (_err != null) {
       responder._closeResponse(rid, response: this, error: _err);
@@ -81,9 +81,9 @@ class InvokeResponse extends Response {
   void ackWaiting(int ackId) {
     _waitingAckId = ackId;
   }
-  void ackReceived(int receiveAckId, int startTime, int expectedAckTime, int currentTime) {
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {
     if (onAck != null && !_closed) {
-      onAck(this, startTime, expectedAckTime, currentTime);
+      onAck(this, receiveAckId, startTime, currentTime);
     }
   }
 }

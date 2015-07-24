@@ -56,11 +56,12 @@ class SubscribeResponse extends Response {
     prepareSending();
   }
   @override
-  void startSendingData(int currentTime, int expectedAckTime, int waitingAckId) {
+  void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
-    if (_expectedAckTime == -1) {
-      _expectedAckTime = expectedAckTime;
-    }
+    
+    _waitingAckCount++;
+    _lastWatingAckId = waitingAckId;
+    
     List updates = [];
     for (RespSubscribeController controller in changed) {
       updates.addAll(controller.process());
@@ -69,9 +70,16 @@ class SubscribeResponse extends Response {
     changed.clear();
   }
 
-  int _expectedAckTime = -1;
-  void ackReceived(int receiveAckId, int startTime, int expectedAckTime, int currentTime) {
-    _expectedAckTime = -1;
+  int _waitingAckCount = 0;
+  int _lastWatingAckId = -1;
+   
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {
+    if (receiveAckId == _lastWatingAckId) {
+      _waitingAckCount = 0;
+    } else {
+      _waitingAckCount --;
+    }
+    
     if (_sendingAfterAck) {
       _sendingAfterAck = false;
       prepareSending();
@@ -82,12 +90,9 @@ class SubscribeResponse extends Response {
     if (_sendingAfterAck) {
       return;
     }
-    if (_expectedAckTime > -1) {
-      int ts = (new DateTime.now()).millisecondsSinceEpoch;
-      if (ts > _expectedAckTime) {
-        _sendingAfterAck = true;
-        return;
-      }
+    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+      _sendingAfterAck = true;
+      return;
     }
     if (!_pendingSending) {
       _pendingSending = true;

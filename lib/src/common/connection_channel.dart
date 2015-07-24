@@ -17,9 +17,9 @@ class PassiveChannel implements ConnectionChannel {
     conn.requireSend();
   }
 
-  ProcessorResult getSendingData(int currentTime, int expectedAckTime, int waitingAckId){
+  ProcessorResult getSendingData(int currentTime, int waitingAckId){
     if (handler != null) {
-      ProcessorResult rslt = handler.getSendingData(currentTime, expectedAckTime, waitingAckId);
+      ProcessorResult rslt = handler.getSendingData(currentTime, waitingAckId);
       //handler = null;
       return rslt;
     }
