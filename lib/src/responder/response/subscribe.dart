@@ -59,9 +59,11 @@ class SubscribeResponse extends Response {
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
     
-    _waitingAckCount++;
-    _lastWatingAckId = waitingAckId;
-    
+    if (waitingAckId != -1) {
+      _waitingAckCount++;
+      _lastWatingAckId = waitingAckId;
+    }
+  
     List updates = [];
     for (RespSubscribeController controller in changed) {
       updates.addAll(controller.process());

@@ -149,8 +149,10 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
     
-    _waitingAckCount++;
-    _lastWatingAckId = waitingAckId;
+    if (waitingAckId != -1) {
+      _waitingAckCount++;
+      _lastWatingAckId = waitingAckId;
+    }
     
     if (requester.connection == null) {
       return;

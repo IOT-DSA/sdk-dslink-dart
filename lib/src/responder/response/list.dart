@@ -38,8 +38,10 @@ class ListResponse extends Response {
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
     
-    _waitingAckCount++;
-    _lastWatingAckId = waitingAckId;
+    if (waitingAckId != -1) {
+      _waitingAckCount++;
+      _lastWatingAckId = waitingAckId;
+    }
     
     Object updateIs;
     Object updateBase;

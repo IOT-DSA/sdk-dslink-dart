@@ -22,8 +22,10 @@ class HttpServerLink implements ServerLink {
 
   Connection connection;
 
-  // TODO(rinick): deprecate this, all dslinks need to support it
+  /// TODO(rinick): deprecate this, all dslinks need to support it
   final bool enableTimeout;
+  /// TODO(rinick): deprecate this, all dslinks need to support it
+  final bool enableAck;
 
   final List<String> _saltBases = new List<String>(3);
   final List<int> _saltInc = <int>[0, 0, 0];
@@ -39,7 +41,7 @@ class HttpServerLink implements ServerLink {
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider,
       String sessionId,
-      this.enableTimeout: false})
+      this.enableTimeout: false, this.enableAck: false})
       : dsId = id,
         session = sessionId,
         requester = linkManager.getRequester(id),
@@ -221,6 +223,6 @@ class HttpServerLink implements ServerLink {
   }
 
   ServerWebSocket createWsConnection(WebSocket websocket) {
-    return new ServerWebSocket(websocket, enableTimeout: enableTimeout);
+    return new ServerWebSocket(websocket, enableTimeout: enableTimeout, enableAck:enableAck);
   }
 }

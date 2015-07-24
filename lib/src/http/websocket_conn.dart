@@ -31,11 +31,14 @@ class WebSocketConnection extends Connection {
 
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket,
-      {this.clientLink, bool enableTimeout: false}) {
+      {this.clientLink, bool enableTimeout: false, bool enableAck: false}) {
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
     socket.listen(onData, onDone: _onDone);
     socket.add(fixedBlankData);
+    if (!enableAck) {
+      msgId = -1;
+    }
     if (enableTimeout) {
       pingTimer = new Timer.periodic(new Duration(seconds: 20), onPingTimer);
     }
@@ -178,6 +181,7 @@ class WebSocketConnection extends Connection {
 
     logger.finest("end WebSocketConnection.onData");
   }
+  /// when msgId = -1, ack is disabled
   int msgId = 0;
   bool _sending = false;
   void _send() {
@@ -214,10 +218,12 @@ class WebSocketConnection extends Connection {
       }
     }
     if (needSend) {
-      if (pendingAck.length > 0) {
-        pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
+      if (msgId != -1) {
+        if (pendingAck.length > 0) {
+          pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
+        }
+        m['msg'] = msgId++;
       }
-      m['msg'] = msgId++;
       addData(m);
       _dataSent = true;
     }
