@@ -4,6 +4,7 @@ import "dart:io";
 
 import "package:dslink/broker.dart";
 import "package:dslink/client.dart";
+import "package:dslink/utils.dart";
 import "package:dslink/server.dart";
 
 BrokerNodeProvider broker;
@@ -90,6 +91,7 @@ main(List<String> _args) async {
     await configFile.writeAsString(data + '\n');
   }
 
+  updateLogLevel(getConfig("log_level", "info"));
   broker = new BrokerNodeProvider();
   server = new DsHttpServer.start(getConfig("host", "0.0.0.0"),
       httpPort: getConfig("port", -1),

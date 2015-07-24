@@ -283,6 +283,7 @@ class UpstreamBrokerNode extends BrokerNode {
   bool toBeRemoved = false;
 
   LinkProvider link;
+  UpstreamServerLink serverLink;
 
   UpstreamBrokerNode(String path, this.name, this.url, this.ourName,
                      BrokerNodeProvider provider)
@@ -314,10 +315,19 @@ class UpstreamBrokerNode extends BrokerNode {
       return;
     }
 
-    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: provider);
+    BrokerNodeProvider p = provider;
+    var level = logger.level;
+    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: p, isRequester: true);
 
     link.init();
+
+    logger.level = level;
+
     link.connect();
+
+    serverLink = new UpstreamServerLink(name, link);
+    p.addLink(serverLink);
+
     ien.updateValue(true);
     enabled = true;
   }
@@ -328,7 +338,52 @@ class UpstreamBrokerNode extends BrokerNode {
     }
 
     link.stop();
+    BrokerNodeProvider p = provider;
+
+    p.removeLink(serverLink);
     ien.updateValue(false);
     enabled = false;
   }
+}
+
+class UpstreamServerLink extends ServerLink {
+  final String rname;
+  final LinkProvider link;
+
+  UpstreamServerLink(this.rname, this.link);
+
+  @override
+  PublicKey get publicKey => link.privateKey.publicKey;
+
+  @override
+  String get dsId => link.link.dsId;
+
+  @override
+  String get session => "upstream@${rname}";
+
+  @override
+  void close() {
+    link.close();
+  }
+
+  @override
+  Requester get requester {
+    return link.link.requester;
+  }
+
+  @override
+  Responder get responder => link.link.responder;
+
+  @override
+  Future<Requester> get onRequesterReady {
+    try {
+      throw "";
+    } catch (e, stack) {
+      print(stack);
+    }
+    return link.onRequesterReady;
+  }
+
+  @override
+  ECDH get nonce => link.link.nonce;
 }

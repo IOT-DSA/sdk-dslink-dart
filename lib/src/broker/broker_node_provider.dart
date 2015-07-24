@@ -14,8 +14,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   BrokerNode connsNode;
   BrokerNode usersNode;
   BrokerNode defsNode;
+  BrokerNode upstreamDataNode;
   BrokerNode quarantineNode;
-  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'sys': {}};
+  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'sys': {}, 'upstream': {}};
 
   bool shouldSaveFiles = true;
   bool enabledQuarantine = false;
@@ -35,6 +36,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
+    upstreamDataNode = nodes['/upstream'];
 
     enabledPermission = defaultPermission != null;
     if (enabledPermission) {
@@ -261,6 +263,20 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         connsNode.updateList(connName);
       }
       node = conn.getOrCreateNode(path, false);
+    } else if (path.startsWith('/upstream/')) {
+      String upstreamName = path.split('/')[2];
+      String connPath = '/upstream/${upstreamName}';
+      RemoteLinkManager conn = conns[connPath];
+      if (conn == null) {
+        conn = new RemoteLinkManager(this, connPath, this);
+        conns[connPath] = conn;
+        nodes[connPath] = conn.rootNode;
+        upstreamDataNode.children[upstreamName] = conn.rootNode;
+        conn.rootNode.parentNode = upstreamDataNode;
+        conn.inTree = true;
+        upstreamDataNode.updateList(upstreamName);
+      }
+      node = conn.getOrCreateNode(path, false);
     } else if (path.startsWith('/quarantine/')) {
       List paths = path.split('/');
       String user = paths[2];
@@ -314,6 +330,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (_id2connPath.containsKey(fullId)) {
       return _id2connPath[fullId];
       // TODO is it possible same link get added twice?
+    } else if (fullId.contains("@")) {
+      var name = fullId.substring(0, fullId.indexOf("@"));
+      return '/upstream/$name';
     } else if (fullId.length < 43) {
       // user link
       String connPath = '/conns/$fullId';
@@ -361,7 +380,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void addLink(ServerLink link) {
     String str = link.dsId;
     if (link.session != null) {
-      str = '$str ${link.session}';
+      if (link.session.startsWith("upstream@")) {
+        str = "${link.session.substring(9)}@${str}";
+      } else {
+        str = '$str ${link.session}';
+      }
     }
 
     String connPath;
@@ -370,7 +393,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // TODO is it possible same link get added twice?
     } else {
       _links[str] = link;
-      if (link.session == null) {
+      if (link.session == null || link.session.startsWith("upstream@")) {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
         getOrCreateNode(connPath, false).configs[r'$$dsId'] = link.dsId;
@@ -407,7 +430,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   Requester getRequester(String dsId) {
     String connPath = makeConnPath(dsId);
-    if (conns.containsKey(makeConnPath)) {
+    if (conns.containsKey(connPath)) {
       return conns[connPath].requester;
     }
     /// create the RemoteLinkManager
