@@ -35,8 +35,12 @@ class ListResponse extends Response {
 
   bool _disconnectSent = false;
   @override
-  void startSendingData() {
+  void startSendingData(int currentTime, int expectedAckTime, int waitingAckId) {
     _pendingSending = false;
+    if (_expectedAckTime == -1) {
+      _expectedAckTime = expectedAckTime;
+    }
+    
     Object updateIs;
     Object updateBase;
     List updateConfigs = [];
@@ -131,26 +135,32 @@ class ListResponse extends Response {
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
 
-  bool _waitingAck = false;
-  void ackWaiting(int ackId) {
-    _waitingAck = true;
-  }
-  void ackReceived(int ackId) {
-    _waitingAck = false;
-    if (_sendAfterAck) {
-      _sendAfterAck = false;
+  int _expectedAckTime = -1;
+  void ackReceived(int receiveAckId, int startTime, int expectedAckTime, int currentTime) {
+    _expectedAckTime = -1;
+    if (_sendingAfterAck) {
+      _sendingAfterAck = false;
       prepareSending();
     }
   }
+  bool _sendingAfterAck = false;
+  void prepareSending() {
+    if (_sendingAfterAck) {
+      return;
+    }
+    if (_expectedAckTime > -1) {
+      int ts = (new DateTime.now()).millisecondsSinceEpoch;
+      if (ts > _expectedAckTime) {
+        _sendingAfterAck = true;
+        return;
+      }
+    }
+    if (!_pendingSending) {
+      _pendingSending = true;
+      responder.addProcessor(this);
+    }
+  }
   
-  bool _sendAfterAck = false;
-//  void prepareSending() {
-//    if (_waitingAck) {
-//      _sendAfterAck = true;
-//    } else {
-//      super.prepareSending();
-//    }
-//  }
   
   void _close() {
     _nodeChangeListener.cancel();

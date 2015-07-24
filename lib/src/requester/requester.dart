@@ -46,8 +46,8 @@ class Requester extends ConnectionHandler {
   // TODO need a new design for short polling and long polling
   int lastSentId = 0;
 
-  ProcessorResult getSendingData() {
-    ProcessorResult rslt = super.getSendingData();
+  ProcessorResult getSendingData(int currentTime, int expectedAckTime, int waitingAckId) {
+    ProcessorResult rslt = super.getSendingData(currentTime, expectedAckTime, waitingAckId);
     lastSentId = nextRid - 1;
     return rslt;
   }

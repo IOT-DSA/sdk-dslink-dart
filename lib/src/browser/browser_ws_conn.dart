@@ -199,7 +199,10 @@ class WebSocketConnection extends Connection {
     }
 
     List pendingAck = [];
-    ProcessorResult rslt = _responderChannel.getSendingData();
+    
+    int ts = (new DateTime.now()).millisecondsSinceEpoch;
+    int expectedAckTime =  ts + expectLatency;
+    ProcessorResult rslt = _responderChannel.getSendingData(ts, expectedAckTime, msgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         m['responses'] = rslt.messages;
@@ -209,7 +212,7 @@ class WebSocketConnection extends Connection {
         pendingAck.addAll(rslt.processors);
       }
     }
-    rslt = _requesterChannel.getSendingData();
+    rslt = _requesterChannel.getSendingData(ts, expectedAckTime, msgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         m['requests'] = rslt.messages;
@@ -222,7 +225,7 @@ class WebSocketConnection extends Connection {
     
     if (needSend) {
       if (pendingAck.length > 0) {
-        pendingAcks.add(new ConnectionAckGroup(msgId, pendingAck));
+        pendingAcks.add(new ConnectionAckGroup(msgId, ts, expectedAckTime, pendingAck));
       }
       m['msg'] = msgId++;
       logger.fine('send: $m');

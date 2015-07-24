@@ -39,6 +39,27 @@ abstract class Connection {
   /// close the connection
   void close();
   
+  /// average latency based on ack history
+  double _ackLatency = 20.0;
+  /// how many ack is counted, won't increase after 32, so early ack will get smaller and samller weight in the average
+  double _ackCount = 1.0;
+  /// allow an ack to be 50% late than average ack
+  int expectLatency = 30;
+  
+  void addAckLatency(double t) {
+    if (t > _ackLatency) {
+      t = (t + _ackLatency)/4.0;
+    }
+    if (t > 1000.0) {
+      t = 1000.0;
+    }
+    _ackLatency = (_ackLatency * _ackCount + t)/(_ackCount + 1.0);
+    expectLatency = (_ackLatency * 1.5).ceil();
+    if (_ackCount < 32.0) {
+      _ackCount++;
+    }
+  }
+  
   ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<ConnectionAckGroup>();
   void ack(int ackId){
     ConnectionAckGroup findAckGroup;
@@ -46,14 +67,21 @@ abstract class Connection {
       if (ackGroup.ackId == ackId) {
         findAckGroup = ackGroup;
         break;
+      } else if (ackGroup.ackId < ackId) {
+        findAckGroup = ackGroup;
       }
     }
-    while (findAckGroup != null) {
-      ConnectionAckGroup ackGroup = pendingAcks.removeFirst();
-      ackGroup.ackAll(ackId);
-      if (ackGroup == findAckGroup) {
-        break;
-      }
+    if (findAckGroup != null) {
+      int ts = (new DateTime.now()).millisecondsSinceEpoch;
+      int thisLatency;
+      do {
+        ConnectionAckGroup ackGroup = pendingAcks.removeFirst();
+        thisLatency = ackGroup.ackAll(ackId, ts);
+        if (ackGroup == findAckGroup) {
+          break;
+        }
+      } while (findAckGroup != null);
+      addAckLatency(thisLatency.toDouble());
     }
   }
   
@@ -68,16 +96,15 @@ class ProcessorResult{
 }
 class ConnectionAckGroup {
   int ackId;
+  int startTime;
+  int expectedAckTime;
   List<ConnectionProcessor> processors;
-  ConnectionAckGroup(this.ackId, this.processors) {
+  ConnectionAckGroup(this.ackId, this.startTime, this.expectedAckTime, this.processors);
+  int ackAll(int ackid, int time){
     for (ConnectionProcessor processor in processors) {
-      processor.ackWaiting(ackId);
+      processor.ackReceived(ackId, startTime, expectedAckTime, time);
     }
-  }
-  void ackAll(int ackid){
-    for (ConnectionProcessor processor in processors) {
-      processor.ackReceived(ackId);
-    }
+    return time - startTime;
   }
 }
 

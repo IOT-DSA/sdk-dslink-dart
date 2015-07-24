@@ -1,9 +1,8 @@
 part of dslink.common;
 
 abstract class ConnectionProcessor {
-  void startSendingData();
-  void ackWaiting(int ackId);
-  void ackReceived(int ackId);
+  void startSendingData(int waitingAckId, int currentTime, int expectedAckTime);
+  void ackReceived(int receiveAckId, int startTime, int expectedAckTime, int currentTime);
 }
 
 abstract class ConnectionHandler {
@@ -75,12 +74,12 @@ abstract class ConnectionHandler {
   bool _pendingSend = false;
 
   /// gather all the changes from
-  ProcessorResult getSendingData() {
+  ProcessorResult getSendingData(int currentTime, int expectedAckTime, int waitingAckId) {
     _pendingSend = false;
     List<ConnectionProcessor> processors = _processors;
     _processors = [];
     for (ConnectionProcessor proc in processors) {
-      proc.startSendingData();
+      proc.startSendingData(currentTime, expectedAckTime, waitingAckId);
     }
     List<Map> rslt = _toSendList;
     _toSendList = [];
