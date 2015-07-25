@@ -19,6 +19,8 @@ class BrowserECDHLink implements ClientLink {
   WebSocketConnection _wsConnection;
 //  HttpBrowserConnection _httpConnection;
 
+  bool enableAck = false;
+  
   static const Map<String, int> saltNameMap = const {
     'salt': 0,
     'saltS': 1,
@@ -83,7 +85,10 @@ class BrowserECDHLink implements ClientLink {
         _httpUpdateUri =
             '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
       }
-
+      // server start to support version since 1.0.4
+      // and this is the version ack is added
+      enableAck = serverConfig.containsKey('version');
+      
       initWebsocket(false);
       _connDelay = 1;
       _wsDelay = 1;
@@ -103,7 +108,7 @@ class BrowserECDHLink implements ClientLink {
 //    }
     var socket =
         new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
-    _wsConnection = new WebSocketConnection(socket, this, onConnect: () {
+    _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, onConnect: () {
       if (!_onConnectedCompleter.isCompleted) {
         _onConnectedCompleter.complete();
       }

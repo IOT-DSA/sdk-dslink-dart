@@ -1,7 +1,7 @@
 part of dslink.common;
 
 abstract class ConnectionProcessor {
-  static const int WAITCOUNT = 4;
+  static const int WAITCOUNT = 8;
   
   void startSendingData(int waitingAckId, int currentTime);
   void ackReceived(int receiveAckId, int startTime, int currentTime);

@@ -31,7 +31,7 @@ class WebSocketConnection extends Connection {
 
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket,
-      {this.clientLink, bool enableTimeout: false, bool enableAck: false}) {
+      {this.clientLink, bool enableTimeout: false, bool enableAck: true}) {
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
     socket.listen(onData, onDone: _onDone);

@@ -25,7 +25,10 @@ class WebSocketConnection extends Connection {
   Function onConnect;
 
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, this.clientLink, {this.onConnect}) {
+  WebSocketConnection(this.socket, this.clientLink, {this.onConnect, bool enableAck:false}) {
+    if (!enableAck) {
+      msgId = -1;
+    }
     socket.binaryType = 'arraybuffer';
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
@@ -223,9 +226,12 @@ class WebSocketConnection extends Connection {
     }
     
     if (needSend) {
-      if (pendingAck.length > 0) {
-        pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
+      if (msgId != -1) {
+        if (pendingAck.length > 0) {
+          pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
+        }
       }
+
       m['msg'] = msgId++;
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);

@@ -38,14 +38,16 @@ class HttpClientLink implements ClientLink {
   String _wsUpdateUri;
 //  String _httpUpdateUri;
   String _conn;
-  bool enableHttp;
-
+//  bool enableHttp;
+  bool enableAck = false;
+  
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider,
       bool isRequester: true,
       bool isResponder: true,
-      this.home,
-      this.enableHttp: false})
+      this.home
+      //this.enableHttp: false
+      })
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
@@ -100,7 +102,9 @@ class HttpClientLink implements ClientLink {
       } else {
         _nonce = await privateKey.getSecret(tempKey);
       }
-
+      // server start to support version since 1.0.4
+      // and this is the version ack is added
+      enableAck = serverConfig.containsKey('version');
 
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
@@ -137,7 +141,7 @@ class HttpClientLink implements ClientLink {
     try {
       var socket = await HttpHelper.connectToWebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
       _wsConnection = new WebSocketConnection(socket,
-          clientLink: this, enableTimeout: true);
+          clientLink: this, enableTimeout: true, enableAck:enableAck);
 
       logger.info("Connected");
       if (!_onConnectedCompleter.isCompleted) {

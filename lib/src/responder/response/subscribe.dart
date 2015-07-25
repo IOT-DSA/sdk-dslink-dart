@@ -89,13 +89,13 @@ class SubscribeResponse extends Response {
   }
   bool _sendingAfterAck = false;
   void prepareSending() {
-//    if (_sendingAfterAck) {
-//      return;
-//    }
-//    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
-//      _sendingAfterAck = true;
-//      return;
-//    }
+    if (_sendingAfterAck) {
+      return;
+    }
+    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+      _sendingAfterAck = true;
+      return;
+    }
     if (!_pendingSending) {
       _pendingSending = true;
       responder.addProcessor(this);
