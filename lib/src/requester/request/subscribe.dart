@@ -146,8 +146,14 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
 
   Map<int, ReqSubscribeController> toRemove = new Map<int, ReqSubscribeController>();
   
-  void startSendingData() {
-    _pendingSend = false;
+  void startSendingData(int currentTime, int waitingAckId) {
+    _pendingSending = false;
+    
+    if (waitingAckId != -1) {
+      _waitingAckCount++;
+      _lastWatingAckId = waitingAckId;
+    }
+    
     if (requester.connection == null) {
       return;
     }
@@ -183,29 +189,37 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
     }
   }
 
-  bool _waitingAck = false;
-  void ackWaiting(int ackId) {
-    _waitingAck = true;
-  }
-  void ackReceived(int ackId) {
-    _waitingAck = false;
-    if (_sendAfterAck) {
-      _sendAfterAck = false;
+  bool _pendingSending = false;
+  int _waitingAckCount = 0;
+  int _lastWatingAckId = -1;
+   
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {
+    if (receiveAckId == _lastWatingAckId) {
+      _waitingAckCount = 0;
+    } else {
+      _waitingAckCount --;
+    }
+    
+    if (_sendingAfterAck) {
+      _sendingAfterAck = false;
       prepareSending();
     }
   }
-  bool _pendingSend = false;
-  bool _sendAfterAck = false;
+  bool _sendingAfterAck = false;
   void prepareSending() {
-//    if (_waitingAck) {
-//      _sendAfterAck = true;
-//    } else {
-      if (!_pendingSend) {
-        _pendingSend = true;
-        requester.addProcessor(this);
-      }
-//    }
+    if (_sendingAfterAck) {
+      return;
+    }
+    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+      _sendingAfterAck = true;
+      return;
+    }
+    if (!_pendingSending) {
+      _pendingSending = true;
+      requester.addProcessor(this);
+    }
   }
+  
 }
 
 class ReqSubscribeController {

@@ -23,14 +23,11 @@ class Response implements ConnectionProcessor{
     }
   }
   bool _pendingSending = false;
-  void startSendingData() {
+  void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
   }
-  
-  void ackWaiting(int ackId) {
-    // TODO: implement ackSent
-  }
-  void ackReceived(int ackId) {
+
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {
     // TODO: implement ackReceived
   }
 }

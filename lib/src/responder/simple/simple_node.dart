@@ -416,9 +416,9 @@ class SimpleNode extends LocalNodeImpl {
           (rslt as AsyncTableResult).onClose(response);
         }
       };
-      response.onAck = (var response, int waitingAckId, int receivedAckId) {
+      response.onAck = (InvokeResponse response, int ackId, int startTime, int currentTime) {
          if ((rslt as AsyncTableResult).onAck != null) {
-           (rslt as AsyncTableResult).onAck(response, waitingAckId, receivedAckId);
+           (rslt as AsyncTableResult).onAck(response, ackId, startTime, currentTime);
          }
       };
       return response;

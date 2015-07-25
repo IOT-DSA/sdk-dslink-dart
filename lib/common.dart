@@ -39,6 +39,7 @@ abstract class Connection {
   /// close the connection
   void close();
   
+  
   ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<ConnectionAckGroup>();
   void ack(int ackId){
     ConnectionAckGroup findAckGroup;
@@ -46,14 +47,19 @@ abstract class Connection {
       if (ackGroup.ackId == ackId) {
         findAckGroup = ackGroup;
         break;
+      } else if (ackGroup.ackId < ackId) {
+        findAckGroup = ackGroup;
       }
     }
-    while (findAckGroup != null) {
-      ConnectionAckGroup ackGroup = pendingAcks.removeFirst();
-      ackGroup.ackAll(ackId);
-      if (ackGroup == findAckGroup) {
-        break;
-      }
+    if (findAckGroup != null) {
+      int ts = (new DateTime.now()).millisecondsSinceEpoch;
+      do {
+        ConnectionAckGroup ackGroup = pendingAcks.removeFirst();
+        ackGroup.ackAll(ackId, ts);
+        if (ackGroup == findAckGroup) {
+          break;
+        }
+      } while (findAckGroup != null);
     }
   }
   
@@ -68,15 +74,13 @@ class ProcessorResult{
 }
 class ConnectionAckGroup {
   int ackId;
+  int startTime;
+  int expectedAckTime;
   List<ConnectionProcessor> processors;
-  ConnectionAckGroup(this.ackId, this.processors) {
+  ConnectionAckGroup(this.ackId, this.startTime, this.processors);
+  void ackAll(int ackid, int time){
     for (ConnectionProcessor processor in processors) {
-      processor.ackWaiting(ackId);
-    }
-  }
-  void ackAll(int ackid){
-    for (ConnectionProcessor processor in processors) {
-      processor.ackReceived(ackId);
+      processor.ackReceived(ackId, startTime, time);
     }
   }
 }

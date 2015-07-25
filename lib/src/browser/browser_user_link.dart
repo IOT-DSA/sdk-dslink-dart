@@ -18,6 +18,8 @@ class BrowserUserLink implements ClientLink {
   WebSocketConnection _wsConnection;
 //  HttpBrowserConnection _httpConnection;
 
+  bool enableAck = false;
+  
   static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
 
   updateSalt(String salt, [int saltId = 0]) {

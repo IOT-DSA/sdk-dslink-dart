@@ -22,8 +22,10 @@ class HttpServerLink implements ServerLink {
 
   Connection connection;
 
-  // TODO(rinick): deprecate this, all dslinks need to support it
+  /// TODO(rinick): deprecate this, all dslinks need to support it
   final bool enableTimeout;
+  /// TODO(rinick): deprecate this, all dslinks need to support it
+  final bool enableAck;
 
   final List<String> _saltBases = new List<String>(3);
   final List<int> _saltInc = <int>[0, 0, 0];
@@ -39,7 +41,7 @@ class HttpServerLink implements ServerLink {
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider,
       String sessionId,
-      this.enableTimeout: false})
+      this.enableTimeout: false, this.enableAck: true})
       : dsId = id,
         session = sessionId,
         requester = linkManager.getRequester(id),
@@ -85,7 +87,8 @@ class HttpServerLink implements ServerLink {
       //"vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": wsUri,
       "httpUri": httpUri,
-      "updateInterval": updateInterval
+      "updateInterval": updateInterval,
+      "version": DSA_VERSION
     };
     if (!trusted) {
       tempNonce = await ECDH.assign(publicKey, verifiedNonce);
@@ -221,6 +224,6 @@ class HttpServerLink implements ServerLink {
   }
 
   ServerWebSocket createWsConnection(WebSocket websocket) {
-    return new ServerWebSocket(websocket, enableTimeout: enableTimeout);
+    return new ServerWebSocket(websocket, enableTimeout: enableTimeout, enableAck:enableAck);
   }
 }

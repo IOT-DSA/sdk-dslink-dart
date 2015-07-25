@@ -35,8 +35,14 @@ class ListResponse extends Response {
 
   bool _disconnectSent = false;
   @override
-  void startSendingData() {
+  void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
+    
+    if (waitingAckId != -1) {
+      _waitingAckCount++;
+      _lastWatingAckId = waitingAckId;
+    }
+    
     Object updateIs;
     Object updateBase;
     List updateConfigs = [];
@@ -131,26 +137,36 @@ class ListResponse extends Response {
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
 
-  bool _waitingAck = false;
-  void ackWaiting(int ackId) {
-    _waitingAck = true;
-  }
-  void ackReceived(int ackId) {
-    _waitingAck = false;
-    if (_sendAfterAck) {
-      _sendAfterAck = false;
+  int _waitingAckCount = 0;
+  int _lastWatingAckId = -1;
+   
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {
+    if (receiveAckId == _lastWatingAckId) {
+      _waitingAckCount = 0;
+    } else {
+      _waitingAckCount --;
+    }
+    
+    if (_sendingAfterAck) {
+      _sendingAfterAck = false;
       prepareSending();
     }
   }
-  
-  bool _sendAfterAck = false;
+  bool _sendingAfterAck = false;
   void prepareSending() {
-    if (_waitingAck) {
-      _sendAfterAck = true;
-    } else {
-      super.prepareSending();
+    if (_sendingAfterAck) {
+      return;
+    }
+    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+      _sendingAfterAck = true;
+      return;
+    }
+    if (!_pendingSending) {
+      _pendingSending = true;
+      responder.addProcessor(this);
     }
   }
+  
   
   void _close() {
     _nodeChangeListener.cancel();

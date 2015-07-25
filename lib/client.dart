@@ -474,7 +474,6 @@ class LinkProvider {
           isRequester: isRequester,
           isResponder: isResponder,
           nodeProvider: provider,
-          enableHttp: enableHttp,
           home: home);
       _ready = true;
 
