@@ -1,6 +1,10 @@
 language: dart
-script: ./tool/travis.sh
+script: "./tool/travis.sh"
 sudo: false
 dart:
 - stable
 - dev
+env:
+  global:
+  - secure: TzlLtsKoHCPotSBXkQZwobmEwMXzTioS3uG+Z+0ablygm+Ba+f9vja/PkT1odHcK39H/el2T4v6aOyU3hl52nMvKOsUvCtD1RTHPgK/ssQAaKhwb0Prx8qzK/0sv33Bo7k1Zqqu0CiKX6NWGrRxV2wraQehN5YDxpDr76P6wFxA=
+  - secure: omDxdGHkFzF6nuRTrjJ5I5xymdXlkb4NcRXIQ7wt+OYh3OTKz7pkGlvCOd6liUFYpiRbjApZRs4SMh7UViYyrMNSX9j2jPTiGSpvPw5X1RtdeAHuYKD/N+p11NlhNueaAT8wyr4yMrG5dR0Yby+O0XunFYcb4kp//L8pUEgdvLo=
