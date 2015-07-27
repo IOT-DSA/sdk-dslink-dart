@@ -230,9 +230,10 @@ class WebSocketConnection extends Connection {
         if (pendingAck.length > 0) {
           pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
         }
+        m['msg'] = msgId++;
       }
 
-      m['msg'] = msgId++;
+      
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
