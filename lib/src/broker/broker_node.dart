@@ -376,11 +376,6 @@ class UpstreamServerLink extends ServerLink {
 
   @override
   Future<Requester> get onRequesterReady {
-    try {
-      throw "";
-    } catch (e, stack) {
-      print(stack);
-    }
     return link.onRequesterReady;
   }
 

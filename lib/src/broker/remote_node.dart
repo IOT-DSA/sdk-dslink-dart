@@ -75,7 +75,6 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     if (rPath == '') {
       rPath = '/';
     }
-    print(fullPath);
     RemoteLinkNode node = nodes[rPath];
     if (node == null) {
       node = new RemoteLinkNode(fullPath, broker, rPath, this);
