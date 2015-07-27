@@ -18,7 +18,7 @@ class BrowserUserLink implements ClientLink {
   WebSocketConnection _wsConnection;
 //  HttpBrowserConnection _httpConnection;
 
-  bool enableAck = false;
+  bool enableAck;
   
   static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
 
@@ -34,7 +34,8 @@ class BrowserUserLink implements ClientLink {
       bool isRequester: true,
       bool isResponder: true,
       this.wsUpdateUri,
-      this.httpUpdateUri})
+      this.httpUpdateUri, 
+      this.enableAck:false})
       : requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
@@ -56,7 +57,7 @@ class BrowserUserLink implements ClientLink {
 //      initHttp();
 //    }
     var socket = new WebSocket('$wsUpdateUri?session=$session');
-    _wsConnection = new WebSocketConnection(socket, this);
+    _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck);
 
     if (responder != null) {
       responder.connection = _wsConnection.responderChannel;
