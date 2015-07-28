@@ -55,8 +55,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     setNode("/sys/startTime", new StartTimeNode("/sys/startTime", this));
     setNode("/sys/clearConns", new ClearConnsAction("/sys/clearConns", this));
     setNode("/sys/throughput", new ThroughPutNode("/sys/throughput", this));
+    
     upstream = new UpstreamNode("/sys/upstream", this);
     setNode("/sys/upstream", upstream);
+    
+    BrokerTraceNode.init(this);
   }
 
   UpstreamNode upstream;
@@ -384,7 +387,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   void addLink(ServerLink link) {
     String str = link.dsId;
-    if (link.session != null) {
+    if (link.session != '') {
       if (link.session.startsWith("upstream@")) {
         str = "${link.session.substring(9)}@${str}";
       } else {
@@ -408,6 +411,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   ServerLink getLink(String dsId, {String sessionId:''}) {
+    if (sessionId == null) sessionId = '';
     String str = dsId;
     if (sessionId != null && sessionId != '') {
       str = '$dsId ${sessionId}';

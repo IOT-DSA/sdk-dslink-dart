@@ -3,9 +3,18 @@ part of dslink.responder;
 typedef void OnInvokeClosed(InvokeResponse response);
 typedef void OnInvokeAcked(InvokeResponse response, int ackId, int startTime, int currentTime);
 
+class _InvokeResponseUpdate {
+  String type;
+  List rows;
+  Map meta;
+  _InvokeResponseUpdate(this.type, this.rows, this.meta);
+}
+
 class InvokeResponse extends Response {
+  final LocalNode parentNode;
   final LocalNode node;
-  InvokeResponse(Responder responder, int rid, this.node)
+  final String name;
+  InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid);
 
   int _pendingInitializeLength = 0;
@@ -13,12 +22,15 @@ class InvokeResponse extends Response {
   List _updates;
   String _sendingStreamStatus = StreamStatus.initialize;
   Map _meta;
+  /// optiions: stream, append, refresh
+  String type = 'stream';
   void updateStream(List updates,
       {List columns, String streamStatus: StreamStatus.open, Map meta}) {
     if (columns != null) {
       _columns = columns;
     }
     _meta = meta;
+    // TODO better way of merge response on different type of action result
     if (_updates == null) {
       _updates = updates;
     } else {
@@ -85,5 +97,9 @@ class InvokeResponse extends Response {
     if (onAck != null && !_closed) {
       onAck(this, receiveAckId, startTime, currentTime);
     }
+  }
+  /// for the broker trace action
+  ResponseTrace getTraceData([String change = '+']) {
+    return new ResponseTrace(parentNode.path, 'invoke', rid, change, name);
   }
 }

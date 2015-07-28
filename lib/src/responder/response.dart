@@ -30,4 +30,9 @@ class Response implements ConnectionProcessor{
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
     // TODO: implement ackReceived
   }
+  
+  /// for the broker trace action
+  ResponseTrace getTraceData([String change = '+']) {
+    return null;
+  }
 }
