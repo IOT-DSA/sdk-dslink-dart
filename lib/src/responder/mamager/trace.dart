@@ -23,7 +23,7 @@ class ResponseTrace {
 //  {'name': 'type', 'type': 'string'},
 //  {'name': 'rid', 'type': 'number'},
 //  {'name': 'action', 'type': 'string'},
-//  {'name': 'add', 'type': 'bool'},
+//  {'name': 'change', 'type': 'string'},
   List get rowData => [path, type, rid, action, change];
   
   ResponseTrace(this.path, this.type, this.rid, [this.change = '', this.action]);
