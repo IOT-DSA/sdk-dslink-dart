@@ -171,4 +171,9 @@ class ListResponse extends Response {
   void _close() {
     _nodeChangeListener.cancel();
   }
+  
+  /// for the broker trace action
+  ResponseTrace getTraceData([String change = '+']) {
+    return new ResponseTrace(node.path, 'list', rid, change, null);
+  }
 }

@@ -19,3 +19,5 @@ part 'src/responder/base_impl/def_node.dart';
 part 'src/responder/simple/simple_node.dart';
 
 part 'src/responder/mamager/permission_manager.dart';
+part 'src/responder/mamager/trace.dart';
+

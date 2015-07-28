@@ -40,7 +40,7 @@ class HttpServerLink implements ServerLink {
 
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider,
-      String sessionId,
+      String sessionId:'',
       this.enableTimeout: false, this.enableAck: true})
       : dsId = id,
         session = sessionId,

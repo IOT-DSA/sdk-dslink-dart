@@ -29,8 +29,27 @@ class Responder extends ConnectionHandler {
   Response addResponse(Response response) {
     if (response._sentStreamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
+      if (_traceCallbacks != null) {
+        ResponseTrace update = response.getTraceData();
+        for (ResponseTraceCallback callback in _traceCallbacks) {
+          callback(update);
+        }
+      }
+    } else {
+      if (_traceCallbacks != null) {
+        ResponseTrace update = response.getTraceData(''); // no logged change is needed
+        for (ResponseTraceCallback callback in _traceCallbacks) {
+          callback(update);
+        }    
+      }
     }
     return response;
+  }
+  void traceResponseRemoved(Response response){
+    ResponseTrace update = response.getTraceData('-');
+    for (ResponseTraceCallback callback in _traceCallbacks) {
+      callback(update);
+    }  
   }
 
   void onData(List list) {
@@ -114,6 +133,9 @@ class Responder extends ConnectionHandler {
       addToSendList(m);
       if (response._sentStreamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
+        if (_traceCallbacks != null) {
+           traceResponseRemoved(response);
+        }
       }
     }
   }
@@ -205,7 +227,7 @@ class Responder extends ConnectionHandler {
       }
       if (node.getInvokePermission() <= permission) {
         node.invoke(m['params'], this,
-            addResponse(new InvokeResponse(this, rid, node)), parentNode,
+            addResponse(new InvokeResponse(this, rid, parentNode, node, path.name)), parentNode,
             permission);
       } else {
         _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
@@ -314,7 +336,10 @@ class Responder extends ConnectionHandler {
       int rid = m['rid'];
       if (_responses.containsKey(rid)) {
         _responses[rid]._close();
-        _responses.remove(rid);
+        Response resp = _responses.remove(rid);
+        if (_traceCallbacks != null) {
+          traceResponseRemoved(resp);
+        }
       }
     }
   }
@@ -329,5 +354,24 @@ class Responder extends ConnectionHandler {
 
   void onReconnected() {
     super.onReconnected();
+  }
+  
+  List<ResponseTraceCallback> _traceCallbacks;
+  
+  void addTraceCallback(ResponseTraceCallback _traceCallback) {
+    _subscription.addTraceCallback(_traceCallback);
+    _responses.forEach((int rid, Response response){
+      _traceCallback(response.getTraceData());
+    });
+    
+    if (_traceCallbacks == null) _traceCallbacks = new List<ResponseTraceCallback>();
+   
+    _traceCallbacks.add(_traceCallback);
+  }
+  void removeTraceCallback(ResponseTraceCallback _traceCallback) {
+    _traceCallbacks.remove(_traceCallback);
+    if (_traceCallbacks.isEmpty) {
+      _traceCallbacks = null;
+    }
   }
 }
