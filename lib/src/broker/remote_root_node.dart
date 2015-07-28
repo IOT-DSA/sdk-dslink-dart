@@ -51,7 +51,7 @@ class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implem
       } else if (name.startsWith('@')) {
         attributes[name] = value;
       } else if (value is Map) {
-        pchildren[name] = new VirtualNodePermission() ..load(value);
+        pchildren[name] = new VirtualNodePermission()..load(value);
       }
     });
     if (m['?permissions'] is List) {

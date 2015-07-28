@@ -323,16 +323,21 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     return null;
   }
+
   RemoteLinkManager getConnPath(String path) {
     return conns[path];
   }
+
   String makeConnPath(String fullId) {
     if (_id2connPath.containsKey(fullId)) {
       return _id2connPath[fullId];
       // TODO is it possible same link get added twice?
     } else if (fullId.contains("@")) {
       var name = fullId.substring(0, fullId.indexOf("@"));
-      return '/upstream/$name';
+      var connPath = '/upstream/$name';
+      _connPath2id[connPath] = fullId;
+      _id2connPath[fullId] = connPath;
+      return connPath;
     } else if (fullId.length < 43) {
       // user link
       String connPath = '/conns/$fullId';
@@ -396,7 +401,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       if (link.session == null || link.session.startsWith("upstream@")) {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
-        getOrCreateNode(connPath, false).configs[r'$$dsId'] = link.dsId;
+        var node = getOrCreateNode(connPath, false)..configs[r'$$dsId'] = str;
         logger.info('new node added at $connPath');
       }
     }
@@ -405,8 +410,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   ServerLink getLink(String dsId, {String sessionId:''}) {
     String str = dsId;
     if (sessionId != null && sessionId != '') {
-      str = '$dsId sessionId';
+      str = '$dsId ${sessionId}';
     }
+
     if (_links[str] != null) {
       String connPath = makeConnPath(str);
       RemoteLinkNode node = getOrCreateNode(connPath, false);
