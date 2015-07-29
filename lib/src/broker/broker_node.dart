@@ -359,7 +359,7 @@ class UpstreamServerLink extends ServerLink {
   String get dsId => link.link.dsId;
 
   @override
-  String get session => "upstream@${rname}";
+  String get session => null;
 
   @override
   void close() {

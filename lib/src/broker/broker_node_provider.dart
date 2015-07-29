@@ -331,16 +331,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return conns[path];
   }
 
-  String makeConnPath(String fullId) {
+  String makeConnPath(String fullId, [String folderPath = '/conns/']) {
     if (_id2connPath.containsKey(fullId)) {
       return _id2connPath[fullId];
       // TODO is it possible same link get added twice?
-    } else if (fullId.contains("@")) {
-      var name = fullId.substring(0, fullId.indexOf("@"));
-      var connPath = '/upstream/$name';
-      _connPath2id[connPath] = fullId;
-      _id2connPath[fullId] = connPath;
-      return connPath;
     } else if (fullId.length < 43) {
       // user link
       String connPath = '/conns/$fullId';
@@ -356,7 +350,6 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // device link
       String connPath;
 
-      String folderPath = '/conns/';
       String dsId = fullId;
       if (fullId.contains(':')) {
         // uname:dsId
@@ -387,12 +380,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   void addLink(ServerLink link) {
     String str = link.dsId;
-    if (link.session != '') {
-      if (link.session.startsWith("upstream@")) {
-        str = "${link.session.substring(9)}@${str}";
-      } else {
-        str = '$str ${link.session}';
-      }
+    if (link.session != '' && link.session != null) {
+      str = '$str ${link.session}';
     }
 
     String connPath;
@@ -401,9 +390,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // TODO is it possible same link get added twice?
     } else {
       _links[str] = link;
-      if (link.session == null || link.session.startsWith("upstream@")) {
+      if (link.session == null) {
         // don't create node for requester node with session
-        connPath = makeConnPath(str);
+        if (link is UpstreamServerLink) {
+          connPath = makeConnPath(str,'/upstream/');
+        } else {
+          connPath = makeConnPath(str);
+        }
+        
         var node = getOrCreateNode(connPath, false)..configs[r'$$dsId'] = str;
         logger.info('new node added at $connPath');
       }
