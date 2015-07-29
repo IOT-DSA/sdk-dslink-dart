@@ -4,7 +4,6 @@ library dslink.client;
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:mirrors' show reflectClass, ClassMirror, MethodMirror;
 
 import 'package:args/args.dart';
 
@@ -425,15 +424,7 @@ class LinkProvider {
       for (var key in profiles.keys.toList()) {
         var value = profiles[key];
 
-        if (value is Type) {
-          var mirror = reflectClass(value);
-          profiles[key] = (String path) {
-            MethodMirror cm = mirror.declarations[mirror.simpleName];
-            var paramCount = cm.parameters.length;
-            var m = mirror.newInstance(const Symbol(""), paramCount == 1 ? [path] : [path, provider]);
-            return m.reflectee;
-          };
-        } else if (value is _TwoArgumentProfileFunction) {
+        if (value is _TwoArgumentProfileFunction) {
           profiles[key] = (String path) {
             return value(path, provider);
           };
