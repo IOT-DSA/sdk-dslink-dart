@@ -20,6 +20,7 @@ part 'src/broker/broker_discovery.dart';
 part 'src/broker/broker_permissions.dart';
 part 'src/broker/broker_alias.dart';
 part 'src/broker/user_node.dart';
+part 'src/broker/trace_node.dart';
 
 Future<DsHttpServer> startBrokerServer(int port, {bool persist: true}) async {
   var broker = new BrokerNodeProvider();

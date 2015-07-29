@@ -54,8 +54,10 @@ abstract class ConnectionHandler {
 
   void addToSendList(Map m) {
     _toSendList.add(m);
-    if (!_pendingSend && _conn != null) {
-      _conn.sendWhenReady(this);
+    if (!_pendingSend) {
+      if (_conn != null) {
+        _conn.sendWhenReady(this);
+      }
       _pendingSend = true;
     }
   }
@@ -67,8 +69,10 @@ abstract class ConnectionHandler {
   /// inside processor, send() data that only need to appear once per data frame
   void addProcessor(ConnectionProcessor processor) {
     _processors.add(processor);
-    if (!_pendingSend && _conn != null) {
-      _conn.sendWhenReady(this);
+    if (!_pendingSend) {
+      if (_conn != null) {
+        _conn.sendWhenReady(this);
+      }
       _pendingSend = true;
     }
   }

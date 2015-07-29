@@ -39,6 +39,12 @@ class SubscribeResponse extends Response {
           this, node, sid, permission >= Permission.READ, cacheLevel);
       subsriptions[path] = controller;
       subsriptionids[sid] = controller;
+      if (responder._traceCallbacks != null){
+        ResponseTrace update = new ResponseTrace(path,'subscribe',0,'+');
+        for (ResponseTraceCallback callback in responder._traceCallbacks) {
+          callback(update);
+        }  
+      }
     }
   }
 
@@ -48,6 +54,12 @@ class SubscribeResponse extends Response {
       subsriptionids[sid].destroy();
       subsriptionids.remove(sid);
       subsriptions.remove(controller.node.path);
+      if (responder._traceCallbacks != null){
+        ResponseTrace update = new ResponseTrace(controller.node.path,'subscribe',0,'-');
+        for (ResponseTraceCallback callback in responder._traceCallbacks) {
+          callback(update);
+        }  
+      }
     }
   }
 
@@ -107,6 +119,12 @@ class SubscribeResponse extends Response {
       controller.destroy();
     });
     subsriptions.clear();
+  }
+  void addTraceCallback(ResponseTraceCallback _traceCallback) {
+    subsriptions.forEach((path, controller) {
+      ResponseTrace update = new ResponseTrace(controller.node.path,'subscribe',0,'+');
+      _traceCallback(update);
+    });
   }
 }
 
