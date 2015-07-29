@@ -156,12 +156,9 @@ class Responder extends ConnectionHandler {
           }
         }
         Path path = Path.getValidNodePath(pathstr);
-
-        LocalNode node;
-
-        node = nodeProvider.getOrCreateNode(path.path, false);
-
+        
         if (path != null && path.isAbsolute) {
+          LocalNode node = nodeProvider.getOrCreateNode(path.path, false);
           _subscription.add(path.path, node, sid, cacheLevel);
         }
       }
