@@ -105,7 +105,7 @@ abstract class ConnectionChannel {
 }
 
 /// Base Class for Links
-abstract class Link {
+abstract class BaseLink {
   Requester get requester;
   Responder get responder;
 
@@ -116,7 +116,7 @@ abstract class Link {
 }
 
 /// Base Class for Server Link implementations.
-abstract class ServerLink extends Link {
+abstract class ServerLink extends BaseLink {
   /// dsId or username
   String get dsId;
 
@@ -128,7 +128,7 @@ abstract class ServerLink extends Link {
 }
 
 /// Base Class for Client Link implementations.
-abstract class ClientLink extends Link {
+abstract class ClientLink extends BaseLink {
   PrivateKey get privateKey;
 
   /// shortPolling is only valid in http mode
@@ -141,7 +141,7 @@ abstract class ClientLink extends Link {
 abstract class ServerLinkManager {
   void addLink(ServerLink link);
 
-  void removeLink(ServerLink link);
+  void removeLink(ServerLink link, String id);
 
   ServerLink getLink(String dsId, {String sessionId: ''});
 

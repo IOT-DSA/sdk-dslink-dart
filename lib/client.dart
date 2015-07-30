@@ -87,6 +87,9 @@ class LinkProvider {
   /// Save Private Key?
   bool savePrivateKey = false;
 
+  Requester overrideRequester;
+  Responder overrideResponder;
+  
   /// connect to user home space
   String home;
 
@@ -123,6 +126,8 @@ class LinkProvider {
       this.defaultLogLevel: "INFO",
       this.savePrivateKey: true,
       this.home: null,
+      this.overrideRequester,
+      this.overrideResponder,
       NodeProvider nodeProvider // For Backwards Compatibility
       }) {
     exitOnFailure = !(const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false));
@@ -474,6 +479,8 @@ class LinkProvider {
           isRequester: isRequester,
           isResponder: isResponder,
           nodeProvider: provider,
+          overrideRequester:overrideRequester,
+          overrideResponder:overrideResponder,
           home: home);
       _ready = true;
 

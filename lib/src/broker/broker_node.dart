@@ -283,7 +283,6 @@ class UpstreamBrokerNode extends BrokerNode {
   bool toBeRemoved = false;
 
   LinkProvider link;
-  UpstreamServerLink serverLink;
 
   UpstreamBrokerNode(String path, this.name, this.url, this.ourName,
                      BrokerNodeProvider provider)
@@ -317,7 +316,11 @@ class UpstreamBrokerNode extends BrokerNode {
 
     BrokerNodeProvider p = provider;
     var level = logger.level;
-    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: p, isRequester: true);
+    String upstreamId = '@upstream@$name';
+    Requester overrideRequester = provider.getRequester(upstreamId);
+    Responder overrideResponder = provider.getResponder(upstreamId, provider);
+    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: p, isRequester: true, 
+        overrideRequester:overrideRequester, overrideResponder:overrideResponder);
 
     link.init();
 
@@ -325,8 +328,7 @@ class UpstreamBrokerNode extends BrokerNode {
 
     link.connect();
 
-    serverLink = new UpstreamServerLink(name, link);
-    p.addLink(serverLink);
+    p.addUpStreamLink(link.link, name);
 
     ien.updateValue(true);
     enabled = true;
@@ -340,45 +342,8 @@ class UpstreamBrokerNode extends BrokerNode {
     link.stop();
     BrokerNodeProvider p = provider;
 
-    p.removeLink(serverLink);
+    p.removeLink(link.link, '@upstream@$name');
     ien.updateValue(false);
     enabled = false;
   }
-}
-
-class UpstreamServerLink extends ServerLink {
-  final String rname;
-  final LinkProvider link;
-
-  UpstreamServerLink(this.rname, this.link);
-
-  @override
-  PublicKey get publicKey => link.privateKey.publicKey;
-
-  @override
-  String get dsId => link.link.dsId;
-
-  @override
-  String get session => null;
-
-  @override
-  void close() {
-    link.close();
-  }
-
-  @override
-  Requester get requester {
-    return link.link.requester;
-  }
-
-  @override
-  Responder get responder => link.link.responder;
-
-  @override
-  Future<Requester> get onRequesterReady {
-    return link.onRequesterReady;
-  }
-
-  @override
-  ECDH get nonce => link.link.nonce;
 }

@@ -316,7 +316,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   /// dsId to server links
-  final Map<String, ServerLink> _links = new Map<String, ServerLink>();
+  final Map<String, BaseLink> _links = new Map<String, BaseLink>();
   final Map<String, String> _id2connPath = new Map<String, String>();
   final Map<String, String> _connPath2id = new Map<String, String>();
 
@@ -331,7 +331,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return conns[path];
   }
 
-  String makeConnPath(String fullId, [String folderPath = '/conns/']) {
+  String makeConnPath(String fullId) {
+    if (fullId.startsWith('@upstream@')){
+      String connName = fullId.substring(10);
+      String connPath = '/upstream/$connName';
+      _connPath2id[connPath] = fullId;
+      _id2connPath[fullId] = connPath;
+      return connPath;
+    }
     if (_id2connPath.containsKey(fullId)) {
       return _id2connPath[fullId];
       // TODO is it possible same link get added twice?
@@ -349,7 +356,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } else {
       // device link
       String connPath;
-
+      String folderPath = '/conns/';
+          
       String dsId = fullId;
       if (fullId.contains(':')) {
         // uname:dsId
@@ -377,7 +385,28 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       return connPath;
     }
   }
+  void prepareUpstreamLink(String name) {
+    String connPath = '/upstream/$name';
+    String upStreamId = '@upstream@$name';
+    _connPath2id[connPath] = upStreamId;
+    _id2connPath[upStreamId] = connPath;
+  }
+  void addUpStreamLink(ClientLink link, String name) {
+    String upStreamId = '@upstream@$name';
+   
+    // TODO update children list of /conns node
+    if (_links.containsKey(upStreamId)) {
+      // TODO is it possible same link get added twice?
+    } else {
+      _links[upStreamId] = link;
 
+      String connPath = '/upstream/$name';
+      _connPath2id[connPath] = upStreamId;
+      _id2connPath[upStreamId] = connPath;
+      getOrCreateNode(connPath, false);
+      logger.info('new node added at $connPath');
+    }
+  }
   void addLink(ServerLink link) {
     String str = link.dsId;
     if (link.session != '' && link.session != null) {
@@ -392,11 +421,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _links[str] = link;
       if (link.session == null) {
         // don't create node for requester node with session
-        if (link is UpstreamServerLink) {
-          connPath = makeConnPath(str,'/upstream/');
-        } else {
-          connPath = makeConnPath(str);
-        }
+        connPath = makeConnPath(str);
         
         var node = getOrCreateNode(connPath, false)..configs[r'$$dsId'] = str;
         logger.info('new node added at $connPath');
@@ -426,9 +451,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return _links[str];
   }
 
-  void removeLink(ServerLink link) {
-    if (_links[link.dsId] == link) {
-      _links.remove(link.dsId);
+  void removeLink(BaseLink link, String id) {
+    if (_links[id] == link) {
+      _links.remove(id);
     }
   }
 
