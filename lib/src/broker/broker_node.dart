@@ -314,10 +314,22 @@ class UpstreamBrokerNode extends BrokerNode {
       return;
     }
 
-    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: provider);
+    BrokerNodeProvider p = provider;
+    var level = logger.level;
+    String upstreamId = '@upstream@$name';
+    Requester overrideRequester = provider.getRequester(upstreamId);
+    Responder overrideResponder = provider.getResponder(upstreamId, provider);
+    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: p, isRequester: true, 
+        overrideRequester:overrideRequester, overrideResponder:overrideResponder);
 
     link.init();
+
+    logger.level = level;
+
     link.connect();
+
+    p.addUpStreamLink(link.link, name);
+
     ien.updateValue(true);
     enabled = true;
   }
@@ -328,6 +340,9 @@ class UpstreamBrokerNode extends BrokerNode {
     }
 
     link.stop();
+    BrokerNodeProvider p = provider;
+
+    p.removeLink(link.link, '@upstream@$name');
     ien.updateValue(false);
     enabled = false;
   }

@@ -40,7 +40,7 @@ class BrokerNodePermission {
     }
     return permission;
   }
-  
+
   void loadPermission(List l) {
     if (l != null && l.length > 0) {
       defaultPermission = Permission.NEVER;
@@ -107,8 +107,8 @@ class BrokerNodePermission {
 }
 
 
-class VirtualNodePermissioin extends BrokerNodePermission {
-  Map<String, VirtualNodePermissioin> children = new Map<String, VirtualNodePermissioin>();
+class VirtualNodePermission extends BrokerNodePermission {
+  Map<String, VirtualNodePermission> children = new Map<String, VirtualNodePermission>();
   int getPermission (Iterator<String> paths, Responder responder, int permission) {
     permission = super.getPermission(paths, responder, permission);
     if (permission == Permission.CONFIG) {
@@ -122,11 +122,11 @@ class VirtualNodePermissioin extends BrokerNodePermission {
     }
     return permission;
   }
-  
+
   void load(Map m) {
     m.forEach((String name, Object value) {
       if (value is Map) {
-        children[name] = new VirtualNodePermissioin() ..load(value);
+        children[name] = new VirtualNodePermission() ..load(value);
       }
     });
     if (m['?permissions'] is List) {
@@ -136,7 +136,7 @@ class VirtualNodePermissioin extends BrokerNodePermission {
 
   Map serialize() {
     Map rslt = {};
-    children.forEach((String name, VirtualNodePermissioin val) {
+    children.forEach((String name, VirtualNodePermission val) {
       rslt[name] = val.serialize();
     });
     List permissionData = this.serializePermission();
@@ -145,12 +145,12 @@ class VirtualNodePermissioin extends BrokerNodePermission {
     }
     return rslt;
   }
-  
+
 }
 
 class BrokerPermissions implements IPermissionManager {
   BrokerNodePermission root;
-  
+
   BrokerPermissions() {
   }
   int getPermission(String path, Responder resp) {
