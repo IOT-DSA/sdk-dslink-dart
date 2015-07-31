@@ -11,9 +11,9 @@ class DsSimpleLinkManager implements ServerLinkManager {
     return _links[dsId];
   }
 
-  void removeLink(ServerLink link) {
-    if (_links[link.dsId] == link) {
-      _links.remove(link.dsId);
+  void removeLink(ServerLink link, String id) {
+    if (_links[id] == link) {
+      _links.remove(id);
     }
   }
 

@@ -108,7 +108,7 @@ InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
     ServerLink link = parentNode.provider.getLink(userDsId);
     if (link != null) {
       link.close();
-      parentNode.provider.removeLink(link);
+      parentNode.provider.removeLink(link, link.dsId);
     }
     LocalNode node = responder.nodeProvider.getOrCreateNode(path, false);
     node.configs[r'$$dsId'] = dsId;

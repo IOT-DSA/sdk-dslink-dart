@@ -11,9 +11,10 @@ class HttpClientLink implements ClientLink {
 
   final String dsId;
   final String home;
-  final Requester requester;
-  final Responder responder;
   final PrivateKey privateKey;
+
+  Requester requester;
+  Responder responder;
 
   ECDH _nonce;
 
@@ -40,20 +41,30 @@ class HttpClientLink implements ClientLink {
   String _conn;
 //  bool enableHttp;
   bool enableAck = false;
-  
+
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider,
-      bool isRequester: true,
-      bool isResponder: true,
-      this.home
+      {NodeProvider nodeProvider, bool isRequester: true,
+      bool isResponder: true, Requester overrideRequester,
+      Responder overrideResponder, this.home
       //this.enableHttp: false
       })
       : privateKey = privateKey,
-        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
-        requester = isRequester ? new Requester() : null,
-        responder = (isResponder && nodeProvider != null)
-            ? new Responder(nodeProvider)
-            : null {}
+        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}' {
+    if (isRequester) {
+      if (overrideRequester != null) {
+        requester = overrideRequester;
+      } else {
+        requester = new Requester();
+      }
+    }
+    if (isResponder) {
+      if (overrideResponder != null) {
+        responder = overrideResponder;
+      } else if (nodeProvider != null) {
+        responder = new Responder(nodeProvider);
+      }
+    }
+  }
 
   int _connDelay = 1;
 
@@ -65,7 +76,8 @@ class HttpClientLink implements ClientLink {
 
     HttpClient client = new HttpClient();
 
-    client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+    client.badCertificateCallback = (X509Certificate cert, String host,
+        int port) {
       return true;
     };
 
@@ -139,9 +151,10 @@ class HttpClientLink implements ClientLink {
 //      initHttp();
 //    }
     try {
-      var socket = await HttpHelper.connectToWebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      var socket = await HttpHelper.connectToWebSocket(
+          '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
       _wsConnection = new WebSocketConnection(socket,
-          clientLink: this, enableTimeout: true, enableAck:enableAck);
+          clientLink: this, enableTimeout: true, enableAck: enableAck);
 
       logger.info("Connected");
       if (!_onConnectedCompleter.isCompleted) {

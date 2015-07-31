@@ -51,7 +51,7 @@ class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implem
       } else if (name.startsWith('@')) {
         attributes[name] = value;
       } else if (value is Map) {
-        pchildren[name] = new VirtualNodePermissioin() ..load(value);
+        pchildren[name] = new VirtualNodePermission()..load(value);
       }
     });
     if (m['?permissions'] is List) {
@@ -67,7 +67,7 @@ class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implem
     attributes.forEach((String name, Object val) {
       rslt[name] = val;
     });
-    pchildren.forEach((String name, VirtualNodePermissioin val) {
+    pchildren.forEach((String name, VirtualNodePermission val) {
       rslt[name] = val.serialize();
     });
     List permissionData = this.serializePermission();
@@ -87,8 +87,8 @@ class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implem
   }
 
   /// children list only for permissions
-  Map<String, VirtualNodePermissioin> pchildren = new Map<String, VirtualNodePermissioin>();
-  
+  Map<String, VirtualNodePermission> pchildren = new Map<String, VirtualNodePermission>();
+
   @override
   int getPermission (Iterator<String> paths, Responder responder, int permission) {
     permission = super.getPermission(paths, responder, permission);
@@ -103,7 +103,7 @@ class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implem
     }
     return permission;
   }
-  
+
 }
 
 class RemoteLinkRootListController extends ListController {
