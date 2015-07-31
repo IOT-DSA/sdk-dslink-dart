@@ -75,6 +75,8 @@ class InvokeController implements RequestUpdater {
   Request _request;
   List<TableColumn> _cachedColumns;
 
+  String mode = 'stream';
+  
   InvokeController(this.node, this.requester, Map params,
       [int maxPermission = Permission.CONFIG]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
@@ -92,7 +94,7 @@ class InvokeController implements RequestUpdater {
 //    if(!node.isUpdated()) {
 //      node._list().listen(_onNodeUpdate)
 //    } else {
-    _cachedColumns = getNodeColumns(node);
+   
     _request = requester._sendRequest(reqMap, this);
 //    }
   }
@@ -108,9 +110,18 @@ class InvokeController implements RequestUpdater {
   }
 
   void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
+    if (meta != null && meta['mode'] is String) {
+      mode = meta['mode'];
+    }
     // TODO implement error
     if (columns != null) {
-      _cachedColumns = TableColumn.parseColumns(columns);
+      if (_cachedColumns == null || mode == 'refresh') {
+        _cachedColumns = TableColumn.parseColumns(columns);
+      } else {
+        _cachedColumns.addAll(TableColumn.parseColumns(columns));
+      }
+    } else if (_cachedColumns == null) {
+      _cachedColumns = getNodeColumns(node);
     }
 
 //    if (_cachedColumns == null) {
