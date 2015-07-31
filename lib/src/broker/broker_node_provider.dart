@@ -11,18 +11,22 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   BrokerPermissions permissions;
 
+  String downstreamName;
+  String downstreamNameS;
+  String downstreamNameSS;
   BrokerNode connsNode;
   BrokerNode usersNode;
   BrokerNode defsNode;
   BrokerNode upstreamDataNode;
   BrokerNode quarantineNode;
-  Map rootStructure = {'users':{}, 'conns': {}, 'defs': {}, 'sys': {}, 'upstream': {}};
+  Map rootStructure = {'users':{},'defs': {}, 'sys': {}, 'upstream': {}};
 
   bool shouldSaveFiles = true;
   bool enabledQuarantine = false;
   bool enabledPermission = false;
   bool acceptAllConns = true;
-  BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAllConns:true, List defaultPermission}) {
+  BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAllConns:true, List defaultPermission, this.downstreamName:'conns'}) {
+  
     permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/', this);
@@ -31,8 +35,15 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (enabledQuarantine) {
       rootStructure['quarantine'] = {};
     }
+    if (downstreamName == null || downstreamName == '' || rootStructure.containsKey(downstreamName) || downstreamName.contains(Path.invalidNameChar)) {
+      throw 'invalid downstreamName';
+    }
+    downstreamNameS = '/$downstreamName';
+    downstreamNameSS = '$downstreamNameS/';
+    rootStructure[downstreamName] = {};
+    
     root.load(rootStructure);
-    connsNode = nodes['/conns'];
+    connsNode = nodes[downstreamNameS];
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
@@ -145,7 +156,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       String data = connsFile.readAsStringSync();
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
-        String path = '/conns/$name';
+        String path = '$downstreamNameSS$name';
         RemoteLinkRootNode node = getOrCreateNode(path, false);
         node.load(m);
         if (node.configs[r'$$dsId'] is String) {
@@ -242,7 +253,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           }
           RemoteLinkManager conn = conns[connPath];
           if (conn == null) {
-            // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+            // TODO conn = new RemoteLinkManager('$downstreamNameSS$connName', connRootNodeData);
             conn = new RemoteLinkManager(this, connPath, this);
             conns[connPath] = conn;
             nodes[connPath] = conn.rootNode;
@@ -251,12 +262,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           node = conn.getOrCreateNode(path, false);
         }
       }
-    } else if (path.startsWith('/conns/')) {
+    } else if (path.startsWith(downstreamNameSS)) {
       String connName = path.split('/')[2];
-      String connPath = '/conns/$connName';
+      String connPath = '$downstreamNameSS$connName';
       RemoteLinkManager conn = conns[connPath];
       if (conn == null) {
-        // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+        // TODO conn = new RemoteLinkManager('$downstreamNameSS$connName', connRootNodeData);
         conn = new RemoteLinkManager(this, connPath, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
@@ -288,7 +299,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         String connPath = '/quarantine/$user/$connName';
         RemoteLinkManager conn = conns[connPath];
         if (conn == null) {
-          // TODO conn = new RemoteLinkManager('/conns/$connName', connRootNodeData);
+          // TODO conn = new RemoteLinkManager('$downstreamNameSS$connName', connRootNodeData);
           conn = new RemoteLinkManager(this, connPath, this);
           conns[connPath] = conn;
           nodes[connPath] = conn.rootNode;
@@ -344,11 +355,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // TODO is it possible same link get added twice?
     } else if (fullId.length < 43) {
       // user link
-      String connPath = '/conns/$fullId';
+      String connPath = '$downstreamNameSS$fullId';
       int count = 0;
       // find a connName for it
       while (_connPath2id.containsKey(connPath)) {
-        connPath = '/conns/$fullId-${count++}';
+        connPath = '$downstreamNameSS$fullId-${count++}';
       }
       _connPath2id[connPath] = fullId;
       _id2connPath[fullId] = connPath;
@@ -356,7 +367,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } else {
       // device link
       String connPath;
-      String folderPath = '/conns/';
+      String folderPath = downstreamNameSS;
           
       String dsId = fullId;
       if (fullId.contains(':')) {
@@ -394,7 +405,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void addUpStreamLink(ClientLink link, String name) {
     String upStreamId = '@upstream@$name';
    
-    // TODO update children list of /conns node
+    // TODO update children list of /$downstreamNameS node
     if (_links.containsKey(upStreamId)) {
       // TODO is it possible same link get added twice?
     } else {
@@ -414,7 +425,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
 
     String connPath;
-    // TODO update children list of /conns node
+    // TODO update children list of /$downstreamNameS node
     if (_links.containsKey(str)) {
       // TODO is it possible same link get added twice?
     } else {
