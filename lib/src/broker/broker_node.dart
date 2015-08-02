@@ -278,6 +278,7 @@ class UpstreamBrokerNode extends BrokerNode {
   final String ourName;
 
   BrokerNode ien;
+  BrokerNode nn;
   bool enabled = false;
 
   bool toBeRemoved = false;
@@ -291,6 +292,10 @@ class UpstreamBrokerNode extends BrokerNode {
     ien.configs[r"$type"] = "bool";
     ien.updateValue(enabled);
 
+    nn = new BrokerNode("/sys/upstream/${name}/name", provider);
+    nn.configs[r"$type"] = "string";
+    nn.updateValue(this.ourName);
+
     new Future(() {
       var drn = new DeleteUpstreamConnectionNode(
           "/sys/upstream/${name}/delete", name, provider);
@@ -302,10 +307,12 @@ class UpstreamBrokerNode extends BrokerNode {
           "/sys/upstream/${name}/disable", provider);
       provider.setNode("/sys/upstream/${name}/disable", dun);
       provider.setNode(ien.path, ien);
+      provider.setNode(nn.path, nn);
       addChild("delete", drn);
       addChild("enable", eun);
       addChild("disable", dun);
       addChild("enabled", ien);
+      addChild("name", nn);
     });
   }
 
@@ -319,7 +326,7 @@ class UpstreamBrokerNode extends BrokerNode {
     String upstreamId = '@upstream@$name';
     Requester overrideRequester = provider.getRequester(upstreamId);
     Responder overrideResponder = provider.getResponder(upstreamId, provider);
-    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: p, isRequester: true, 
+    link = new LinkProvider(["--broker=${url}"], ourName + "-", enableHttp: false, nodeProvider: p, isRequester: true,
         overrideRequester:overrideRequester, overrideResponder:overrideResponder);
 
     link.init();
