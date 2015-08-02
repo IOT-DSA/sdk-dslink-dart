@@ -168,7 +168,6 @@ class ListController implements RequestUpdater {
         update.changes.where((str) => !_ignoreProfileProps.contains(str)));
     _ready = true;
     onProfileUpdated();
-    logger.fine('_onDefUpdated');
   }
 
   bool _ready = true;
