@@ -139,8 +139,12 @@ class BrowserECDHLink implements ClientLink {
           initWebsocket(false);
         }
       } else if (reconnect) {
-        DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
-        if (_wsDelay < 60) _wsDelay++;
+        if (authError) {
+          connect();
+        } else {
+          DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
+          if (_wsDelay < 60) _wsDelay++;
+        }
       } else {
 //        initHttp();
         _wsDelay = 5;
