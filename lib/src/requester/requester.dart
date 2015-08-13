@@ -65,9 +65,9 @@ class Requester extends ConnectionHandler {
   }
 
   ReqSubscribeListener subscribe(String path, callback(ValueUpdate),
-      [int cacheLevel = 1]) {
+      [int qos = 0]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
-    node._subscribe(this, callback, cacheLevel);
+    node._subscribe(this, callback, qos);
     return new ReqSubscribeListener(this, path, callback);
   }
 

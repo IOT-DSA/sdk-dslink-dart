@@ -37,9 +37,21 @@ class AddNodeAction extends SimpleNode {
         print('closed');
        
       }
+    int colCount = 1;
+    int tcount = 0;
       void ackBack(InvokeResponse response, int ackId, int startTime, int currentTime){
         print('acked $ackId $startTime $currentTime');
-        tableRslt.update([[1],[2]], null, {'a':'abc'});
+        new Timer(new Duration(seconds:1), (){
+          if (tcount & 7 == 3) {
+            colCount++;
+            tableRslt.columns = [{'name':'v$colCount'}];
+          }
+          ++tcount;
+          List rslt = new List(colCount);
+          rslt[0] = tcount;
+          rslt[rslt.length-1] = colCount;
+          tableRslt.update([rslt], null, {'a':'abc'});
+        });
       }
     tableRslt.onClose = closed;
     tableRslt.onAck = ackBack;

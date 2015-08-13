@@ -165,8 +165,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
       if (subsriptions.containsKey(path)) {
         ReqSubscribeController sub = subsriptions[path];
         Map m = {'path': path, 'sid': sub.sid};
-        if (sub.maxCache > 1) {
-          m['cache'] = sub.maxCache;
+        if (sub.currentQos > 0) {
+          m['qos'] = sub.currentQos;
         }
         toAdd.add(m);
       }
@@ -227,32 +227,38 @@ class ReqSubscribeController {
   final Requester requester;
 
   Map<Function, int> callbacks = new Map<Function, int>();
-  int maxCache = 0;
+  int currentQos = -1;
   int sid;
   ReqSubscribeController(this.node, this.requester) {
     sid = requester.nextSid++;
   }
 
-  void listen(callback(ValueUpdate), int cacheLevel) {
-    if (cacheLevel < 1) cacheLevel = 1;
-    if (cacheLevel > 1000000) cacheLevel = 1000000;
-    if (cacheLevel > maxCache) {
-      maxCache = cacheLevel;
-      requester._subsciption.addSubscription(this, maxCache);
+  void listen(callback(ValueUpdate), int qos) {
+    if (qos < 0 || qos > 3) {
+      qos = 0;
     }
+    bool qosChanged = false;
 
     if (callbacks.containsKey(callback)) {
-      if (callbacks[callback] == maxCache && cacheLevel < maxCache) {
-        callbacks[callback] = cacheLevel;
-        updateCacheLevel();
+      if (callbacks[callback] != 0) {
+        callbacks[callback] = qos;
+        qosChanged = updateQos();
       } else {
-        callbacks[callback] = cacheLevel;
+        callbacks[callback] = qos;
       }
     } else {
-      callbacks[callback] = cacheLevel;
+      callbacks[callback] = qos;
+      int neededQos = qos;
+      if (currentQos > -1) {
+        neededQos |= currentQos;
+      }
+      qosChanged = neededQos > currentQos;
       if (_lastUpdate != null) {
         callback(_lastUpdate);
       }
+    }
+    if (qosChanged) {
+      requester._subsciption.addSubscription(this, currentQos);
     }
   }
 
@@ -261,23 +267,22 @@ class ReqSubscribeController {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
         requester._subsciption.removeSubscription(this);
-      } else if (cacheLevel == maxCache && maxCache > 1) {
-        updateCacheLevel();
+      } else if (cacheLevel == currentQos && currentQos > 1) {
+        updateQos();
       }
     }
   }
 
-  void updateCacheLevel() {
-    int maxCacheLevel = 1;
-    callbacks.forEach((callback, level) {
-      if (level > maxCacheLevel) {
-        maxCacheLevel = level;
-      }
+  bool updateQos() {
+    int qosCache = 0;
+    callbacks.forEach((callback, qos) {
+      qosCache |=  qos;
     });
-    if (maxCacheLevel != maxCache) {
-      maxCache = maxCacheLevel;
-      requester._subsciption.addSubscription(this, maxCache);
+    if (qosCache != currentQos) {
+      currentQos = qosCache;
+      return true;
     }
+    return false;
   }
 
   ValueUpdate _lastUpdate;

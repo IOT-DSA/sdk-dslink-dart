@@ -160,7 +160,7 @@ class Responder extends ConnectionHandler {
       int rid = m['rid'];
       for (Object p in m['paths']) {
         String pathstr;
-        int cacheLevel = 1;
+        int qos = 0;
         int sid = -1;
         if (p is Map) {
           if (p['path'] is String) {
@@ -173,15 +173,15 @@ class Responder extends ConnectionHandler {
           } else {
             continue;
           }
-          if (p['cache'] is int) {
-            cacheLevel = p['cache'];
+          if (p['qos'] is int) {
+            qos = p['qos'];
           }
         }
         Path path = Path.getValidNodePath(pathstr);
         
         if (path != null && path.isAbsolute) {
           LocalNode node = nodeProvider.getOrCreateNode(path.path, false);
-          _subscription.add(path.path, node, sid, cacheLevel);
+          _subscription.add(path.path, node, sid, qos);
         }
       }
       _closeResponse(m['rid']);

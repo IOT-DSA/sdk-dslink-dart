@@ -23,7 +23,7 @@ class SubscribeResponse extends Response {
   final LinkedHashSet<RespSubscribeController> changed =
       new LinkedHashSet<RespSubscribeController>();
 
-  void add(String path, LocalNode node, int sid, int cacheLevel) {
+  void add(String path, LocalNode node, int sid, int qos) {
     if (subsriptions[path] != null) {
       RespSubscribeController controller = subsriptions[path];
       if (controller.sid != sid) {
@@ -31,12 +31,12 @@ class SubscribeResponse extends Response {
         controller.sid == sid;
         subsriptionids[sid] = controller;
       }
-      controller.cacheLevel = cacheLevel;
+      controller.qosLevel = qos;
     } else {
       int permission = responder.nodeProvider.permissions
           .getPermission(node.path, responder);
       RespSubscribeController controller = new RespSubscribeController(
-          this, node, sid, permission >= Permission.READ, cacheLevel);
+          this, node, sid, permission >= Permission.READ, qos);
       subsriptions[path] = controller;
       subsriptionids[sid] = controller;
       if (responder._traceCallbacks != null){
@@ -144,30 +144,60 @@ class RespSubscribeController {
   }
 
   ListQueue<ValueUpdate> lastValues = new ListQueue<ValueUpdate>();
+  ValueUpdate lastValue;
+  
+  int _qosLevel;
 
-  int _cachedLevel;
-  int get cacheLevel {
-    return _cachedLevel;
+  void set qosLevel(int v) {
+    if (v < 0 || v > 3) v = 0;
+    if (_qosLevel == v) 
+      return;
+    
+    _qosLevel = v;
+    
+    persist = (v&2) == 2;
+    caching = (v&1) == 1;
   }
-
-  void set cacheLevel(int v) {
-    if (v < 1) v = 1;
-    _cachedLevel = v;
+  
+  bool _caching = false;
+  void set caching(bool val) {
+    if (val == _caching) return;
+    _caching = val;
+    if (!_caching) {
+      lastValues.clear();
+    }
+  }
+  bool _persist = false;
+  void set persist(bool val) {
+    if (val == _persist) return;
+    _persist = val;
+    if (_persist) {
+      
+    } else {
+      
+    }
   }
 
   RespSubscribeController(
-      this.response, this.node, this.sid, this._permitted, int cacheLevel) {
-    this.cacheLevel = cacheLevel;
-    _listener = node.subscribe(addValue, this.cacheLevel);
+      this.response, this.node, this.sid, this._permitted, int qos) {
+    this.qosLevel = qos;
+    _listener = node.subscribe(addValue, _qosLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
       addValue(node.lastValueUpdate);
     }
   }
 
   void addValue(ValueUpdate val) {
-    lastValues.add(val);
-    if (lastValues.length > _cachedLevel) {
-      mergeValues();
+    
+    if (_caching) {
+      lastValue = val;
+      lastValues.add(val);
+    } else {
+      if (lastValue != null) {
+        lastValue =  new ValueUpdate.merge(lastValue, val);
+      } else {
+        lastValue = val;
+      }
     }
     // TODO, don't allow this to be called from same controller more oftern than 100ms
     // the first response can happen ASAP, but
@@ -176,18 +206,13 @@ class RespSubscribeController {
     }
   }
 
-  void mergeValues() {
-    int toRemove = lastValues.length - _cachedLevel;
-    ValueUpdate rslt = lastValues.removeFirst();
-    for (int i = 0; i < toRemove; ++i) {
-      rslt = new ValueUpdate.merge(rslt, lastValues.removeFirst());
-    }
-    lastValues.addFirst(rslt);
-  }
-
   List process() {
     List rslts = [];
-    for (ValueUpdate lastValue in lastValues) {
+    if (_caching) {
+      for (ValueUpdate lastValue in lastValues) {
+        rslts.add([sid, lastValue.value, lastValue.ts]);
+      }
+    } else {
       if (lastValue.count > 1 || lastValue.status != null) {
         Map m = {'ts': lastValue.ts, 'value': lastValue.value, 'sid': sid};
         if (lastValue.count == 0) {} else if (lastValue.count > 1) {
