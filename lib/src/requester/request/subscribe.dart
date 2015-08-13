@@ -73,6 +73,9 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
         _changedPaths.add(path);
       });
     }
+    _waitingAckCount = 0;
+    _lastWatingAckId = -1;
+    _sendingAfterAck = false;
   }
 
   @override

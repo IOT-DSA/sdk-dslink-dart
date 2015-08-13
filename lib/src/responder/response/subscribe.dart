@@ -119,6 +119,9 @@ class SubscribeResponse extends Response {
       controller.destroy();
     });
     subsriptions.clear();
+    _waitingAckCount = 0;
+    _lastWatingAckId = -1;
+    _sendingAfterAck = false;
   }
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     subsriptions.forEach((path, controller) {
