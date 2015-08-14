@@ -194,6 +194,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         _id2connPath.remove(fullId);
         connsNode.children.remove(name);
         manager.inTree = false;
+        // remove server link if it's not connected 
+        if (_links.containsKey(fullId)) {
+          _links.remove(fullId);
+        }
         connsNode.updateList(name);
       }
     }
