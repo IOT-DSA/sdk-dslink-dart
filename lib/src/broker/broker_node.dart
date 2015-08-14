@@ -92,7 +92,13 @@ class RootNode extends BrokerNode {
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
-        BrokerNode node = new BrokerNode('/$key', provider);
+        BrokerNode node;
+        if (value == 'defs') {
+          node = new BrokerHiddenNode('/$key', provider);
+        } else {
+          node = new BrokerNode('/$key', provider);
+        }
+        
         node.load(value);
         provider.nodes[node.path] = node;
         children[key] = node;
@@ -352,5 +358,33 @@ class UpstreamBrokerNode extends BrokerNode {
     p.removeLink(link.link, '@upstream@$name');
     ien.updateValue(false);
     enabled = false;
+  }
+}
+
+
+class BrokerHiddenNode extends BrokerNode {
+  BrokerHiddenNode(String path, BrokerNodeProvider provider) : super(path, provider) {
+    configs[r'$hidden'] = true;
+  }
+
+  Map getSimpleMap() {
+    Map rslt = {r'$hidden':true};
+    if (configs.containsKey(r'$is')) {
+      rslt[r'$is'] = configs[r'$is'];
+    }
+    if (configs.containsKey(r'$type')) {
+      rslt[r'$type'] = configs[r'$type'];
+    }
+    if (configs.containsKey(r'$name')) {
+      rslt[r'$name'] = configs[r'$name'];
+    }
+    if (configs.containsKey(r'$invokable')) {
+      rslt[r'$invokable'] = configs[r'$invokable'];
+    }
+    if (configs.containsKey(r'$writable')) {
+      rslt[r'$writable'] = configs[r'$writable'];
+    }
+    // TODO add permission of current requester
+    return rslt;
   }
 }

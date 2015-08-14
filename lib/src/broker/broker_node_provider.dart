@@ -158,6 +158,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       m.forEach((String name, Map m) {
         String path = '$downstreamNameSS$name';
         RemoteLinkRootNode node = getOrCreateNode(path, true);
+        connsNode.children[name] = node;
+        RemoteLinkManager conn = node._linkManager;
+        conn.inTree = true;
+        connsNode.updateList(name);
+        
         node.load(m);
         if (node.configs[r'$$dsId'] is String) {
           _id2connPath[node.configs[r'$$dsId']] = path;
@@ -229,6 +234,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
+    if (addToTree) {
+      print('getOrCreateNode, addToTree = true, not supported');
+    }
     LocalNode node = nodes[path];
     if (node != null) {
       return node;
@@ -271,11 +279,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
-        if (addToTree) {
-          connsNode.children[connName] = conn.rootNode;
-          conn.inTree = true;
-          connsNode.updateList(connName);
-        }
+//        if (addToTree) {
+//          connsNode.children[connName] = conn.rootNode;
+//          conn.inTree = true;
+//          connsNode.updateList(connName);
+//        }
       }
       node = conn.getOrCreateNode(path, false);
     } else if (path.startsWith('/upstream/')) {
@@ -288,11 +296,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         nodes[connPath] = conn.rootNode;
         
         conn.rootNode.parentNode = upstreamDataNode;
-        if (addToTree) {
-          upstreamDataNode.children[upstreamName] = conn.rootNode;
-          conn.inTree = true;
-          upstreamDataNode.updateList(upstreamName);
-        }
+//        if (addToTree) {
+//          upstreamDataNode.children[upstreamName] = conn.rootNode;
+//          conn.inTree = true;
+//          upstreamDataNode.updateList(upstreamName);
+//        }
       }
       node = conn.getOrCreateNode(path, false);
     } else if (path.startsWith('/quarantine/')) {
@@ -309,11 +317,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           nodes[connPath] = conn.rootNode;
           BrokerNode quarantineUser = getOrCreateNode('/quarantine/$user', false);
           conn.rootNode.parentNode = quarantineUser;
-          if (addToTree) {
-            quarantineUser.children[connName] = conn.rootNode;
-            conn.inTree = true;
-            quarantineUser.updateList(connName);
-          }
+//          if (addToTree) {
+//            quarantineUser.children[connName] = conn.rootNode;
+//            conn.inTree = true;
+//            quarantineUser.updateList(connName);
+//          }
          
         }
         node = conn.getOrCreateNode(path, false);
@@ -422,8 +430,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       String connPath = '/upstream/$name';
       _connPath2id[connPath] = upStreamId;
       _id2connPath[upStreamId] = connPath;
-      RemoteLinkNode node = getOrCreateNode(connPath, true);
+      RemoteLinkNode node = getOrCreateNode(connPath, false);
+      upstreamDataNode.children[name] = node;
+      upstreamDataNode.updateList(name);
+      
       conn = node._linkManager;
+      conn.inTree = true;
+      
       logger.info('new node added at $connPath');
     }
 

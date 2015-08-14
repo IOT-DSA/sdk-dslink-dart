@@ -1,6 +1,6 @@
 part of dslink.broker;
 
-class BrokerTraceNode extends BrokerNode {
+class BrokerTraceNode extends BrokerHiddenNode {
   static BrokerTraceNode traceNode;
   static void init(BrokerNodeProvider broker) {
     if (traceNode == null) {
