@@ -105,7 +105,7 @@ InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
     parentNode.provider._id2connPath[userDsId] = path;
     parentNode.provider._connPath2id[path] = userDsId;
     
-    ServerLink link = parentNode.provider.getLink(userDsId);
+    ServerLink link = parentNode.provider.getOrCreateLink(userDsId);
     if (link != null) {
       link.close();
       parentNode.provider.removeLink(link, link.dsId);

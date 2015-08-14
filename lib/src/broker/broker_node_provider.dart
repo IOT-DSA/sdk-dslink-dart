@@ -157,7 +157,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
         String path = '$downstreamNameSS$name';
-        RemoteLinkRootNode node = getOrCreateNode(path, false);
+        RemoteLinkRootNode node = getOrCreateNode(path, true);
         node.load(m);
         if (node.configs[r'$$dsId'] is String) {
           _id2connPath[node.configs[r'$$dsId']] = path;
@@ -229,12 +229,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
-    if (addToTree == true) {
-      throw 'not supported';
-    }
-
     LocalNode node = nodes[path];
-
     if (node != null) {
       return node;
     }
@@ -275,10 +270,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         conn = new RemoteLinkManager(this, connPath, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
-        connsNode.children[connName] = conn.rootNode;
         conn.rootNode.parentNode = connsNode;
-        conn.inTree = true;
-        connsNode.updateList(connName);
+        if (addToTree) {
+          connsNode.children[connName] = conn.rootNode;
+          conn.inTree = true;
+          connsNode.updateList(connName);
+        }
       }
       node = conn.getOrCreateNode(path, false);
     } else if (path.startsWith('/upstream/')) {
@@ -289,10 +286,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         conn = new RemoteLinkManager(this, connPath, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
-        upstreamDataNode.children[upstreamName] = conn.rootNode;
+        
         conn.rootNode.parentNode = upstreamDataNode;
-        conn.inTree = true;
-        upstreamDataNode.updateList(upstreamName);
+        if (addToTree) {
+          upstreamDataNode.children[upstreamName] = conn.rootNode;
+          conn.inTree = true;
+          upstreamDataNode.updateList(upstreamName);
+        }
       }
       node = conn.getOrCreateNode(path, false);
     } else if (path.startsWith('/quarantine/')) {
@@ -308,10 +308,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           conns[connPath] = conn;
           nodes[connPath] = conn.rootNode;
           BrokerNode quarantineUser = getOrCreateNode('/quarantine/$user', false);
-          quarantineUser.children[connName] = conn.rootNode;
           conn.rootNode.parentNode = quarantineUser;
-          conn.inTree = true;
-          quarantineUser.updateList(connName);
+          if (addToTree) {
+            quarantineUser.children[connName] = conn.rootNode;
+            conn.inTree = true;
+            quarantineUser.updateList(connName);
+          }
+         
         }
         node = conn.getOrCreateNode(path, false);
       } else {
@@ -444,7 +447,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
   }
 
-  ServerLink getLink(String dsId, {String sessionId:''}) {
+  ServerLink getOrCreateLink(String dsId, {String sessionId:''}) {
     if (sessionId == null) sessionId = '';
     String str = dsId;
     if (sessionId != null && sessionId != '') {
@@ -456,11 +459,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkNode node = getOrCreateNode(connPath, false);
       RemoteLinkManager conn = node._linkManager;
       if (!conn.inTree) {
-        String connName = conn.path.split('/').last;
-        connsNode.children[connName] = conn.rootNode;
-        conn.rootNode.parentNode = connsNode;
+        List paths = conn.path.split('/');
+        String connName = paths.removeLast();
+        BrokerNode parentNode = getOrCreateNode(paths.join('/'), false);
+        parentNode.children[connName] = conn.rootNode;
+        conn.rootNode.parentNode = parentNode;
         conn.inTree = true;
-        connsNode.updateList(connName);
+        parentNode.updateList(connName);
       }
     }
     return _links[str];
