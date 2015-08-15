@@ -49,7 +49,7 @@ Map defaultProfileMap = {
     ]
   },
   "broker":{
-    "unode":{
+    "userNode":{
       "addChild":{
         r"$invokable":"config",
         r"$params":[{"name":"Name","type":"string"}]
@@ -62,7 +62,7 @@ Map defaultProfileMap = {
         r"$invokable":"config"
       }
     },
-    "unoderoot":{
+    "userRoot":{
       "addChild":{
         r"$invokable":"config",
         r"$params":[{"name":"Name","type":"string"}]

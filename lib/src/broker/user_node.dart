@@ -3,8 +3,8 @@ part of dslink.broker;
 class UserNode extends BrokerNode {
   final String username;
   UserNode(String path, BrokerNodeProvider provider, this.username) : super(path, provider) {
-    configs[r'$is'] = 'broker/unode';
-    profile = provider.getOrCreateNode('/defs/profile/broker/unode', false);
+    configs[r'$is'] = 'broker/userNode';
+    profile = provider.getOrCreateNode('/defs/profile/broker/userNode', false);
   }
 
   bool _loaded = false;
@@ -50,8 +50,8 @@ class UserNode extends BrokerNode {
 class UserRootNode extends UserNode {
   UserRootNode(String path, String username, BrokerNodeProvider provider)
       : super(path, provider, username) {
-    configs[r'$is'] = 'broker/unoderoot';
-    profile = provider.getOrCreateNode('/defs/profile/broker/unoderoot', false);
+    configs[r'$is'] = 'broker/userRoot';
+    profile = provider.getOrCreateNode('/defs/profile/broker/userRoot', false);
   }
 }
 InvokeResponse addChildNode(Map params, Responder responder,
@@ -121,7 +121,7 @@ InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
 }
 Map userNodeFunctions = {
   "broker": {
-    "unode": {"addChild": addChildNode, "addLink": addLink},
-    "unoderoot": {"addChild": addChildNode, "addLink": addLink,}
+    "userNode": {"addChild": addChildNode, "addLink": addLink},
+    "userRoot": {"addChild": addChildNode, "addLink": addLink,}
   }
 };
