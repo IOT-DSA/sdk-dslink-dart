@@ -146,6 +146,13 @@ class RemoteLinkRootListController extends ListController {
               (name == r'$is' ||
                   name == r'$base' ||
                   (name == r'$disconnectedTs' && value is String))) {
+            if (name == r'$is') {
+              if (value == 'dsa/broker') {
+                node.configs[r'$is'] = 'dsa/broker';
+              } else {
+                node.configs[r'$is'] = 'dsa/link';
+              }
+            }
             reseted = true;
             node.resetNodeCache();
           }

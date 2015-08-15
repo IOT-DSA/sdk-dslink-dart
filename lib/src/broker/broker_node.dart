@@ -77,7 +77,9 @@ class ClearConnsAction extends BrokerNode {
 }
 
 class RootNode extends BrokerNode {
-  RootNode(String path, BrokerNodeProvider provider) : super(path, provider) {}
+  RootNode(String path, BrokerNodeProvider provider) : super(path, provider) {
+    configs[r'$is'] = 'dsa/broker';
+  }
 
   bool _loaded = false;
 
