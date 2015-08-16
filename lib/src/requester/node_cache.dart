@@ -16,6 +16,18 @@ class RemoteNodeCache {
     return _nodes[path];
   }
 
+  bool isNodeCached(String path) {
+    return _nodes.containsKey(path);
+  }
+
+  void clearCachedNode(String path) {
+    _nodes.remove(path);
+  }
+
+  void clear() {
+    _nodes.clear();
+  }
+
   Node getDefNode(String path, String defName) {
     if (DefaultDefNodes.nameMap.containsKey(defName)) {
       return DefaultDefNodes.nameMap[defName];
