@@ -60,11 +60,12 @@ class HttpHelper {
   /// Custom WebSocket Connection logic.
   static Future<WebSocket> connectToWebSocket(
       String url, {Iterable<String> protocols, Map<String, dynamic> headers, HttpClient httpClient}) async {
-    if (const bool.fromEnvironment("calzone.build", defaultValue: false)) {
+    Uri uri = Uri.parse(url);
+
+    if (const bool.fromEnvironment("calzone.build", defaultValue: false) || uri.scheme == "http" || uri.scheme == "ws") {
       return await WebSocket.connect(url, protocols: protocols, headers: headers);
     }
 
-    Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
     }
