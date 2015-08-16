@@ -1,6 +1,5 @@
 part of dslink.requester;
 
-
 // TODO merge with defaultProfileMap in common lib
 class DefaultDefNodes {
   static final Map _defaultDefs = {

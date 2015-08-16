@@ -90,14 +90,14 @@ class RemoteNode extends Node {
     return new ListController(this, requester);
   }
 
-  void _subscribe(Requester requester, callback(ValueUpdate), int qos) {
+  void _subscribe(Requester requester, callback(ValueUpdate update), int qos) {
     if (_subscribeController == null) {
       _subscribeController = new ReqSubscribeController(this, requester);
     }
     _subscribeController.listen(callback, qos);
   }
 
-  void _unsubscribe(Requester requester, callback(ValueUpdate)) {
+  void _unsubscribe(Requester requester, callback(ValueUpdate update)) {
     if (_subscribeController != null) {
       _subscribeController.unlisten(callback);
     }
