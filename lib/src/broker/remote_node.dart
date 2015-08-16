@@ -119,6 +119,21 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   Responder createResponder(String dsId) {
     throw 'not implemented';
   }
+
+  @override
+  void clear() {
+    nodes.clear();
+  }
+
+  @override
+  void clearCachedNode(String path) {
+    nodes.remove(path);
+  }
+
+  @override
+  bool isNodeCached(String path) {
+    return nodes.containsKey(path);
+  }
 }
 
 class RemoteLinkNode extends RemoteNode implements LocalNode {
