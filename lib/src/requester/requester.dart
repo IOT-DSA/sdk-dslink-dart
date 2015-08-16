@@ -71,6 +71,32 @@ class Requester extends ConnectionHandler {
     return new ReqSubscribeListener(this, path, callback);
   }
 
+  Future<ValueUpdate> getNodeValue(String path) {
+    var c = new Completer<ValueUpdate>();
+    ReqSubscribeListener listener;
+    listener = subscribe(path, (ValueUpdate update) {
+      c.complete(update);
+      if (listener != null) {
+        listener.cancel();
+      }
+    });
+    return c.future;
+  }
+
+  Future<RemoteNode> getRemoteNode(String path) {
+    var c = new Completer<RemoteNode>();
+    StreamSubscription sub;
+    sub = list(path).listen((update) {
+      c.complete(update.node);
+      if (sub != null) {
+        sub.cancel();
+      }
+    }, onError: (e, stack) {
+      c.completeError(e, stack);
+    }, cancelOnError: true);
+    return c.future;
+  }
+
   void unsubscribe(String path, callback(ValueUpdate update)) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     node._unsubscribe(this, callback);
