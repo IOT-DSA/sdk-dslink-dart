@@ -256,6 +256,7 @@ class ReqSubscribeController {
         neededQos |= currentQos;
       }
       qosChanged = neededQos > currentQos;
+      currentQos = neededQos;
       if (_lastUpdate != null) {
         callback(_lastUpdate);
       }
