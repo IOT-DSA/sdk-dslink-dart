@@ -1,9 +1,11 @@
 part of dslink.broker;
 
-class RemoteRequester extends Requester {
+class RemoteRequester extends Requester implements IRemoteRequester {
   final RemoteLinkManager _linkManager;
 
-  RemoteRequester(RemoteLinkManager cache)
+  String responderPath;
+  
+  RemoteRequester(RemoteLinkManager cache, this.responderPath)
       : super(cache),
         _linkManager = cache;
 

@@ -143,7 +143,7 @@ abstract class ServerLinkManager {
 
   void removeLink(ServerLink link, String id);
 
-  ServerLink getOrCreateLink(String dsId, {String sessionId: ''});
+  ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ''});
 
   Requester getRequester(String dsId);
 

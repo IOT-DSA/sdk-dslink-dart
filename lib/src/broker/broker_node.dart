@@ -343,10 +343,16 @@ class UpstreamBrokerNode extends BrokerNode {
 
     link.connect();
 
-    p.addUpStreamLink(link.link, name);
+    RemoteLinkManager linkManager = p.addUpStreamLink(link.link, name);
 
     ien.updateValue(true);
     enabled = true;
+    link.onRequesterReady.then((Requester requester){
+      if (link.link.remotePath != null) {
+        linkManager.rootNode.configs[r'$remotePath'] = link.link.remotePath;
+        linkManager.rootNode.updateList(r'$remotePath');
+      }
+    });
   }
 
   void stop() {

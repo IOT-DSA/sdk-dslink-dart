@@ -9,6 +9,8 @@ class HttpClientLink implements ClientLink {
 
   Future get onConnected => _onConnectedCompleter.future;
 
+  String remotePath;
+  
   final String dsId;
   final String home;
   final PrivateKey privateKey;
@@ -117,7 +119,8 @@ class HttpClientLink implements ClientLink {
       // server start to support version since 1.0.4
       // and this is the version ack is added
       enableAck = serverConfig.containsKey('version');
-
+      remotePath = serverConfig['path'];
+      
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
             .replaceFirst('http', 'ws');

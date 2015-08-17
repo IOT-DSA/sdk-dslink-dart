@@ -20,6 +20,11 @@ part 'src/http/server_link.dart';
 part 'src/http/server.dart';
 part 'src/http/server_websocket.dart';
 
+abstract class IRemoteRequester{
+  /// user when the requester is proxied to another responder
+  String get responderPath;
+}
+
 ContentType _jsonContentType =
     new ContentType("application", "json", charset: "utf-8");
 

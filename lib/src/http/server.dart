@@ -7,7 +7,7 @@ class DsSimpleLinkManager implements ServerLinkManager {
     _links[link.dsId] = link;
   }
 
-  ServerLink getOrCreateLink(String dsId, {String sessionId: ''}) {
+  ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ''}) {
     return _links[dsId];
   }
 
@@ -162,7 +162,7 @@ class DsHttpServer {
         }
         String str = UTF8.decode(merged);
         Map m = DsJson.decode(str);
-        HttpServerLink link = _linkManager.getOrCreateLink(dsId);
+        HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
         if (link == null) {
           String publicKeyPointStr = m['publicKey'];
           var bytes = Base64.decode(publicKeyPointStr);
@@ -207,7 +207,7 @@ class DsHttpServer {
 
   void _handleWsUpdate(HttpRequest request, String dsId) {
     bool trusted = request.requestedUri.host == '127.0.0.1';
-    HttpServerLink link = _linkManager.getOrCreateLink(dsId);
+    HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
     if (link != null) {
       link.handleWsUpdate(request, trusted);
     } else {

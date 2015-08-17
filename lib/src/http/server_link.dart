@@ -97,6 +97,9 @@ class HttpServerLink implements ServerLink {
       respJson["saltS"] = salts[1];
       respJson["saltL"] = salts[2];
     }
+    if (requester is IRemoteRequester) {
+      respJson["path"] = (requester as IRemoteRequester).responderPath;
+    }
     updateResponseBeforeWrite(request);
     request.response.write(DsJson.encode(respJson));
     request.response.close();

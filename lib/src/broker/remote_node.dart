@@ -12,7 +12,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
   String disconnected = ValueUpdate.getTs();
 
   RemoteLinkManager(this.broker, this.path, NodeProviderImpl brokerProvider, [Map rootNodeData]) {
-    requester = new RemoteRequester(this);
+    requester = new RemoteRequester(this, path);
     rootNode = new RemoteLinkRootNode(path, '/', this);
     nodes['/'] = rootNode;
     if (rootNodeData != null) {

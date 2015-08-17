@@ -417,13 +417,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     _connPath2id[connPath] = upStreamId;
     _id2connPath[upStreamId] = connPath;
   }
-  void addUpStreamLink(ClientLink link, String name) {
+  RemoteLinkManager addUpStreamLink(ClientLink link, String name) {
     String upStreamId = '@upstream@$name';
     RemoteLinkManager conn;
     // TODO update children list of /$downstreamNameS node
     if (_links.containsKey(upStreamId)) {
       // TODO is it possible same link get added twice?
-      return;
+      return null;
     } else {
       _links[upStreamId] = link;
 
@@ -450,6 +450,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       conn.inTree = true;
       parentNode.updateList(connName);
     }
+    return conn;
   }
   void addLink(ServerLink link) {
     String str = link.dsId;
@@ -473,7 +474,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
   }
 
-  ServerLink getOrCreateLink(String dsId, {String sessionId:''}) {
+  ServerLink getLinkAndConnectNode(String dsId, {String sessionId:''}) {
     if (sessionId == null) sessionId = '';
     String str = dsId;
     if (sessionId != null && sessionId != '') {
