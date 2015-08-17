@@ -215,6 +215,7 @@ class RespSubscribeController {
       for (ValueUpdate lastValue in lastValues) {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
+      lastValues.clear();
     } else {
       if (lastValue.count > 1 || lastValue.status != null) {
         Map m = {'ts': lastValue.ts, 'value': lastValue.value, 'sid': sid};
@@ -234,8 +235,8 @@ class RespSubscribeController {
       } else {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
+      lastValue = null;
     }
-    lastValues.clear();
     return rslts;
   }
 
