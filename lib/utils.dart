@@ -75,7 +75,7 @@ Logger get logger {
 void updateLogLevel(String name) {
   name = name.trim().toUpperCase();
 
-  if (name == "debug") {
+  if (name == "DEBUG") {
     name = "ALL";
   }
 
