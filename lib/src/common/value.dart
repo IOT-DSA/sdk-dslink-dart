@@ -82,4 +82,25 @@ class ValueUpdate {
       max = newUpdate.max;
     }
   }
+  
+  void mergeAdd(ValueUpdate newUpdate) {
+    value = newUpdate.value;
+    ts = newUpdate.ts;
+    status = newUpdate.status;
+    count += newUpdate.count;
+    
+    if (!newUpdate.sum.isNaN) {
+      if (!sum.isNaN) {
+        sum += newUpdate.sum;
+      } else {
+        sum = newUpdate.sum;
+      }
+    }
+    if (min.isNaN || newUpdate.min < min) {
+      min = newUpdate.min;
+    }
+    if (max.isNaN || newUpdate.max > max) {
+      max = newUpdate.max;
+    }
+  }
 }

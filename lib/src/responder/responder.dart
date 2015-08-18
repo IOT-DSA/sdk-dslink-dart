@@ -5,6 +5,8 @@ class Responder extends ConnectionHandler {
   /// reqId can be a dsId or a user name
   String reqId;
 
+  int maxCacheLength = ConnectionProcessor.DEFAULT_CACHE_SIZE;
+  
   /// list of permission group
   List<String> groups = [];
   void updateGroups(List<String> vals) {

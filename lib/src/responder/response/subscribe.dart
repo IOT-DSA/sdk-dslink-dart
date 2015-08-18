@@ -104,7 +104,7 @@ class SubscribeResponse extends Response {
     if (_sendingAfterAck) {
       return;
     }
-    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+    if (_waitingAckCount > ConnectionProcessor.ACK_WAIT_COUNT) {
       _sendingAfterAck = true;
       return;
     }
@@ -190,11 +190,22 @@ class RespSubscribeController {
     }
   }
 
+  bool _isCacheValid = true;
   void addValue(ValueUpdate val) {
     
-    if (_caching) {
-      lastValue = val;
+    if (_caching && _isCacheValid) {
       lastValues.add(val);
+      if (lastValues.length > response.responder.maxCacheLength) {
+        // cache is no longer valid, fallback to rollup mode
+        _isCacheValid = false;
+        lastValue = new ValueUpdate(null,ts:'');
+        for (ValueUpdate update in lastValues) {
+          lastValue.mergeAdd(update);
+        }
+        lastValues.clear();
+      } else {
+        lastValue = val;
+      }
     } else {
       if (lastValue != null) {
         lastValue =  new ValueUpdate.merge(lastValue, val);
@@ -211,7 +222,7 @@ class RespSubscribeController {
 
   List process() {
     List rslts = [];
-    if (_caching) {
+    if (_caching && _isCacheValid) {
       for (ValueUpdate lastValue in lastValues) {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
@@ -236,6 +247,7 @@ class RespSubscribeController {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
       lastValue = null;
+      _isCacheValid = true;
     }
     return rslts;
   }

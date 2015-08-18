@@ -213,7 +213,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
     if (_sendingAfterAck) {
       return;
     }
-    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+    if (_waitingAckCount > ConnectionProcessor.ACK_WAIT_COUNT) {
       _sendingAfterAck = true;
       return;
     }

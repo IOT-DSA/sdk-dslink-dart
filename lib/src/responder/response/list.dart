@@ -157,7 +157,7 @@ class ListResponse extends Response {
     if (_sendingAfterAck) {
       return;
     }
-    if (_waitingAckCount > ConnectionProcessor.WAITCOUNT) {
+    if (_waitingAckCount > ConnectionProcessor.ACK_WAIT_COUNT) {
       _sendingAfterAck = true;
       return;
     }
