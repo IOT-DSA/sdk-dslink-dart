@@ -640,9 +640,9 @@ class SimpleNode extends LocalNodeImpl {
   void onChildAdded(String name, Node node) {}
 
   @override
-  RespSubscribeListener subscribe(callback(ValueUpdate), [int cacheLevel = 1]) {
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int qos = 0]) {
     onSubscribe();
-    return super.subscribe(callback, cacheLevel);
+    return super.subscribe(callback, qos);
   }
 
   /// Callback to override how a child of this node is loaded.

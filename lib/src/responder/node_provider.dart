@@ -37,8 +37,8 @@ abstract class LocalNode extends Node {
   Map<Function, int> callbacks = new Map<Function, int>();
 
   /// Subscribes the given [callback] to this node.
-  RespSubscribeListener subscribe(callback(ValueUpdate), [int cachelevel = 1]) {
-    callbacks[callback] = cachelevel;
+  RespSubscribeListener subscribe(callback(ValueUpdate), [int qos = 0]) {
+    callbacks[callback] = qos;
     return new RespSubscribeListener(this, callback);
   }
 
@@ -71,14 +71,14 @@ abstract class LocalNode extends Node {
   void updateValue(Object update, {bool force: false}) {
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
-      callbacks.forEach((callback, cachelevel) {
+      callbacks.forEach((callback, qos) {
         callback(_lastValueUpdate);
       });
     } else if (_lastValueUpdate == null ||
         _lastValueUpdate.value != update ||
         force) {
       _lastValueUpdate = new ValueUpdate(update);
-      callbacks.forEach((callback, cachelevel) {
+      callbacks.forEach((callback, qos) {
         callback(_lastValueUpdate);
       });
     }
