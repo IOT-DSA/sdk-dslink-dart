@@ -163,7 +163,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
         String path = '$downstreamNameSS$name';
-        RemoteLinkRootNode node = getOrCreateNode(path, true);
+        RemoteLinkRootNode node = getOrCreateNode(path, false);
         connsNode.children[name] = node;
         RemoteLinkManager conn = node._linkManager;
         conn.inTree = true;
