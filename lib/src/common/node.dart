@@ -12,7 +12,7 @@ class Node {
       }
     }
     if (nameOrPath.contains('%')){
-      nameOrPath = Uri.decodeComponent(nameOrPath);
+      nameOrPath = UriComponentDecoder.decode(nameOrPath);
     }
     return nameOrPath;
   }
