@@ -1,4 +1,4 @@
-part of dslink.server;
+part of dslink.broker;
 
 class DsSimpleLinkManager implements ServerLinkManager {
   final Map<String, HttpServerLink> _links = new Map<String, HttpServerLink>();

@@ -56,7 +56,12 @@ class WebSocketConnection extends Connection {
   /// when the count is 3, disconnect the link (>=60 seconds)
   int _dataReceiveCount = 0;
 
-  int throughput = 0;
+  static bool throughputEnabled = false;
+  
+  int dataIn = 0;
+  int messageIn = 0;
+  int dataOut = 0;
+  int messageOut = 0;
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
@@ -108,7 +113,7 @@ class WebSocketConnection extends Connection {
     _dataReceiveCount = 0;
     Map m;
     if (data is List<int>) {
-      throughput += data.length;
+     
       if (data.length != 0 && data[0] == 0) {
         logger.finest(" receive binary length ${data.length}");
         // binary channel
@@ -123,6 +128,9 @@ class WebSocketConnection extends Connection {
             "Failed to decode JSON bytes in WebSocket Connection", err, stack);
         close();
         return;
+      }
+      if (throughputEnabled) {
+        dataIn += data.length;
       }
       bool needAck = false;
       if (m['responses'] is List && (m['responses'] as List).length > 0) {
@@ -145,7 +153,6 @@ class WebSocketConnection extends Connection {
         }
       }
     } else if (data is String) {
-      throughput += data.length;
       try {
         m = DsJson.decodeFrame(data, binaryInCache);
         logger.fine("WebSocket JSON: ${m}");
@@ -153,6 +160,9 @@ class WebSocketConnection extends Connection {
         logger.severe("Failed to decode JSON from WebSocket Connection", err);
         close();
         return;
+      }
+      if (throughputEnabled) {
+        dataIn += data.length;
       }
       if (m['salt'] is String && clientLink != null) {
         clientLink.updateSalt(m['salt']);
@@ -162,11 +172,28 @@ class WebSocketConnection extends Connection {
         needAck = true;
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m['responses']);
+        if (throughputEnabled) {
+          for (Map resp in m['responses']) {
+            if (resp['updates'] is List) {
+              int len = resp['updates'].length;
+              if (len > 0) {
+                messageIn += len;
+              } else {
+                messageIn += 1;
+              }
+            } else {
+              messageIn += 1;
+            }
+          }
+        }
       }
       if (m['requests'] is List && (m['requests'] as List).length > 0) {
         needAck = true;
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
+        if (throughputEnabled) {
+          messageIn += m['requests'].length;
+        }
       }
       if (m['ack'] is int) {
         ack(m['ack']);
@@ -202,6 +229,20 @@ class WebSocketConnection extends Connection {
       if (rslt.messages.length > 0) {
         m['responses'] = rslt.messages;
         needSend = true;
+        if (throughputEnabled) {
+          for (Map resp in rslt.messages) {
+            if (resp['updates'] is List) {
+              int len = resp['updates'].length;
+              if (len > 0) {
+                messageOut += len;
+              } else {
+                messageOut += 1;
+              }
+            } else {
+              messageOut += 1;
+            }
+          }
+        }
       }
       if (rslt.processors.length > 0) {
         pendingAck.addAll(rslt.processors);
@@ -212,6 +253,9 @@ class WebSocketConnection extends Connection {
       if (rslt.messages.length > 0) {
         m['requests'] = rslt.messages;
         needSend = true;
+        if (throughputEnabled) {
+          messageOut += rslt.messages.length;
+        }
       }
       if (rslt.processors.length > 0) {
         pendingAck.addAll(rslt.processors);
@@ -237,7 +281,9 @@ class WebSocketConnection extends Connection {
       socket.add(binaryOutCache.export());
     }
     logger.finest('send: $json');
-    throughput += json.length;
+    if (throughputEnabled) {
+      dataOut += json.length;
+    }
     socket.add(json);
   }
 

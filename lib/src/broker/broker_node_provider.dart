@@ -65,7 +65,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     setNode("/sys/version", new BrokerVersionNode("/sys/version", this, DSA_VERSION));
     setNode("/sys/startTime", new StartTimeNode("/sys/startTime", this));
     setNode("/sys/clearConns", new ClearConnsAction("/sys/clearConns", this));
-    setNode("/sys/throughput", new ThroughPutNode("/sys/throughput", this));
+    
+    ThroughPutController.initNodes(this);
+    
+    setNode("/sys/messagesOutPerSecond", ThroughPutController.messagesOutPerSecond);
+    setNode("/sys/dataOutPerSecond", ThroughPutController.dataOutPerSecond);
+    setNode("/sys/messagesInPerSecond", ThroughPutController.messagesInPerSecond);
+    setNode("/sys/dataInPerSecond", ThroughPutController.dataInPerSecond);
     
     upstream = new UpstreamNode("/sys/upstream", this);
     setNode("/sys/upstream", upstream);

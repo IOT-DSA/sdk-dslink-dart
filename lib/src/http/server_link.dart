@@ -1,4 +1,4 @@
-part of dslink.server;
+part of dslink.broker;
 
 /// a server link for both http and ws
 class HttpServerLink implements ServerLink {
