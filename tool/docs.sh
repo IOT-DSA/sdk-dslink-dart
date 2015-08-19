@@ -4,7 +4,7 @@ if [ -d "build" ]
 then
   rm -rf build
 fi
-pub global activate dartdoc > /dev/null
+pub global activate -sgit https://github.com/dart-lang/dartdoc.git > /dev/null
 mkdir -p build/docs
 pub global run dartdoc --output build/docs
 if [ "$1" == "--upload" ]
