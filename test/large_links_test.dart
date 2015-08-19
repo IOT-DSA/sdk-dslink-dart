@@ -76,7 +76,7 @@ largeLinksTest() {
     var received = [];
     var sub = requester.subscribe("/conns/DataHost/Number", (ValueUpdate update) {
       received.add(update.value);
-    });
+    }, 1);
 
     await gap();
 
