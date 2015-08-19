@@ -3,7 +3,7 @@ set -e
 
 ./tool/analyze.sh
 ./tool/test.sh
-if [ "${TRAVIS_DART_VERSION}" == "stable" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "develop" ]
+if [ "${TRAVIS_DART_VERSION}" == "dev" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "develop" ]
 then
   if [ ! -d ${HOME}/.ssh ]
   then
