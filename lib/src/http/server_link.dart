@@ -167,7 +167,7 @@ class HttpServerLink implements ServerLink {
 //    (connection as HttpServerConnection).handleInput(request);
 //  }
 
-  ServerWebSocket wsconnection;
+  WebSocketConnection wsconnection;
   void handleWsUpdate(HttpRequest request, bool trusted) {
     if (!trusted && !verifySalt(0, request.uri.queryParameters['auth'])) {
       logger.warning("$dsId was rejected due to an improper auth value");
@@ -226,7 +226,7 @@ class HttpServerLink implements ServerLink {
     }
   }
 
-  ServerWebSocket createWsConnection(WebSocket websocket) {
-    return new ServerWebSocket(websocket, enableTimeout: enableTimeout, enableAck:enableAck);
+  WebSocketConnection createWsConnection(WebSocket websocket) {
+    return new WebSocketConnection(websocket, enableTimeout: enableTimeout, enableAck:enableAck);
   }
 }
