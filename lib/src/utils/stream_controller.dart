@@ -80,6 +80,22 @@ class BroadcastStreamController<T> implements StreamController<T> {
   bool get isPaused => _controller.isPaused;
 
   StreamSink<T> get sink => _controller.sink;
+
+  void set onCancel(onCancelHandler()) {
+    throw('BroadcastStreamController.onCancel not implemented');
+  }
+
+  void set onListen(void onListenHandler()) {
+    throw('BroadcastStreamController.onListen not implemented');
+  }
+
+  void set onPause(void onPauseHandler()) {
+    throw('BroadcastStreamController.onPause not implemented');
+  }
+
+  void set onResume(void onResumeHandler()) {
+    throw('BroadcastStreamController.onResume not implemented');
+  }
 }
 
 class CachedStreamWrapper<T> implements Stream<T> {
