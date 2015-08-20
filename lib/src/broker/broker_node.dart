@@ -38,9 +38,14 @@ class BrokerNode extends LocalNodeImpl with BrokerNodePermission{
     return permission;
   }
 }
-
+/// nodes that automatic add itself to broker tree and always stay there
+class BrokerStaticNode extends BrokerNode {
+  BrokerStaticNode(String path, BrokerNodeProvider provider) : super(path, provider) {
+    provider.setNode(path, this);
+  }
+}
 /// Version node
-class BrokerVersionNode extends BrokerNode {
+class BrokerVersionNode extends BrokerStaticNode {
   static BrokerVersionNode instance;
   BrokerVersionNode(String path, BrokerNodeProvider provider, String version) : super(path, provider) {
     instance = this;
@@ -50,7 +55,7 @@ class BrokerVersionNode extends BrokerNode {
 }
 
 /// Start Time node
-class StartTimeNode extends BrokerNode {
+class StartTimeNode extends BrokerStaticNode {
   static StartTimeNode instance;
   StartTimeNode(String path, BrokerNodeProvider provider) : super(path, provider) {
     instance = this;
@@ -60,7 +65,7 @@ class StartTimeNode extends BrokerNode {
 }
 
 /// Clear Conns node
-class ClearConnsAction extends BrokerNode {
+class ClearConnsAction extends BrokerStaticNode {
 
   ClearConnsAction(String path, BrokerNodeProvider provider) : super(path, provider) {
     configs[r"$name"] = "Clear Conns";
@@ -109,7 +114,7 @@ class RootNode extends BrokerNode {
   }
 }
 
-class UpstreamNode extends BrokerNode {
+class UpstreamNode extends BrokerStaticNode {
   UpstreamNode(String path, BrokerNodeProvider provider)
   : super(path, provider) {
     new Future(() {

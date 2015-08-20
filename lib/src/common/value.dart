@@ -82,13 +82,22 @@ class ValueUpdate {
       max = newUpdate.max;
     }
   }
-  
+
+  Duration _latency;
+
+  Duration get latency {
+    if (_latency == null) {
+      _latency = new DateTime.now().difference(DateTime.parse(ts));
+    }
+    return _latency;
+  }
+
   void mergeAdd(ValueUpdate newUpdate) {
     value = newUpdate.value;
     ts = newUpdate.ts;
     status = newUpdate.status;
     count += newUpdate.count;
-    
+
     if (!newUpdate.sum.isNaN) {
       if (!sum.isNaN) {
         sum += newUpdate.sum;

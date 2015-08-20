@@ -122,7 +122,7 @@ main(List<String> args) {
     }
   };
 
-  link = new LinkProvider(['-b','http://localhost:8080/conn','--log','finest'], 'quicklink-', defaultNodes:defaultNodes, profiles:profiles/*, home:'dgSuper'*/);
+  link = new LinkProvider(['-b','localhost:8080/conn','--log','finest'], 'rick-resp-', defaultNodes:defaultNodes, profiles:profiles/*, home:'dgSuper'*/);
   if (link.link == null) {
     // initialization failed
     return;
@@ -132,5 +132,10 @@ main(List<String> args) {
   rootNode = link.getNode('/');
   lastNum = addNode.configs[r'$lastNum'];
 
+  var node = link.provider.getOrCreateNode('/testpoint');
+  node.load({r'$type':'number', "?value":1});
+  new Timer.periodic(new Duration(milliseconds:5), (Timer t){
+    node.updateValue(1-node.value);
+  });
   link.connect();
 }

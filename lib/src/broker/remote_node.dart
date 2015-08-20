@@ -31,7 +31,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
     if (responders.containsKey(sessionId)) {
       return responders[sessionId];
     } else {
-      var responder = nodeProvider.createResponder(dsId);
+      var responder = nodeProvider.createResponder(dsId, sessionId);
       responder.reqId = dsId;
       //TODO set permission group from user node
       responder.updateGroups([]);
@@ -116,7 +116,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
 
   IPermissionManager get permissions => broker.permissions;
 
-  Responder createResponder(String dsId) {
+  Responder createResponder(String dsId, String sessionId) {
     throw 'not implemented';
   }
 

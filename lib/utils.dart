@@ -17,7 +17,7 @@ part "src/utils/stream_controller.dart";
 part "src/utils/json.dart";
 part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
-part "src/utils/uri_componenet.dart";
+part "src/utils/uri_component.dart";
 
 /// The DSA Version
 const String DSA_VERSION = '1.1.0';
@@ -204,9 +204,10 @@ List<Map<String, dynamic>> buildActionIO(Map<String, String> types) {
 Random _random = new Random();
 
 String generateBasicId({int length: 30}) {
-  var r = new Random(_random.nextInt(5000));
+  var r0 = new Random();
   var buffer = new StringBuffer();
   for (int i = 1; i <= length; i++) {
+    var r = new Random(r0.nextInt(0x70000000) + (new DateTime.now()).millisecondsSinceEpoch);
     var n = r.nextInt(50);
     if (n >= 0 && n <= 32) {
       String letter = alphabet[r.nextInt(alphabet.length)];
@@ -221,9 +222,10 @@ String generateBasicId({int length: 30}) {
 }
 
 String generateToken({int length: 50}) {
-  var r = new Random(_random.nextInt(5000));
+  var r0 = new Random();
   var buffer = new StringBuffer();
   for (int i = 1; i <= length; i++) {
+    var r = new Random(r0.nextInt(0x70000000) + (new DateTime.now()).millisecondsSinceEpoch);
     if (r.nextBool()) {
       String letter = alphabet[r.nextInt(alphabet.length)];
       buffer.write(r.nextBool() ? letter.toLowerCase() : letter);

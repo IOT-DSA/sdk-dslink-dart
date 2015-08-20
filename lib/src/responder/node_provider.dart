@@ -221,7 +221,7 @@ abstract class NodeProvider {
   LocalNode operator ~() => getOrCreateNode("/", false);
 
   /// Create a Responder
-  Responder createResponder(String dsId);
+  Responder createResponder(String dsId, String sessionId);
 
   /// Get Permissions.
   IPermissionManager get permissions;

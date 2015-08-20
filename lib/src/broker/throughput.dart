@@ -57,7 +57,7 @@ class ThroughPutController {
   }
 }
 
-class ThroughPutNode extends BrokerNode {
+class ThroughPutNode extends BrokerStaticNode {
   ThroughPutNode(String path, BrokerNodeProvider provider)
       : super(path, provider);
 
