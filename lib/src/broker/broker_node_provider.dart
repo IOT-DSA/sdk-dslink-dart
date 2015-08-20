@@ -62,19 +62,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   void initSys() {
-    setNode("/sys/version", new BrokerVersionNode("/sys/version", this, DSA_VERSION));
-    setNode("/sys/startTime", new StartTimeNode("/sys/startTime", this));
-    setNode("/sys/clearConns", new ClearConnsAction("/sys/clearConns", this));
+    new BrokerVersionNode("/sys/version", this, DSA_VERSION);
+    new StartTimeNode("/sys/startTime", this);
+    new ClearConnsAction("/sys/clearConns", this);
     
     ThroughPutController.initNodes(this);
     
-    setNode("/sys/messagesOutPerSecond", ThroughPutController.messagesOutPerSecond);
-    setNode("/sys/dataOutPerSecond", ThroughPutController.dataOutPerSecond);
-    setNode("/sys/messagesInPerSecond", ThroughPutController.messagesInPerSecond);
-    setNode("/sys/dataInPerSecond", ThroughPutController.dataInPerSecond);
-    
     upstream = new UpstreamNode("/sys/upstream", this);
-    setNode("/sys/upstream", upstream);
+
     
     BrokerTraceNode.init(this);
   }
@@ -531,7 +526,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return node._linkManager.getResponder(nodeProvider, dsId, sessionId);
   }
 
-  Responder createResponder(String dsId) {
+  Responder createResponder(String dsId, String session) {
     return new Responder(this, dsId);
   }
 }

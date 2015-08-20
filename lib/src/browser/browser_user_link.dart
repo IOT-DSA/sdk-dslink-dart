@@ -5,7 +5,7 @@ class BrowserUserLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
-  String session = DSRandom.instance.nextUint16().toRadixString(16) +
+  static String session = DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16);
