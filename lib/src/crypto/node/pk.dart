@@ -6,9 +6,7 @@ import 'dart:typed_data';
 import 'dart:async';
 import 'dart:js';
 
-JsObject _context = (const bool.fromEnvironment("calzone.browser", defaultValue: false)) ? context["__iot_dsa__"] : context;
-
-require(String input) => _context.callMethod("require", [input]);
+require(String input) => context.callMethod("require", [input]);
 
 JsObject _toObj(obj) {
   if(obj is JsObject || obj == null)
@@ -70,7 +68,7 @@ class NodeCryptoProvider implements CryptoProvider {
   PrivateKey loadFromString(String str) {
     List parts = str.split(' ');
 
-    var privateKeyBuf = new JsObject(_context["Buffer"], [parts[0], "base64"]);
+    var privateKeyBuf = new JsObject(context["Buffer"], [parts[0], "base64"]);
 
     var privateKey = new JsObject(_curve["PrivateKey"], ["prime256v1", privateKeyBuf]);
     var publicKey = privateKey.callMethod("getPublicKey", []);
@@ -95,9 +93,9 @@ class ECDHImpl extends ECDH {
   ECDHImpl(this._buffer, this.publicKey, this.privateKey);
 
   String hashSalt(String salt) {
-    var saltBuffer = new JsObject(_context["Buffer"], [salt]);
+    var saltBuffer = new JsObject(context["Buffer"], [salt]);
 
-    var newBuffer = new JsObject(_context["Buffer"], [saltBuffer["length"] + _buffer["length"]]);
+    var newBuffer = new JsObject(context["Buffer"], [saltBuffer["length"] + _buffer["length"]]);
 
     saltBuffer.callMethod("copy", [newBuffer, 0]);
     _buffer.callMethod("copy", [newBuffer, saltBuffer["length"]]);
@@ -131,7 +129,7 @@ class PrivateKeyImpl implements PrivateKey {
   }
 
   Future<ECDH> getSecret(String key) async {
-    var buf = new JsObject(_context["Buffer"], [key, "base64"]);
+    var buf = new JsObject(context["Buffer"], [key, "base64"]);
     var point = _curve["Point"].callMethod("fromEncoded", ["prime256v1", buf]);
     var secret = _privateKey.callMethod("getSharedSecret", [point]);
 
@@ -151,7 +149,7 @@ class DSRandomImpl extends DSRandom {
 
 JsObject listToBuf(Uint8List bytes) {
   var length = bytes.length;
-  var buf = new JsObject(_context["Buffer"], [length]);
+  var buf = new JsObject(context["Buffer"], [length]);
 
   var offset = 0;
   for(var byte in bytes) {
