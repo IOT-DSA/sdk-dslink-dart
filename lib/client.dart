@@ -88,7 +88,7 @@ class LinkProvider {
 
   Requester overrideRequester;
   Responder overrideResponder;
-  
+
   /// connect to user home space
   String home;
 
@@ -98,7 +98,7 @@ class LinkProvider {
   /// [isRequester] specifies if you are a requester or not.
   /// [isResponder] specifies if you a responder or not.
   /// [command] is the command name for this link.
-  /// [defaultNodes] specify the default nodes to initialize if a nodes.json is not present.
+  /// Both [defaultNodes] and [nodes] specify the default nodes to initialize if a nodes.json is not present.
   /// [profiles] specify the profiles for this link.
   /// [provider] is a node provider. If it is not specified, one will be created for you.
   /// [enableHttp] toggles whether to enable HTTP fallbacks.
@@ -114,6 +114,7 @@ class LinkProvider {
       this.command: 'link',
       this.isResponder: true,
       this.defaultNodes,
+      Map nodes,
       this.profiles,
       this.provider,
       this.enableHttp: true,
@@ -133,6 +134,10 @@ class LinkProvider {
 
     if (nodeProvider != null) {
       provider = nodeProvider;
+    }
+
+    if (nodes != null) {
+      defaultNodes = nodes;
     }
 
     if (autoInitialize) {
@@ -457,7 +462,6 @@ class LinkProvider {
           loadedNodesData = DsJson.decode(nodesStr);
         } catch (err) {}
       }
-
       if (loadedNodesData != null) {
         (provider as SerializableNodeProvider).init(loadedNodesData);
       } else if (defaultNodes != null) {
