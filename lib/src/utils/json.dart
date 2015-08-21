@@ -175,33 +175,62 @@ class DsJsonCodecImpl implements DsJson {
     return encoder.convert(val);
   }
 
+  JsonDecoder _unsafeDecoder;
+
   Object decodeJsonFrame(String str, BinaryInCache cache) {
-    dynamic _reviver(key, value) {
-      if (value is String && value.startsWith('\u001Bbytes,')) {
-        return cache.fetchData(value.substring(7));
-      }
-      return value;
+    _currentBinaryInCache = cache;
+
+    if (_unsafeDecoder == null) {
+      _unsafeDecoder = new JsonDecoder(_reviver);
     }
-    JsonDecoder decoder = new JsonDecoder(_reviver);
-    return decoder.convert(str);
+
+    var result = _unsafeDecoder.convert(str);
+    _currentBinaryInCache = null;
+    return result;
+  }
+
+  BinaryInCache _currentBinaryInCache;
+  BinaryOutCache _currentBinaryOutCache;
+
+  dynamic _reviver(key, value) {
+    if (value is String && value.startsWith('\u001Bbytes,')) {
+      return _currentBinaryInCache.fetchData(value.substring(7));
+    }
+    return value;
+  }
+
+  dynamic _encoder(value) {
+    if (value is ByteData) {
+      int id = _currentBinaryOutCache.addBinaryData(value);
+      return '\u001Bbytes,$id';
+    }
+    return null;
   }
 
   String encodeJsonFrame(Object val, BinaryOutCache cache,
       {bool pretty: false}) {
-    dynamic _encoder(value) {
-      if (value is ByteData) {
-        int id = cache.addBinaryData(value);
-        return '\u001Bbytes,$id';
-      }
-      return null;
-    }
-    JsonEncoder encoder;
+
+    _currentBinaryOutCache = cache;
+
+    JsonEncoder c;
 
     if (pretty) {
-      encoder = new JsonEncoder.withIndent('  ', _encoder);
+      if (_unsafePrettyEncoder == null) {
+        _unsafePrettyEncoder = new JsonEncoder.withIndent('  ', _encoder);
+      }
+      c = _unsafePrettyEncoder;
     } else {
-      encoder = new JsonEncoder(_encoder);
+      if (_unsafeEncoder == null) {
+        _unsafeEncoder = new JsonEncoder(_encoder);
+      }
+      c = _unsafeEncoder;
     }
-    return encoder.convert(val);
+
+    var result = c.convert(val);
+    _currentBinaryOutCache = null;
+    return result;
   }
+
+  JsonEncoder _unsafeEncoder;
+  JsonEncoder _unsafePrettyEncoder;
 }
