@@ -79,6 +79,41 @@ class UpgradableNode extends SimpleNode {
   }
 }
 
+/// A Lazy Value Node
+class LazyValueNode extends SimpleNode {
+  SimpleCallback onValueSubscribe;
+  SimpleCallback onValueUnsubscribe;
+
+  LazyValueNode(String path, {
+    SimpleNodeProvider provider,
+    this.onValueSubscribe,
+    this.onValueUnsubscribe
+  }) : super(path, provider);
+
+  @override
+  onSubscribe() {
+    subscriptionCount++;
+    checkSubscriptionNeeded();
+  }
+
+  @override
+  onUnsubscribe() {
+    subscriptionCount--;
+    checkSubscriptionNeeded();
+  }
+
+  checkSubscriptionNeeded() {
+    if (subscriptionCount <= 0) {
+      subscriptionCount = 0;
+      onValueUnsubscribe();
+    } else {
+      onValueSubscribe();
+    }
+  }
+
+  int subscriptionCount = 0;
+}
+
 /// Represents a Simple Callback Function
 typedef void SimpleCallback();
 
