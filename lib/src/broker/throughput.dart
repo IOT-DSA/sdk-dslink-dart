@@ -1,23 +1,5 @@
 part of dslink.broker;
 
-class ServerWebSocket extends WebSocketConnection {
-  ServerWebSocket(WebSocket socket,
-      {bool enableTimeout: false, bool enableAck: false})
-      : super(socket, enableTimeout: enableTimeout, enableAck: enableAck);
-  void onPingTimer(Timer t) {
-    if (WebSocketConnection.throughputEnabled &&
-        (dataIn != 0 || dataOut != 0)) {
-      ThroughPutController.addThroughput(
-          messageIn, messageOut, dataIn, dataOut);
-      messageIn = 0;
-      messageOut = 0;
-      dataIn = 0;
-      dataOut = 0;
-    }
-    super.onPingTimer(t);
-  }
-}
-
 class ThroughPutController {
   static ThroughPutNode messagesOutPerSecond;
   static ThroughPutNode dataOutPerSecond;
@@ -33,41 +15,20 @@ class ThroughPutController {
       ..configs[r"$type"] = "number";
     dataInPerSecond = new ThroughPutNode("/sys/dataInPerSecond", provider)
       ..configs[r"$type"] = "number";
-    changeValue();
   }
-  static int lastMessageIn = 0;
-  static int lastDataIn = 0;
-  static int lastMessageOut = 0;
-  static int lastDataOut = 0;
 
-  static int lastTs = -1;
   static Timer _timer;
-  static addThroughput(int msgIn, int msgOut, int dataIn, int dataOut) {
-    lastMessageIn += msgIn;
-    lastDataIn += dataIn;
-    lastMessageOut += msgOut;
-    lastDataOut += dataOut;
-    if (_timer == null) {
-      _timer = new Timer(new Duration(seconds:5), changeValue);
-    }
-  }
-  static void changeValue() {
-    _timer = null;
-    int ts = (new DateTime.now()).millisecondsSinceEpoch;
-    num del = ts - lastTs;
-    if (del > 6000) del = 5000;
-    else if (del < 1) del = 1;
-    del /= 1000.0;
-    messagesInPerSecond.updateValue(lastMessageIn / del, force: true);
-    dataInPerSecond.updateValue(lastDataIn / del, force: true);
-    messagesOutPerSecond.updateValue(lastMessageOut / del, force: true);
-    dataOutPerSecond.updateValue(lastDataOut / del, force: true);
 
-    lastMessageIn = 0;
-    lastDataIn = 0;
-    lastMessageOut = 0;
-    lastDataOut = 0;
-    lastTs = ts;
+  static void changeValue(Timer t) {
+    messagesInPerSecond.updateValue(WebSocketConnection.messageIn , force: true);
+    dataInPerSecond.updateValue(WebSocketConnection.dataIn , force: true);
+    messagesOutPerSecond.updateValue(WebSocketConnection.messageOut , force: true);
+    dataOutPerSecond.updateValue(WebSocketConnection.dataOut , force: true);
+
+    WebSocketConnection.messageIn = 0;
+    WebSocketConnection.dataIn = 0;
+    WebSocketConnection.messageOut = 0;
+    WebSocketConnection.dataOut = 0;
   }
 
   static void set throughputNeeded(bool val) {
@@ -76,16 +37,27 @@ class ThroughPutController {
     }
     if (val) {
       WebSocketConnection.throughputEnabled = true;
+      if (_timer == null) {
+        WebSocketConnection.messageIn = 0;
+        WebSocketConnection.dataIn = 0;
+        WebSocketConnection.messageOut = 0;
+        WebSocketConnection.dataOut = 0;
+        _timer = new Timer.periodic(new Duration(seconds:1), changeValue);
+      }
     } else {
       WebSocketConnection.throughputEnabled = messagesOutPerSecond.throughputNeeded ||
           dataOutPerSecond.throughputNeeded ||
           messagesInPerSecond.throughputNeeded ||
           dataInPerSecond.throughputNeeded;
+      if (!WebSocketConnection.throughputEnabled && _timer != null) {
+        _timer.cancel();
+        _timer = null;
+      }
     }
   }
 }
 
-class ThroughPutNode extends BrokerNode {
+class ThroughPutNode extends BrokerStaticNode {
   ThroughPutNode(String path, BrokerNodeProvider provider)
       : super(path, provider);
 

@@ -291,7 +291,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   IPermissionManager permissions = new DummyPermissionManager();
 
   /// Creates a responder with the given [dsId].
-  Responder createResponder(String dsId) {
+  Responder createResponder(String dsId, String sessionId) {
     return new Responder(this, dsId);
   }
 }

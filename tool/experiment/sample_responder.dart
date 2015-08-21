@@ -14,7 +14,7 @@ class TestNodeProvider extends NodeProvider {
   }
 
   IPermissionManager permissions = new DummyPermissionManager();
-  Responder createResponder(String dsId) {
+  Responder createResponder(String dsId, String sessionId) {
     return new Responder(this, dsId);
   }
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {

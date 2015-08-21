@@ -58,10 +58,10 @@ class WebSocketConnection extends Connection {
 
   static bool throughputEnabled = false;
   
-  int dataIn = 0;
-  int messageIn = 0;
-  int dataOut = 0;
-  int messageOut = 0;
+  static int dataIn = 0;
+  static int messageIn = 0;
+  static int dataOut = 0;
+  static int messageOut = 0;
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
