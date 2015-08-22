@@ -7,7 +7,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   /// connPath to connection
-  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns =
+      new Map<String, RemoteLinkManager>();
 
   BrokerPermissions permissions;
 
@@ -19,14 +20,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   BrokerNode defsNode;
   BrokerNode upstreamDataNode;
   BrokerNode quarantineNode;
-  Map rootStructure = {'users':{},'defs': {}, 'sys': {}, 'upstream': {}};
+  Map rootStructure = {'users': {}, 'defs': {}, 'sys': {}, 'upstream': {}};
 
   bool shouldSaveFiles = true;
   bool enabledQuarantine = false;
   bool enabledPermission = false;
   bool acceptAllConns = true;
-  BrokerNodeProvider({this.enabledQuarantine:false, this.acceptAllConns:true, List defaultPermission, this.downstreamName:'conns'}) {
-  
+  BrokerNodeProvider({this.enabledQuarantine: false, this.acceptAllConns: true,
+      List defaultPermission, this.downstreamName: 'conns'}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/', this);
@@ -35,13 +36,16 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (enabledQuarantine) {
       rootStructure['quarantine'] = {};
     }
-    if (downstreamName == null || downstreamName == '' || rootStructure.containsKey(downstreamName) || downstreamName.contains(Path.invalidNameChar)) {
+    if (downstreamName == null ||
+        downstreamName == '' ||
+        rootStructure.containsKey(downstreamName) ||
+        downstreamName.contains(Path.invalidNameChar)) {
       throw 'invalid downstreamName';
     }
     downstreamNameS = '/$downstreamName';
     downstreamNameSS = '$downstreamNameS/';
     rootStructure[downstreamName] = {};
-    
+
     root.load(rootStructure);
     connsNode = nodes[downstreamNameS];
     usersNode = nodes['/users'];
@@ -51,26 +55,28 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
     enabledPermission = defaultPermission != null;
     if (enabledPermission) {
-      root.loadPermission(defaultPermission);//['dgSuper','config','default','write']
-      defsNode.loadPermission(['default','read']);
+      root.loadPermission(
+          defaultPermission); //['dgSuper','config','default','write']
+      defsNode.loadPermission(['default', 'read']);
       permissions.root = root;
     }
 
-    loadDef();
-    registerInvokableProfile(userNodeFunctions);
-    initSys();
+    new Future(() async {
+      await loadDef();
+      registerInvokableProfile(userNodeFunctions);
+      initSys();
+    });
   }
 
   void initSys() {
     new BrokerVersionNode("/sys/version", this, DSA_VERSION);
     new StartTimeNode("/sys/startTime", this);
     new ClearConnsAction("/sys/clearConns", this);
-    
+
     ThroughPutController.initNodes(this);
-    
+
     upstream = new UpstreamNode("/sys/upstream", this);
 
-    
     BrokerTraceNode.init(this);
   }
 
@@ -79,7 +85,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool _defsLoaded = false;
 
   /// load a fixed profile map
-  void loadDef() {
+  loadDef() async {
     DefinitionNode profileNode = getOrCreateNode('/defs/profile', false);
     defsNode.children['profile'] = profileNode;
     defaultProfileMap.forEach((String name, Map m) {
@@ -90,16 +96,15 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     });
     File connsFile = new File("defs.json");
     try {
-      String data = connsFile.readAsStringSync();
+      String data = await connsFile.readAsString();
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
         String path = '/defs/$name';
-        DefinitionNode node = getOrCreateNode(path,false);
+        DefinitionNode node = getOrCreateNode(path, false);
         node.load(m);
         defsNode.children[name] = node;
       });
-    } catch (err) {
-    }
+    } catch (err) {}
   }
 
   void registerInvokableProfile(Map m) {
@@ -108,23 +113,24 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         if (val is Map) {
           register(val, '$path$key/');
         } else if (val is InvokeCallback) {
-          (getOrCreateNode('$path$key', false) as DefinitionNode).setInvokeCallback(val);
+          (getOrCreateNode('$path$key', false) as DefinitionNode)
+              .setInvokeCallback(val);
         }
       });
     }
     register(m, '/defs/profile/');
   }
 
-  void loadUserNodes() {
+  loadUserNodes() async {
     File connsFile = new File("usernodes.json");
     try {
-      String data = connsFile.readAsStringSync();
+      String data = await connsFile.readAsString();
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
         String path = '/users/$name';
         UserRootNode node = getOrCreateNode(path, false);
         if (enabledPermission) {
-          node.loadPermission([[name,'config'],['default','none']]);
+          node.loadPermission([[name, 'config'], ['default', 'none']]);
         }
         node.load(m);
         usersNode.children[name] = node;
@@ -134,27 +140,26 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           quarantineNode.children[name] = node;
         }
       });
-    } catch (err) {
-    }
+    } catch (err) {}
   }
 
-  Map saveUsrNodes() {
+  Future<Map> saveUsrNodes() async {
     Map m = {};
     usersNode.children.forEach((String name, LocalNodeImpl node) {
       m[name] = node.serialize(true);
     });
     File connsFile = new File("usernodes.json");
     if (shouldSaveFiles) {
-      connsFile.writeAsStringSync(DsJson.encode(m));
+      await connsFile.writeAsString(DsJson.encode(m));
     }
     return m;
   }
 
-  void loadConns() {
+  loadConns() async {
     // loadConns from file
     File connsFile = new File("conns.json");
     try {
-      String data = connsFile.readAsStringSync();
+      String data = await connsFile.readAsString();
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
         String path = '$downstreamNameSS$name';
@@ -163,18 +168,17 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         RemoteLinkManager conn = node._linkManager;
         conn.inTree = true;
         connsNode.updateList(name);
-        
+
         node.load(m);
         if (node.configs[r'$$dsId'] is String) {
           _id2connPath[node.configs[r'$$dsId']] = path;
           _connPath2id[path] = node.configs[r'$$dsId'];
         }
       });
-    } catch (err) {
-    }
+    } catch (err) {}
   }
 
-  Map saveConns() {
+  Future<Map> saveConns() async {
     Map m = {};
     connsNode.children.forEach((String name, RemoteLinkNode node) {
       RemoteLinkManager manager = node._linkManager;
@@ -182,7 +186,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     });
     File connsFile = new File("conns.json");
     if (shouldSaveFiles) {
-      connsFile.writeAsStringSync(DsJson.encode(m));
+      await connsFile.writeAsString(DsJson.encode(m));
     }
     return m;
   }
@@ -194,13 +198,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkNode node = connsNode.children[name];
       RemoteLinkManager manager = node._linkManager;
       if (manager.disconnected != null) {
-
         String fullId = _connPath2id[manager.path];
         _connPath2id.remove(manager.path);
         _id2connPath.remove(fullId);
         connsNode.children.remove(name);
         manager.inTree = false;
-        // remove server link if it's not connected 
+        // remove server link if it's not connected
         if (_links.containsKey(fullId)) {
           _links.remove(fullId);
         }
@@ -214,7 +217,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   void setNode(String path, LocalNode newNode) {
     LocalNode node = nodes[path];
     if (node != null) {
-      logger.severe('error, BrokerNodeProvider.setNode same node can not be set twice');
+      logger.severe(
+          'error, BrokerNodeProvider.setNode same node can not be set twice');
       return;
     }
 
@@ -228,7 +232,6 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     nodes[path] = newNode;
     parentNode.addChild(p.name, newNode);
   }
-
 
   LocalNode getNode(String path) {
     return nodes[path];
@@ -265,7 +268,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
             conn = new RemoteLinkManager(this, connPath, this);
             conns[connPath] = conn;
             nodes[connPath] = conn.rootNode;
-            conn.rootNode.parentNode = getOrCreateNode(path.substring(0, pos), false);
+            conn.rootNode.parentNode =
+                getOrCreateNode(path.substring(0, pos), false);
           }
           node = conn.getOrCreateNode(path, false);
         }
@@ -295,7 +299,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         conn = new RemoteLinkManager(this, connPath, this);
         conns[connPath] = conn;
         nodes[connPath] = conn.rootNode;
-        
+
         conn.rootNode.parentNode = upstreamDataNode;
 //        if (addToTree) {
 //          upstreamDataNode.children[upstreamName] = conn.rootNode;
@@ -316,14 +320,15 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           conn = new RemoteLinkManager(this, connPath, this);
           conns[connPath] = conn;
           nodes[connPath] = conn.rootNode;
-          BrokerNode quarantineUser = getOrCreateNode('/quarantine/$user', false);
+          BrokerNode quarantineUser =
+              getOrCreateNode('/quarantine/$user', false);
           conn.rootNode.parentNode = quarantineUser;
 //          if (addToTree) {
 //            quarantineUser.children[connName] = conn.rootNode;
 //            conn.inTree = true;
 //            quarantineUser.updateList(connName);
 //          }
-         
+
         }
         node = conn.getOrCreateNode(path, false);
       } else {
@@ -359,7 +364,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   String makeConnPath(String fullId) {
-    if (fullId.startsWith('@upstream@')){
+    if (fullId.startsWith('@upstream@')) {
       String connName = fullId.substring(10);
       String connPath = '/upstream/$connName';
       _connPath2id[connPath] = fullId;
@@ -384,7 +389,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       // device link
       String connPath;
       String folderPath = downstreamNameSS;
-          
+
       String dsId = fullId;
       if (fullId.contains(':')) {
         // uname:dsId
@@ -434,14 +439,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       RemoteLinkNode node = getOrCreateNode(connPath, false);
       upstreamDataNode.children[name] = node;
       upstreamDataNode.updateList(name);
-      
+
       conn = node._linkManager;
       conn.inTree = true;
-      
+
       logger.info('new node added at $connPath');
     }
 
-        
     if (!conn.inTree) {
       List paths = conn.path.split('/');
       String connName = paths.removeLast();
@@ -468,14 +472,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       if (link.session == null) {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
-        
+
         var node = getOrCreateNode(connPath, false)..configs[r'$$dsId'] = str;
         logger.info('new node added at $connPath');
       }
     }
   }
 
-  ServerLink getLinkAndConnectNode(String dsId, {String sessionId:''}) {
+  ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ''}) {
     if (sessionId == null) sessionId = '';
     String str = dsId;
     if (sessionId != null && sessionId != '') {
@@ -516,7 +520,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
-                         [String sessionId = '']) {
+      [String sessionId = '']) {
     String connPath = makeConnPath(dsId);
     if (conns.containsKey(connPath)) {
       return conns[connPath].getResponder(nodeProvider, dsId, sessionId);
