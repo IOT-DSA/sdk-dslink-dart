@@ -9,10 +9,15 @@ class DefaultDefNodes {
       r"$invokable": "read",
       r"$result": "table",
       r"$params": [
-        {"name": "Timerange", "type": "string", 'editor': "daterange"},
+        {
+          "name": "Timerange",
+          "type": "string",
+          "editor": "daterange"
+        },
         {
           "name": "Interval",
-          "type":"enum",
+          "type": "enum",
+          "default": "none",
           "editor": buildEnumType([
             "default",
             "none",
@@ -41,13 +46,29 @@ class DefaultDefNodes {
         },
         {
           "name": "Rollup",
-          "type": buildEnumType(
-              ["avg", "min", "max", "sum", "first", "last", "count"])
+          "default": "none",
+          "type": buildEnumType([
+            "none",
+            "avg",
+            "min",
+            "max",
+            "sum",
+            "first",
+            "last",
+            "count",
+            "delta"
+          ])
         }
       ],
       r"$columns": [
-        {"name": "timestamp", "type": "time"},
-        {"name": "value", "type": "dynamic"}
+        {
+          "name": "timestamp",
+          "type": "time"
+        },
+        {
+          "name": "value",
+          "type": "dynamic"
+        }
       ]
     }
   };
