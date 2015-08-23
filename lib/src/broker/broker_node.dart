@@ -44,6 +44,7 @@ class BrokerStaticNode extends BrokerNode {
     provider.setNode(path, this);
   }
 }
+
 /// Version node
 class BrokerVersionNode extends BrokerStaticNode {
   static BrokerVersionNode instance;
@@ -183,41 +184,46 @@ class UpstreamNode extends BrokerStaticNode {
   }
 }
 
-class EnableUpstreamBrokerNode extends BrokerNode {
-  EnableUpstreamBrokerNode(String path, BrokerNodeProvider provider)
-  : super(path, provider) {
-    configs[r"$name"] = "Enable";
-    configs[r"$invokable"] = "write";
+class EnabledUpstreamBrokerNode extends BrokerNode {
+  EnabledUpstreamBrokerNode(String path, BrokerNodeProvider provider)
+      : super(path, provider) {
+    configs[r"$name"] = "enabled";
+    configs[r"$writable"] = "write";
+    configs[r"$type"] = "bool";
   }
 
   @override
-  InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode,
+  Response setValue(Object value, Responder responder, Response response,
       [int maxPermission = Permission.CONFIG]) {
-    var p = new Path(path).parentPath;
-    UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
-    un.enabled = true;
-    un.start();
-    return response..close();
-  }
-}
+    if (value is! bool) {
+      return response..close();
+    }
 
-class DisableUpstreamBrokerNode extends BrokerNode {
-  DisableUpstreamBrokerNode(String path, BrokerNodeProvider provider)
-  : super(path, provider) {
-    configs[r"$name"] = "Disable";
-    configs[r"$invokable"] = "write";
-  }
+    if (!value) {
+      var p = new Path(path).parentPath;
+      UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
 
-  @override
-  InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode,
-      [int maxPermission = Permission.CONFIG]) {
-    var p = new Path(path).parentPath;
-    UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
-    un.enabled = false;
-    un.stop();
-    return response..close();
+      if (un == null || un.enabled == false) {
+        return response..close();
+      }
+
+      un.enabled = false;
+      un.stop();
+      return response..close();
+    } else {
+      var p = new Path(path).parentPath;
+      UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
+
+      if (un == null || un.enabled == true) {
+        return response..close();
+      }
+
+      un.enabled = true;
+      un.start();
+      return response..close();
+    }
+
+    return response;
   }
 }
 
@@ -301,7 +307,7 @@ class UpstreamBrokerNode extends BrokerNode {
   UpstreamBrokerNode(String path, this.name, this.url, this.ourName,
                      BrokerNodeProvider provider)
   : super(path, provider) {
-    ien = new BrokerNode("/sys/upstream/${name}/enabled", provider);
+    ien = new EnabledUpstreamBrokerNode("/sys/upstream/${name}/enabled", provider);
     ien.configs[r"$type"] = "bool";
     ien.updateValue(enabled);
 
@@ -313,17 +319,9 @@ class UpstreamBrokerNode extends BrokerNode {
       var drn = new DeleteUpstreamConnectionNode(
           "/sys/upstream/${name}/delete", name, provider);
       provider.setNode("/sys/upstream/${name}/delete", drn);
-      var eun = new EnableUpstreamBrokerNode(
-          "/sys/upstream/${name}/enable", provider);
-      provider.setNode("/sys/upstream/${name}/enable", eun);
-      var dun = new DisableUpstreamBrokerNode(
-          "/sys/upstream/${name}/disable", provider);
-      provider.setNode("/sys/upstream/${name}/disable", dun);
       provider.setNode(ien.path, ien);
       provider.setNode(nn.path, nn);
       addChild("delete", drn);
-      addChild("enable", eun);
-      addChild("disable", dun);
       addChild("enabled", ien);
       addChild("name", nn);
     });
@@ -352,7 +350,7 @@ class UpstreamBrokerNode extends BrokerNode {
 
     ien.updateValue(true);
     enabled = true;
-    link.onRequesterReady.then((Requester requester){
+    link.onRequesterReady.then((Requester requester) {
       if (link.link.remotePath != null) {
         linkManager.rootNode.configs[r'$remotePath'] = link.link.remotePath;
         linkManager.rootNode.updateList(r'$remotePath');
@@ -365,10 +363,10 @@ class UpstreamBrokerNode extends BrokerNode {
       return;
     }
 
-    link.stop();
     BrokerNodeProvider p = provider;
-
     p.removeLink(link.link, '@upstream@$name');
+    link.stop();
+
     ien.updateValue(false);
     enabled = false;
   }
