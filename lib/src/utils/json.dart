@@ -180,6 +180,15 @@ class DsJsonCodecImpl implements DsJson {
   Object decodeJsonFrame(String str, BinaryInCache cache) {
     _currentBinaryInCache = cache;
 
+    if (_reviver == null) {
+      _reviver = (key, value) {
+        if (value is String && value.startsWith('\u001Bbytes,')) {
+          return _currentBinaryInCache.fetchData(value.substring(7));
+        }
+        return value;
+      };
+    }
+
     if (_unsafeDecoder == null) {
       _unsafeDecoder = new JsonDecoder(_reviver);
     }
@@ -192,25 +201,23 @@ class DsJsonCodecImpl implements DsJson {
   BinaryInCache _currentBinaryInCache;
   BinaryOutCache _currentBinaryOutCache;
 
-  dynamic _reviver(key, value) {
-    if (value is String && value.startsWith('\u001Bbytes,')) {
-      return _currentBinaryInCache.fetchData(value.substring(7));
-    }
-    return value;
-  }
-
-  dynamic _encoder(value) {
-    if (value is ByteData) {
-      int id = _currentBinaryOutCache.addBinaryData(value);
-      return '\u001Bbytes,$id';
-    }
-    return null;
-  }
+  Function _reviver;
+  Function _encoder;
 
   String encodeJsonFrame(Object val, BinaryOutCache cache,
       {bool pretty: false}) {
 
     _currentBinaryOutCache = cache;
+
+    if (_encoder == null) {
+      _encoder = (value) {
+        if (value is ByteData) {
+          int id = _currentBinaryOutCache.addBinaryData(value);
+          return '\u001Bbytes,$id';
+        }
+        return null;
+      };
+    }
 
     JsonEncoder c;
 
