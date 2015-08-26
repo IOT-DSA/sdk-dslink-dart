@@ -6,6 +6,8 @@ import 'dart:convert';
 import '../../common.dart';
 import '../../utils.dart';
 
+import 'package:logging/logging.dart';
+
 class WebSocketConnection extends Connection {
   PassiveChannel _responderChannel;
 
@@ -106,7 +108,6 @@ class WebSocketConnection extends Connection {
     if (_onDisconnectedCompleter.isCompleted) {
       return;
     }
-    logger.finest("begin WebSocketConnection.onData");
     if (!onRequestReadyCompleter.isCompleted) {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
@@ -115,14 +116,16 @@ class WebSocketConnection extends Connection {
     if (data is List<int>) {
      
       if (data.length != 0 && data[0] == 0) {
-        logger.finest(" receive binary length ${data.length}");
+        logger.finest("receive binary length ${data.length}");
         // binary channel
         binaryInCache.receiveData(data);
         return;
       }
       try {
         m = DsJson.decodeFrame(UTF8.decode(data), binaryInCache);
-        logger.fine("WebSocket JSON (bytes): ${m}");
+        if (logger.isLoggable(Level.FINE)) {
+          logger.fine("WebSocket JSON(binary): ${m}");
+        }
       } catch (err, stack) {
         logger.fine(
             "Failed to decode JSON bytes in WebSocket Connection", err, stack);
@@ -155,7 +158,9 @@ class WebSocketConnection extends Connection {
     } else if (data is String) {
       try {
         m = DsJson.decodeFrame(data, binaryInCache);
-        logger.fine("WebSocket JSON: ${m}");
+        if (logger.isLoggable(Level.FINE)) {
+          logger.fine("WebSocket JSON: ${m}");
+        }
       } catch (err) {
         logger.severe("Failed to decode JSON from WebSocket Connection", err);
         close();
@@ -205,8 +210,6 @@ class WebSocketConnection extends Connection {
         }
       }
     }
-
-    logger.finest("end WebSocketConnection.onData");
   }
   /// when msgId = -1, ack is disabled
   int msgId = 0;
@@ -277,10 +280,14 @@ class WebSocketConnection extends Connection {
   void addData(Map m) {
     String json = DsJson.encodeFrame(m, binaryOutCache);
     if (binaryOutCache.hasData) {
-      logger.finest("send binary");
+      if (logger.isLoggable(Level.FINE)) {
+        logger.fine('send binary');
+      }
       socket.add(binaryOutCache.export());
     }
-    logger.finest('send: $json');
+    if (logger.isLoggable(Level.FINE)) {
+      logger.fine('send: $json');
+    }
     if (throughputEnabled) {
       dataOut += json.length;
     }
@@ -288,7 +295,7 @@ class WebSocketConnection extends Connection {
   }
 
   void _onDone() {
-    logger.fine("socket disconnected");
+    logger.fine("Disconnected");
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }

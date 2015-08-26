@@ -164,15 +164,15 @@ class DsJsonCodecImpl implements DsJson {
   }
 
   String encodeJson(Object val, {bool pretty: false}) {
+    JsonEncoder e = encoder;
     if (pretty) {
       if (_prettyEncoder == null) {
         _prettyEncoder =
             encoder = new JsonEncoder.withIndent("  ", _safeEncoder);
-      } else {
-        encoder = _prettyEncoder;
       }
+      e = _prettyEncoder;
     }
-    return encoder.convert(val);
+    return e.convert(val);
   }
 
   JsonDecoder _unsafeDecoder;
