@@ -7,8 +7,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
   /// connPath to connection
-  final Map<String, RemoteLinkManager> conns =
-      new Map<String, RemoteLinkManager>();
+  final Map<String, RemoteLinkManager> conns = new Map<String, RemoteLinkManager>();
 
   BrokerPermissions permissions;
 
@@ -26,8 +25,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool enabledQuarantine = false;
   bool enabledPermission = false;
   bool acceptAllConns = true;
+
   BrokerNodeProvider({this.enabledQuarantine: false, this.acceptAllConns: true,
-      List defaultPermission, this.downstreamName: 'conns'}) {
+  List defaultPermission, this.downstreamName: 'conns'}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/', this);
@@ -37,9 +37,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       rootStructure['quarantine'] = {};
     }
     if (downstreamName == null ||
-        downstreamName == '' ||
-        rootStructure.containsKey(downstreamName) ||
-        downstreamName.contains(Path.invalidNameChar)) {
+      downstreamName == '' ||
+      rootStructure.containsKey(downstreamName) ||
+      downstreamName.contains(Path.invalidNameChar)) {
       throw 'invalid downstreamName';
     }
     downstreamNameS = '/$downstreamName';
@@ -57,7 +57,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     enabledPermission = defaultPermission != null;
     if (enabledPermission) {
       root.loadPermission(
-          defaultPermission); //['dgSuper','config','default','write']
+        defaultPermission); //['dgSuper','config','default','write']
       defsNode.loadPermission(['default', 'read']);
       permissions.root = root;
     }
@@ -115,7 +115,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           register(val, '$path$key/');
         } else if (val is InvokeCallback) {
           (getOrCreateNode('$path$key', false) as DefinitionNode)
-              .setInvokeCallback(val);
+            .setInvokeCallback(val);
         }
       });
     }
@@ -219,7 +219,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     LocalNode node = nodes[path];
     if (node != null) {
       logger.severe(
-          'error, BrokerNodeProvider.setNode same node can not be set twice');
+        'error, BrokerNodeProvider.setNode same node can not be set twice');
       return;
     }
 
@@ -270,7 +270,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
             conns[connPath] = conn;
             nodes[connPath] = conn.rootNode;
             conn.rootNode.parentNode =
-                getOrCreateNode(path.substring(0, pos), false);
+              getOrCreateNode(path.substring(0, pos), false);
           }
           node = conn.getOrCreateNode(path, false);
         }
@@ -322,7 +322,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           conns[connPath] = conn;
           nodes[connPath] = conn.rootNode;
           BrokerNode quarantineUser =
-              getOrCreateNode('/quarantine/$user', false);
+          getOrCreateNode('/quarantine/$user', false);
           conn.rootNode.parentNode = quarantineUser;
 //          if (addToTree) {
 //            quarantineUser.children[connName] = conn.rootNode;
@@ -352,6 +352,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, BaseLink> _links = new Map<String, BaseLink>();
   final Map<String, String> _id2connPath = new Map<String, String>();
   final Map<String, String> _connPath2id = new Map<String, String>();
+
+  Map<String, String> get id2connPath => _id2connPath;
+  Map<String, BaseLink> get links => _links;
+  Map<String, String> get connPath2id => _connPath2id;
 
   RemoteLinkManager getConnById(String id) {
     if (_id2connPath.containsKey(id)) {
@@ -418,12 +422,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       return connPath;
     }
   }
+
   void prepareUpstreamLink(String name) {
     String connPath = '/upstream/$name';
     String upStreamId = '@upstream@$name';
     _connPath2id[connPath] = upStreamId;
     _id2connPath[upStreamId] = connPath;
   }
+
   RemoteLinkManager addUpStreamLink(ClientLink link, String name) {
     String upStreamId = '@upstream@$name';
     RemoteLinkManager conn;
@@ -458,6 +464,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     return conn;
   }
+
   void addLink(ServerLink link) {
     String str = link.dsId;
     if (link.session != '' && link.session != null) {
@@ -474,7 +481,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
 
-        var node = getOrCreateNode(connPath, false)..configs[r'$$dsId'] = str;
+        var node = getOrCreateNode(connPath, false)
+          ..configs[r'$$dsId'] = str;
         logger.info('new node added at $connPath');
       }
     }
@@ -515,17 +523,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (conns.containsKey(connPath)) {
       return conns[connPath].requester;
     }
+
     /// create the RemoteLinkManager
     RemoteLinkNode node = getOrCreateNode(connPath, false);
     return node._linkManager.requester;
   }
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
-      [String sessionId = '']) {
+    [String sessionId = '']) {
     String connPath = makeConnPath(dsId);
     if (conns.containsKey(connPath)) {
       return conns[connPath].getResponder(nodeProvider, dsId, sessionId);
     }
+
     /// create the RemoteLinkManager
     RemoteLinkNode node = getOrCreateNode(connPath, false);
     return node._linkManager.getResponder(nodeProvider, dsId, sessionId);
