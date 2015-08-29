@@ -40,6 +40,11 @@ class Requester extends ConnectionHandler {
     }
   }
 
+  StreamController<DSError> _errorController =
+    new StreamController<DSError>.broadcast();
+
+  Stream<DSError> get onError => _errorController.stream;
+
   int nextRid = 1;
   int nextSid = 1;
 

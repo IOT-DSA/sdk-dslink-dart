@@ -43,6 +43,7 @@ class Request {
     DSError error;
     if (m.containsKey('error') && m['error'] is Map) {
       error = new DSError.fromMap(m['error']);
+      requester._errorController.add(error);
     }
     
     updater.onUpdate(streamStatus, updates, columns, meta, error);
