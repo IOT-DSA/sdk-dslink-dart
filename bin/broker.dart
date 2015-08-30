@@ -131,14 +131,16 @@ main(List<String> _args) async {
   }
 
   if (getConfig("upstream") != null) {
-    Map<String, Map<String, dynamic>> upstream = getConfig("upstream", {});
+    broker.done.then((_) {
+      Map<String, Map<String, dynamic>> upstream = getConfig("upstream", {});
 
-    for (var name in upstream.keys) {
-      var url = upstream[name]["url"];
-      var ourName = upstream[name]["name"];
-      var enabled = upstream[name]["enabled"];
-      broker.upstream.addUpstreamConnection(name, url, ourName, enabled);
-    }
+      for (var name in upstream.keys) {
+        var url = upstream[name]["url"];
+        var ourName = upstream[name]["name"];
+        var enabled = upstream[name]["enabled"];
+        broker.upstream.addUpstreamConnection(name, url, ourName, enabled);
+      }
+    });
   }
 
   String lastUpstreamConns = "";
