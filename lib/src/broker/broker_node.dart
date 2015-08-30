@@ -274,7 +274,7 @@ class UpstreamUrlNode extends BrokerNode {
       un.enabled = true;
       un.start();
 
-      super.setValue(value, responder, response, maxPermission);
+      return super.setValue(value, responder, response, maxPermission);
     }
 
     return response..close();
@@ -316,8 +316,7 @@ class UpstreamEnabledNode extends BrokerNode {
       un.stop();
     }
 
-    super.setValue(value, responder, response, maxPermission);
-    return response..close();
+    return super.setValue(value, responder, response, maxPermission);
   }
 }
 
