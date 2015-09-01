@@ -29,7 +29,6 @@ class AsyncTableResult {
   Map meta;
   /// Handler for when this is closed.
   OnInvokeClosed onClose;
-  OnInvokeAcked onAck;
 
   AsyncTableResult([this.columns]);
 
