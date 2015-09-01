@@ -58,7 +58,7 @@ class InvokeResponse extends Response {
     if (err != null) {
       _err = err;
     }
-    if (pendingData != null) {
+    if (!pendingData.isEmpty) {
       pendingData.last.status = StreamStatus.closed;
     } else {
       pendingData.add(new _InvokeResponseUpdate(StreamStatus.closed, null, null, null));
