@@ -88,16 +88,6 @@ class InvokeResponse extends Response {
     }
   }
   
-  OnInvokeAcked onAck;
-  int _waitingAckId = -1;
-  void ackWaiting(int ackId) {
-    _waitingAckId = ackId;
-  }
-  void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    if (onAck != null && !_closed) {
-      onAck(this, receiveAckId, startTime, currentTime);
-    }
-  }
   /// for the broker trace action
   ResponseTrace getTraceData([String change = '+']) {
     return new ResponseTrace(parentNode.path, 'invoke', rid, change, name);
