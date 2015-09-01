@@ -275,6 +275,8 @@ class SimpleNodeProvider extends NodeProviderImpl
       pnode.onChildRemoved(p.name, node);
       pnode.updateList(p.name);
     }
+
+    nodes.remove(path);
   }
 
   Map<String, _NodeFactory> _profileFactories = new Map<String, _NodeFactory>();

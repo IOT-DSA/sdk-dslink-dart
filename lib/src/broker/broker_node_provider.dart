@@ -10,6 +10,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   final Map<String, RemoteLinkManager> conns =
       new Map<String, RemoteLinkManager>();
 
+  Completer _done = new Completer();
+  Future get done => _done.future;
+
   BrokerPermissions permissions;
 
   String downstreamName;
@@ -48,6 +51,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
     root.load(rootStructure);
     connsNode = nodes[downstreamNameS];
+    connsNode.configs[r"$downstream"] = true;
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
@@ -78,6 +82,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     upstream = new UpstreamNode("/sys/upstream", this);
 
     BrokerTraceNode.init(this);
+
+    _done.complete();
   }
 
   UpstreamNode upstream;
@@ -423,6 +429,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     _connPath2id[connPath] = upStreamId;
     _id2connPath[upStreamId] = connPath;
   }
+
   RemoteLinkManager addUpStreamLink(ClientLink link, String name) {
     String upStreamId = '@upstream@$name';
     RemoteLinkManager conn;
@@ -457,6 +464,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     return conn;
   }
+
   void addLink(ServerLink link) {
     String str = link.dsId;
     if (link.session != '' && link.session != null) {
@@ -503,8 +511,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return _links[str];
   }
 
-  void removeLink(BaseLink link, String id) {
-    if (_links[id] == link) {
+  void removeLink(BaseLink link, String id, {bool force: false}) {
+    if (_links[id] == link || force) {
       _links.remove(id);
     }
   }
