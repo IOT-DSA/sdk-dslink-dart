@@ -1,13 +1,13 @@
 part of dslink.responder;
 
 typedef void OnInvokeClosed(InvokeResponse response);
-typedef void OnInvokeAcked(InvokeResponse response, int ackId, int startTime, int currentTime);
 
 class _InvokeResponseUpdate {
-  String type;
-  List rows;
+  String status;
+  List columns;
+  List updates;
   Map meta;
-  _InvokeResponseUpdate(this.type, this.rows, this.meta);
+  _InvokeResponseUpdate(this.status, this.updates, this.columns, this.meta);
 }
 
 class InvokeResponse extends Response {
@@ -17,31 +17,13 @@ class InvokeResponse extends Response {
   InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid);
 
-  int _pendingInitializeLength = 0;
-  List _columns;
-  List _updates;
-  String _sendingStreamStatus = StreamStatus.initialize;
-  Map _meta;
-  /// optiions: stream, append, refresh
-  String type = 'stream';
+  List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
   void updateStream(List updates,
       {List columns, String streamStatus: StreamStatus.open, Map meta}) {
-    if (columns != null) {
-      _columns = columns;
+    if (meta != null && meta['mode'] == 'refresh') {
+      pendingData.clear();
     }
-    _meta = meta;
-    // TODO better way of merge response on different type of action result
-    if (_updates == null) {
-      _updates = updates;
-    } else {
-      _updates.addAll(updates);
-    }
-    if (_sendingStreamStatus == StreamStatus.initialize) {
-      // in case stream can't return all restult all at once, count the length of initilize
-      _pendingInitializeLength += updates.length;
-    }
-
-    _sendingStreamStatus = streamStatus;
+    pendingData.add(new _InvokeResponseUpdate(streamStatus, updates, columns, meta));
     prepareSending();
   }
 
@@ -55,17 +37,20 @@ class InvokeResponse extends Response {
       }
       return;
     }
-
-    if (_columns != null) {
-      _columns = TableColumn.serializeColumns(_columns);
+    
+    for (_InvokeResponseUpdate update in pendingData) {
+      List outColumns;
+      if (update.columns != null) {
+        outColumns = TableColumn.serializeColumns(update.columns);
+      }
+      responder.updateResponse(this, update.updates,
+          streamStatus: update.status, columns: outColumns, meta:update.meta);
+      if (_sentStreamStatus == StreamStatus.closed) {
+        _close();
+        break;
+      }
     }
-    responder.updateResponse(this, _updates,
-        streamStatus: _sendingStreamStatus, columns: _columns, meta:_meta);
-    _columns = null;
-    _updates = null;
-    if (_sentStreamStatus == StreamStatus.closed) {
-      _close();
-    }
+    pendingData.clear();
   }
 
   /// close the request from responder side and also notify the requester
@@ -73,8 +58,12 @@ class InvokeResponse extends Response {
     if (err != null) {
       _err = err;
     }
-    _sendingStreamStatus = StreamStatus.closed;
-    prepareSending();
+    if (!pendingData.isEmpty) {
+      pendingData.last.status = StreamStatus.closed;
+    } else {
+      pendingData.add(new _InvokeResponseUpdate(StreamStatus.closed, null, null, null));
+      prepareSending();
+    }
   }
 
   DSError _err;
@@ -88,16 +77,6 @@ class InvokeResponse extends Response {
     }
   }
   
-  OnInvokeAcked onAck;
-  int _waitingAckId = -1;
-  void ackWaiting(int ackId) {
-    _waitingAckId = ackId;
-  }
-  void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    if (onAck != null && !_closed) {
-      onAck(this, receiveAckId, startTime, currentTime);
-    }
-  }
   /// for the broker trace action
   ResponseTrace getTraceData([String change = '+']) {
     return new ResponseTrace(parentNode.path, 'invoke', rid, change, name);
