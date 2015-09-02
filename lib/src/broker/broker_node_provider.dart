@@ -11,6 +11,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   BrokerPermissions permissions;
 
+  Completer _done = new Completer();
+  Future get done => _done.future;
+
   String downstreamName;
   String downstreamNameS;
   String downstreamNameSS;
@@ -79,6 +82,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     upstream = new UpstreamNode("/sys/upstream", this);
 
     BrokerTraceNode.init(this);
+
+    _done.complete();
   }
 
   UpstreamNode upstream;
@@ -512,8 +517,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return _links[str];
   }
 
-  void removeLink(BaseLink link, String id) {
-    if (_links[id] == link) {
+  void removeLink(BaseLink link, String id, {bool force: false}) {
+    if (_links[id] == link || force) {
       _links.remove(id);
     }
   }

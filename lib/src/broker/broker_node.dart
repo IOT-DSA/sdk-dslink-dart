@@ -44,7 +44,6 @@ class BrokerStaticNode extends BrokerNode {
     provider.setNode(path, this);
   }
 }
-
 /// Version node
 class BrokerVersionNode extends BrokerStaticNode {
   static BrokerVersionNode instance;
@@ -106,7 +105,7 @@ class RootNode extends BrokerNode {
         } else {
           node = new BrokerNode('/$key', provider);
         }
-        
+
         node.load(value);
         provider.nodes[node.path] = node;
         children[key] = node;
@@ -137,6 +136,16 @@ class UpstreamNode extends BrokerStaticNode {
     (provider.getOrCreateNode("/sys/upstream", false) as BrokerNode).updateList(r"$is");
     node.enabled = enabled;
     node.start();
+  }
+
+  void moveUpstreamConnection(String name, String newName) {
+    BrokerNode node = provider.getOrCreateNode("/sys/upstream/${name}", false);
+
+    if (node is UpstreamBrokerNode) {
+      bool enabled = node.enabled;
+      removeUpstreamConnection(name);
+      addUpstreamConnection(newName, node.url, node.ourName, enabled);
+    }
   }
 
   void removeUpstreamConnection(String name) {
@@ -181,49 +190,6 @@ class UpstreamNode extends BrokerStaticNode {
     });
 
     return map;
-  }
-}
-
-class EnabledUpstreamBrokerNode extends BrokerNode {
-  EnabledUpstreamBrokerNode(String path, BrokerNodeProvider provider)
-      : super(path, provider) {
-    configs[r"$name"] = "enabled";
-    configs[r"$writable"] = "write";
-    configs[r"$type"] = "bool";
-  }
-
-  @override
-  Response setValue(Object value, Responder responder, Response response,
-      [int maxPermission = Permission.CONFIG]) {
-    if (value is! bool) {
-      return response..close();
-    }
-
-    if (!value) {
-      var p = new Path(path).parentPath;
-      UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
-
-      if (un == null || un.enabled == false) {
-        return response..close();
-      }
-
-      un.enabled = false;
-      un.stop();
-      return response..close();
-    } else {
-      var p = new Path(path).parentPath;
-      UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
-
-      if (un == null || un.enabled == true) {
-        return response..close();
-      }
-
-      un.enabled = true;
-      un.start();
-      return response..close();
-    }
-
-    return response;
   }
 }
 
@@ -291,13 +257,78 @@ class DeleteUpstreamConnectionNode extends BrokerNode {
   }
 }
 
+class UpstreamUrlNode extends BrokerNode {
+  UpstreamUrlNode(String path, BrokerNodeProvider provider)
+      : super(path, provider);
+
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
+    if (value != null && value.toString().length > 0) {
+      var p = new Path(path).parentPath;
+      UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
+
+      un.provider.removeLink(un.link.link, '@upstream@${un.name}', force: true);
+      un.stop();
+
+      un.url = value.toString();
+      un.enabled = true;
+      un.start();
+
+      return super.setValue(value, responder, response, maxPermission);
+    }
+
+    return response..close();
+  }
+}
+
+class UpstreamNameNode extends BrokerNode {
+  UpstreamNameNode(String path, BrokerNodeProvider provider)
+      : super(path, provider);
+
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
+    if (value != null && value.toString().length > 0 && provider.getNode("/sys/upstream/$value") == null) {
+      var p = new Path(path).parentPath;
+      UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
+
+      var b = provider.getOrCreateNode("/sys/upstream", false) as UpstreamNode;
+      b.moveUpstreamConnection(un.name, value.toString());
+    }
+
+    return response..close();
+  }
+}
+
+class UpstreamEnabledNode extends BrokerNode {
+  UpstreamEnabledNode(String path, BrokerNodeProvider provider)
+  : super(path, provider);
+
+  Response setValue(Object value, Responder responder, Response response,
+      [int maxPermission = Permission.CONFIG]) {
+    var p = new Path(path).parentPath;
+    UpstreamBrokerNode un = provider.getOrCreateNode(p, false);
+
+    if (value && un.enabled == false) {
+      un.enabled = true;
+      un.start();
+    } else {
+      un.enabled = false;
+      un.stop();
+    }
+
+    return super.setValue(value, responder, response, maxPermission);
+  }
+}
+
 class UpstreamBrokerNode extends BrokerNode {
-  final String name;
-  final String url;
+  String name;
+  String url;
   final String ourName;
 
-  BrokerNode ien;
-  BrokerNode nn;
+  UpstreamEnabledNode ien;
+  UpstreamUrlNode un;
+  UpstreamNameNode nn;
+  BrokerNode bnn;
   bool enabled = false;
 
   bool toBeRemoved = false;
@@ -307,23 +338,39 @@ class UpstreamBrokerNode extends BrokerNode {
   UpstreamBrokerNode(String path, this.name, this.url, this.ourName,
                      BrokerNodeProvider provider)
   : super(path, provider) {
-    ien = new EnabledUpstreamBrokerNode("/sys/upstream/${name}/enabled", provider);
+    ien = new UpstreamEnabledNode("/sys/upstream/${name}/enabled", provider);
     ien.configs[r"$type"] = "bool";
+    ien.configs[r"$writable"] = "write";
     ien.updateValue(enabled);
 
-    nn = new BrokerNode("/sys/upstream/${name}/name", provider);
+    un = new UpstreamUrlNode("/sys/upstream/${name}/url", provider);
+    un.configs[r"$type"] = "string";
+    un.configs[r"$writable"] = "write";
+    un.updateValue(url);
+
+    nn = new UpstreamNameNode("/sys/upstream/${name}/name", provider);
     nn.configs[r"$type"] = "string";
-    nn.updateValue(this.ourName);
+    nn.configs[r"$writable"] = "write";
+    nn.updateValue(name);
+
+    bnn = new BrokerNode("/sys/upstream/${name}/brokerName", provider);
+    bnn.configs[r"$type"] = "string";
+    bnn.updateValue(ourName);
 
     new Future(() {
       var drn = new DeleteUpstreamConnectionNode(
           "/sys/upstream/${name}/delete", name, provider);
       provider.setNode("/sys/upstream/${name}/delete", drn);
       provider.setNode(ien.path, ien);
+      provider.setNode(un.path, un);
       provider.setNode(nn.path, nn);
+      provider.setNode(bnn.path, bnn);
+
       addChild("delete", drn);
       addChild("enabled", ien);
+      addChild("url", un);
       addChild("name", nn);
+      addChild("brokerName", bnn);
     });
   }
 
@@ -347,6 +394,9 @@ class UpstreamBrokerNode extends BrokerNode {
     link.connect();
 
     RemoteLinkManager linkManager = p.addUpStreamLink(link.link, name);
+    if (linkManager == null) {
+      throw new StateError("start called twice, is this possible?");
+    }
 
     ien.updateValue(true);
     enabled = true;
@@ -363,10 +413,10 @@ class UpstreamBrokerNode extends BrokerNode {
       return;
     }
 
-    BrokerNodeProvider p = provider;
-    p.removeLink(link.link, '@upstream@$name');
     link.stop();
+    BrokerNodeProvider p = provider;
 
+    p.removeLink(link.link, '@upstream@$name', force: true);
     ien.updateValue(false);
     enabled = false;
   }

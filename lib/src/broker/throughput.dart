@@ -12,18 +12,19 @@ class ThroughPutController {
         "/sys/messagesInPerSecond", provider)..configs[r"$type"] = "number";
 
     dataOutPerSecond = new ThroughPutNode("/sys/dataOutPerSecond", provider)
-      ..configs[r"$type"] = "number";
+      ..configs[r"$type"] = "number"..configs[r"@unit"] = "bytes";
     dataInPerSecond = new ThroughPutNode("/sys/dataInPerSecond", provider)
-      ..configs[r"$type"] = "number";
+      ..configs[r"$type"] = "number"..configs[r"@unit"] = "bytes";
   }
 
   static Timer _timer;
 
   static void changeValue(Timer t) {
-    messagesInPerSecond.updateValue(WebSocketConnection.messageIn , force: true);
-    dataInPerSecond.updateValue(WebSocketConnection.dataIn , force: true);
-    messagesOutPerSecond.updateValue(WebSocketConnection.messageOut , force: true);
-    dataOutPerSecond.updateValue(WebSocketConnection.dataOut , force: true);
+    messagesInPerSecond.updateValue(WebSocketConnection.messageIn, force: true);
+    dataInPerSecond.updateValue(WebSocketConnection.dataIn, force: true);
+    messagesOutPerSecond.updateValue(WebSocketConnection.messageOut,
+        force: true);
+    dataOutPerSecond.updateValue(WebSocketConnection.dataOut, force: true);
 
     WebSocketConnection.messageIn = 0;
     WebSocketConnection.dataIn = 0;
@@ -32,7 +33,7 @@ class ThroughPutController {
   }
 
   static void set throughputNeeded(bool val) {
-    if (val ==  WebSocketConnection.throughputEnabled) {
+    if (val == WebSocketConnection.throughputEnabled) {
       return;
     }
     if (val) {
@@ -42,13 +43,14 @@ class ThroughPutController {
         WebSocketConnection.dataIn = 0;
         WebSocketConnection.messageOut = 0;
         WebSocketConnection.dataOut = 0;
-        _timer = new Timer.periodic(new Duration(seconds:1), changeValue);
+        _timer = new Timer.periodic(new Duration(seconds: 1), changeValue);
       }
     } else {
-      WebSocketConnection.throughputEnabled = messagesOutPerSecond.throughputNeeded ||
-          dataOutPerSecond.throughputNeeded ||
-          messagesInPerSecond.throughputNeeded ||
-          dataInPerSecond.throughputNeeded;
+      WebSocketConnection.throughputEnabled =
+          messagesOutPerSecond.throughputNeeded ||
+              dataOutPerSecond.throughputNeeded ||
+              messagesInPerSecond.throughputNeeded ||
+              dataInPerSecond.throughputNeeded;
       if (!WebSocketConnection.throughputEnabled && _timer != null) {
         _timer.cancel();
         _timer = null;
@@ -70,6 +72,7 @@ class ThroughPutNode extends BrokerStaticNode {
     }
     return super.subscribe(callback, qos);
   }
+
   @override
   void unsubscribe(callback(ValueUpdate update)) {
     super.unsubscribe(callback);
