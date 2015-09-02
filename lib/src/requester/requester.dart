@@ -80,6 +80,27 @@ class Requester extends ConnectionHandler {
     return new ReqSubscribeListener(this, path, callback);
   }
 
+  Stream<ValueUpdate> onValueChange(String path, [int qos = 0]) {
+    ReqSubscribeListener listener;
+    StreamController<ValueUpdate> controller;
+    int subs = 0;
+    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+      subs++;
+      if (listener == null) {
+        listener = subscribe(path, (ValueUpdate update) {
+          controller.add(update);
+        }, qos);
+      }
+    }, onCancel: () {
+      subs--;
+      if (subs == 0) {
+        listener.cancel();
+        listener = null;
+      }
+    });
+    return controller.stream;
+  }
+
   Future<ValueUpdate> getNodeValue(String path) {
     var c = new Completer<ValueUpdate>();
     ReqSubscribeListener listener;

@@ -29,7 +29,6 @@ class AsyncTableResult {
   Map meta;
   /// Handler for when this is closed.
   OnInvokeClosed onClose;
-  OnInvokeAcked onAck;
 
   AsyncTableResult([this.columns]);
 
@@ -418,11 +417,6 @@ class SimpleNode extends LocalNodeImpl {
           (rslt as AsyncTableResult).onClose(response);
         }
       };
-      response.onAck = (InvokeResponse response, int ackId, int startTime, int currentTime) {
-         if ((rslt as AsyncTableResult).onAck != null) {
-           (rslt as AsyncTableResult).onAck(response, ackId, startTime, currentTime);
-         }
-      };
       return response;
     } else if (rslt is Table) {
       response.updateStream(rslt.rows,
@@ -628,6 +622,9 @@ class SimpleNode extends LocalNodeImpl {
   // Callback used to notify a node that it is being subscribed to.
   void onSubscribe() {}
 
+  // Callback used to notify a node that a subscribe has unsubscribed.
+  void onUnsubscribe() {}
+
   /// Callback used to notify a node that it was created.
   /// This is called after a node is deserialized as well.
   void onCreated() {}
@@ -642,9 +639,15 @@ class SimpleNode extends LocalNodeImpl {
   void onChildAdded(String name, Node node) {}
 
   @override
-  RespSubscribeListener subscribe(callback(ValueUpdate), [int qos = 0]) {
+  RespSubscribeListener subscribe(callback(ValueUpdate update), [int qos = 0]) {
     onSubscribe();
     return super.subscribe(callback, qos);
+  }
+
+  @override
+  void unsubscribe(callback(ValueUpdate update)) {
+    onUnsubscribe();
+    super.unsubscribe(callback);
   }
 
   /// Callback to override how a child of this node is loaded.
