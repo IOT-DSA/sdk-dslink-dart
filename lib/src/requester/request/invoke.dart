@@ -20,6 +20,9 @@ class RequesterInvokeUpdate extends RequesterUpdate {
     }
     if (_rows == null) {
       _rows = [];
+      if (updates == null) {
+        return _rows;
+      }
       for (Object obj in updates) {
         List row;
         if (obj is List) {
@@ -123,15 +126,12 @@ class InvokeController implements RequestUpdater {
     } else if (_cachedColumns == null) {
       _cachedColumns = getNodeColumns(node);
     }
-
-//    if (_cachedColumns == null) {
-//      _cachedColumns = [];
-//    }
+    
     if (error != null) {
       streamStatus = StreamStatus.closed;
       _controller.add(
           new RequesterInvokeUpdate(null, null, null, streamStatus, error:error, meta:meta));
-    } else if (updates != null || meta != null) {
+    } else if (updates != null || meta != null || streamStatus == StreamStatus.closed) {
       _controller.add(new RequesterInvokeUpdate(
           updates, columns, _cachedColumns, streamStatus, meta:meta));
     }
