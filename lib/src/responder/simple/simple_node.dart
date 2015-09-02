@@ -58,7 +58,7 @@ class AsyncTableResult {
       }
     }
 
-    if (response != null && (rows != null || status == StreamStatus.closed)) {
+    if (response != null && (rows != null || meta != null || status == StreamStatus.closed)) {
       response.updateStream(rows, columns: columns, streamStatus: status, meta:meta);
       rows = null;
       columns = null;
