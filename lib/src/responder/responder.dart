@@ -7,6 +7,8 @@ class Responder extends ConnectionHandler {
 
   int maxCacheLength = ConnectionProcessor.DEFAULT_CACHE_SIZE;
   
+  ISubscriptionStorageManager storage;
+  
   /// list of permission group
   List<String> groups = [];
   void updateGroups(List<String> vals) {

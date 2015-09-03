@@ -78,7 +78,7 @@ class SubscribeResponse extends Response {
   
     List updates = [];
     for (RespSubscribeController controller in changed) {
-      updates.addAll(controller.process());
+      updates.addAll(controller.process(waitingAckId));
     }
     responder.updateResponse(this, updates);
     changed.clear();
@@ -93,7 +93,13 @@ class SubscribeResponse extends Response {
     } else {
       _waitingAckCount --;
     }
-    
+    if (responder.storage != null) {
+      subsriptions.forEach((String path, RespSubscribeController controller){
+        if (controller._storage != null) {
+          controller.onAck(receiveAckId);
+        }
+      });
+    }
     if (_sendingAfterAck) {
       _sendingAfterAck = false;
       prepareSending();
@@ -146,11 +152,14 @@ class RespSubscribeController {
     }
   }
 
-  ListQueue<ValueUpdate> lastValues = new ListQueue<ValueUpdate>();
+  List<ValueUpdate> lastValues = new List<ValueUpdate>();
   ValueUpdate lastValue;
   
-  int _qosLevel;
-
+  ListQueue<ValueUpdate> waitingValues;// = new ListQueue<ValueUpdate>();
+    
+  int _qosLevel = -1;
+  ISubscriptionStorage _storage;
+  
   void set qosLevel(int v) {
     if (v < 0 || v > 3) v = 0;
     if (_qosLevel == v) 
@@ -174,10 +183,16 @@ class RespSubscribeController {
   void set persist(bool val) {
     if (val == _persist) return;
     _persist = val;
-    if (_persist) {
-      
-    } else {
-      
+    ISubscriptionStorageManager storageM = response.responder.storage;
+    if (storageM != null) {
+      if (_persist) {
+        _storage = storageM.getOrCreateStorage(node.path);
+        if (waitingValues == null) {
+          waitingValues = new ListQueue<ValueUpdate>();
+        }
+      } else if (_storage != null){
+        storageM.destroyStorage(node.path);
+      }
     }
   }
 
@@ -192,7 +207,6 @@ class RespSubscribeController {
 
   bool _isCacheValid = true;
   void addValue(ValueUpdate val) {
-    
     if (_caching && _isCacheValid) {
       lastValues.add(val);
       if (lastValues.length > response.responder.maxCacheLength) {
@@ -220,11 +234,18 @@ class RespSubscribeController {
     }
   }
 
-  List process() {
+  List process(int waitingAckId) {
     List rslts = [];
     if (_caching && _isCacheValid) {
       for (ValueUpdate lastValue in lastValues) {
         rslts.add([sid, lastValue.value, lastValue.ts]);
+      }
+      if (_storage != null) {
+        for (ValueUpdate update in lastValues) {
+          update.waitingAck = waitingAckId;
+          _storage.addValue(update);
+        }
+        waitingValues.addAll(lastValues);
       }
       lastValues.clear();
     } else {
@@ -246,12 +267,23 @@ class RespSubscribeController {
       } else {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
+      if (_storage != null) {
+        lastValue.waitingAck = waitingAckId;
+        _storage.addValue(lastValue);
+        waitingValues.add(lastValue);
+      }
       lastValue = null;
       _isCacheValid = true;
     }
     return rslts;
   }
-
+  void onAck(int ackId) {
+    while (!waitingValues.isEmpty && waitingValues.first.waitingAck == ackId) {
+      // TODO is there any need to add protection in case ackId is out of sync?
+      // because one stuck data will cause the queue to overflow
+      _storage.removeValue(waitingValues.removeFirst());
+    }
+  }
   void destroy() {
     _listener.cancel();
   }

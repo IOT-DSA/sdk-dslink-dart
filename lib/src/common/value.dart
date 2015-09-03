@@ -17,7 +17,9 @@ class ValueUpdate {
     return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
   }
 
-  dynamic value;
+  int waitingAck = -1;
+  
+  Object value;
   String ts;
   String status;
   int count;
