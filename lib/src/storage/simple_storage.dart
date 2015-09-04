@@ -67,13 +67,13 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
   
   void destroyValue(String path) {
     if (values.containsKey(path)){
-      values[path].destroy();
+      values[path].clear();
       values.remove(path);
     }
   }
   void destroy() {
     values.forEach((String path, SimpleValueStorage value){
-      value.destroy();
+      value.clear();
     });
     values.clear();
   }
@@ -100,14 +100,10 @@ class SimpleValueStorage extends ISubscriptionValueStorage {
   void removeValue(ValueUpdate value) {
     // do nothing, it's done in valueRemoved
   }
-  void valueRemoved() {
-    file.writeAsStringSync(waitingValues.map((v) => v.serialized).join('\n'));
+  void valueRemoved(Iterable<ValueUpdate> updates) {
+    file.writeAsStringSync(updates.map((v) => v.serialized).join('\n'));
   }
   void clear() {
-    super.clear();
-    file.delete();
-  }
-  void destroy() {
     file.delete();
   }
 
@@ -122,7 +118,6 @@ class SimpleValueStorage extends ISubscriptionValueStorage {
         rslt.add(value);
       } catch (err) {}
     }
-    waitingValues.addAll(rslt);
     return rslt;
   }
 }

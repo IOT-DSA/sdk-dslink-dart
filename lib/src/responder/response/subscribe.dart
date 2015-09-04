@@ -105,13 +105,11 @@ class SubscribeResponse extends Response {
     } else {
       _waitingAckCount --;
     }
-    if (responder.storage != null) {
-      subsriptions.forEach((String path, RespSubscribeController controller){
-        if (controller._storage != null) {
-          controller._storage.onAck(receiveAckId);
-        }
-      });
-    }
+    subsriptions.forEach((String path, RespSubscribeController controller){
+      if (controller._qosLevel > 0) {
+        controller.onAck(receiveAckId);
+      }
+    });
     if (_sendingAfterAck) {
       _sendingAfterAck = false;
       prepareSending();
@@ -143,12 +141,6 @@ class SubscribeResponse extends Response {
         controller.destroy();
       } else {
         controller.sid = -1;
-        if (controller._storage != null) {
-          controller.lastValues = controller._storage.waitingValues.toList();
-          if (!controller._storage.waitingValues.isEmpty) {
-            controller.lastValue = controller._storage.waitingValues.last;
-          }
-        }
         if (pendingControllers == null) {
           pendingControllers = [];
         }
@@ -191,6 +183,7 @@ class RespSubscribeController {
   }
 
   List<ValueUpdate> lastValues = new List<ValueUpdate>();
+  ListQueue<ValueUpdate> waitingValues;//; = new ListQueue<ValueUpdate>();
   ValueUpdate lastValue;
     
   int _qosLevel = -1;
@@ -202,7 +195,9 @@ class RespSubscribeController {
       return;
     
     _qosLevel = v;
-    
+    if (waitingValues == null && _qosLevel > 0) {
+      waitingValues = new ListQueue<ValueUpdate>(); 
+    }
     caching = (v&1) == 1;
     persist = (v&2) == 2;
   }
@@ -252,11 +247,19 @@ class RespSubscribeController {
           lastValue.mergeAdd(update);
         }
         lastValues.clear();
-        _storage.setValue(lastValue);
+        if (_qosLevel > 0) {
+          waitingValues..clear()..add(lastValue);
+          if (_storage != null) {
+              _storage.setValue(lastValue);
+          }
+        }
       } else {
         lastValue = val;
-        if (_storage != null) {
-           _storage.addValue(lastValue);
+        if (_qosLevel > 0) {
+          waitingValues.add(lastValue);
+          if (_storage != null) {
+              _storage.addValue(lastValue);
+          }
         }
       }
     } else {
@@ -265,8 +268,11 @@ class RespSubscribeController {
       } else {
         lastValue = val;
       }
-      if (_storage != null) {
-        _storage.setValue(lastValue);
+      if (_qosLevel > 0) {
+         waitingValues..clear()..add(lastValue);
+         if (_storage != null) {
+             _storage.setValue(lastValue);
+         }
       }
     }
     // TODO, don't allow this to be called from same controller more oftern than 100ms
@@ -304,10 +310,27 @@ class RespSubscribeController {
     }
     return rslts;
   }
+  
+  void onAck(int ackId) {
+    while (!waitingValues.isEmpty && waitingValues.first.waitingAck == ackId) {
+      // TODO is there any need to add protection in case ackId is out of sync?
+      // because one stuck data will cause the queue to overflow
+      ValueUpdate removed = waitingValues.removeFirst();
+      if (_storage != null) {
+        _storage.removeValue(removed);
+      }
+    }
+    if (_storage != null) {
+      _storage.valueRemoved(waitingValues);
+    }
+    
+  }
 
   void destroy() {
     if (_storage != null) {
-      _storage.destroy();
+      ISubscriptionResponderStorage storageM = response.responder.storage;
+      storageM.destroyValue(node.path);
+      _storage = null;
     }
     _listener.cancel();
   }
