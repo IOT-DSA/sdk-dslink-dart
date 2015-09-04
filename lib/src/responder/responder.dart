@@ -7,7 +7,21 @@ class Responder extends ConnectionHandler {
 
   int maxCacheLength = ConnectionProcessor.DEFAULT_CACHE_SIZE;
   
-  ISubscriptionStorageManager storage;
+  ISubscriptionResponderStorage storage;
+  
+  void updateStorage(ISubscriptionResponderStorage s) {
+    if (storage != null) {
+      storage.destroy();
+    }
+    storage = s;
+    if (storage != null) {
+      Map<String, ISubscriptionValueStorage> vlaues = storage.load();
+      vlaues.forEach((String path, ISubscriptionValueStorage valueStore){
+        LocalNode node = nodeProvider.getOrCreateNode(path);
+        _subscription.add(path, node, -1, valueStore.qos);
+      });
+    }
+  }
   
   /// list of permission group
   List<String> groups = [];
@@ -346,6 +360,7 @@ class Responder extends ConnectionHandler {
   }
 
   void onDisconnected() {
+    clearProcessors();
     _responses.forEach((id, resp) {
       resp._close();
     });

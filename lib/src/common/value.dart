@@ -114,4 +114,24 @@ class ValueUpdate {
       max = newUpdate.max;
     }
   }
+  
+  Map toMap(){
+    Map m = {'ts': ts, 'value': value};
+     if (count == 0) {
+       m['count'] = 0;
+     } else if (count > 1) {
+       m['count'] = count;
+       if (sum.isFinite) {
+         m['sum'] = sum;
+       }
+       if (max.isFinite) {
+         m['max'] = max;
+       }
+       if (min.isFinite) {
+         m['min'] = min;
+       }
+     }
+     return m;
+  }
+  String serialized;
 }

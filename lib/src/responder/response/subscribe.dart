@@ -27,24 +27,33 @@ class SubscribeResponse extends Response {
     if (subsriptions[path] != null) {
       RespSubscribeController controller = subsriptions[path];
       if (controller.sid != sid) {
-        subsriptionids.remove(controller.sid);
-        controller.sid == sid;
-        subsriptionids[sid] = controller;
+        if (controller.sid >= 0) {
+          subsriptionids.remove(controller.sid);
+        }
+        controller.sid = sid;
+        if (sid >= 0) {
+          subsriptionids[sid] = controller;
+        }
+        
       }
       controller.qosLevel = qos;
+      print('sub $path');
     } else {
       int permission = responder.nodeProvider.permissions
           .getPermission(node.path, responder);
       RespSubscribeController controller = new RespSubscribeController(
           this, node, sid, permission >= Permission.READ, qos);
       subsriptions[path] = controller;
-      subsriptionids[sid] = controller;
+      if (sid >= 0) {
+        subsriptionids[sid] = controller;
+      }
       if (responder._traceCallbacks != null){
         ResponseTrace update = new ResponseTrace(path,'subscribe',0,'+');
         for (ResponseTraceCallback callback in responder._traceCallbacks) {
           callback(update);
         }  
       }
+      print('new sub $path');
     }
   }
 
@@ -78,6 +87,9 @@ class SubscribeResponse extends Response {
   
     List updates = [];
     for (RespSubscribeController controller in changed) {
+      if (controller.sid == -1) {
+        int debuga = 1;
+      }
       updates.addAll(controller.process(waitingAckId));
     }
     responder.updateResponse(this, updates);
@@ -96,7 +108,7 @@ class SubscribeResponse extends Response {
     if (responder.storage != null) {
       subsriptions.forEach((String path, RespSubscribeController controller){
         if (controller._storage != null) {
-          controller.onAck(receiveAckId);
+          controller._storage.onAck(receiveAckId);
         }
       });
     }
@@ -114,6 +126,10 @@ class SubscribeResponse extends Response {
       _sendingAfterAck = true;
       return;
     }
+    if (responder.connection == null) {
+      // don't pend send, when requester is offline
+      return;
+    }
     if (!_pendingSending) {
       _pendingSending = true;
       responder.addProcessor(this);
@@ -121,10 +137,32 @@ class SubscribeResponse extends Response {
   }
   
   void _close() {
-    subsriptions.forEach((path, controller) {
-      controller.destroy();
+    List pendingControllers;
+    subsriptions.forEach((path, RespSubscribeController controller) {
+      if (controller._qosLevel == 0) {
+        controller.destroy();
+      } else {
+        controller.sid = -1;
+        if (controller._storage != null) {
+          controller.lastValues = controller._storage.waitingValues.toList();
+          if (!controller._storage.waitingValues.isEmpty) {
+            controller.lastValue = controller._storage.waitingValues.last;
+          }
+        }
+        if (pendingControllers == null) {
+          pendingControllers = [];
+        }
+        pendingControllers.add(controller);
+      }
     });
     subsriptions.clear();
+    if (pendingControllers != null) {
+      for (RespSubscribeController controller in pendingControllers) {
+        subsriptions[controller.node.path] = controller;
+      }
+    }
+    
+    subsriptionids.clear();
     _waitingAckCount = 0;
     _lastWatingAckId = -1;
     _sendingAfterAck = false;
@@ -154,11 +192,9 @@ class RespSubscribeController {
 
   List<ValueUpdate> lastValues = new List<ValueUpdate>();
   ValueUpdate lastValue;
-  
-  ListQueue<ValueUpdate> waitingValues;// = new ListQueue<ValueUpdate>();
     
   int _qosLevel = -1;
-  ISubscriptionStorage _storage;
+  ISubscriptionValueStorage _storage;
   
   void set qosLevel(int v) {
     if (v < 0 || v > 3) v = 0;
@@ -167,8 +203,8 @@ class RespSubscribeController {
     
     _qosLevel = v;
     
-    persist = (v&2) == 2;
     caching = (v&1) == 1;
+    persist = (v&2) == 2;
   }
   
   bool _caching = false;
@@ -183,15 +219,13 @@ class RespSubscribeController {
   void set persist(bool val) {
     if (val == _persist) return;
     _persist = val;
-    ISubscriptionStorageManager storageM = response.responder.storage;
+    ISubscriptionResponderStorage storageM = response.responder.storage;
     if (storageM != null) {
       if (_persist) {
-        _storage = storageM.getOrCreateStorage(node.path);
-        if (waitingValues == null) {
-          waitingValues = new ListQueue<ValueUpdate>();
-        }
+        _storage = storageM.getOrCreateValue(node.path);
       } else if (_storage != null){
-        storageM.destroyStorage(node.path);
+        storageM.destroyValue(node.path);
+        _storage = null;
       }
     }
   }
@@ -208,6 +242,7 @@ class RespSubscribeController {
   bool _isCacheValid = true;
   void addValue(ValueUpdate val) {
     if (_caching && _isCacheValid) {
+      print('addValue ${lastValues.length}');
       lastValues.add(val);
       if (lastValues.length > response.responder.maxCacheLength) {
         // cache is no longer valid, fallback to rollup mode
@@ -217,14 +252,21 @@ class RespSubscribeController {
           lastValue.mergeAdd(update);
         }
         lastValues.clear();
+        _storage.setValue(lastValue);
       } else {
         lastValue = val;
+        if (_storage != null) {
+           _storage.addValue(lastValue);
+        }
       }
     } else {
       if (lastValue != null) {
         lastValue =  new ValueUpdate.merge(lastValue, val);
       } else {
         lastValue = val;
+      }
+      if (_storage != null) {
+        _storage.setValue(lastValue);
       }
     }
     // TODO, don't allow this to be called from same controller more oftern than 100ms
@@ -243,48 +285,30 @@ class RespSubscribeController {
       if (_storage != null) {
         for (ValueUpdate update in lastValues) {
           update.waitingAck = waitingAckId;
-          _storage.addValue(update);
         }
-        waitingValues.addAll(lastValues);
       }
       lastValues.clear();
     } else {
       if (lastValue.count > 1 || lastValue.status != null) {
-        Map m = {'ts': lastValue.ts, 'value': lastValue.value, 'sid': sid};
-        if (lastValue.count == 0) {} else if (lastValue.count > 1) {
-          m['count'] = lastValue.count;
-          if (lastValue.sum.isFinite) {
-            m['sum'] = lastValue.sum;
-          }
-          if (lastValue.max.isFinite) {
-            m['max'] = lastValue.max;
-          }
-          if (lastValue.min.isFinite) {
-            m['min'] = lastValue.min;
-          }
-        }
+        Map m = lastValue.toMap();
+        m['sid'] = sid;
         rslts.add(m);
       } else {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
       if (_storage != null) {
         lastValue.waitingAck = waitingAckId;
-        _storage.addValue(lastValue);
-        waitingValues.add(lastValue);
       }
       lastValue = null;
       _isCacheValid = true;
     }
     return rslts;
   }
-  void onAck(int ackId) {
-    while (!waitingValues.isEmpty && waitingValues.first.waitingAck == ackId) {
-      // TODO is there any need to add protection in case ackId is out of sync?
-      // because one stuck data will cause the queue to overflow
-      _storage.removeValue(waitingValues.removeFirst());
-    }
-  }
+
   void destroy() {
+    if (_storage != null) {
+      _storage.destroy();
+    }
     _listener.cancel();
   }
 }
