@@ -32,4 +32,7 @@ abstract class ISubscriptionValueStorage {
   
   
   void clear();
+  
+  /// load stored values
+  List<ValueUpdate> loadAll();
 }

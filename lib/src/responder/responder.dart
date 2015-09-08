@@ -9,7 +9,7 @@ class Responder extends ConnectionHandler {
   
   ISubscriptionResponderStorage storage;
   
-  void updateStorage(ISubscriptionResponderStorage s) {
+  void initStorage(ISubscriptionResponderStorage s) {
     if (storage != null) {
       storage.destroy();
     }
@@ -17,8 +17,12 @@ class Responder extends ConnectionHandler {
     if (storage != null) {
       Map<String, ISubscriptionValueStorage> vlaues = storage.load();
       vlaues.forEach((String path, ISubscriptionValueStorage valueStore){
-        LocalNode node = nodeProvider.getOrCreateNode(path);
-        _subscription.add(path, node, -1, valueStore.qos);
+        var values = valueStore.loadAll();
+        if (!values.isEmpty) {
+          LocalNode node = nodeProvider.getOrCreateNode(path);
+          RespSubscribeController controller = _subscription.add(path, node, -1, valueStore.qos);
+          controller.resetCache(values);
+        }
       });
     }
   }

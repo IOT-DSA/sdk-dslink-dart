@@ -23,9 +23,10 @@ class SubscribeResponse extends Response {
   final LinkedHashSet<RespSubscribeController> changed =
       new LinkedHashSet<RespSubscribeController>();
 
-  void add(String path, LocalNode node, int sid, int qos) {
+  RespSubscribeController add(String path, LocalNode node, int sid, int qos) {
+    RespSubscribeController controller;
     if (subsriptions[path] != null) {
-      RespSubscribeController controller = subsriptions[path];
+      controller = subsriptions[path];
       if (controller.sid != sid) {
         if (controller.sid >= 0) {
           subsriptionids.remove(controller.sid);
@@ -41,7 +42,7 @@ class SubscribeResponse extends Response {
     } else {
       int permission = responder.nodeProvider.permissions
           .getPermission(node.path, responder);
-      RespSubscribeController controller = new RespSubscribeController(
+      controller = new RespSubscribeController(
           this, node, sid, permission >= Permission.READ, qos);
       subsriptions[path] = controller;
       if (sid >= 0) {
@@ -55,6 +56,7 @@ class SubscribeResponse extends Response {
       }
       print('new sub $path');
     }
+    return controller;
   }
 
   void remove(int sid) {
@@ -277,7 +279,7 @@ class RespSubscribeController {
     }
     // TODO, don't allow this to be called from same controller more oftern than 100ms
     // the first response can happen ASAP, but
-    if (_permitted) {
+    if (_permitted && sid > -1) {
       response.subscriptionChanged(this);
     }
   }
@@ -288,9 +290,10 @@ class RespSubscribeController {
       for (ValueUpdate lastValue in lastValues) {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
-      if (_storage != null) {
+      if (_qosLevel > 0) {
         for (ValueUpdate update in lastValues) {
           update.waitingAck = waitingAckId;
+          print('waiting ${update.value} ${update.waitingAck}');
         }
       }
       lastValues.clear();
@@ -302,7 +305,7 @@ class RespSubscribeController {
       } else {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
-      if (_storage != null) {
+      if (_qosLevel > 0) {
         lastValue.waitingAck = waitingAckId;
       }
       lastValue = null;
@@ -312,20 +315,43 @@ class RespSubscribeController {
   }
   
   void onAck(int ackId) {
+    if (waitingValues.isEmpty) {
+      return;
+    }
+    bool valueRemoved = false;
+    if (!waitingValues.isEmpty && waitingValues.first.waitingAck != ackId) {
+      print('invalidAck ${waitingValues.first.value} ${waitingValues.first.waitingAck}');
+    }
     while (!waitingValues.isEmpty && waitingValues.first.waitingAck == ackId) {
       // TODO is there any need to add protection in case ackId is out of sync?
       // because one stuck data will cause the queue to overflow
       ValueUpdate removed = waitingValues.removeFirst();
       if (_storage != null) {
         _storage.removeValue(removed);
+        valueRemoved = true;
       }
     }
-    if (_storage != null) {
+    if (valueRemoved && _storage != null) {
       _storage.valueRemoved(waitingValues);
     }
-    
   }
 
+  void resetCache(List<ValueUpdate> values) {
+    if (this._caching) {
+      lastValues = values;
+      if (waitingValues != null) {
+        waitingValues.clear();
+        waitingValues.addAll(values);
+      }
+    } else {
+      lastValues.clear();
+      if (waitingValues != null) {
+        waitingValues.clear();
+        waitingValues.add(values.last);
+      }
+    }
+    lastValue = values.last;
+  }
   void destroy() {
     if (_storage != null) {
       ISubscriptionResponderStorage storageM = response.responder.storage;

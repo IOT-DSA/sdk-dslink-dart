@@ -30,6 +30,6 @@ main(List<String> args) {
   link.onRequesterReady.then((Requester req){
     req.subscribe('/downstream/qos-resp/node', (update){
       print(update.value);
-    }, 1);
+    }, 3);
   });
 }
