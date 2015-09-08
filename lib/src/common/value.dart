@@ -117,7 +117,21 @@ class ValueUpdate {
   }
   
   bool equals(ValueUpdate other) {
-    if (other.value != value || other.ts != ts || other.count != count) {
+    if (value is Map) {
+      // assume Map is same if it's generated at same time stampe
+      if (other.value is! Map) {
+        return false;
+      }
+    } else if (value is List) {
+      // assume List is same if it's generated at same time stampe
+      if (other.value is! List) {
+         return false;
+       }
+    } else if (value != other.value) {
+      return false;
+    }
+    
+    if (other.ts != ts || other.count != count) {
       return false;
     }
     if (count == 1) {
