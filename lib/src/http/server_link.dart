@@ -70,14 +70,20 @@ class HttpServerLink implements ServerLink {
   /// by default it's a responder only link
   bool isResponder = true;
 
+  Map<String, String> extensions;
+
   initLink(HttpRequest request, bool clientRequester, bool clientResponder,
       String serverDsId, String serverKey,
       {String wsUri: '/ws',
       String httpUri: '/http',
       int updateInterval: 200,
-      bool trusted:false}) async {
+      bool trusted: false,
+      Map<String, List<String>> clientExtensions,
+      Map<String, List<String>> serverExtensions}) async {
     isRequester = clientResponder;
     isResponder = clientRequester;
+
+    extensions = negotiateProtocolExtensions(clientExtensions, serverExtensions);
 
     // TODO(rinick): don't use a hardcoded id and public key
     Map respJson = {
@@ -88,7 +94,8 @@ class HttpServerLink implements ServerLink {
       "wsUri": wsUri,
       "httpUri": httpUri,
       "updateInterval": updateInterval,
-      "version": DSA_VERSION
+      "version": DSA_VERSION,
+      "extensions": extensions
     };
     if (!trusted) {
       tempNonce = await ECDH.assign(publicKey, verifiedNonce);
@@ -227,6 +234,8 @@ class HttpServerLink implements ServerLink {
   }
 
   WebSocketConnection createWsConnection(WebSocket websocket) {
-    return new WebSocketConnection(websocket, enableTimeout: enableTimeout, enableAck:enableAck);
+    var conn = new WebSocketConnection(websocket, enableTimeout: enableTimeout, enableAck: enableAck);
+    conn.loadExtensions(extensions);
+    return conn;
   }
 }

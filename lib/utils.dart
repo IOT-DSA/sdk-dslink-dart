@@ -22,9 +22,32 @@ part "src/utils/uri_component.dart";
 /// The DSA Version
 const String DSA_VERSION = '1.1.0';
 
-Logger _logger;
+const Map<String, List<String>> DEFAULT_PROTOCOL_EXTENSIONS = const {};
 
+Logger _logger;
 bool _DEBUG_MODE;
+
+Map<String, String> negotiateProtocolExtensions(Map<String, List<String>> client, Map<String, List<String>> server) {
+  var merged = <String, Set<String>>{};
+  for (var key in server.keys) {
+    merged[key] = new Set<String>.from(server[key]);
+  }
+
+  for (var key in client.keys) {
+    if (merged.containsKey(key)) {
+      merged[key].removeWhere((x) => !client[key].contains(x));
+    }
+  }
+
+  var result = <String, String>{};
+  for (var key in merged.keys) {
+    List<String> cli = client[key];
+    List<String> possible = merged[key].toList();
+    possible.sort((a, b) => cli.indexOf(a).compareTo(b.indexOf(b)));
+    result[key] = possible.first;
+  }
+  return result;
+}
 
 //final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
 final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));

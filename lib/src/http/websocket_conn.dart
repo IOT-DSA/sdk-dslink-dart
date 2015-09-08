@@ -47,6 +47,9 @@ class WebSocketConnection extends Connection {
     // TODO(rinick): when it's used in client link, wait for the server to send {allowed} before complete this
   }
 
+  loadExtensions(Map<String, String> extensions) {
+  }
+
   Timer pingTimer;
 
   /// set to true when data is sent, reset the flag every 20 seconds
@@ -104,6 +107,7 @@ class WebSocketConnection extends Connection {
   }
 
   BinaryInCache binaryInCache = new BinaryInCache();
+
   void onData(dynamic data) {
     if (_onDisconnectedCompleter.isCompleted) {
       return;
@@ -114,13 +118,13 @@ class WebSocketConnection extends Connection {
     _dataReceiveCount = 0;
     Map m;
     if (data is List<int>) {
-     
       if (data.length != 0 && data[0] == 0) {
         logger.finest("receive binary length ${data.length}");
         // binary channel
         binaryInCache.receiveData(data);
         return;
       }
+
       try {
         m = DsJson.decodeFrame(UTF8.decode(data), binaryInCache);
         if (logger.isLoggable(Level.FINE)) {
@@ -146,9 +150,11 @@ class WebSocketConnection extends Connection {
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m['requests']);
       }
+
       if (m['ack'] is int) {
         ack(m['ack']);
       }
+
       if (needAck) {
         Object msgId = m['msg'];
         if (msgId != null) {
@@ -278,7 +284,8 @@ class WebSocketConnection extends Connection {
 
   BinaryOutCache binaryOutCache = new BinaryOutCache();
   void addData(Map m) {
-    String json = DsJson.encodeFrame(m, binaryOutCache);
+    var json = DsJson.encodeFrame(m, binaryOutCache);
+
     if (binaryOutCache.hasData) {
       if (logger.isLoggable(Level.FINE)) {
         logger.fine('send binary');

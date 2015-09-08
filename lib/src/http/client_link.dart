@@ -59,6 +59,7 @@ class HttpClientLink implements ClientLink {
         requester = new Requester();
       }
     }
+
     if (isResponder) {
       if (overrideResponder != null) {
         responder = overrideResponder;
@@ -69,6 +70,8 @@ class HttpClientLink implements ClientLink {
   }
 
   int _connDelay = 1;
+
+  Map<String, List<String>> extensions = DEFAULT_PROTOCOL_EXTENSIONS;
 
   connect() async {
     if (_closed) return;
@@ -95,7 +98,8 @@ class HttpClientLink implements ClientLink {
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
         'isResponder': responder != null,
-        'version': DSA_VERSION
+        'version': DSA_VERSION,
+        'extensions': extensions
       };
 
       logger.fine("DS ID: ${dsId}");
@@ -105,6 +109,13 @@ class HttpClientLink implements ClientLink {
       List<int> merged = await response.fold([], foldList);
       String rslt = UTF8.decode(merged);
       Map serverConfig = DsJson.decode(rslt);
+
+      if (serverConfig["extensions"] is Map) {
+        currentExtensions = serverConfig["extensions"];
+      } else {
+        currentExtensions = const {};
+      }
+
       saltNameMap.forEach((name, idx) {
         //read salts
         salts[idx] = serverConfig[name];
@@ -145,6 +156,8 @@ class HttpClientLink implements ClientLink {
     }
   }
 
+  Map<String, String> currentExtensions;
+
   int _wsDelay = 1;
 
   initWebsocket([bool reconnect = true]) async {
@@ -158,6 +171,8 @@ class HttpClientLink implements ClientLink {
           '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
       _wsConnection = new WebSocketConnection(socket,
           clientLink: this, enableTimeout: true, enableAck: enableAck);
+
+      _wsConnection.loadExtensions(currentExtensions);
 
       logger.info("Connected");
       if (!_onConnectedCompleter.isCompleted) {

@@ -145,6 +145,8 @@ class DsHttpServer {
     }
   }
 
+  Map<String, List<String>> extensions = DEFAULT_PROTOCOL_EXTENSIONS;
+
   void _handleConn(HttpRequest request, String dsId) {
     bool trusted = (request.requestedUri.host == '127.0.0.1');
 
@@ -162,6 +164,12 @@ class DsHttpServer {
         }
         String str = UTF8.decode(merged);
         Map m = DsJson.decode(str);
+        Map<String, List<String>> clientExtensions = m["extensions"];
+
+        if (clientExtensions == null) {
+          clientExtensions = const {};
+        }
+
         HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
         if (link == null) {
           String publicKeyPointStr = m['publicKey'];
@@ -181,7 +189,7 @@ class DsHttpServer {
         }
         link.initLink(request, m['isRequester'] == true,
             m['isResponder'] == true, dsId, publicKey,
-            updateInterval: updateInterval);
+            updateInterval: updateInterval, clientExtensions: clientExtensions, serverExtensions: extensions);
       } catch (err) {
         if (err is int) {
           // TODO need protection because changing statusCode itself can throw
