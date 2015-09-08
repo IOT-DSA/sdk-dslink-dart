@@ -66,9 +66,14 @@ abstract class LocalNode extends Node {
     }
     return null;
   }
-
+  
+  bool _valueReady = false;
+  /// Is the value ready?
+  bool get valueReady => _valueReady;
+  
   /// Updates this node's value to the specified [value].
   void updateValue(Object update, {bool force: false}) {
+    _valueReady = true;
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
       callbacks.forEach((callback, qos) {
@@ -94,8 +99,6 @@ abstract class LocalNode extends Node {
 
   /// Disconnected Timestamp
   String get disconnected => null;
-  /// Is the value ready?
-  bool get valueReady => true;
 
   /// Checks if this node has a subscriber.
   /// Use this for things like polling when you
