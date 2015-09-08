@@ -338,10 +338,13 @@ class RespSubscribeController {
 
   void resetCache(List<ValueUpdate> values) {
     if (this._caching) {
-      lastValues = values;
+      if (lastValues.length > 0 && lastValues.first.equals(values.last)) {
+        lastValues.removeAt(0);
+      }
+      lastValues = values..addAll(lastValues);
       if (waitingValues != null) {
         waitingValues.clear();
-        waitingValues.addAll(values);
+        waitingValues.addAll(lastValues);
       }
     } else {
       lastValues.clear();

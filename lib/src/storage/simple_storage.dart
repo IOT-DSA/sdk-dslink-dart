@@ -120,6 +120,10 @@ class SimpleValueStorage extends ISubscriptionValueStorage {
     }
     List<ValueUpdate> rslt = new List<ValueUpdate>();
     for (String s in strs) {
+      if (s.length < 18) {
+        // a valid data is always 18 bytes or more
+        continue;
+      }
       try {
         Map m = DsJson.decode(s);
         ValueUpdate value = new ValueUpdate(m['value'], ts: m['ts'], meta: m);

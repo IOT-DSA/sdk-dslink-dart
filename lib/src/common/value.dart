@@ -94,6 +94,7 @@ class ValueUpdate {
     return _latency;
   }
 
+  /// merge the new update into existing instance 
   void mergeAdd(ValueUpdate newUpdate) {
     value = newUpdate.value;
     ts = newUpdate.ts;
@@ -113,6 +114,16 @@ class ValueUpdate {
     if (max.isNaN || newUpdate.max > max) {
       max = newUpdate.max;
     }
+  }
+  
+  bool equals(ValueUpdate other) {
+    if (other.value != value || other.ts != ts || other.count != count) {
+      return false;
+    }
+    if (count == 1) {
+      return true;
+    }
+    return other.sum == sum && other.min == min && other.max == max;
   }
   
   Map toMap(){
