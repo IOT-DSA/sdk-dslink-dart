@@ -229,8 +229,8 @@ class WebSocketConnection extends Connection {
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
-      String json = codec.encodeFrame(m);
-      socket.send(json);
+      Object encoded = codec.encodeFrame(m);
+      socket.send(encoded);
       _dataSent = true;
     }
   }

@@ -269,15 +269,22 @@ class WebSocketConnection extends Connection {
   }
 
   void addData(Map m) {
-    String json = codec.encodeFrame(m);
+    Object encoded = codec.encodeFrame(m);
 
     if (logger.isLoggable(Level.FINE)) {
-      logger.fine('send: $json');
+      logger.fine('send: $m');
     }
+    
     if (throughputEnabled) {
-      dataOut += json.length;
+      if (encoded is String) {
+        dataOut += encoded.length;
+      } else if (encoded is List<int>){
+        dataOut += encoded.length;
+      } else {
+        logger.warning('invalid data frame');
+      }
     }
-    socket.add(json);
+    socket.add(encoded);
   }
 
   void _onDone() {
