@@ -123,17 +123,16 @@ class BinaryData {
 
 abstract class DsCodec {
   static final Map<String, DsCodec> _codecs = {'json':DsJson.instance};
+  static final DsCodec defaultCodec = DsJson.instance as DsCodec;
   static void register(String name, DsCodec codec) {
-    if (name != null && codec != null && !_codecs.containsKey(name)) {
+    if (name != null && codec != null) {
       _codecs[name] = codec;
-    } else {
-      throw 'invalid DsCodec';
     }
   }
   static DsCodec getCodec(String name) {
     DsCodec rslt = _codecs[name];
     if (rslt == null) {
-      return DsJson.instance as DsJsonCodecImpl;
+      return defaultCodec;
     }
     return rslt;
   }
@@ -142,7 +141,8 @@ abstract class DsCodec {
   Object encodeFrame(Map val);
 
   /// input can be String or List<int>
-  Map decodeFrame(Object input);
+  Map decodeStringFrame(String input);
+  Map decodeBinaryFrame(List<int> input);
 }
 
 abstract class DsJson {
@@ -188,12 +188,15 @@ class DsJsonCodecImpl implements DsJson, DsCodec {
 
   JsonDecoder _unsafeDecoder;
 
-  Object decodeFrame(String str) {
+  Map decodeBinaryFrame(List<int> bytes) {
+    return decodeStringFrame(UTF8.decode(bytes));
+  }
+  Map decodeStringFrame(String str) {
     if (_reviver == null) {
       _reviver = (key, value) {
         if (value is String && value.startsWith('\u001Bbytes:')) {
           try {
-            ByteDataUtil.fromUint8List(Base64.decode(value.substring(7)));
+            return ByteDataUtil.fromUint8List(Base64.decode(value.substring(7)));
           } catch (err) {
             return null;
           }
@@ -213,7 +216,7 @@ class DsJsonCodecImpl implements DsJson, DsCodec {
   Function _reviver;
   Function _encoder;
 
-  String encodeFrame(Object val) {
+  Object encodeFrame(Object val) {
     if (_encoder == null) {
       _encoder = (value) {
         if (value is ByteData) {

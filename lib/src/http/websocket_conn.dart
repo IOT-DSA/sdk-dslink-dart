@@ -114,7 +114,7 @@ class WebSocketConnection extends Connection {
     Map m;
     if (data is List<int>) {
       try {
-        m = codec.decodeFrame(UTF8.decode(data));
+        m = codec.decodeBinaryFrame(data);
         if (logger.isLoggable(Level.FINE)) {
           logger.fine("WebSocket JSON(binary): ${m}");
         }
@@ -149,7 +149,7 @@ class WebSocketConnection extends Connection {
       }
     } else if (data is String) {
       try {
-        m = codec.decodeFrame(data);
+        m = codec.decodeStringFrame(data);
         if (logger.isLoggable(Level.FINE)) {
           logger.fine("WebSocket JSON: ${m}");
         }

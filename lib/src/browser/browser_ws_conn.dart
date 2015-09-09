@@ -108,7 +108,7 @@ class WebSocketConnection extends Connection {
         Uint8List bytes = (e.data as ByteBuffer).asUint8List();
         
         // TODO(rick): JSONUtf8Decoder
-        m = codec.decodeFrame(UTF8.decode(bytes));
+        m = codec.decodeBinaryFrame(bytes);
         logger.fine('$m');
 
         if (m['salt'] is String) {
@@ -142,7 +142,7 @@ class WebSocketConnection extends Connection {
       }
     } else if (e.data is String) {
       try {
-        m = codec.decodeFrame(e.data);
+        m = codec.decodeStringFrame(e.data);
         logger.fine('$m');
 
         bool needAck = false;

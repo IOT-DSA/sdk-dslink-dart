@@ -31,11 +31,11 @@ void jsonTests() {
   test("successfully decodes binary frame inputs", () {
     var input = """
     {
-      "data": "\\u001Bbytes,${Base64.encode(UTF8.encode("Hello World"))}"
+      "data": "\\u001Bbytes:${Base64.encode(UTF8.encode("Hello World"))}"
     }
     """;
     DsCodec codec = DsCodec.getCodec('json');
-    var output = codec.decodeFrame(input);
+    var output = codec.decodeStringFrame(input);
     var data = output["data"];
     expect(UTF8.decode(ByteDataUtil.toUint8List(data)), equals("Hello World"));
   });
