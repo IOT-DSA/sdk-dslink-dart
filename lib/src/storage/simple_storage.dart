@@ -4,6 +4,7 @@ import '../../responder.dart';
 import '../../common.dart';
 import 'dart:io';
 import '../../utils.dart';
+import 'dart:async';
 
 class SimpleStorageManager implements ISubscriptionStorageManager {
   Map<String, SimpleResponderStorage> rsponders =
@@ -19,18 +20,19 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
     if (rsponders.containsKey(dsId)) {
       return rsponders[dsId];
     }
-    SimpleResponderStorage responder = new SimpleResponderStorage('${dir.path}/$dsId');
+    SimpleResponderStorage responder =
+        new SimpleResponderStorage('${dir.path}/$dsId');
     rsponders[dsId] = responder;
     return responder;
   }
   void destroyStorage(String dsId) {
-    if (rsponders.containsKey(dsId)){
+    if (rsponders.containsKey(dsId)) {
       rsponders[dsId].destroy();
       rsponders.remove(dsId);
     }
   }
   void destroy() {
-    rsponders.forEach((String dsId, SimpleResponderStorage responder){
+    rsponders.forEach((String dsId, SimpleResponderStorage responder) {
       responder.destroy();
     });
     rsponders.clear();
@@ -38,8 +40,8 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
 }
 
 class SimpleResponderStorage extends ISubscriptionResponderStorage {
-  Map<String, SimpleValueStorage> values =
-      new Map<String, SimpleValueStorage>();
+  Map<String, SimpleNodeStorage> values =
+      new Map<String, SimpleNodeStorage>();
   Directory dir;
   SimpleResponderStorage(String path) {
     dir = new Directory(path);
@@ -47,41 +49,42 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
       dir.createSync(recursive: true);
     }
   }
-  ISubscriptionValueStorage getOrCreateValue(String path) {
+  ISubscriptionNodeStorage getOrCreateValue(String path) {
     if (values.containsKey(path)) {
       return values[path];
     }
-    SimpleValueStorage value = new SimpleValueStorage(path, dir.path);
+    SimpleNodeStorage value = new SimpleNodeStorage(path, dir.path);
     values[path] = value;
     return value;
   }
-  Map<String, ISubscriptionValueStorage> load() {
-    for (FileSystemEntity entity in dir.listSync()){
+  Future<List<ISubscriptionNodeStorage>> load() {
+    List<Future<ISubscriptionNodeStorage>> loading = [];
+    for (FileSystemEntity entity in dir.listSync()) {
       String name = entity.uri.pathSegments.last;
       String path = Uri.decodeComponent(name);
-      values[path] = new SimpleValueStorage(path, dir.path);
+      values[path] = new SimpleNodeStorage(path, dir.path);
+      loading.add(values[path].load());
     }
-    return values;
+    return Future.wait(loading);
   }
-  
+
   void destroyValue(String path) {
-    if (values.containsKey(path)){
+    if (values.containsKey(path)) {
       values[path].clear();
       values.remove(path);
     }
   }
   void destroy() {
-    values.forEach((String path, SimpleValueStorage value){
+    values.forEach((String path, SimpleNodeStorage value) {
       value.clear();
     });
     values.clear();
   }
 }
 
-class SimpleValueStorage extends ISubscriptionValueStorage {
+class SimpleNodeStorage extends ISubscriptionNodeStorage {
   File file;
-  final String path;
-  SimpleValueStorage(this.path, String parentPath) {
+  SimpleNodeStorage(String path, String parentPath) : super(path) {
     file = new File('$parentPath/${Uri.encodeComponent(path)}');
   }
   /// add data to List of values
@@ -109,10 +112,11 @@ class SimpleValueStorage extends ISubscriptionValueStorage {
     file.delete();
   }
 
-  List<ValueUpdate> loadAll() {
-    String str = file.readAsStringSync();
+  List<ValueUpdate> _cachedValue;
+  Future<ISubscriptionNodeStorage> load() async {
+    String str = await file.readAsString();
     List<String> strs = str.split('\n');
-    if (strs.length == 1 && str.startsWith(' ')){
+    if (strs.length == 1 && str.startsWith(' ')) {
       // where there is space, it's qos 2
       qos = 2;
     } else {
@@ -128,8 +132,13 @@ class SimpleValueStorage extends ISubscriptionValueStorage {
         Map m = DsJson.decode(s);
         ValueUpdate value = new ValueUpdate(m['value'], ts: m['ts'], meta: m);
         rslt.add(value);
-      } catch (err) {print(err);}
+      } catch (err) {}
     }
-    return rslt;
+    _cachedValue = rslt;
+    return this;
+  }
+
+  List<ValueUpdate> getLoadedValues() {
+    return _cachedValue;
   }
 }

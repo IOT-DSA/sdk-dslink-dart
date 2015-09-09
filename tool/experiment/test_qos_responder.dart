@@ -13,13 +13,17 @@ SimpleNode valueNode;
 
 
 
-main(List<String> args) {
+main(List<String> args) async {
   Map defaultNodes = {
     'node':{
       r'$type':'string'
     }
   };
 
+  SimpleResponderStorage storage = new SimpleResponderStorage('storage');
+  
+  List storedNodes =  await storage.load();
+  
   link = new LinkProvider(
       ['-b', 'localhost:8080/conn', '--log', 'finest'], 'qos-resp',
       defaultNodes: defaultNodes);
@@ -29,7 +33,7 @@ main(List<String> args) {
     return;
   }
 
-  link.link.responder.initStorage(new SimpleResponderStorage('storage'));
+  link.link.responder.initStorage(storage, storedNodes);
 
   valueNode = link.getNode('/node');
 

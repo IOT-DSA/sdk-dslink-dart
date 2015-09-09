@@ -7,15 +7,16 @@ abstract class ISubscriptionStorageManager {
 }
 
 abstract class ISubscriptionResponderStorage {
-  ISubscriptionValueStorage getOrCreateValue(String path);
+  ISubscriptionNodeStorage getOrCreateValue(String path);
   void destroyValue(String path);
-  Map<String, ISubscriptionValueStorage> load();
+  Future<List<ISubscriptionNodeStorage>> load();
   void destroy();
 }
 
-abstract class ISubscriptionValueStorage {
-  
+abstract class ISubscriptionNodeStorage {
+  String path;
   int qos;
+  ISubscriptionNodeStorage(this.path);
   
   /// add data to List of values
   void addValue(ValueUpdate value) {
@@ -33,6 +34,6 @@ abstract class ISubscriptionValueStorage {
   
   void clear();
   
-  /// load stored values
-  List<ValueUpdate> loadAll();
+  /// return the local vlaues
+  List<ValueUpdate> getLoadedValues();
 }

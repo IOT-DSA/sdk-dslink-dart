@@ -9,21 +9,20 @@ class Responder extends ConnectionHandler {
   
   ISubscriptionResponderStorage storage;
   
-  void initStorage(ISubscriptionResponderStorage s) {
+  void initStorage(ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage> nodes) {
     if (storage != null) {
       storage.destroy();
     }
     storage = s;
-    if (storage != null) {
-      Map<String, ISubscriptionValueStorage> vlaues = storage.load();
-      vlaues.forEach((String path, ISubscriptionValueStorage valueStore){
-        var values = valueStore.loadAll();
-        if (!values.isEmpty) {
-          LocalNode node = nodeProvider.getOrCreateNode(path);
-          RespSubscribeController controller = _subscription.add(path, node, -1, valueStore.qos);
-          controller.resetCache(values);
-        }
-      });
+    if (storage != null && nodes != null) {
+      for (ISubscriptionNodeStorage node in nodes) {
+        var values = node.getLoadedValues();
+         if (!values.isEmpty) {
+           LocalNode localnode = nodeProvider.getOrCreateNode(node.path);
+           RespSubscribeController controller = _subscription.add(node.path, localnode, -1, node.qos);
+           controller.resetCache(values);
+         }
+      }
     }
   }
   

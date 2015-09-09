@@ -189,7 +189,7 @@ class RespSubscribeController {
   ValueUpdate lastValue;
     
   int _qosLevel = -1;
-  ISubscriptionValueStorage _storage;
+  ISubscriptionNodeStorage _storage;
   
   void set qosLevel(int v) {
     if (v < 0 || v > 3) v = 0;
