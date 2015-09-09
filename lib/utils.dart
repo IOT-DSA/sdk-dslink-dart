@@ -14,7 +14,7 @@ part "src/utils/better_iterator.dart";
 part "src/utils/base64.dart";
 part "src/utils/timer.dart";
 part "src/utils/stream_controller.dart";
-part "src/utils/json.dart";
+part "src/utils/codec.dart";
 part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
