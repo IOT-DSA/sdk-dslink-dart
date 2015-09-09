@@ -99,7 +99,6 @@ class WebSocketConnection extends Connection {
 
   
 
-  BinaryInCache binaryInCache = new BinaryInCache();
   void _onData(MessageEvent e) {
     logger.fine('onData:');
     _dataReceiveCount = 0;
@@ -107,14 +106,9 @@ class WebSocketConnection extends Connection {
     if (e.data is ByteBuffer) {
       try {
         Uint8List bytes = (e.data as ByteBuffer).asUint8List();
-        if (bytes.length != 0 && bytes[0] == 0) {
-          // binary channel
-          binaryInCache.receiveData(bytes);
-          return;
-        }
-
+        
         // TODO(rick): JSONUtf8Decoder
-        m = DsJson.decodeFrame(UTF8.decode(bytes), binaryInCache);
+        m = codec.decodeFrame(UTF8.decode(bytes));
         logger.fine('$m');
 
         if (m['salt'] is String) {
@@ -148,7 +142,7 @@ class WebSocketConnection extends Connection {
       }
     } else if (e.data is String) {
       try {
-        m = DsJson.decodeFrame(e.data, binaryInCache);
+        m = codec.decodeFrame(e.data);
         logger.fine('$m');
 
         bool needAck = false;
@@ -180,8 +174,6 @@ class WebSocketConnection extends Connection {
     }
   }
 
-  BinaryOutCache binaryOutCache = new BinaryOutCache();
-  
   int msgId = 0;
   
   bool _sending = false;
@@ -237,10 +229,7 @@ class WebSocketConnection extends Connection {
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
-      String json = DsJson.encodeFrame(m, binaryOutCache);
-      if (binaryOutCache.hasData) {
-        socket.sendByteBuffer(binaryOutCache.export().buffer);
-      }
+      String json = codec.encodeFrame(m);
       socket.send(json);
       _dataSent = true;
     }

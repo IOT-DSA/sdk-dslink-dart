@@ -39,6 +39,7 @@ abstract class Connection {
   /// close the connection
   void close();
   
+  DsCodec codec;
   
   ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<ConnectionAckGroup>();
   void ack(int ackId){

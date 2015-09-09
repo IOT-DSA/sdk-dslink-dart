@@ -103,7 +103,6 @@ class WebSocketConnection extends Connection {
     requireSend();
   }
 
-  BinaryInCache binaryInCache = new BinaryInCache();
   void onData(dynamic data) {
     if (_onDisconnectedCompleter.isCompleted) {
       return;
@@ -114,15 +113,8 @@ class WebSocketConnection extends Connection {
     _dataReceiveCount = 0;
     Map m;
     if (data is List<int>) {
-     
-      if (data.length != 0 && data[0] == 0) {
-        logger.finest("receive binary length ${data.length}");
-        // binary channel
-        binaryInCache.receiveData(data);
-        return;
-      }
       try {
-        m = DsJson.decodeFrame(UTF8.decode(data), binaryInCache);
+        m = codec.decodeFrame(UTF8.decode(data));
         if (logger.isLoggable(Level.FINE)) {
           logger.fine("WebSocket JSON(binary): ${m}");
         }
@@ -157,7 +149,7 @@ class WebSocketConnection extends Connection {
       }
     } else if (data is String) {
       try {
-        m = DsJson.decodeFrame(data, binaryInCache);
+        m = codec.decodeFrame(data);
         if (logger.isLoggable(Level.FINE)) {
           logger.fine("WebSocket JSON: ${m}");
         }
@@ -276,15 +268,9 @@ class WebSocketConnection extends Connection {
     }
   }
 
-  BinaryOutCache binaryOutCache = new BinaryOutCache();
   void addData(Map m) {
-    String json = DsJson.encodeFrame(m, binaryOutCache);
-    if (binaryOutCache.hasData) {
-      if (logger.isLoggable(Level.FINE)) {
-        logger.fine('send binary');
-      }
-      socket.add(binaryOutCache.export());
-    }
+    String json = codec.encodeFrame(m);
+
     if (logger.isLoggable(Level.FINE)) {
       logger.fine('send: $json');
     }

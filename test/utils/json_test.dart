@@ -3,7 +3,7 @@ library dslink.test.common.json;
 import "dart:convert";
 
 import "package:test/test.dart";
-import "package:dslink/utils.dart" show DsJson, BinaryInCache, BinaryOutCache, BinaryData, ByteDataUtil;
+import "package:dslink/utils.dart" show Base64, BinaryData, BinaryInCache, BinaryOutCache, ByteDataUtil, DsCodec, DsJson;
 
 void main() {
   group("JSON", jsonTests);
@@ -29,18 +29,13 @@ void jsonTests() {
   });
 
   test("successfully decodes binary frame inputs", () {
-    var bic = new BinaryInCache();
-    var boc = new BinaryOutCache();
-    var id = boc.addBinaryData(ByteDataUtil.fromList(UTF8.encode("Hello World")));
-    bic.receiveData(boc.export());
-
     var input = """
     {
-      "data": "\\u001Bbytes,${id}"
+      "data": "\\u001Bbytes,${Base64.encode(UTF8.encode("Hello World"))}"
     }
     """;
-
-    var output = DsJson.decodeFrame(input, bic);
+    DsCodec codec = DsCodec.getCodec('json');
+    var output = codec.decodeFrame(input);
     var data = output["data"];
     expect(UTF8.decode(ByteDataUtil.toUint8List(data)), equals("Hello World"));
   });
