@@ -66,25 +66,27 @@ class LinkProvider {
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
     }
-    // move the waiting part of init into a later frame 
-    // we need to make sure provider is created at the first frame
-    // not affected by any async code
-    return initAsync();
-  }
-
-  Future initAsync() async {
-    privateKey = await getPrivateKey(storage: dataStore);
-
+    
     if (loadNodes && provider is SerializableNodeProvider) {
-      if (!(await dataStore.has("dsa_nodes"))) {
+      if (!(dataStore.has("dsa_nodes"))) {
         (provider as SerializableNodeProvider).init(defaultNodes);
       } else {
         (provider as SerializableNodeProvider)
-            .init(DsJson.decode(await dataStore.get("dsa_nodes")));
+            .init(DsJson.decode(dataStore.get("dsa_nodes")));
       }
     } else {
       (provider as SerializableNodeProvider).init(defaultNodes);
     }
+    
+    // move the waiting part of init into a later frame 
+    // we need to make sure provider is created at the first frame
+    // not affected by any async code
+    return initPrivateKey();
+  }
+
+  Future initPrivateKey() async {
+    privateKey = await getPrivateKey(storage: dataStore);
+
   }
 
   Future resetSavedNodes() async {

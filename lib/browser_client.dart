@@ -19,16 +19,16 @@ part 'src/browser/browser_ws_conn.dart';
 /// A Storage System for DSA Data
 abstract class DataStorage {
   /// Get a key's value.
-  Future<String> get(String key);
+  String get(String key);
 
   /// Check if a key is stored.
-  Future<bool> has(String key);
+  bool has(String key);
 
   /// Remove the specified key.
-  Future<String> remove(String key);
+  String remove(String key);
 
   /// Store a key value pair.
-  Future store(String key, String value);
+  void store(String key, String value);
 }
 
 /// Storage for DSA in Local Storage
@@ -38,17 +38,18 @@ class LocalDataStorage extends DataStorage {
   LocalDataStorage();
 
   @override
-  Future<String> get(String key) async => window.localStorage[key];
+  String get(String key) => window.localStorage[key];
 
   @override
-  Future<bool> has(String key) async => window.localStorage.containsKey(key);
+  bool has(String key) => window.localStorage.containsKey(key);
 
   @override
-  Future store(String key, String value) async =>
+  void store(String key, String value) {
       window.localStorage[key] = value;
+  }
 
   @override
-  Future<String> remove(String key) async => window.localStorage.remove(key);
+  String remove(String key) => window.localStorage.remove(key);
 }
 
 /// Get a Private Key using the specified storage strategy.
