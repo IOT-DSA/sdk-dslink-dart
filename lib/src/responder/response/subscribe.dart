@@ -40,7 +40,6 @@ class SubscribeResponse extends Response {
       if (sid > -1 && controller.lastValue != null) {
         subscriptionChanged(controller);
       }
-      print('sub $path');
     } else {
       int permission = responder.nodeProvider.permissions
           .getPermission(node.path, responder);
@@ -56,7 +55,6 @@ class SubscribeResponse extends Response {
           callback(update);
         }  
       }
-      print('new sub $path');
     }
     return controller;
   }
@@ -241,7 +239,6 @@ class RespSubscribeController {
   bool _isCacheValid = true;
   void addValue(ValueUpdate val) {
     if (_caching && _isCacheValid) {
-      print('addValue ${lastValues.length}');
       lastValues.add(val);
       if (lastValues.length > response.responder.maxCacheLength) {
         // cache is no longer valid, fallback to rollup mode
