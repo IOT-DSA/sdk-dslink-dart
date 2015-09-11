@@ -29,7 +29,7 @@ class RemoteLinkManager implements NodeProvider, RemoteNodeCache {
       responders = {};
     }
     if (responders.containsKey(sessionId)) {
-      return responders[sessionId];
+      return responders[sessionId]..reqId = dsId;
     } else {
       var responder = nodeProvider.createResponder(dsId, sessionId);
       responder.reqId = dsId;

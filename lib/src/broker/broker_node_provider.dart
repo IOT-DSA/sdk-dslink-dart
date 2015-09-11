@@ -11,12 +11,16 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   BrokerPermissions permissions;
 
-  Completer _done = new Completer();
-  Future get done => _done.future;
+  ISubscriptionStorageManager storage;
+//  Completer _done = new Completer();
+//  Future get done => _done.future;
 
   String downstreamName;
+  /// name with 1 slash
   String downstreamNameS;
+  /// name with 2 slash
   String downstreamNameSS;
+  
   BrokerNode connsNode;
   BrokerNode usersNode;
   BrokerNode defsNode;
@@ -30,7 +34,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool acceptAllConns = true;
 
   BrokerNodeProvider({this.enabledQuarantine: false, this.acceptAllConns: true,
-  List defaultPermission, this.downstreamName: 'conns'}) {
+  List defaultPermission, this.downstreamName: 'conns', this.storage}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     RootNode root = new RootNode('/', this);
@@ -64,14 +68,31 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       defsNode.loadPermission(['default', 'read']);
       permissions.root = root;
     }
-
-    new Future(() async {
-      await loadDef();
-      registerInvokableProfile(userNodeFunctions);
-      initSys();
-    });
   }
-
+  loadAll() async {
+    List<List<ISubscriptionNodeStorage>> storedData;
+    if (storage != null) {
+      storedData = await storage.load();
+    }
+    await loadDef();
+    registerInvokableProfile(userNodeFunctions);
+    initSys();
+    await loadConns();
+    await loadUserNodes();
+    if (storedData != null) {
+      for (List<ISubscriptionNodeStorage> nodeData in storedData) {
+        if (nodeData.length > 0) {
+          var nodeStorage = nodeData[0].storage;
+          String path = nodeStorage.responderPath;
+          if (path != null && conns.containsKey(path)) {
+            conns[path].getResponder(this, null).initStorage(nodeStorage, nodeData);
+          } else {
+            nodeStorage.destroy();
+          }
+        }
+      }
+    }
+  }
   void initSys() {
     new BrokerVersionNode("/sys/version", this, DSA_VERSION);
     new StartTimeNode("/sys/startTime", this);
@@ -82,8 +103,6 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     upstream = new UpstreamNode("/sys/upstream", this);
 
     BrokerTraceNode.init(this);
-
-    _done.complete();
   }
 
   UpstreamNode upstream;
@@ -374,6 +393,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   }
 
   String makeConnPath(String fullId) {
+    if (_id2connPath.containsKey(fullId)) {
+      return _id2connPath[fullId];
+      // TODO is it possible same link get added twice?
+    } 
+    
     if (fullId.startsWith('@upstream@')) {
       String connName = fullId.substring(10);
       String connPath = '/upstream/$connName';
@@ -381,10 +405,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _id2connPath[fullId] = connPath;
       return connPath;
     }
-    if (_id2connPath.containsKey(fullId)) {
-      return _id2connPath[fullId];
-      // TODO is it possible same link get added twice?
-    } else if (fullId.length < 43) {
+    if (fullId.length < 43) {
       // user link
       String connPath = '$downstreamNameSS$fullId';
       int count = 0;
@@ -537,13 +558,12 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   Responder getResponder(String dsId, NodeProvider nodeProvider,
     [String sessionId = '']) {
     String connPath = makeConnPath(dsId);
-    if (conns.containsKey(connPath)) {
-      return conns[connPath].getResponder(nodeProvider, dsId, sessionId);
-    }
-
-    /// create the RemoteLinkManager
     RemoteLinkNode node = getOrCreateNode(connPath, false);
-    return node._linkManager.getResponder(nodeProvider, dsId, sessionId);
+    Responder rslt = node._linkManager.getResponder(nodeProvider, dsId, sessionId);
+    if (storage != null && sessionId == '' && rslt.storage == null) {
+      rslt.storage = storage.getOrCreateStorage(connPath);
+    }
+    return rslt;
   }
 
   Responder createResponder(String dsId, String session) {

@@ -29,7 +29,7 @@ class Responder extends ConnectionHandler {
   /// list of permission group
   List<String> groups = [];
   void updateGroups(List<String> vals) {
-    if (reqId.length < 43 && !vals.contains(reqId)) {
+    if (reqId != null && reqId.length < 43 && !vals.contains(reqId)) {
       groups = [reqId]..addAll(vals);
     }
   }

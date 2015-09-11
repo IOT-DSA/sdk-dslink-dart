@@ -20,7 +20,7 @@ part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
 
 /// The DSA Version
-const String DSA_VERSION = '1.1.0';
+const String DSA_VERSION = '1.1.1';
 
 Logger _logger;
 

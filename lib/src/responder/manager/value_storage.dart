@@ -2,11 +2,13 @@ part of dslink.responder;
 
 
 abstract class ISubscriptionStorageManager {
-  ISubscriptionResponderStorage getOrCreateStorage(String dsId);
-  void destroyStorage(String dsId);
+  ISubscriptionResponderStorage getOrCreateStorage(String rpath);
+  void destroyStorage(String rpath);
+  Future<List<List<ISubscriptionNodeStorage>>> load();
 }
 
 abstract class ISubscriptionResponderStorage {
+  String get responderPath;
   ISubscriptionNodeStorage getOrCreateValue(String path);
   void destroyValue(String path);
   Future<List<ISubscriptionNodeStorage>> load();
@@ -14,9 +16,10 @@ abstract class ISubscriptionResponderStorage {
 }
 
 abstract class ISubscriptionNodeStorage {
-  String path;
+  final String path;
+  final ISubscriptionResponderStorage storage;
   int qos;
-  ISubscriptionNodeStorage(this.path);
+  ISubscriptionNodeStorage(this.path, this.storage);
   
   /// add data to List of values
   void addValue(ValueUpdate value) {

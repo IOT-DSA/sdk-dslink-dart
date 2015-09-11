@@ -35,9 +35,11 @@ class SubscribeResponse extends Response {
         if (sid >= 0) {
           subsriptionids[sid] = controller;
         }
-        
       }
       controller.qosLevel = qos;
+      if (sid > -1 && controller.lastValue != null) {
+        subscriptionChanged(controller);
+      }
       print('sub $path');
     } else {
       int permission = responder.nodeProvider.permissions
@@ -308,9 +310,9 @@ class RespSubscribeController {
       if (_qosLevel > 0) {
         lastValue.waitingAck = waitingAckId;
       }
-      lastValue = null;
       _isCacheValid = true;
     }
+    lastValue = null;
     return rslts;
   }
   
