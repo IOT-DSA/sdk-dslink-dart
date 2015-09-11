@@ -60,13 +60,19 @@ class LinkProvider {
 
   bool _initCalled = false;
 
-  Future init() async {
+  Future init() {
     _initCalled = true;
 
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
     }
-    
+    // move the waiting part of init into a later frame 
+    // we need to make sure provider is created at the first frame
+    // not affected by any async code
+    return initAsync();
+  }
+
+  Future initAsync() async {
     privateKey = await getPrivateKey(storage: dataStore);
 
     if (loadNodes && provider is SerializableNodeProvider) {
