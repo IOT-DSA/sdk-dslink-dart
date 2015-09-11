@@ -63,11 +63,11 @@ class LinkProvider {
   Future init() async {
     _initCalled = true;
 
-    privateKey = await getPrivateKey(storage: dataStore);
-
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
     }
+    
+    privateKey = await getPrivateKey(storage: dataStore);
 
     if (loadNodes && provider is SerializableNodeProvider) {
       if (!(await dataStore.has("dsa_nodes"))) {
