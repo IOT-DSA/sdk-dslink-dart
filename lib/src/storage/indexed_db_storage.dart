@@ -6,12 +6,12 @@ import 'dart:html';
 import 'dart:indexed_db';
 import 'dart:async';
 
-class WebResponderStorage extends ISubscriptionResponderStorage {
-  Map<String, WebNodeStorage> values = new Map<String, WebNodeStorage>();
+class IndexedDbResponderStorage extends ISubscriptionResponderStorage {
+  Map<String, IndexedDbNodeStorage> values = new Map<String, IndexedDbNodeStorage>();
   /// not needed
   String get responderPath => null;
 
-  static Future<WebResponderStorage> createStorage([String dbName = 'DSA_Value_Store',
+  static Future<IndexedDbResponderStorage> createStorage([String dbName = 'DSA_Value_Store',
       String storeName = 'DSA_Value_Store', int version = 1]) async {
     void onUpgradeNeeded(VersionChangeEvent e) {
       Database db = (e.target as Request).result;
@@ -20,12 +20,12 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
     }
     Database db = await window.indexedDB.open(dbName,
         onUpgradeNeeded: onUpgradeNeeded, version: version);
-    return new WebResponderStorage(db, storeName);
+    return new IndexedDbResponderStorage(db, storeName);
   }
 
   Database db;
   String storeName;
-  WebResponderStorage(this.db, this.storeName);
+  IndexedDbResponderStorage(this.db, this.storeName);
 
   ObjectStore newTransaction() {
     return db.transaction(storeName).objectStore(storeName);
@@ -34,7 +34,7 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
     if (values.containsKey(path)) {
       return values[path];
     }
-    WebNodeStorage value = new WebNodeStorage(path, this);
+    IndexedDbNodeStorage value = new IndexedDbNodeStorage(path, this);
     values[path] = value;
     return value;
   }
@@ -47,10 +47,10 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
       ValueUpdate value = new ValueUpdate(map['value'], ts:map['ts'], meta:map);
       value.storedData = cursor.key;
       String path = map['path'];
-      WebNodeStorage nodeStore = values[path];
+      IndexedDbNodeStorage nodeStore = values[path];
       
       if (nodeStore == null) {
-        nodeStore = new WebNodeStorage(path, this);
+        nodeStore = new IndexedDbNodeStorage(path, this);
         nodeStore._cachedValue = [];
         values[path] = nodeStore;
         rslt.add(nodeStore);
@@ -72,24 +72,24 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
     }
   }
   void destroy() {
-    values.forEach((String path, WebNodeStorage value) {
+    values.forEach((String path, IndexedDbNodeStorage value) {
       value.clear();
     });
     values.clear();
   }
 }
 
-class WebNodeStorage extends ISubscriptionNodeStorage {
+class IndexedDbNodeStorage extends ISubscriptionNodeStorage {
   static double key = 0.0;
 
-  WebNodeStorage(String path, WebResponderStorage storage)
+  IndexedDbNodeStorage(String path, IndexedDbResponderStorage storage)
       : super(path, storage) {}
   /// add data to List of values
   void addValue(ValueUpdate value) {
     qos = 3;
     Map map = value.toMap();
     map['path'] = path;
-    (storage as WebResponderStorage).newTransaction().put(map, ++key);
+    (storage as IndexedDbResponderStorage).newTransaction().put(map, ++key);
     value.storedData = key;
   }
   void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
@@ -97,7 +97,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
     Map map = newValue.toMap();
     map['path'] = path;
     map['qos'] = 2;
-    var objStore = (storage as WebResponderStorage).newTransaction();
+    var objStore = (storage as IndexedDbResponderStorage).newTransaction();
     for (ValueUpdate val in removes) {
       objStore.delete(val.storedData);
     }
@@ -105,13 +105,13 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
     newValue.storedData = key;
   }
   void removeValue(ValueUpdate value) {
-    (storage as WebResponderStorage).newTransaction().delete(value.storedData);
+    (storage as IndexedDbResponderStorage).newTransaction().delete(value.storedData);
   }
   void valueRemoved(Iterable<ValueUpdate> updates) {
     // nothing needs to be done here
   }
   void clear() {
-    var objStore = (storage as WebResponderStorage).newTransaction();
+    var objStore = (storage as IndexedDbResponderStorage).newTransaction();
     objStore.index('path').openCursor(key:path,autoAdvance:true).listen(_onClear);
   }
   void _onClear(CursorWithValue cursor) {

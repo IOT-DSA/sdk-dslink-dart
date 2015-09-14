@@ -6,11 +6,11 @@ import 'dart:io';
 import '../../utils.dart';
 import 'dart:async';
 
-class IndexedDbStorageManager implements ISubscriptionStorageManager {
-  Map<String, IndexedDbResponderStorage> rsponders =
-      new Map<String, IndexedDbResponderStorage>();
+class SimpleStorageManager implements ISubscriptionStorageManager {
+  Map<String, SimpleResponderStorage> rsponders =
+      new Map<String, SimpleResponderStorage>();
   Directory dir;
-  IndexedDbStorageManager(String path) {
+  SimpleStorageManager(String path) {
     dir = new Directory(path);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
@@ -20,8 +20,8 @@ class IndexedDbStorageManager implements ISubscriptionStorageManager {
     if (rsponders.containsKey(rpath)) {
       return rsponders[rpath];
     }
-    IndexedDbResponderStorage responder =
-        new IndexedDbResponderStorage('${dir.path}/${Uri.encodeComponent(rpath)}', rpath);
+    SimpleResponderStorage responder =
+        new SimpleResponderStorage('${dir.path}/${Uri.encodeComponent(rpath)}', rpath);
     rsponders[rpath] = responder;
     return responder;
   }
@@ -32,7 +32,7 @@ class IndexedDbStorageManager implements ISubscriptionStorageManager {
     }
   }
   void destroy() {
-    rsponders.forEach((String rpath, IndexedDbResponderStorage responder) {
+    rsponders.forEach((String rpath, SimpleResponderStorage responder) {
       responder.destroy();
     });
     rsponders.clear();
@@ -42,8 +42,8 @@ class IndexedDbStorageManager implements ISubscriptionStorageManager {
      for (FileSystemEntity entity in dir.listSync()) {
        if (await FileSystemEntity.type(entity.path) == FileSystemEntityType.DIRECTORY) {
          String rpath = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
-         IndexedDbResponderStorage responder =
-                 new IndexedDbResponderStorage(entity.path, rpath);
+         SimpleResponderStorage responder =
+                 new SimpleResponderStorage(entity.path, rpath);
          rsponders[rpath] = responder;
          loading.add(responder.load());
        }
@@ -52,12 +52,12 @@ class IndexedDbStorageManager implements ISubscriptionStorageManager {
   }
 }
 
-class IndexedDbResponderStorage extends ISubscriptionResponderStorage {
-  Map<String, IndexedDbNodeStorage> values = new Map<String, IndexedDbNodeStorage>();
+class SimpleResponderStorage extends ISubscriptionResponderStorage {
+  Map<String, SimpleNodeStorage> values = new Map<String, SimpleNodeStorage>();
   Directory dir;
   String responderPath;
   
-  IndexedDbResponderStorage(String path, [this.responderPath]) {
+  SimpleResponderStorage(String path, [this.responderPath]) {
     if (responderPath == null) {
       responderPath = Uri.decodeComponent(path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
     }
@@ -71,7 +71,7 @@ class IndexedDbResponderStorage extends ISubscriptionResponderStorage {
     if (values.containsKey(path)) {
       return values[path];
     }
-    IndexedDbNodeStorage value = new IndexedDbNodeStorage(path, dir.path, this);
+    SimpleNodeStorage value = new SimpleNodeStorage(path, dir.path, this);
     values[path] = value;
     return value;
   }
@@ -80,7 +80,7 @@ class IndexedDbResponderStorage extends ISubscriptionResponderStorage {
     for (FileSystemEntity entity in dir.listSync()) {
       String name = entity.uri.pathSegments.last;
       String path = Uri.decodeComponent(name);
-      values[path] = new IndexedDbNodeStorage(path, dir.path, this);
+      values[path] = new SimpleNodeStorage(path, dir.path, this);
       loading.add(values[path].load());
     }
     return Future.wait(loading);
@@ -93,17 +93,17 @@ class IndexedDbResponderStorage extends ISubscriptionResponderStorage {
     }
   }
   void destroy() {
-    values.forEach((String path, IndexedDbNodeStorage value) {
+    values.forEach((String path, SimpleNodeStorage value) {
       value.clear();
     });
     values.clear();
   }
 }
 
-class IndexedDbNodeStorage extends ISubscriptionNodeStorage {
+class SimpleNodeStorage extends ISubscriptionNodeStorage {
   File file;
-  IndexedDbNodeStorage(
-      String path, String parentPath, IndexedDbResponderStorage storage)
+  SimpleNodeStorage(
+      String path, String parentPath, SimpleResponderStorage storage)
       : super(path, storage) {
     file = new File('$parentPath/${Uri.encodeComponent(path)}');
   }
