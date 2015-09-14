@@ -249,10 +249,10 @@ class RespSubscribeController {
         }
         lastValues.clear();
         if (_qosLevel > 0) {
-          waitingValues..clear()..add(lastValue);
           if (_storage != null) {
-              _storage.setValue(lastValue);
+              _storage.setValue(waitingValues, lastValue);
           }
+          waitingValues..clear()..add(lastValue);
         }
       } else {
         lastValue = val;
@@ -270,10 +270,10 @@ class RespSubscribeController {
         lastValue = val;
       }
       if (_qosLevel > 0) {
-         waitingValues..clear()..add(lastValue);
          if (_storage != null) {
-             _storage.setValue(lastValue);
+             _storage.setValue(waitingValues, lastValue);
          }
+         waitingValues..clear()..add(lastValue);
       }
     }
     // TODO, don't allow this to be called from same controller more oftern than 100ms

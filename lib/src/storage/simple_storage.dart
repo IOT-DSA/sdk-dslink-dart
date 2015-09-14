@@ -6,11 +6,11 @@ import 'dart:io';
 import '../../utils.dart';
 import 'dart:async';
 
-class SimpleStorageManager implements ISubscriptionStorageManager {
-  Map<String, SimpleResponderStorage> rsponders =
-      new Map<String, SimpleResponderStorage>();
+class IndexedDbStorageManager implements ISubscriptionStorageManager {
+  Map<String, IndexedDbResponderStorage> rsponders =
+      new Map<String, IndexedDbResponderStorage>();
   Directory dir;
-  SimpleStorageManager(String path) {
+  IndexedDbStorageManager(String path) {
     dir = new Directory(path);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
@@ -20,8 +20,8 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
     if (rsponders.containsKey(rpath)) {
       return rsponders[rpath];
     }
-    SimpleResponderStorage responder =
-        new SimpleResponderStorage('${dir.path}/${Uri.encodeComponent(rpath)}', rpath);
+    IndexedDbResponderStorage responder =
+        new IndexedDbResponderStorage('${dir.path}/${Uri.encodeComponent(rpath)}', rpath);
     rsponders[rpath] = responder;
     return responder;
   }
@@ -32,7 +32,7 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
     }
   }
   void destroy() {
-    rsponders.forEach((String rpath, SimpleResponderStorage responder) {
+    rsponders.forEach((String rpath, IndexedDbResponderStorage responder) {
       responder.destroy();
     });
     rsponders.clear();
@@ -42,8 +42,8 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
      for (FileSystemEntity entity in dir.listSync()) {
        if (await FileSystemEntity.type(entity.path) == FileSystemEntityType.DIRECTORY) {
          String rpath = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
-         SimpleResponderStorage responder =
-                 new SimpleResponderStorage(entity.path, rpath);
+         IndexedDbResponderStorage responder =
+                 new IndexedDbResponderStorage(entity.path, rpath);
          rsponders[rpath] = responder;
          loading.add(responder.load());
        }
@@ -52,12 +52,12 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
   }
 }
 
-class SimpleResponderStorage extends ISubscriptionResponderStorage {
-  Map<String, SimpleNodeStorage> values = new Map<String, SimpleNodeStorage>();
+class IndexedDbResponderStorage extends ISubscriptionResponderStorage {
+  Map<String, IndexedDbNodeStorage> values = new Map<String, IndexedDbNodeStorage>();
   Directory dir;
   String responderPath;
   
-  SimpleResponderStorage(String path, [this.responderPath]) {
+  IndexedDbResponderStorage(String path, [this.responderPath]) {
     if (responderPath == null) {
       responderPath = Uri.decodeComponent(path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
     }
@@ -71,7 +71,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
     if (values.containsKey(path)) {
       return values[path];
     }
-    SimpleNodeStorage value = new SimpleNodeStorage(path, dir.path, this);
+    IndexedDbNodeStorage value = new IndexedDbNodeStorage(path, dir.path, this);
     values[path] = value;
     return value;
   }
@@ -80,7 +80,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
     for (FileSystemEntity entity in dir.listSync()) {
       String name = entity.uri.pathSegments.last;
       String path = Uri.decodeComponent(name);
-      values[path] = new SimpleNodeStorage(path, dir.path, this);
+      values[path] = new IndexedDbNodeStorage(path, dir.path, this);
       loading.add(values[path].load());
     }
     return Future.wait(loading);
@@ -93,40 +93,39 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
     }
   }
   void destroy() {
-    values.forEach((String path, SimpleNodeStorage value) {
+    values.forEach((String path, IndexedDbNodeStorage value) {
       value.clear();
     });
     values.clear();
   }
 }
 
-class SimpleNodeStorage extends ISubscriptionNodeStorage {
+class IndexedDbNodeStorage extends ISubscriptionNodeStorage {
   File file;
-  SimpleNodeStorage(
-      String path, String parentPath, SimpleResponderStorage storage)
+  IndexedDbNodeStorage(
+      String path, String parentPath, IndexedDbResponderStorage storage)
       : super(path, storage) {
     file = new File('$parentPath/${Uri.encodeComponent(path)}');
   }
   /// add data to List of values
   void addValue(ValueUpdate value) {
     qos = 3;
-    super.addValue(value);
+    value.storedData = '${DsJson.encode(value.toMap())}\n';
     file.openSync(mode: FileMode.APPEND)
-      ..writeStringSync(value.serialized)
-      ..writeStringSync('\n')
+      ..writeStringSync(value.storedData)
       ..closeSync();
   }
-  void setValue(ValueUpdate value) {
+  void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
-    super.setValue(value);
+    newValue.storedData = ' ${DsJson.encode(newValue.toMap())}\n';
     // add a space when qos = 2
-    file.writeAsStringSync(' ${value.serialized}');
+    file.writeAsStringSync(newValue.storedData);
   }
   void removeValue(ValueUpdate value) {
     // do nothing, it's done in valueRemoved
   }
   void valueRemoved(Iterable<ValueUpdate> updates) {
-    file.writeAsStringSync(updates.map((v) => v.serialized).join('\n'));
+    file.writeAsStringSync(updates.map((v) => v.storedData).join());
   }
   void clear() {
     file.delete();

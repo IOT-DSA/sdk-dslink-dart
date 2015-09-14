@@ -22,13 +22,9 @@ abstract class ISubscriptionNodeStorage {
   ISubscriptionNodeStorage(this.path, this.storage);
   
   /// add data to List of values
-  void addValue(ValueUpdate value) {
-    value.serialized = DsJson.encode(value.toMap());
-  }
+  void addValue(ValueUpdate value);
   
-  void setValue(ValueUpdate value) {
-    value.serialized = DsJson.encode(value.toMap());
-  }
+  void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue);
   
   void removeValue(ValueUpdate value);
   /// api to optimize file remove;
