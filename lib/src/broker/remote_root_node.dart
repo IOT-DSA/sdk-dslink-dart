@@ -106,8 +106,8 @@ class RemoteLinkRootNode extends RemoteLinkNode with BrokerNodePermission implem
   @override
   Map getSimpleMap() {
     Map m = super.getSimpleMap();
-    if (configs.containsKey(r'$shared')){
-      m[r'$shared'] = configs[r'$shared'];
+    if (configs.containsKey(r'$linkData')){
+      m[r'$linkData'] = configs[r'$linkData'];
     }
     return m;
   }
@@ -162,8 +162,6 @@ class RemoteLinkRootListController extends ListController {
             }
             reseted = true;
             node.resetNodeCache();
-          } else if (name == r'$shared') {
-            node.configs[r'$shared'] = value;
           }
           // ignore other changes
         } else if (name.startsWith('@')) {

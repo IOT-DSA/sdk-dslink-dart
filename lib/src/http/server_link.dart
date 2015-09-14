@@ -70,21 +70,23 @@ class HttpServerLink implements ServerLink {
   /// by default it's a responder only link
   bool isResponder = true;
 
+  Map pendingLinkData;
+  
   initLink(HttpRequest request, bool clientRequester, bool clientResponder,
       String serverDsId, String serverKey,
       {String wsUri: '/ws',
       String httpUri: '/http',
       int updateInterval: 200,
+      Map linkData,
       bool trusted:false}) async {
     isRequester = clientResponder;
     isResponder = clientRequester;
+    pendingLinkData = linkData;
 
     // TODO(rinick): don't use a hardcoded id and public key
     Map respJson = {
-      "id":
-          serverDsId, //"broker-dsa-VLK07CSRoX_bBTQm4uDIcgfU-jV-KENsp52KvDG_o8g",
+      "id": serverDsId,
       "publicKey": serverKey,
-      //"vvOSmyXM084PKnlBz3SeKScDoFs6I_pdGAdPAB8tOKmA5IUfIlHefdNh1jmVfi1YBTsoYeXm2IH-hUZang48jr3DnjjI3MkDSPo1czrI438Cr7LKrca8a77JMTrAlHaOS2Yd9zuzphOdYGqOFQwc5iMNiFsPdBtENTlx15n4NGDQ6e3d8mrKiSROxYB9LrF1-53goDKvmHYnDA_fbqawokM5oA3sWUIq5uNdp55_cF68Lfo9q-ea8JEsHWyDH73FqNjUaPLFdgMl8aYl-sUGpdlMMMDwRq-hnwG3ad_CX5iFkiHpW-uWucta9i3bljXgyvJ7dtVqEUQBH-GaUGkC-w",
       "wsUri": wsUri,
       "httpUri": httpUri,
       "updateInterval": updateInterval,

@@ -25,6 +25,9 @@ class DsSimpleLinkManager implements ServerLinkManager {
       [String sessionId = '']) {
     return new Responder(nodeProvider);
   }
+
+  void updateLinkData(String dsId, Map m) {
+  }
 }
 
 class DsHttpServer {
@@ -181,7 +184,7 @@ class DsHttpServer {
         }
         link.initLink(request, m['isRequester'] == true,
             m['isResponder'] == true, dsId, publicKey,
-            updateInterval: updateInterval);
+            updateInterval: updateInterval, linkData:m['linkData']);
       } catch (err) {
         if (err is int) {
           // TODO need protection because changing statusCode itself can throw
@@ -209,6 +212,10 @@ class DsHttpServer {
     bool trusted = request.requestedUri.host == '127.0.0.1';
     HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
     if (link != null) {
+      if (link.pendingLinkData != null) {
+        _linkManager.updateLinkData(link.dsId, link.pendingLinkData);
+        link.pendingLinkData = null;
+      }
       link.handleWsUpdate(request, trusted);
     } else {
       throw HttpStatus.UNAUTHORIZED;
