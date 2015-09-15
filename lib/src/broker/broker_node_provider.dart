@@ -56,6 +56,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     root.load(rootStructure);
     connsNode = nodes[downstreamNameS];
     connsNode.configs[r"$downstream"] = true;
+    root.configs[r"$downstream"] = downstreamNameS;
     usersNode = nodes['/users'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
