@@ -408,6 +408,9 @@ class LinkProvider {
     n.updateValue(n.lastValueUpdate.value, force: true);
   }
 
+  /// Remote Path of Responder
+  String get remotePath => link.remotePath;
+
   IOSink _logFileOut;
   bool _reconnecting = false;
 

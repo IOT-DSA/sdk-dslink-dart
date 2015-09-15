@@ -123,6 +123,9 @@ class LinkProvider {
         DsJson.encode((provider as SerializableNodeProvider).save()));
   }
 
+  /// Remote Path of Responder
+  String get remotePath => link.remotePath;
+
   void syncValue(String path) {
     var n = this[path];
     n.updateValue(n.lastValueUpdate.value, force: true);
