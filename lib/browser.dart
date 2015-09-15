@@ -81,11 +81,15 @@ class LinkProvider {
     // move the waiting part of init into a later frame 
     // we need to make sure provider is created at the first frame
     // not affected by any async code
-    return initPrivateKey();
+    return initLinkWithPrivateKey();
   }
 
-  Future initPrivateKey() async {
+  Future initLinkWithPrivateKey() async {
     privateKey = await getPrivateKey(storage: dataStore);
+    link = new BrowserECDHLink(brokerUrl, prefix, privateKey,
+        nodeProvider: provider,
+        isRequester: isRequester,
+        isResponder: isResponder);
 
   }
 
@@ -130,17 +134,8 @@ class LinkProvider {
 
   Future connect() {
     Future run() {
-      link = new BrowserECDHLink(brokerUrl, prefix, privateKey,
-          nodeProvider: provider,
-          isRequester: isRequester,
-          isResponder: isResponder);
-
       link.connect();
       return link.onConnected;
-    }
-
-    if (link != null) {
-      throw new StateError("Link is already connected!");
     }
 
     if (!_initCalled) {
