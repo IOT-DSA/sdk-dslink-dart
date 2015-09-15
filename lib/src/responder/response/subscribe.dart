@@ -292,7 +292,6 @@ class RespSubscribeController {
       if (_qosLevel > 0) {
         for (ValueUpdate update in lastValues) {
           update.waitingAck = waitingAckId;
-          print('waiting ${update.value} ${update.waitingAck}');
         }
       }
       lastValues.clear();
