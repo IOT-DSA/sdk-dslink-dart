@@ -61,7 +61,11 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   void addValue(ValueUpdate value) {
     qos = 3;
     value.storedData = DsJson.encode('${value.toMap()}\n');
-    window.localStorage[storePath] = window.localStorage[storePath] + value.storedData;
+    if (window.localStorage.containsKey(storePath)) {
+      window.localStorage[storePath] = window.localStorage[storePath] + value.storedData;
+    } else {
+      window.localStorage[storePath] = value.storedData;
+    }
   }
   void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
