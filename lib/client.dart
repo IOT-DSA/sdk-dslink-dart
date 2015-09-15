@@ -89,6 +89,8 @@ class LinkProvider {
   Requester overrideRequester;
   Responder overrideResponder;
 
+  Map linkData;
+  
   /// connect to user home space
   String home;
 
@@ -128,7 +130,8 @@ class LinkProvider {
       this.home: null,
       this.overrideRequester,
       this.overrideResponder,
-      NodeProvider nodeProvider // For Backwards Compatibility
+      NodeProvider nodeProvider, // For Backwards Compatibility
+      this.linkData
       }) {
     exitOnFailure = !(const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false));
 
@@ -476,7 +479,7 @@ class LinkProvider {
           nodeProvider: provider,
           overrideRequester:overrideRequester,
           overrideResponder:overrideResponder,
-          home: home);
+          home: home, linkData:linkData);
       _ready = true;
 
       if (_connectOnReady) {

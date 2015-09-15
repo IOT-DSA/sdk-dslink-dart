@@ -44,10 +44,12 @@ class HttpClientLink implements ClientLink {
 //  bool enableHttp;
   bool enableAck = false;
 
+  Map linkData;
+  
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
       bool isResponder: true, Requester overrideRequester,
-      Responder overrideResponder, this.home
+      Responder overrideResponder, this.home, this.linkData
       //this.enableHttp: false
       })
       : privateKey = privateKey,
@@ -97,6 +99,10 @@ class HttpClientLink implements ClientLink {
         'isResponder': responder != null,
         'version': DSA_VERSION
       };
+      if (linkData != null) {
+        requestJson['linkData'] = linkData;
+      }
+      
 
       logger.fine("DS ID: ${dsId}");
 
