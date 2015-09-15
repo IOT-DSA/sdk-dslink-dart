@@ -150,6 +150,8 @@ abstract class ServerLinkManager {
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
       [String sessionId = '']);
+  
+  void updateLinkData(String dsId, Map m);
 }
 
 /// DSA Stream Status

@@ -544,6 +544,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
   }
 
+  void updateLinkData(String dsId, Map m) {
+    if (_id2connPath.containsKey(dsId)){
+      var node = getOrCreateNode(_id2connPath[dsId]);
+      node.configs[r'$linkData'] = m;
+      //node.updateList(r'$linkData');
+    }
+  }
+  
   Requester getRequester(String dsId) {
     String connPath = makeConnPath(dsId);
     if (conns.containsKey(connPath)) {
