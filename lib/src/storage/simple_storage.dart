@@ -110,23 +110,22 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   /// add data to List of values
   void addValue(ValueUpdate value) {
     qos = 3;
-    super.addValue(value);
+    value.storedData = '${DsJson.encode(value.toMap())}\n';
     file.openSync(mode: FileMode.APPEND)
-      ..writeStringSync(value.serialized)
-      ..writeStringSync('\n')
+      ..writeStringSync(value.storedData)
       ..closeSync();
   }
-  void setValue(ValueUpdate value) {
+  void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
-    super.setValue(value);
+    newValue.storedData = ' ${DsJson.encode(newValue.toMap())}\n';
     // add a space when qos = 2
-    file.writeAsStringSync(' ${value.serialized}');
+    file.writeAsStringSync(newValue.storedData);
   }
   void removeValue(ValueUpdate value) {
     // do nothing, it's done in valueRemoved
   }
   void valueRemoved(Iterable<ValueUpdate> updates) {
-    file.writeAsStringSync(updates.map((v) => v.serialized).join('\n'));
+    file.writeAsStringSync(updates.map((v) => v.storedData).join());
   }
   void clear() {
     file.delete();

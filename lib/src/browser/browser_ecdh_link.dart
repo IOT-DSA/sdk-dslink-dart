@@ -47,7 +47,11 @@ class BrowserECDHLink implements ClientLink {
         requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
-            : null {}
+            : null {
+              if (!_conn.contains('://')) {
+                _conn = 'http://$_conn';
+              }
+            }
 
   int _connDelay = 1;
   connect() async {

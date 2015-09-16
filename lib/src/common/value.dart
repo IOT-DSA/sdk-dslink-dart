@@ -16,7 +16,7 @@ class ValueUpdate {
   static String getTs() {
     return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
   }
-
+  
   int waitingAck = -1;
   
   Object value;
@@ -158,5 +158,6 @@ class ValueUpdate {
      }
      return m;
   }
-  String serialized;
+  /// could be the value or the key stored by ValueStorage
+  Object storedData;
 }
