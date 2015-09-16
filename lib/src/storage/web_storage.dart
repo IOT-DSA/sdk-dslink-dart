@@ -1,4 +1,4 @@
-library dslink.storage.simple;
+library dslink.storage.web;
 
 import '../../responder.dart';
 import '../../common.dart';
