@@ -60,7 +60,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   /// add data to List of values
   void addValue(ValueUpdate value) {
     qos = 3;
-    value.storedData = DsJson.encode('${value.toMap()}\n');
+    value.storedData = '${DsJson.encode(value.toMap())}\n';
     if (window.localStorage.containsKey(storePath)) {
       window.localStorage[storePath] = window.localStorage[storePath] + value.storedData;
     } else {
@@ -69,7 +69,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   }
   void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
-    newValue.storedData = DsJson.encode(' ${newValue.toMap()}\n');
+    newValue.storedData = ' ${DsJson.encode(newValue.toMap())}\n';
     // add a space when qos = 2
     window.localStorage[storePath] = newValue.storedData;
   }
