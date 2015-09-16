@@ -128,7 +128,7 @@ class LinkProvider {
   }
 
   /// Remote Path of Responder
-  String get remotePath => link.remotePath;
+  //String get remotePath => link.remotePath;
 
   void syncValue(String path) {
     var n = this[path];
