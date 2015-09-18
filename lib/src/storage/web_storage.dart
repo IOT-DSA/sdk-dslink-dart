@@ -38,13 +38,13 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
 
   void destroyValue(String path) {
     if (values.containsKey(path)) {
-      values[path].clear();
+      values[path].destroy();
       values.remove(path);
     }
   }
   void destroy() {
     values.forEach((String path, WebNodeStorage value) {
-      value.clear();
+      value.destroy();
     });
     values.clear();
   }
@@ -79,7 +79,14 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   void valueRemoved(Iterable<ValueUpdate> updates) {
     window.localStorage[storePath] = updates.map((v) => v.storedData).join();
   }
-  void clear() {
+  void clear(int qos) {
+    if (qos == 3) {
+      window.localStorage[storePath] = '';
+    } else {
+      window.localStorage[storePath] = ' ';
+    }
+  }
+  void destroy() {
     window.localStorage.remove(storePath);
   }
 
@@ -87,7 +94,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   void load() {
     String str = window.localStorage[storePath];
     List<String> strs = str.split('\n');
-    if (strs.length == 1 && str.startsWith(' ')) {
+    if (str.startsWith(' ')) {
       // where there is space, it's qos 2
       qos = 2;
     } else {

@@ -31,8 +31,8 @@ abstract class ISubscriptionNodeStorage {
   void valueRemoved(Iterable<ValueUpdate> updates){}
   
   
-  void clear();
-  
+  void clear(int qos);
+  void destroy();
   /// return the local vlaues
   List<ValueUpdate> getLoadedValues();
 }

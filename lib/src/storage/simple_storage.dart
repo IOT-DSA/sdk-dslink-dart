@@ -88,13 +88,13 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
   void destroyValue(String path) {
     if (values.containsKey(path)) {
-      values[path].clear();
+      values[path].destroy();
       values.remove(path);
     }
   }
   void destroy() {
     values.forEach((String path, SimpleNodeStorage value) {
-      value.clear();
+      value.destroy();
     });
     values.clear();
   }
@@ -127,10 +127,16 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   void valueRemoved(Iterable<ValueUpdate> updates) {
     file.writeAsStringSync(updates.map((v) => v.storedData).join());
   }
-  void clear() {
+  void clear(int qos) {
+    if (qos == 3) {
+      file.writeAsStringSync('');
+    } else {
+      file.writeAsStringSync(' ');
+    }
+  }
+  void destroy() {
     file.delete();
   }
-
   List<ValueUpdate> _cachedValue;
   Future<ISubscriptionNodeStorage> load() async {
     String str = await file.readAsString();

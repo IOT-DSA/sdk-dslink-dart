@@ -17,11 +17,11 @@ class Responder extends ConnectionHandler {
     if (storage != null && nodes != null) {
       for (ISubscriptionNodeStorage node in nodes) {
         var values = node.getLoadedValues();
-         if (!values.isEmpty) {
-           LocalNode localnode = nodeProvider.getOrCreateNode(node.path);
-           RespSubscribeController controller = _subscription.add(node.path, localnode, -1, node.qos);
-           controller.resetCache(values);
-         }
+        LocalNode localnode = nodeProvider.getOrCreateNode(node.path);
+        RespSubscribeController controller = _subscription.add(node.path, localnode, -1, node.qos);
+        if (values.isNotEmpty) {
+          controller.resetCache(values);
+        }
       }
     }
   }

@@ -319,10 +319,25 @@ class RespSubscribeController {
     bool valueRemoved = false;
     if (!waitingValues.isEmpty && waitingValues.first.waitingAck != ackId) {
       print('invalidAck ${waitingValues.first.value} ${waitingValues.first.waitingAck}');
+      
+      ValueUpdate matchUpdate;
+      for(ValueUpdate update in waitingValues) {
+        if (update.waitingAck == ackId) {
+          matchUpdate = update;
+          break;
+        }
+      }
+      if (matchUpdate != null) {
+        while (!waitingValues.isEmpty && waitingValues.first != matchUpdate) {
+          ValueUpdate removed = waitingValues.removeFirst();
+          if (_storage != null) {
+            _storage.removeValue(removed);
+            valueRemoved = true;
+          }
+        }
+      }
     }
     while (!waitingValues.isEmpty && waitingValues.first.waitingAck == ackId) {
-      // TODO is there any need to add protection in case ackId is out of sync?
-      // because one stuck data will cause the queue to overflow
       ValueUpdate removed = waitingValues.removeFirst();
       if (_storage != null) {
         _storage.removeValue(removed);
