@@ -141,7 +141,12 @@ class ListController implements RequestUpdater {
     _ready = true;
     String defPath = defName;
     if (!defPath.startsWith('/')) {
-      defPath = '/defs/profile/$defPath';
+      Object base = node.configs[r'$base'];
+      if (base is String) {
+        defPath = '$base/defs/profile/$defPath';
+      } else {
+        defPath = '/defs/profile/$defPath';
+      }
     }
     if (node.profile is RemoteNode &&
         (node.profile as RemoteNode).remotePath == defPath) {
