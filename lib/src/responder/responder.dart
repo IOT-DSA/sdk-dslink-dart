@@ -17,7 +17,7 @@ class Responder extends ConnectionHandler {
     if (storage != null && nodes != null) {
       for (ISubscriptionNodeStorage node in nodes) {
         var values = node.getLoadedValues();
-        LocalNode localnode = nodeProvider.getOrCreateNode(node.path);
+        LocalNode localnode = nodeProvider.getOrCreateNode(node.path, false);
         RespSubscribeController controller = _subscription.add(node.path, localnode, -1, node.qos);
         if (values.isNotEmpty) {
           controller.resetCache(values);
