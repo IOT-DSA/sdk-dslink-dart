@@ -1,10 +1,10 @@
 part of dslink.responder;
 
 
-abstract class ISubscriptionStorageManager {
+abstract class IStorageManager {
   ISubscriptionResponderStorage getOrCreateStorage(String rpath);
   void destroyStorage(String rpath);
-  Future<List<List<ISubscriptionNodeStorage>>> load();
+  Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions();
 }
 
 abstract class ISubscriptionResponderStorage {

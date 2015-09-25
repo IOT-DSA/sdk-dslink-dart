@@ -6,7 +6,7 @@ import 'dart:io';
 import '../../utils.dart';
 import 'dart:async';
 
-class SimpleStorageManager implements ISubscriptionStorageManager {
+class SimpleStorageManager implements IStorageManager {
   Map<String, SimpleResponderStorage> rsponders =
       new Map<String, SimpleResponderStorage>();
   Directory dir;
@@ -37,7 +37,7 @@ class SimpleStorageManager implements ISubscriptionStorageManager {
     });
     rsponders.clear();
   }
-  Future<List<List<ISubscriptionNodeStorage>>> load() async{
+  Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions() async{
      List<Future<List<ISubscriptionNodeStorage>>> loading = [];
      for (FileSystemEntity entity in dir.listSync()) {
        if (await FileSystemEntity.type(entity.path) == FileSystemEntityType.DIRECTORY) {
