@@ -2,8 +2,12 @@ part of dslink.responder;
 
 
 abstract class IStorageManager {
-  ISubscriptionResponderStorage getOrCreateStorage(String rpath);
-  void destroyStorage(String rpath);
+  /// general key/value pair storage
+  IValueStorageBucket getOrCreateValueStorageBucket(String name);
+  void destroyValueStorageBucket(String name);
+  
+  ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String rpath);
+  void destroySubscriptionStorage(String rpath);
   Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions();
 }
 
@@ -35,4 +39,11 @@ abstract class ISubscriptionNodeStorage {
   void destroy();
   /// return the local vlaues
   List<ValueUpdate> getLoadedValues();
+}
+
+abstract class IValueStorageBucket {
+  void setValue(String key, Object value);
+  void removeValue(String key);
+  Future<Map> load();
+  void destroy();
 }

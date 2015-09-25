@@ -16,7 +16,7 @@ class SimpleStorageManager implements IStorageManager {
       dir.createSync(recursive: true);
     }
   }
-  ISubscriptionResponderStorage getOrCreateStorage(String rpath) {
+  ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String rpath) {
     if (rsponders.containsKey(rpath)) {
       return rsponders[rpath];
     }
@@ -25,7 +25,7 @@ class SimpleStorageManager implements IStorageManager {
     rsponders[rpath] = responder;
     return responder;
   }
-  void destroyStorage(String rpath) {
+  void destroySubscriptionStorage(String rpath) {
     if (rsponders.containsKey(rpath)) {
       rsponders[rpath].destroy();
       rsponders.remove(rpath);
@@ -36,6 +36,10 @@ class SimpleStorageManager implements IStorageManager {
       responder.destroy();
     });
     rsponders.clear();
+    values.forEach((String name, SimpleValueStorageBucket store) {
+      store.destroy();
+    });
+    values.clear();
   }
   Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions() async{
      List<Future<List<ISubscriptionNodeStorage>>> loading = [];
@@ -49,6 +53,26 @@ class SimpleStorageManager implements IStorageManager {
        }
      }
      return Future.wait(loading);
+  }
+
+  Map<String, SimpleValueStorageBucket> values =
+      new Map<String, SimpleValueStorageBucket>();
+  
+  IValueStorageBucket getOrCreateValueStorageBucket(String category) {
+    if (values.containsKey(category)) {
+      return values[category];
+    }
+    SimpleValueStorageBucket store =
+        new SimpleValueStorageBucket(category, '${dir.path}/${Uri.encodeComponent(category)}');
+    values[category] = store;
+    return store;
+  }
+  
+  void destroyValueStorageBucket(String category) {
+    if (values.containsKey(category)) {
+      values[category].destroy();
+      values.remove(category);
+    }
   }
 }
 
@@ -165,5 +189,48 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
 
   List<ValueUpdate> getLoadedValues() {
     return _cachedValue;
+  }
+}
+
+/// basic key/value pair storage
+class SimpleValueStorageBucket implements IValueStorageBucket {
+  String category;
+  Directory dir;
+  SimpleValueStorageBucket(this.category, String path) {
+    dir = new Directory(path);
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+  }
+  void setValue(String key, Object value) {
+    // TODO optimize this part so it doesn't need to re-create path and File object everytime
+     File f = new File('${dir.path}/${Uri.encodeComponent(key)}');
+     f.writeAsString(DsJson.encode(value));
+  }
+  void removeValue(String key) {
+    File f = new File('${dir.path}/${Uri.encodeComponent(key)}');
+    f.delete();
+  }
+ 
+  void destroy() {
+    dir.delete(recursive:true);
+  }
+
+  Future<Map> load() {
+    Map rslt = {};
+    List<Future<ISubscriptionNodeStorage>> loading = [];
+    for (FileSystemEntity entity in dir.listSync()) {
+      String name = Uri.decodeComponent(entity.uri.pathSegments.last);
+      File f = new File(entity.path);
+      Future future = f.readAsString().then((String str){
+        rslt[name] = DsJson.decode(str);
+      });
+      loading.add(future);
+    }
+    Completer<Map> completer = new Completer<Map>();
+    Future.wait(loading).then((obj){
+      completer.complete(rslt);
+    });
+    return completer.future;
   }
 }
