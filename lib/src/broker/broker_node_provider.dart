@@ -11,7 +11,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
   BrokerPermissions permissions;
 
-  ISubscriptionStorageManager storage;
+  IStorageManager storage;
 //  Completer _done = new Completer();
 //  Future get done => _done.future;
 
@@ -21,7 +21,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   /// name with 2 slash
   String downstreamNameSS;
   
+  RootNode root;
   BrokerNode connsNode;
+  BrokerNode dataNode;
   BrokerNode usersNode;
   BrokerNode defsNode;
   BrokerNode upstreamDataNode;
@@ -31,13 +33,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool shouldSaveFiles = true;
   bool enabledQuarantine = false;
   bool enabledPermission = false;
+  bool enabledDataNodes = false;
   bool acceptAllConns = true;
 
   BrokerNodeProvider({this.enabledQuarantine: false, this.acceptAllConns: true,
-  List defaultPermission, this.downstreamName: 'conns', this.storage}) {
+  List defaultPermission, this.downstreamName: 'conns', this.storage, this.enabledDataNodes:true }) {
     permissions = new BrokerPermissions();
     // initialize root nodes
-    RootNode root = new RootNode('/', this);
+    root = new RootNode('/', this);
 
     nodes['/'] = root;
     if (enabledQuarantine) {
@@ -58,6 +61,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     connsNode.configs[r"$downstream"] = true;
     root.configs[r"$downstream"] = downstreamNameS;
     usersNode = nodes['/users'];
+    dataNode = nodes['/data'];
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
     upstreamDataNode = nodes['/upstream'];
@@ -73,13 +77,20 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   loadAll() async {
     List<List<ISubscriptionNodeStorage>> storedData;
     if (storage != null) {
-      storedData = await storage.load();
+      storedData = await storage.loadSubscriptions();
     }
     await loadDef();
     registerInvokableProfile(userNodeFunctions);
     initSys();
     await loadConns();
     await loadUserNodes();
+    if (enabledDataNodes) {
+      if (storage != null) {
+        BrokerDataNode.storage = storage.getOrCreateValueStorageBucket('data');
+      }
+      await loadDataNodes();
+      registerInvokableProfile(dataNodeFunctions);
+    }
     if (storedData != null) {
       for (List<ISubscriptionNodeStorage> nodeData in storedData) {
         if (nodeData.length > 0) {
@@ -203,7 +214,36 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       });
     } catch (err) {}
   }
-
+  
+  loadDataNodes() async {
+    dataNode = new BrokerDataRoot('/data', this);
+    root.children['data'] = dataNode;
+    nodes['/data'] = dataNode;
+    
+    File connsFile = new File("data.json");
+    try {
+      String data = await connsFile.readAsString();
+      Map m = DsJson.decode(data);
+      m.forEach((String name, Map m) {
+        String path = '/data/$name';
+        BrokerDataNode node = getOrCreateNode(path, false);
+        connsNode.children[name] = node;
+        node.load(m);
+      });
+    } catch (err) {}
+  }
+  Future<Map> saveDataNodes() async {
+    Map m = {};
+    dataNode.children.forEach((String name, BrokerDataNode node) {
+      m[name] = node.serialize(true);
+    });
+    File connsFile = new File("data.json");
+    if (shouldSaveFiles) {
+      await connsFile.writeAsString(DsJson.encode(m));
+    }
+    return m;
+  }
+  
   Future<Map> saveConns() async {
     Map m = {};
     connsNode.children.forEach((String name, RemoteLinkNode node) {
@@ -263,7 +303,30 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return nodes[path];
   }
 
+  BrokerDataNode _getOrCreateDataNode(String path, [bool addToTree = true]) {
+    BrokerDataNode node = nodes[path];
+    if (node == null) {
+      node = new BrokerDataNode(path, this);
+      nodes[path] = node;
+    }
+    
+    if (addToTree && node.parent == null) {
+       int pos = path.lastIndexOf('/');
+       String parentPath = path.substring(0,pos);
+       String name = path.substring(pos + 1);
+       
+       BrokerDataNode parentNode = _getOrCreateDataNode(parentPath, true);
+       parentNode.children[name] = node;
+       node.parent = parentNode;
+       parentNode.updateList(name);
+       
+     }
+     return node;
+  }
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
+    if (path.startsWith('/data/')) {
+      return _getOrCreateDataNode(path, addToTree);
+    }
     if (addToTree) {
       print('getOrCreateNode, addToTree = true, not supported');
     }
@@ -570,7 +633,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     RemoteLinkNode node = getOrCreateNode(connPath, false);
     Responder rslt = node._linkManager.getResponder(nodeProvider, dsId, sessionId);
     if (storage != null && sessionId == '' && rslt.storage == null) {
-      rslt.storage = storage.getOrCreateStorage(connPath);
+      rslt.storage = storage.getOrCreateSubscriptionStorage(connPath);
     }
     return rslt;
   }

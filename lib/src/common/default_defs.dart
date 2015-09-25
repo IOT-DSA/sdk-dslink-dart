@@ -10,7 +10,7 @@ Map defaultProfileMap = {
       {"name": "Timerange", "type": "string", 'editor': "daterange"},
       {
         "name": "Interval",
-        "type":"enum",
+        "type": "enum",
         "editor": buildEnumType([
           "default",
           "none",
@@ -48,28 +48,72 @@ Map defaultProfileMap = {
       {"name": "value", "type": "dynamic"}
     ]
   },
-  "broker":{
-    "userNode":{
-      "addChild":{
-        r"$invokable":"config",
-        r"$params":[{"name":"Name","type":"string"}]
+  "broker": {
+    "userNode": {
+      "addChild": {
+        r"$invokable": "config",
+        r"$params": [{"name": "Name", "type": "string"}]
       },
-      "addLink":{
-        r"$invokable":"config",
-        r"$params":[{"name":"Name","type":"string"},{"name":"Id","type":"string"}]
+      "addLink": {
+        r"$invokable": "config",
+        r"$params": [
+          {"name": "Name", "type": "string"},
+          {"name": "Id", "type": "string"}
+        ]
       },
-      "remove":{
-        r"$invokable":"config"
+      "remove": {r"$invokable": "config"}
+    },
+    "userRoot": {
+      "addChild": {
+        r"$invokable": "config",
+        r"$params": [{"name": "Name", "type": "string"}]
+      },
+      "addLink": {
+        r"$invokable": "config",
+        r"$params": [
+          {"name": "Name", "type": "string"},
+          {"name": "Id", "type": "string"}
+        ]
       }
     },
-    "userRoot":{
-      "addChild":{
-        r"$invokable":"config",
-        r"$params":[{"name":"Name","type":"string"}]
+    "dataNode": {
+      "addNode": {
+        r"$invokable": "write",
+        r"$params": [{"name": "Name", "type": "string"}]
       },
-      "addLink":{
-        r"$invokable":"config",
-        r"$params":[{"name":"Name","type":"string"},{"name":"Id","type":"string"}]
+      "addValue": {
+        r"$invokable": "write",
+        r"$params": [
+          {"name": "Name", "type": "string"},
+          {
+            "name": "Type",
+            "type": "enum[string,number,bool,array,map,binary,dynamic]"
+          },
+          {
+            "name": "Editor",
+            "type": "enum[none,textarea,password,daterange,date]"
+          }
+        ]
+      }
+    },
+    "dataRoot": {
+      "addNode": {
+        r"$invokable": "write",
+        r"$params": [{"name": "Name", "type": "string"}]
+      },
+      "addValue": {
+        r"$invokable": "write",
+        r"$params": [
+          {"name": "Name", "type": "string"},
+          {
+            "name": "Type",
+            "type": "enum[string,number,bool,array,map,binary,dynamic]"
+          },
+          {
+            "name": "Editor",
+            "type": "enum[none,textarea,password,daterange,date]"
+          }
+        ]
       }
     }
   }

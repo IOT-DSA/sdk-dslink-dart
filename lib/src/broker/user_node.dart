@@ -54,7 +54,7 @@ class UserRootNode extends UserNode {
     profile = provider.getOrCreateNode('/defs/profile/broker/userRoot', false);
   }
 }
-InvokeResponse addChildNode(Map params, Responder responder,
+InvokeResponse addUserChildNode(Map params, Responder responder,
     InvokeResponse response, LocalNode parentNode) {
   Object name = params['Name'];
   if (parentNode is UserNode &&
@@ -78,7 +78,7 @@ InvokeResponse addChildNode(Map params, Responder responder,
 }
 
 
-InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
+InvokeResponse addUserLink(Map params, Responder responder, InvokeResponse response,
     LocalNode parentNode) {
   Object name = params['Name'];
   Object dsId = params['Id'];
@@ -121,7 +121,7 @@ InvokeResponse addLink(Map params, Responder responder, InvokeResponse response,
 }
 Map userNodeFunctions = {
   "broker": {
-    "userNode": {"addChild": addChildNode, "addLink": addLink},
-    "userRoot": {"addChild": addChildNode, "addLink": addLink,}
+    "userNode": {"addChild": addUserChildNode, "addLink": addUserLink},
+    "userRoot": {"addChild": addUserChildNode, "addLink": addUserLink,}
   }
 };
