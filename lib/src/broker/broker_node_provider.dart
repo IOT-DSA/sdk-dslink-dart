@@ -85,9 +85,6 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     await loadConns();
     await loadUserNodes();
     if (enabledDataNodes) {
-      if (storage != null) {
-        BrokerDataNode.storage = storage.getOrCreateValueStorageBucket('data');
-      }
       await loadDataNodes();
       registerInvokableProfile(dataNodeFunctions);
     }
@@ -226,11 +223,21 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       Map m = DsJson.decode(data);
       m.forEach((String name, Map m) {
         String path = '/data/$name';
-        BrokerDataNode node = getOrCreateNode(path, false);
-        connsNode.children[name] = node;
+        BrokerDataNode node = getOrCreateNode(path, true);
         node.load(m);
       });
     } catch (err) {}
+    if (storage != null) {
+       BrokerDataNode.storage = storage.getOrCreateValueStorageBucket('data');
+       Map values = await BrokerDataNode.storage.load();
+       values.forEach((key, val){
+         if (nodes[key] is BrokerDataNode) {
+           nodes[key].updateValue(val);
+         } else {
+           BrokerDataNode.storage.removeValue(key);
+         }
+       });
+    }
   }
   Future<Map> saveDataNodes() async {
     Map m = {};
