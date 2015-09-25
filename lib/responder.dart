@@ -21,4 +21,4 @@ part 'src/responder/simple/simple_node.dart';
 
 part 'src/responder/manager/permission_manager.dart';
 part 'src/responder/manager/trace.dart';
-part 'src/responder/manager/value_storage.dart';
+part 'src/responder/manager/storage.dart';
