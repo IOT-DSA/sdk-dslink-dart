@@ -94,6 +94,10 @@ Map defaultProfileMap = {
             "type": "enum[none,textarea,password,daterange,date]"
           }
         ]
+      },
+      "deleteNode": {
+        r"$invokable": "write",
+        r"$params": [{"name": "Recursive", "type": "bool"}]
       }
     },
     "dataRoot": {
