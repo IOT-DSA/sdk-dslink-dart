@@ -10,10 +10,15 @@ class SimpleStorageManager implements IStorageManager {
   Map<String, SimpleResponderStorage> rsponders =
       new Map<String, SimpleResponderStorage>();
   Directory dir;
+  Directory subDir;
   SimpleStorageManager(String path) {
     dir = new Directory(path);
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
+    }
+    subDir = new Directory('$path/resp_subscription');
+    if (!subDir.existsSync()) {
+      subDir.createSync(recursive: true);
     }
   }
   ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String rpath) {
@@ -21,7 +26,7 @@ class SimpleStorageManager implements IStorageManager {
       return rsponders[rpath];
     }
     SimpleResponderStorage responder =
-        new SimpleResponderStorage('${dir.path}/${Uri.encodeComponent(rpath)}', rpath);
+        new SimpleResponderStorage('${subDir.path}/${Uri.encodeComponent(rpath)}', rpath);
     rsponders[rpath] = responder;
     return responder;
   }
@@ -43,7 +48,7 @@ class SimpleStorageManager implements IStorageManager {
   }
   Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions() async{
      List<Future<List<ISubscriptionNodeStorage>>> loading = [];
-     for (FileSystemEntity entity in dir.listSync()) {
+     for (FileSystemEntity entity in subDir.listSync()) {
        if (await FileSystemEntity.type(entity.path) == FileSystemEntityType.DIRECTORY) {
          String rpath = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
          SimpleResponderStorage responder =
