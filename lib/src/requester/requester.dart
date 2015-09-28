@@ -45,29 +45,33 @@ class Requester extends ConnectionHandler {
 
   Stream<DSError> get onError => _errorController.stream;
 
-  int nextRid = 1;
-  int nextSid = 1;
-
-  // TODO need a new design for short polling and long polling
-  int lastSentId = 0;
-
+  int lastRid = 0;
+  int getNextRid() {
+    do {
+      if (lastRid < 0x7FFFFFFF) {
+        ++lastRid;
+      } else {
+        lastRid = 1;
+      }
+    } while (_requests.containsKey(lastRid));
+    return lastRid;
+  }
+  
   ProcessorResult getSendingData(int currentTime, int waitingAckId) {
     ProcessorResult rslt = super.getSendingData(currentTime, waitingAckId);
-    lastSentId = nextRid - 1;
     return rslt;
   }
 
   Request sendRequest(Map m, RequestUpdater updater) => _sendRequest(m, updater);
 
   Request _sendRequest(Map m, RequestUpdater updater) {
-    m['rid'] = nextRid;
+    m['rid'] = getNextRid();
     Request req;
     if (updater != null) {
-      req = new Request(this, nextRid, updater, m);
-      _requests[nextRid] = req;
+      req = new Request(this, lastRid, updater, m);
+      _requests[lastRid] = req;
     }
     addToSendList(m);
-    ++nextRid;
     return req;
   }
 
@@ -175,7 +179,7 @@ class Requester extends ConnectionHandler {
     ;
     newRequests[0] = _subsciption;
     _requests.forEach((n, req) {
-      if (req.rid <= lastSentId && req.updater is! ListController) {
+      if (req.rid <= lastRid && req.updater is! ListController) {
         req._close(DSError.DISCONNECTED);
       } else {
         newRequests[req.rid] = req;

@@ -50,6 +50,18 @@ class SubscribeController implements RequestUpdater {
 }
 
 class SubscribeRequest extends Request implements ConnectionProcessor{
+  int lastSid = 0;
+  int getNextSid() {
+    do {
+      if (lastSid < 0x7FFFFFFF) {
+        ++lastSid;
+      } else {
+        lastSid = 1;
+      }
+    } while (subsriptionids.containsKey(lastSid));
+    return lastSid;
+  }
+  
   final Map<String, ReqSubscribeController> subsriptions =
       new Map<String, ReqSubscribeController>();
 
@@ -233,7 +245,7 @@ class ReqSubscribeController {
   int currentQos = -1;
   int sid;
   ReqSubscribeController(this.node, this.requester) {
-    sid = requester.nextSid++;
+    sid = requester._subsciption.getNextSid();
   }
 
   void listen(callback(ValueUpdate), int qos) {
