@@ -39,7 +39,7 @@ class WebSocketConnection extends Connection {
     socket.listen(onData, onDone: _onDone);
     socket.add(fixedBlankData);
     if (!enableAck) {
-      msgId = -1;
+      nextMsgId = -1;
     }
     if (enableTimeout) {
       pingTimer = new Timer.periodic(new Duration(seconds: 20), onPingTimer);
@@ -203,8 +203,8 @@ class WebSocketConnection extends Connection {
       }
     }
   }
-  /// when msgId = -1, ack is disabled
-  int msgId = 0;
+  /// when nextMsgId = -1, ack is disabled
+  int nextMsgId = 1;
   bool _sending = false;
   void _send() {
     _sending = false;
@@ -219,7 +219,7 @@ class WebSocketConnection extends Connection {
     }
     List pendingAck = [];
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
-    ProcessorResult rslt = _responderChannel.getSendingData(ts, msgId);
+    ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         m['responses'] = rslt.messages;
@@ -243,7 +243,7 @@ class WebSocketConnection extends Connection {
         pendingAck.addAll(rslt.processors);
       }
     }
-    rslt = _requesterChannel.getSendingData(ts, msgId);
+    rslt = _requesterChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         m['requests'] = rslt.messages;
@@ -257,11 +257,16 @@ class WebSocketConnection extends Connection {
       }
     }
     if (needSend) {
-      if (msgId != -1) {
+      if (nextMsgId != -1) {
         if (pendingAck.length > 0) {
-          pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
+          pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m['msg'] = msgId++;
+        m['msg'] = nextMsgId;
+        if (nextMsgId < 0x7FFFFFFF) {
+          ++nextMsgId;
+        } else {
+          nextMsgId = 1;
+        }
       }
       addData(m);
       _dataSent = true;

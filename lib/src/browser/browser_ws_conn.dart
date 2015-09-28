@@ -27,7 +27,7 @@ class WebSocketConnection extends Connection {
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket, this.clientLink, {this.onConnect, bool enableAck:false}) {
     if (!enableAck) {
-      msgId = -1;
+      nextMsgId = -1;
     }
     socket.binaryType = 'arraybuffer';
     _responderChannel = new PassiveChannel(this);
@@ -174,7 +174,7 @@ class WebSocketConnection extends Connection {
     }
   }
 
-  int msgId = 0;
+  int nextMsgId = 1;
   
   bool _sending = false;
   void _send() {
@@ -196,7 +196,7 @@ class WebSocketConnection extends Connection {
     List pendingAck = [];
     
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
-    ProcessorResult rslt = _responderChannel.getSendingData(ts, msgId);
+    ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         m['responses'] = rslt.messages;
@@ -206,7 +206,7 @@ class WebSocketConnection extends Connection {
         pendingAck.addAll(rslt.processors);
       }
     }
-    rslt = _requesterChannel.getSendingData(ts, msgId);
+    rslt = _requesterChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         m['requests'] = rslt.messages;
@@ -218,11 +218,16 @@ class WebSocketConnection extends Connection {
     }
     
     if (needSend) {
-      if (msgId != -1) {
+      if (nextMsgId != -1) {
         if (pendingAck.length > 0) {
-          pendingAcks.add(new ConnectionAckGroup(msgId, ts, pendingAck));
+          pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m['msg'] = msgId++;
+        m['msg'] = nextMsgId;
+        if (nextMsgId < 0x7FFFFFFF) {
+          ++nextMsgId;
+        } else {
+          nextMsgId = 1;
+        }
       }
 
       
