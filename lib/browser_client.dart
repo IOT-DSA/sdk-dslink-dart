@@ -59,13 +59,38 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
     storage = LocalDataStorage.INSTANCE;
   }
 
-  if (storage.has("dsa_key")) {
-    return new PrivateKey.loadFromString(storage.get("dsa_key"));
+  String keyPath = 'dsa_key:${window.location.pathname}';
+  String keyLockPath = 'dsa_key_lock:${window.location.pathname}';
+  String randomToken = '${new DateTime.now().millisecondsSinceEpoch} ${DSRandom.instance.nextUint16()} ${DSRandom.instance.nextUint16()}';
+      
+  if (storage.has(keyPath)) {
+    storage.store(keyLockPath, randomToken);
+    await new Future.delayed(new Duration(milliseconds: 20));
+    if (storage.get(keyLockPath) == randomToken) {
+      _startStorageLock(keyLockPath, randomToken);
+      return new PrivateKey.loadFromString(storage.get("dsa_key"));
+    } else {
+      // use temp key, don't lock it;
+      keyLockPath = null;
+    }
   }
 
   var key = await PrivateKey.generate();
 
-  await storage.store("dsa_key", key.saveToString());
+  if (keyLockPath != null) {
+    storage.store(keyPath, key.saveToString());
+    storage.store(keyLockPath, randomToken);
+    _startStorageLock(keyLockPath, randomToken);
+  }
 
   return key;
+}
+
+void _startStorageLock(String lockKey, String token){
+  void onStorage(StorageEvent e){
+    if (e.key == lockKey) {
+      window.localStorage[lockKey] = token;
+    }
+  }
+  window.onStorage.listen(onStorage);
 }
