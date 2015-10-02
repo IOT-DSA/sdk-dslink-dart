@@ -52,9 +52,13 @@ class LocalDataStorage extends DataStorage {
   String remove(String key) => window.localStorage.remove(key);
 }
 
+PrivateKey _cachedPrivateKey;
 /// Get a Private Key using the specified storage strategy.
 /// If [storage] is not specified, it uses the [LocalDataStorage] class.
 Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
+  if (_cachedPrivateKey != null) {
+    return _cachedPrivateKey;
+  }
   if (storage == null) {
     storage = LocalDataStorage.INSTANCE;
   }
@@ -68,22 +72,23 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
     await new Future.delayed(new Duration(milliseconds: 20));
     if (storage.get(keyLockPath) == randomToken) {
       _startStorageLock(keyLockPath, randomToken);
-      return new PrivateKey.loadFromString(storage.get("dsa_key"));
+      _cachedPrivateKey = new PrivateKey.loadFromString(storage.get("dsa_key"));
+      return _cachedPrivateKey;
     } else {
       // use temp key, don't lock it;
       keyLockPath = null;
     }
   }
 
-  var key = await PrivateKey.generate();
+  _cachedPrivateKey = await PrivateKey.generate();
 
   if (keyLockPath != null) {
-    storage.store(keyPath, key.saveToString());
+    storage.store(keyPath, _cachedPrivateKey.saveToString());
     storage.store(keyLockPath, randomToken);
     _startStorageLock(keyLockPath, randomToken);
   }
 
-  return key;
+  return _cachedPrivateKey;
 }
 
 void _startStorageLock(String lockKey, String token){

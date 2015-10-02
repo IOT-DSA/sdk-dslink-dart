@@ -10,7 +10,7 @@ class HttpClientLink implements ClientLink {
   Future get onConnected => _onConnectedCompleter.future;
 
   String remotePath;
-  
+
   final String dsId;
   final String home;
   final PrivateKey privateKey;
@@ -45,7 +45,7 @@ class HttpClientLink implements ClientLink {
   bool enableAck = false;
 
   Map linkData;
-  
+
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
       bool isResponder: true, Requester overrideRequester,
@@ -102,7 +102,6 @@ class HttpClientLink implements ClientLink {
       if (linkData != null) {
         requestJson['linkData'] = linkData;
       }
-      
 
       logger.fine("DS ID: ${dsId}");
 
@@ -126,7 +125,7 @@ class HttpClientLink implements ClientLink {
       // and this is the version ack is added
       enableAck = serverConfig.containsKey('version');
       remotePath = serverConfig['path'];
-      
+
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
             .replaceFirst('http', 'ws');
@@ -187,8 +186,10 @@ class HttpClientLink implements ClientLink {
       });
     } catch (error) {
       logger.fine(error);
-      if (error is WebSocketException &&
-          error.message.contains('was not upgraded to websocket')) {
+      if (error is WebSocketException && (
+            error.message.contains('not upgraded to websocket') // error from dart
+              || error.message.contains('(401)') // error from nodejs
+          )) {
         DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       } else if (reconnect) {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
