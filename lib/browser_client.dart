@@ -72,7 +72,7 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
     await new Future.delayed(new Duration(milliseconds: 20));
     if (storage.get(keyLockPath) == randomToken) {
       _startStorageLock(keyLockPath, randomToken);
-      _cachedPrivateKey = new PrivateKey.loadFromString(storage.get("dsa_key"));
+      _cachedPrivateKey = new PrivateKey.loadFromString(storage.get(keyPath));
       return _cachedPrivateKey;
     } else {
       // use temp key, don't lock it;
