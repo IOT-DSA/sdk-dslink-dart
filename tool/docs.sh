@@ -6,7 +6,7 @@ then
 fi
 pub global activate -sgit https://github.com/dart-lang/dartdoc.git > /dev/null
 mkdir -p build/docs
-pub global run dartdoc --output build/docs
+pub global run dartdoc --output build/docs --add-crossdart
 if [ "$1" == "--upload" ]
 then
   git clone git@github.com:IOT-DSA/docs.git -b gh-pages --depth 1 build/tmp
