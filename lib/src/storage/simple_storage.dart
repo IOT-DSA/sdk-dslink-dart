@@ -100,16 +100,16 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
     if (values.containsKey(path)) {
       return values[path];
     }
-    SimpleNodeStorage value = new SimpleNodeStorage(path, dir.path, this);
+    SimpleNodeStorage value = new SimpleNodeStorage(path, Uri.encodeComponent(path), dir.path, this);
     values[path] = value;
     return value;
   }
   Future<List<ISubscriptionNodeStorage>> load() async {
     List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
-      String name = entity.uri.pathSegments.last;
+      String name = entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1);
       String path = Uri.decodeComponent(name);
-      values[path] = new SimpleNodeStorage(path, dir.path, this);
+      values[path] = new SimpleNodeStorage(path, name, dir.path, this);
       loading.add(values[path].load());
     }
     return Future.wait(loading);
@@ -131,10 +131,11 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
 class SimpleNodeStorage extends ISubscriptionNodeStorage {
   File file;
+  String filename;
   SimpleNodeStorage(
-      String path, String parentPath, SimpleResponderStorage storage)
+      String path, this.filename, String parentPath, SimpleResponderStorage storage)
       : super(path, storage) {
-    file = new File('$parentPath/${Uri.encodeComponent(path)}');
+    file = new File('$parentPath/$filename');
   }
   /// add data to List of values
   void addValue(ValueUpdate value) {
@@ -225,7 +226,7 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
     Map rslt = {};
     List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
-      String name = Uri.decodeComponent(entity.uri.pathSegments.last);
+      String name = entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1);
       File f = new File(entity.path);
       Future future = f.readAsString().then((String str){
         rslt[name] = DsJson.decode(str);
