@@ -3,8 +3,9 @@ part of dslink.broker;
 class DsSimpleLinkManager implements ServerLinkManager {
   final Map<String, HttpServerLink> _links = new Map<String, HttpServerLink>();
 
-  void addLink(ServerLink link) {
+  bool addLink(ServerLink link) {
     _links[link.dsId] = link;
+    return true;
   }
 
   ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ''}) {
@@ -180,7 +181,9 @@ class DsHttpServer {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
           }
-          _linkManager.addLink(link);
+          if (!_linkManager.addLink(link) ) {
+            throw HttpStatus.UNAUTHORIZED;
+          }
         }
         link.initLink(request, m['isRequester'] == true,
             m['isResponder'] == true, dsId, publicKey,
