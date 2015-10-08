@@ -140,7 +140,8 @@ abstract class ClientLink extends BaseLink {
 }
 
 abstract class ServerLinkManager {
-  void addLink(ServerLink link);
+  /// return true if link is added
+  bool addLink(ServerLink link);
 
   void removeLink(ServerLink link, String id);
 

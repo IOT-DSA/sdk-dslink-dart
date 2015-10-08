@@ -487,7 +487,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       _connPath2id[connPath] = fullId;
       _id2connPath[fullId] = connPath;
       return connPath;
-    } else {
+    } else if (acceptAllConns) {
       // device link
       String connPath;
       String folderPath = downstreamNameSS;
@@ -515,8 +515,11 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           break;
         }
       }
+      
       DsTimer.timerOnceBefore(saveConns, 3000);
       return connPath;
+    } else {
+      return null;
     }
   }
 
@@ -562,7 +565,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     return conn;
   }
 
-  void addLink(ServerLink link) {
+  bool addLink(ServerLink link) {
     String str = link.dsId;
     if (link.session != '' && link.session != null) {
       str = '$str ${link.session}';
@@ -572,9 +575,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     // TODO update children list of /$downstreamNameS node
     if (_links.containsKey(str)) {
       // TODO is it possible same link get added twice?
-    } else {
+    } else if (acceptAllConns) {
       _links[str] = link;
-      if (link.session == null) {
+      if (link.session == null || link.session == '') {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
 
@@ -582,7 +585,10 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
           ..configs[r'$$dsId'] = str;
         logger.info('new node added at $connPath');
       }
+    } else {
+      return false;
     }
+    return true;
   }
 
   ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ''}) {
@@ -594,6 +600,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
     if (_links[str] != null) {
       String connPath = makeConnPath(str);
+      if (connPath == null) {
+        return null;
+      }
       RemoteLinkNode node = getOrCreateNode(connPath, false);
       RemoteLinkManager conn = node._linkManager;
       if (!conn.inTree) {
