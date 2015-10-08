@@ -575,18 +575,19 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     // TODO update children list of /$downstreamNameS node
     if (_links.containsKey(str)) {
       // TODO is it possible same link get added twice?
-    } else if (acceptAllConns) {
+    } else {
       _links[str] = link;
-      if (link.session == null || link.session == '') {
+      if (str.length >= 43 && (link.session == null || link.session == '')) {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
-
-        var node = getOrCreateNode(connPath, false)
-          ..configs[r'$$dsId'] = str;
-        logger.info('new node added at $connPath');
-      }
-    } else {
-      return false;
+        if (connPath != null) {
+          var node = getOrCreateNode(connPath, false)
+                    ..configs[r'$$dsId'] = str;
+                  logger.info('new node added at $connPath');
+                }
+        } else {
+          return false;
+        }
     }
     return true;
   }
