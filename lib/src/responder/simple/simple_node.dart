@@ -397,9 +397,9 @@ class SimpleNode extends LocalNodeImpl {
       if (rtype == "values") {
         rslt = {};
       } else if (rtype == "table") {
-        rtype = [];
+        rslt = [];
       } else if (rtype == "stream") {
-        rtype = [];
+        rslt = [];
       }
     }
 
