@@ -59,7 +59,7 @@ class AsyncTableResult {
     }
 
     if (response != null && (rows != null || meta != null || status == StreamStatus.closed)) {
-      response.updateStream(rows, columns: columns, streamStatus: status, meta:meta);
+      response.updateStream(rows, columns: columns, streamStatus: status, meta: meta);
       rows = null;
       columns = null;
     }
@@ -451,7 +451,7 @@ class SimpleNode extends LocalNodeImpl {
           }
 
           if (v is Iterable) {
-            r.update(v.toList());
+            r.update(v.toList(), StreamStatus.open);
           } else if (v is Map) {
             var meta;
             if (v.containsKey("__META__")) {
