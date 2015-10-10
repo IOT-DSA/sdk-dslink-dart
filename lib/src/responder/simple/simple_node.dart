@@ -457,7 +457,7 @@ class SimpleNode extends LocalNodeImpl {
             if (v.containsKey("__META__")) {
               meta = v["__META__"];
             }
-            r.update([v], null, meta);
+            r.update([v], StreamStatus.open, meta);
           } else {
             throw new Exception("Unknown Value from Stream");
           }
@@ -547,7 +547,7 @@ class SimpleNode extends LocalNodeImpl {
               if (v.containsKey("__META__")) {
                 meta = v["__META__"];
               }
-              r.update([v], null, meta);
+              r.update([v], StreamStatus.open, meta);
             } else {
               throw new Exception("Unknown Value from Stream");
             }
