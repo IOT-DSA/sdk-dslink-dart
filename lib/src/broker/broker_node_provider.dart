@@ -35,9 +35,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool enabledPermission = false;
   bool enabledDataNodes = false;
   bool acceptAllConns = true;
-
+  
   BrokerNodeProvider({this.enabledQuarantine: false, this.acceptAllConns: true,
-  List defaultPermission, this.downstreamName: 'conns', this.storage, this.enabledDataNodes:true }) {
+  List defaultPermission, this.downstreamName: 'conns', this.storage, this.enabledDataNodes:true}) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     root = new RootNode('/', this);
@@ -67,6 +67,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     upstreamDataNode = nodes['/upstream'];
 
     enabledPermission = defaultPermission != null;
+    
+    new TokensNode("/sys/tokens", this);
+    
     if (enabledPermission) {
       root.loadPermission(
         defaultPermission); //['dgSuper','config','default','write']
@@ -596,12 +599,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (sessionId == null) sessionId = '';
     String str = dsId;
     if (sessionId != null && sessionId != '') {
+      // user link
       str = '$dsId ${sessionId}';
-    }
-
-    if (_links[str] != null) {
+    } else if (_links[str] != null) {
+      // add link to tree when it's not user link
       String connPath = makeConnPath(str);
       if (connPath == null) {
+        // when link is not allowed, makeConnPath() returns null
         return null;
       }
       RemoteLinkNode node = getOrCreateNode(connPath, false);
