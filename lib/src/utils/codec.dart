@@ -136,7 +136,14 @@ abstract class DsCodec {
     }
     return rslt;
   }
-
+  
+  Object _blankData;
+  Object get blankData {
+    if (_blankData == null) {
+      _blankData = encodeFrame({});
+    }
+    return _blankData;
+  }
   /// output String or List<int>
   Object encodeFrame(Map val);
 
@@ -160,7 +167,7 @@ abstract class DsJson {
   Object decodeJson(String str);
 }
 
-class DsJsonCodecImpl implements DsJson, DsCodec {
+class DsJsonCodecImpl extends DsCodec implements DsJson {
   static dynamic _safeEncoder(value) {
     return null;
   }

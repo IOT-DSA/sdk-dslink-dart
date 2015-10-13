@@ -27,7 +27,7 @@ Logger _logger;
 bool _DEBUG_MODE;
 
 //final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
-final List<int> fixedBlankData = UTF8.encode(DsJson.encode({}));
+
 List foldList(List a, List b) {
   return a..addAll(b);
 }
