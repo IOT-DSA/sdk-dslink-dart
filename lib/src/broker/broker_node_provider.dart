@@ -28,6 +28,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   BrokerNode defsNode;
   BrokerNode upstreamDataNode;
   BrokerNode quarantineNode;
+  TokensNode tokens;
+  
   Map rootStructure = {'users': {}, 'defs': {}, 'sys': {}, 'upstream': {}};
 
   bool shouldSaveFiles = true;
@@ -68,8 +70,6 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
 
     enabledPermission = defaultPermission != null;
     
-    new TokensNode("/sys/tokens", this);
-    
     if (enabledPermission) {
       root.loadPermission(
         defaultPermission); //['dgSuper','config','default','write']
@@ -87,6 +87,13 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     initSys();
     await loadConns();
     await loadUserNodes();
+    
+    // tokens need to check if node still exists
+    // load token after conns and userNodes are loaded 
+    IValueStorageBucket bucket = storage.getOrCreateValueStorageBucket('tokens');
+    tokens = new TokensNode('/sys/tokens', this, bucket);
+    await tokens.loadTokens();
+
     if (enabledDataNodes) {
       await loadDataNodes();
       registerInvokableProfile(dataNodeFunctions);
