@@ -18,47 +18,37 @@ class AddNodeAction extends SimpleNode {
 
     String nodeName = '/node%2F_$lastNum';
     link.addNode(nodeName, {
-      r'$type':'bool[disable,enable]',
-      r'$is':'rng',
-      '@unit':'hit',
-      '?value':'123.456',//ByteDataUtil.fromList([1,2,3,1,2,3]),
-      'remove': { // an action to delete the node
-        r'$is':'removeSelfAction',
+      r'$type': 'bool[disable,enable]',
+      r'$is': 'rng',
+      '@unit': 'hit',
+      '?value': '123.456', //ByteDataUtil.fromList([1,2,3,1,2,3]),
+      'remove': {
+        // an action to delete the node
+        r'$is': 'removeSelfAction',
         r'$invokable': 'write',
       },
-      r'$writable':'write',
-      r'$placeholder':'abcc',
+      r'$writable': 'write',
+      r'$placeholder': 'abcc',
     });
     link.save(); // save json
-    
-  
+
     AsyncTableResult tableRslt = new AsyncTableResult();
-    void closed(InvokeResponse resp){
-        print('closed');
-       
-      }
+    void closed(InvokeResponse resp) {
+      print('closed');
+    }
     int colCount = 1;
     int tcount = 0;
-      void ackBack(InvokeResponse response, int ackId, int startTime, int currentTime){
-        print('acked $ackId $startTime $currentTime');
-        new Timer(new Duration(seconds:1), (){
-          if (tcount & 7 == 3) {
-            colCount++;
-            tableRslt.columns = [{'name':'v$colCount'}];
-          }
-          ++tcount;
-          List rslt = new List(colCount);
-          rslt[0] = tcount;
-          rslt[rslt.length-1] = colCount;
-          tableRslt.update([rslt], null, {'a':'abc'});
-        });
-      }
     tableRslt.onClose = closed;
-    tableRslt.onAck = ackBack;
-    tableRslt.columns=[{'name':'a'}];
-    tableRslt.update([[1],[2]], null, {'a':'abc'});
-    
-    return tableRslt;//new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
+    tableRslt.columns = [{'name': 'a'}];
+    new Timer.periodic(new Duration(milliseconds: 50), (Timer t) {
+      if (tcount++ > 5) {
+        tableRslt.close();
+        t.cancel();
+        return;
+      }
+      tableRslt.update([[1], [2]], StreamStatus.initialize, {'a': 'abc'});
+    });
+    return tableRslt; //new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
 }
 
@@ -66,8 +56,7 @@ class RemoveSelfAction extends SimpleNode {
   RemoveSelfAction(String path) : super(path);
 
   Object onInvoke(Map params) {
-    List p = path.split('/')
-      ..removeLast();
+    List p = path.split('/')..removeLast();
     String parentPath = p.join('/');
     link.removeNode(parentPath);
     link.save();
@@ -87,28 +76,37 @@ class RngNode extends SimpleNode {
 
   void updateRng() {
     if (!removed) {
-      updateValue(ByteDataUtil.fromList([1,2,3,1,2,3]));
+      updateValue(ByteDataUtil.fromList([1, 2, 3, 1, 2, 3]));
       DsTimer.timerOnceAfter(updateRng, 1000);
     }
   }
 }
 
 main(List<String> args) {
-
   Map defaultNodes = {
-    'defs':{
-      'a':{}
+    'defs': { 'profile':{
+      'addNodeAction': {
+        r'$params': {
+          "name": {
+            "type": "string",
+            "placeholder": 'ccc',
+            "description": "abcd",
+            "default": 123
+          },
+          "source": {"type": "string", 'editor': "password"},
+          "destination": {"type": "string"},
+          "queueSize": {"type": "string"},
+          "pem": {"type": "string"},
+          "filePrefix": {"type": "bool[disable,enable]"},
+          "copyToPath": {"type": "enum[a,b,c]"}
+        },
+        //r'$columns':[{'name':'name','type':'string'}],
+        r'$lastNum': 0,
+        r'$result': 'stream'
+      }}
     },
-    'add': {
-      r'$is': 'addNodeAction',
-      r'$params':{"name":{"type":"string","placeholder":'ccc',"description":"abcd","default":123}, "source":{"type":"string",'editor':"password"}, "destination":{"type":"string"}, "queueSize":{"type":"string"}, "pem":{"type":"string"}, "filePrefix":{"type":"bool[disable,enable]"}, "copyToPath":{"type":"enum[a,b,c]"}},
-      //r'$columns':[{'name':'name','type':'string'}],
-      r'$invokable': 'write',
-      r'$lastNum':0,
-      r'$result':'stream'
-    }
+    'add': {r'$is': 'addNodeAction',r'$invokable': 'write',}
   };
-
 
   Map profiles = {
     'addNodeAction': (String path) {
@@ -122,7 +120,11 @@ main(List<String> args) {
     }
   };
 
-  link = new LinkProvider(['-b','localhost:8080/conn','--log','finest'], 'rick-resp-', defaultNodes:defaultNodes, profiles:profiles/*, home:'dgSuper'*/);
+  link = new LinkProvider(
+      ['-b', 'localhost:8080/conn', '--log', 'finest'], 'rick-resp-',
+      defaultNodes: defaultNodes,
+      profiles: profiles /*, home:'dgSuper'*/,
+      linkData: {'a': 1});
   if (link.link == null) {
     // initialization failed
     return;
@@ -133,9 +135,8 @@ main(List<String> args) {
   lastNum = addNode.configs[r'$lastNum'];
 
   var node = link.provider.getOrCreateNode('/testpoint');
-  node.load({r'$type':'number', "?value":1});
-  new Timer.periodic(new Duration(milliseconds:5), (Timer t){
-    node.updateValue(1-node.value);
-  });
+  node.load({r'$type': 'number', "?value": 1});
+  int tt = 0;
+
   link.connect();
 }

@@ -28,9 +28,9 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   BrokerNode defsNode;
   BrokerNode upstreamDataNode;
   BrokerNode quarantineNode;
-  TokensNode tokens;
+  BrokerNode tokens;
   
-  Map rootStructure = {'users': {}, 'defs': {}, 'sys': {}, 'upstream': {}};
+  Map rootStructure = {'users': {}, 'defs': {}, 'sys': {'tokens': {}}, 'upstream': {}};
 
   bool shouldSaveFiles = true;
   bool enabledQuarantine = false;
@@ -67,6 +67,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     defsNode = nodes['/defs'];
     quarantineNode = nodes['/quarantine'];
     upstreamDataNode = nodes['/upstream'];
+    tokens = nodes['/sys/tokens'];
 
     enabledPermission = defaultPermission != null;
     
@@ -84,15 +85,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     await loadDef();
     registerInvokableProfile(userNodeFunctions);
+    registerInvokableProfile(tokenNodeFunctions);
     initSys();
     await loadConns();
     await loadUserNodes();
     
     // tokens need to check if node still exists
     // load token after conns and userNodes are loaded 
-    IValueStorageBucket bucket = storage.getOrCreateValueStorageBucket('tokens');
-    tokens = new TokensNode('/sys/tokens', this, bucket);
-    await tokens.loadTokens();
+    await loadTokensNodes();
 
     if (enabledDataNodes) {
       await loadDataNodes();
@@ -260,7 +260,32 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     return m;
   }
-  
+  loadTokensNodes() async {
+    File connsFile = new File("tokens.json");
+    try {
+      String data = await connsFile.readAsString();
+      Map m = DsJson.decode(data);
+      m.forEach((String name, Map m) {
+        String path = '/sys/tokens/$name';
+        TokenGroupNode tokens = new TokenGroupNode(path, this, name);
+        tokens.load(m);
+      });
+    } catch (err) {
+      String path = '/sys/tokens/root';
+      TokenGroupNode tokens = new TokenGroupNode(path, this, 'root');
+    }
+  }
+  Future<Map> saveTokensNodes() async {
+    Map m = {};
+    tokens.children.forEach((String name, TokenGroupNode node) {
+      m[name] = node.serialize(true);
+    });
+    File connsFile = new File("tokens.json");
+    if (shouldSaveFiles) {
+      await connsFile.writeAsString(DsJson.encode(m));
+    }
+    return m;
+  }
   Future<Map> saveConns() async {
     Map m = {};
     connsNode.children.forEach((String name, RemoteLinkNode node) {
@@ -445,12 +470,22 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       node = new DefinitionNode(path, this);
       //}
     } else {
+      // TODO handle invalid node instead of allow everything
       node = new BrokerNode(path, this);
     }
     if (node != null) {
       nodes[path] = node;
     }
     return node;
+  }
+  
+  bool clearNode(BrokerNode node){
+    // TODO, keep it in memory if there are pending subscription
+    // and remove it when subscription ends
+    if (nodes[node.path] == node) {
+      nodes.remove(node);
+    }
+    return true;
   }
 
   /// dsId to server links

@@ -119,6 +119,17 @@ Map defaultProfileMap = {
           }
         ]
       }
+    },
+    "token": {"delete": {r"$invokable": "config", r"$params": []}},
+    'tokenGroup': {
+      'add': {
+        r"$invokable": "config",
+        r"$params": [
+          {'name': 'timeRange', "type": "string", 'editor': "daterange"},
+          {'name': 'count', "type": "number"},
+        ],
+        r"$columns": [{'name': 'tokenName', 'type': 'string'}]
+      }
     }
   }
 };
