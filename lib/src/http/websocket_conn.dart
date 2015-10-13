@@ -37,7 +37,7 @@ class WebSocketConnection extends Connection {
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
     socket.listen(onData, onDone: _onDone);
-    socket.add(fixedBlankData);
+    socket.add(codec.blankData);
     if (!enableAck) {
       nextMsgId = -1;
     }
