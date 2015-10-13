@@ -4,12 +4,14 @@ part of dslink.broker;
 class HttpServerLink implements ServerLink {
   final String dsId;
   final String session;
+  final String token;
+  String path;
   Completer<Requester> onRequesterReadyCompleter = new Completer<Requester>();
 
   Future<Requester> get onRequesterReady => onRequesterReadyCompleter.future;
 
-  final Requester requester;
-  final Responder responder;
+  Requester requester;
+  Responder responder;
   final PublicKey publicKey;
 
   /// nonce for authentication, don't overwrite existing nonce
@@ -40,14 +42,18 @@ class HttpServerLink implements ServerLink {
 
   HttpServerLink(String id, this.publicKey, ServerLinkManager linkManager,
       {NodeProvider nodeProvider,
-      String sessionId:'',
+      this.session, this.token,
       this.enableTimeout: false, this.enableAck: true})
-      : dsId = id,
-        session = sessionId,
-        requester = linkManager.getRequester(id),
-        responder = (nodeProvider != null)
-            ? linkManager.getResponder(id, nodeProvider, sessionId)
-            : null {
+      : dsId = id
+      {
+      path = linkManager.getLinkPath(id, token);
+      if (path != null) {
+        requester = linkManager.getRequester(id);
+        if (nodeProvider != null){
+          responder = linkManager.getResponder(id, nodeProvider, session);
+        }
+      }
+         
       for (int i = 0; i < 3; ++i) {
         List<int> bytes = new List<int>(12);
         for (int j = 0; j < 12; ++j) {

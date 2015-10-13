@@ -1,6 +1,13 @@
 part of dslink.utils;
 
 class ByteDataUtil {
+  static Uint8List list2Uint8List(List<int> input) {
+    if (input is Uint8List) {
+      return input;
+    }
+    return new Uint8List.fromList(input);
+  }
+  
   static ByteData mergeBytes(List<ByteData> bytesList) {
     if (bytesList.length == 1) {
       return bytesList[0];

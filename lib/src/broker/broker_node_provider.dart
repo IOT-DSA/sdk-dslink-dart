@@ -567,7 +567,46 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       return null;
     }
   }
+  String getLinkPath(String fullId, String token) {
+    if (_id2connPath.containsKey(fullId)) {
+      return _id2connPath[fullId];
+    }
+    if (token != null && token != '') {
+      TokenNode tokenNode = TokenGroupNode.findTokenNode(token, fullId);
+      if (tokenNode != null) {
+        BrokerNode target = tokenNode.getTargetNode();
+        
+        String connPath;
+        
+        String folderPath = '${target.path}/';
 
+        String dsId = fullId;
+
+
+        // find a connName for it, keep append characters until find a new name
+        int i = 43;
+        if (dsId.length == 43) i = 42;
+        for (; i >= 0; --i) {
+          connPath = '$folderPath${dsId.substring(0, dsId.length - i)}';
+          if (i == 43 && connPath.length > 8 && connPath.endsWith('-')) {
+            // remove the last - in the name;
+            connPath = connPath.substring(0, connPath.length - 1);
+          }
+          if (!_connPath2id.containsKey(connPath)) {
+            _connPath2id[connPath] = fullId;
+            _id2connPath[fullId] = connPath;
+            break;
+          }
+        }
+        
+        DsTimer.timerOnceBefore(saveConns, 3000);
+        return connPath;
+      }
+    }
+    
+    // fall back to normal path searching when it fails
+    return makeConnPath(fullId);
+  }
   void prepareUpstreamLink(String name) {
     String connPath = '/upstream/$name';
     String upStreamId = '@upstream@$name';
@@ -621,18 +660,20 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     if (_links.containsKey(str)) {
       // TODO is it possible same link get added twice?
     } else {
-      _links[str] = link;
       if (str.length >= 43 && (link.session == null || link.session == '')) {
         // don't create node for requester node with session
         connPath = makeConnPath(str);
+        
         if (connPath != null) {
           var node = getOrCreateNode(connPath, false)
                     ..configs[r'$$dsId'] = str;
                   logger.info('new node added at $connPath');
-                }
+                
         } else {
           return false;
         }
+      }
+      _links[str] = link;
     }
     return true;
   }
@@ -646,6 +687,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     } else if (_links[str] != null) {
       // add link to tree when it's not user link
       String connPath = makeConnPath(str);
+      
       if (connPath == null) {
         // when link is not allowed, makeConnPath() returns null
         return null;
@@ -681,6 +723,8 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   
   Requester getRequester(String dsId) {
     String connPath = makeConnPath(dsId);
+    if (connPath == null) return null;
+    
     if (conns.containsKey(connPath)) {
       return conns[connPath].requester;
     }
@@ -693,6 +737,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   Responder getResponder(String dsId, NodeProvider nodeProvider,
     [String sessionId = '']) {
     String connPath = makeConnPath(dsId);
+    if (connPath == null) return null;
     RemoteLinkNode node = getOrCreateNode(connPath, false);
     Responder rslt = node._linkManager.getResponder(nodeProvider, dsId, sessionId);
     if (storage != null && sessionId == '' && rslt.storage == null) {

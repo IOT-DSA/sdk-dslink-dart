@@ -29,6 +29,10 @@ class DsSimpleLinkManager implements ServerLinkManager {
 
   void updateLinkData(String dsId, Map m) {
   }
+
+  String getLinkPath(String dsId, String token) {
+    return '/$dsId';
+  }
 }
 
 class DsHttpServer {
@@ -166,7 +170,9 @@ class DsHttpServer {
         }
         String str = UTF8.decode(merged);
         Map m = DsJson.decode(str);
+        
         HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
+             
         if (link == null) {
           String publicKeyPointStr = m['publicKey'];
           var bytes = Base64.decode(publicKeyPointStr);
@@ -174,13 +180,15 @@ class DsHttpServer {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
+          String token = request.requestedUri.queryParameters["token"];
           link = new HttpServerLink(
-              dsId, new PublicKey.fromBytes(bytes), _linkManager,
+              dsId, new PublicKey.fromBytes(bytes), _linkManager, token:token,
               nodeProvider: nodeProvider, enableTimeout: true);
           if (!trusted && !link.valid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
           }
+          
           if (!_linkManager.addLink(link) ) {
             throw HttpStatus.UNAUTHORIZED;
           }

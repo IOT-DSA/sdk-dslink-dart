@@ -18,6 +18,8 @@ import 'src/http/websocket_conn.dart';
 import "package:logging/logging.dart";
 
 import "package:dslink/broker.dart" show BrokerDiscoveryClient;
+import 'dart:typed_data';
+import 'package:cipher/digests/sha256.dart';
 
 export "src/crypto/pk.dart";
 
@@ -93,6 +95,9 @@ class LinkProvider {
   
   /// connect to user home space
   String home;
+  
+  /// connection token
+  String token;
 
   /// Create a Link Provider.
   /// [args] are the command-line arguments to pass in.
@@ -127,7 +132,6 @@ class LinkProvider {
       this.loadNodesJson: true,
       this.defaultLogLevel: "INFO",
       this.savePrivateKey: true,
-      this.home: null,
       this.overrideRequester,
       this.overrideResponder,
       NodeProvider nodeProvider, // For Backwards Compatibility
@@ -178,6 +182,8 @@ class LinkProvider {
         help: "Broker URL",
         defaultsTo: "http://127.0.0.1:8080/conn");
     argp.addOption("name", abbr: "n", help: "Link Name");
+    argp.addOption("home", help: "Home");
+    argp.addOption("token", help: "Token");
     argp.addOption("base-path", help: "Base Path for DSLink");
     argp.addOption("watch-file", help: "Watch File for DSLink", hide: true);
     argp.addOption("log-file", help: "Log File for DSLink");
@@ -281,7 +287,9 @@ class LinkProvider {
     }
 
     String name = opts["name"];
-
+    home = opts["home"];
+    token = opts["token"];
+    
     if (name != null) {
       if (name.endsWith("-")) {
         prefix = name;
@@ -482,7 +490,7 @@ class LinkProvider {
           nodeProvider: provider,
           overrideRequester:overrideRequester,
           overrideResponder:overrideResponder,
-          home: home, linkData:linkData);
+          home: home, token:token, linkData:linkData);
       _ready = true;
 
       if (_connectOnReady) {

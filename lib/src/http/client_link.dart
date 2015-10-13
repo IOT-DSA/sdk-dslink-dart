@@ -13,6 +13,7 @@ class HttpClientLink implements ClientLink {
 
   final String dsId;
   final String home;
+  final String token;
   final PrivateKey privateKey;
 
   Requester requester;
@@ -49,7 +50,7 @@ class HttpClientLink implements ClientLink {
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
       bool isResponder: true, Requester overrideRequester,
-      Responder overrideResponder, this.home, this.linkData
+      Responder overrideResponder, this.home, this.token, this.linkData
       //this.enableHttp: false
       })
       : privateKey = privateKey,
@@ -88,6 +89,15 @@ class HttpClientLink implements ClientLink {
     String connUrl = '$_conn?dsId=$dsId';
     if (home != null) {
       connUrl = '$connUrl&home=$home';
+    }
+    if (token != null && token.length > 16) {
+      String tokenId = token.substring(0, 16);
+      
+      Uint8List bytes = ByteDataUtil.list2Uint8List(UTF8.encode('$dsId$token'));
+      SHA256Digest sha256 = new SHA256Digest();
+      Uint8List hashed = sha256.process(new Uint8List.fromList(bytes));
+      String hashStr =  Base64.encode(hashed);
+      connUrl = '$connUrl&token=$tokenId$hashStr';
     }
     Uri connUri = Uri.parse(connUrl);
     logger.info("Connecting to ${_conn}");

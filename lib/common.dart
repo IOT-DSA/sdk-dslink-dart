@@ -140,6 +140,9 @@ abstract class ClientLink extends BaseLink {
 }
 
 abstract class ServerLinkManager {
+  
+  String getLinkPath(String dsId, String token);
+  
   /// return true if link is added
   bool addLink(ServerLink link);
 

@@ -4,9 +4,9 @@ class TokenGroupNode extends BrokerStaticNode {
   // a token map used by both global tokens, and user tokens
   static Map<String, TokenNode> tokens = new Map<String, TokenNode>();
   static String makeTokeId() {
-    List<int> tokenCodes = new List<int>(32);
+    List<int> tokenCodes = new List<int>(48);
     int i = 0;
-    while (i < 32) {
+    while (i < 48) {
       int n = DSRandom.instance.nextUint8();
       if ((n >= 0x30 && n <= 0x39) ||
           (n >= 0x41 && n <= 0x5A) ||
@@ -16,20 +16,44 @@ class TokenGroupNode extends BrokerStaticNode {
       }
     }
     String rslt = new String.fromCharCodes(tokenCodes);
-    if (tokens.containsKey(rslt)) {
+    String short = rslt.substring(0, 16);
+    if (tokens.containsKey(short)) {
       return makeTokeId();
     }
     return rslt;
   }
+  
+  static TokenNode findTokenNode(String token, String dsId) {
+    if (token.length < 16) {
+      return null;
+    }
+    String tokenId = token.substring(0,16);
+    String tokenHash = token.substring(16);
+    if (!tokens.containsKey(tokenId)) {
+      return null;
+    }
+    TokenNode tokenNode = tokens[tokenId];
+    if (tokenNode.token == null) {
+      return null;
+    }
+    Uint8List bytes = ByteDataUtil.list2Uint8List(UTF8.encode('$dsId${tokenNode.token}'));
+    SHA256Digest sha256 = new SHA256Digest();
+    Uint8List hashed = sha256.process(new Uint8List.fromList(bytes));
+    String hashStr =  Base64.encode(hashed);
+    if (hashStr == tokenHash) {
+      return tokenNode;
+    }
+    return null;
+  }
 
-  String groupId; 
+  String groupId;
   TokenGroupNode(String path, BrokerNodeProvider provider, this.groupId)
       : super(path, provider) {
     configs[r'$is'] = 'broker/tokenGroup';
     profile =
         provider.getOrCreateNode('/defs/profile/broker/tokenGroup', false);
   }
-  
+
   bool _loaded = false;
   void load(Map m) {
     if (_loaded) {
@@ -54,14 +78,13 @@ class TokenGroupNode extends BrokerStaticNode {
   }
 }
 
-
-
 class TokenNode extends BrokerStaticNode {
   int ts0 = -1;
   int ts1 = -1;
   int count = -1;
   TokenGroupNode parent;
   String id;
+  String token;
   TokenNode(String path, BrokerNodeProvider provider, this.parent, this.id)
       : super(path, provider) {
     configs[r'$is'] = 'broker/token';
@@ -77,10 +100,10 @@ class TokenNode extends BrokerStaticNode {
       String s = configs[r'$$timeRange'];
       List dates = s.split('/');
       if (dates.length == 2) {
-        try{
+        try {
           ts0 = DateTime.parse(dates[0]).millisecondsSinceEpoch;
           ts1 = DateTime.parse(dates[1]).millisecondsSinceEpoch;
-        } catch(err) {
+        } catch (err) {
           ts0 = -1;
           ts1 = -1;
         }
@@ -89,6 +112,14 @@ class TokenNode extends BrokerStaticNode {
     if (configs[r'$$count'] is num) {
       count = (configs[r'$$count'] as num).toInt();
     }
+    if (configs[r'$$token'] is String) {
+      token = configs[r'$$token'];
+    }
+  }
+  /// get the node where children should be connected
+  BrokerNode getTargetNode(){
+    // TODO, allow user to define the target node for his own token
+    return provider.connsNode;
   }
 }
 
@@ -99,7 +130,7 @@ InvokeResponse deleteTokenNode(Map params, Responder responder,
     TokenGroupNode.tokens.remove(parentNode.id);
     parentNode.parent.updateList(parentNode.id);
     parentNode.provider.clearNode(parentNode);
-    
+
     DsTimer.timerOnceBefore(
         (responder.nodeProvider as BrokerNodeProvider).saveTokensNodes, 1000);
     return response..close();
@@ -110,18 +141,19 @@ InvokeResponse deleteTokenNode(Map params, Responder responder,
 InvokeResponse addTokenNode(Map params, Responder responder,
     InvokeResponse response, LocalNode parentNode) {
   if (parentNode is TokenGroupNode) {
-    String tokenId = TokenGroupNode.makeTokeId();
-    TokenNode node = new TokenNode(
-        '${parentNode.path}/$tokenId', parentNode.provider, parentNode, tokenId);
+    String token = TokenGroupNode.makeTokeId();
+    String tokenId = token.substring(0, 16);
+    TokenNode node = new TokenNode('${parentNode.path}/$tokenId',
+        parentNode.provider, parentNode, tokenId);
     node.configs[r'$$timeRange'] = params['timeRange'];
     node.configs[r'$$count'] = params['count'];
+    node.configs[r'$$token'] = token;
     node.init();
     TokenGroupNode.tokens[tokenId] = node;
     parentNode.children[tokenId] = node;
     parentNode.updateList(tokenId);
 
-    //TODO
-    response.updateStream([[tokenId]], streamStatus: StreamStatus.closed);
+    response.updateStream([[token]], streamStatus: StreamStatus.closed);
     DsTimer.timerOnceBefore(
         (responder.nodeProvider as BrokerNodeProvider).saveTokensNodes, 1000);
     return response;
