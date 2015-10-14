@@ -154,7 +154,8 @@ class DsHttpServer {
   }
 
   void _handleConn(HttpRequest request, String dsId) {
-    bool trusted = (request.requestedUri.host == '127.0.0.1');
+    String tokenHash = request.requestedUri.queryParameters["token"];
+    bool trusted = tokenHash != null && tokenHash.substring(0,16) == TokenGroupNode.trustedToken.id;
 
     request.fold([], foldList).then((List<int> merged) {
       try {
@@ -180,11 +181,13 @@ class DsHttpServer {
             // public key is invalid
             throw HttpStatus.BAD_REQUEST;
           }
-          String token = request.requestedUri.queryParameters["token"];
+          
           link = new HttpServerLink(
-              dsId, new PublicKey.fromBytes(bytes), _linkManager, token:token,
+              dsId, new PublicKey.fromBytes(bytes), _linkManager, token:tokenHash,
               nodeProvider: nodeProvider, enableTimeout: true);
-          if (!trusted && !link.valid) {
+          if (trusted) {
+            link.trustedTokenHash = tokenHash;
+          } else if (!link.isDsIdValid) {
             // dsId doesn't match public key
             throw HttpStatus.BAD_REQUEST;
           }
@@ -193,6 +196,7 @@ class DsHttpServer {
             throw HttpStatus.UNAUTHORIZED;
           }
         }
+        
         link.initLink(request, m['isRequester'] == true,
             m['isResponder'] == true, dsId, publicKey,
             updateInterval: updateInterval, linkData:m['linkData']);
@@ -220,9 +224,9 @@ class DsHttpServer {
 //  }
 
   void _handleWsUpdate(HttpRequest request, String dsId) {
-    bool trusted = request.requestedUri.host == '127.0.0.1';
     HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
     if (link != null) {
+      bool trusted = link.trustedTokenHash != null && request.requestedUri.queryParameters["token"] == link.trustedTokenHash;
       if (link.pendingLinkData != null) {
         _linkManager.updateLinkData(link.dsId, link.pendingLinkData);
         link.pendingLinkData = null;

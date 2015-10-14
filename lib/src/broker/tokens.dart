@@ -3,7 +3,21 @@ part of dslink.broker;
 class TokenGroupNode extends BrokerStaticNode {
   // a token map used by both global tokens, and user tokens
   static Map<String, TokenNode> tokens = new Map<String, TokenNode>();
-  static String makeTokeId() {
+  
+  static TokenNode _trustedToken;
+  static TokenNode get trustedToken => _trustedToken;
+  static String initSecretToken(BrokerNodeProvider provider){
+    String token = makeToken();
+    String tokenId = token.substring(0, 16);
+    TokenNode node = new TokenNode(null, provider, null, tokenId);
+    node.configs[r'$$token'] = token;
+    node.init();
+    TokenGroupNode.tokens[tokenId] = node;
+    _trustedToken = node;
+    return token;
+  }
+  
+  static String makeToken() {
     List<int> tokenCodes = new List<int>(48);
     int i = 0;
     while (i < 48) {
@@ -18,7 +32,7 @@ class TokenGroupNode extends BrokerStaticNode {
     String rslt = new String.fromCharCodes(tokenCodes);
     String short = rslt.substring(0, 16);
     if (tokens.containsKey(short)) {
-      return makeTokeId();
+      return makeToken();
     }
     return rslt;
   }
@@ -78,7 +92,7 @@ class TokenGroupNode extends BrokerStaticNode {
   }
 }
 
-class TokenNode extends BrokerStaticNode {
+class TokenNode extends BrokerNode {
   int ts0 = -1;
   int ts1 = -1;
   int count = -1;
@@ -89,6 +103,10 @@ class TokenNode extends BrokerStaticNode {
       : super(path, provider) {
     configs[r'$is'] = 'broker/token';
     profile = provider.getOrCreateNode('/defs/profile/broker/token', false);
+    if (path != null) {
+      // trustedTokenNode is not stored in the tree
+      provider.setNode(path, this);
+    }
   }
   void load(Map m) {
     super.load(m);
@@ -115,6 +133,8 @@ class TokenNode extends BrokerStaticNode {
     if (configs[r'$$token'] is String) {
       token = configs[r'$$token'];
     }
+    //TODO implement target position
+    //TODO when target position is gone, token should be removed
   }
   /// get the node where children should be connected
   BrokerNode getTargetNode(){
@@ -141,7 +161,7 @@ InvokeResponse deleteTokenNode(Map params, Responder responder,
 InvokeResponse addTokenNode(Map params, Responder responder,
     InvokeResponse response, LocalNode parentNode) {
   if (parentNode is TokenGroupNode) {
-    String token = TokenGroupNode.makeTokeId();
+    String token = TokenGroupNode.makeToken();
     String tokenId = token.substring(0, 16);
     TokenNode node = new TokenNode('${parentNode.path}/$tokenId',
         parentNode.provider, parentNode, tokenId);
