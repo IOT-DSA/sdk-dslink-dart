@@ -84,7 +84,7 @@ class NodeCryptoProvider implements CryptoProvider {
   }
 
   String base64_sha256(Uint8List bytes) {
-    return _hash(bytes);
+    return _hash(listToBuf(bytes));
   }
 }
 
