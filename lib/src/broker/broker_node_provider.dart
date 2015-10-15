@@ -599,7 +599,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
             break;
           }
         }
-        
+        tokenNode.useCount();
         DsTimer.timerOnceBefore(saveConns, 3000);
         return connPath;
       }

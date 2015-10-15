@@ -47,9 +47,17 @@ class TokenGroupNode extends BrokerStaticNode {
       return null;
     }
     TokenNode tokenNode = tokens[tokenId];
-    if (tokenNode.token == null) {
+    if (tokenNode.token == null || tokenNode.count == 0) {
       return null;
     }
+    if (tokenNode.ts0 >= 0 && tokenNode.ts1 >= 0) {
+      int ts = new DateTime.now().millisecondsSinceEpoch;
+      if (ts < tokenNode.ts0 || ts >= tokenNode.ts1) {
+        return null;
+      }
+    }
+    
+    
     String hashStr = CryptoProvider.sha256(UTF8.encode('$dsId${tokenNode.token}'));
     if (hashStr == tokenHash) {
       return tokenNode;
@@ -137,6 +145,15 @@ class TokenNode extends BrokerNode {
   BrokerNode getTargetNode(){
     // TODO, allow user to define the target node for his own token
     return provider.connsNode;
+  }
+  
+  void useCount(){
+    if (count >0) {
+      count--;
+      configs[r'$$count'] = count;
+      updateList(r'$$count');
+      DsTimer.timerOnceBefore(provider.saveTokensNodes, 1000);
+    }
   }
 }
 
