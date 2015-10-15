@@ -111,9 +111,13 @@ class Requester extends ConnectionHandler {
     var c = new Completer<ValueUpdate>();
     ReqSubscribeListener listener;
     listener = subscribe(path, (ValueUpdate update) {
-      c.complete(update);
+      if (!c.isCompleted) {
+        c.complete(update);
+      }
+
       if (listener != null) {
         listener.cancel();
+        listener = null;
       }
     });
     return c.future;
@@ -123,12 +127,17 @@ class Requester extends ConnectionHandler {
     var c = new Completer<RemoteNode>();
     StreamSubscription sub;
     sub = list(path).listen((update) {
-      c.complete(update.node);
+      if (!c.isCompleted) {
+        c.complete(update.node);
+      }
+
       if (sub != null) {
         sub.cancel();
       }
     }, onError: (e, stack) {
-      c.completeError(e, stack);
+      if (!c.isCompleted) {
+        c.completeError(e, stack);
+      }
     }, cancelOnError: true);
     return c.future;
   }
