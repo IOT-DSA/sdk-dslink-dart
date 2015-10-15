@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'dart/pk.dart' show DartCryptoProvider;
+import '../../utils.dart';
 
 CryptoProvider _CRYPTO_PROVIDER = DartCryptoProvider.INSTANCE;
 bool _isCryptoProviderLocked = false;
@@ -18,6 +19,12 @@ setCryptoProvider(CryptoProvider provider) {
 lockCryptoProvider() => _isCryptoProviderLocked = true;
 
 abstract class CryptoProvider {
+  static String sha256(List<int> list){
+    Uint8List bytes = ByteDataUtil.list2Uint8List(list);
+    return _CRYPTO_PROVIDER.base64_sha256(bytes);
+  }
+  
+  
   DSRandom get random;
 
   Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old);
@@ -29,6 +36,8 @@ abstract class CryptoProvider {
   PrivateKey loadFromString(String str);
 
   PublicKey getKeyFromBytes(Uint8List bytes);
+  
+  String base64_sha256(Uint8List bytes); 
 }
 
 abstract class ECDH {

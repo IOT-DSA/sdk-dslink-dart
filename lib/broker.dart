@@ -12,7 +12,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'src/http/websocket_conn.dart';
 import 'dart:typed_data';
-import 'package:cipher/digests/sha256.dart';
 
 part 'src/broker/broker_node_provider.dart';
 part 'src/broker/broker_node.dart';

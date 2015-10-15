@@ -74,10 +74,7 @@ class HttpClientLink implements ClientLink {
     if (token != null && token.length > 16) {
       // pre-generate tokenHash
       String tokenId = token.substring(0, 16);
-      Uint8List bytes = ByteDataUtil.list2Uint8List(UTF8.encode('$dsId$token'));
-      SHA256Digest sha256 = new SHA256Digest();
-      Uint8List hashed = sha256.process(new Uint8List.fromList(bytes));
-      String hashStr =  Base64.encode(hashed);
+      String hashStr =   CryptoProvider.sha256(UTF8.encode('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
   }

@@ -19,7 +19,6 @@ import "package:logging/logging.dart";
 
 import "package:dslink/broker.dart" show BrokerDiscoveryClient;
 import 'dart:typed_data';
-import 'package:cipher/digests/sha256.dart';
 
 export "src/crypto/pk.dart";
 

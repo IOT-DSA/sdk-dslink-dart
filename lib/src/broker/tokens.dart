@@ -50,10 +50,7 @@ class TokenGroupNode extends BrokerStaticNode {
     if (tokenNode.token == null) {
       return null;
     }
-    Uint8List bytes = ByteDataUtil.list2Uint8List(UTF8.encode('$dsId${tokenNode.token}'));
-    SHA256Digest sha256 = new SHA256Digest();
-    Uint8List hashed = sha256.process(new Uint8List.fromList(bytes));
-    String hashStr =  Base64.encode(hashed);
+    String hashStr = CryptoProvider.sha256(UTF8.encode('$dsId${tokenNode.token}'));
     if (hashStr == tokenHash) {
       return tokenNode;
     }

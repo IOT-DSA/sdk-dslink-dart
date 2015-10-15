@@ -82,6 +82,10 @@ class NodeCryptoProvider implements CryptoProvider {
     var buf = listToBuf(bytes);
     return new PublicKeyImpl(_toObj(_curve["Point"].callMethod("fromEncoded", ["prime256v1", buf])));
   }
+
+  String base64_sha256(Uint8List bytes) {
+    return _hash(bytes);
+  }
 }
 
 class ECDHImpl extends ECDH {

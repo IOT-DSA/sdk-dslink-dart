@@ -129,6 +129,13 @@ class DartCryptoProvider implements CryptoProvider {
     ECPoint Q = _secp256r1.curve.decodePoint(bytes);
     return new PublicKeyImpl(new ECPublicKey(Q, _secp256r1));
   }
+
+
+  String base64_sha256(Uint8List bytes) {
+    SHA256Digest sha256 = new SHA256Digest();
+    Uint8List hashed = sha256.process(new Uint8List.fromList(bytes));
+    return Base64.encode(hashed);
+  }
 }
 
 class ECDHImpl extends ECDH {
