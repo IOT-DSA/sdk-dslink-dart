@@ -143,19 +143,10 @@ main(List<String> _args) async {
     }
   }
 
-  String lastUpstreamConns = "";
-
-  new Timer.periodic(const Duration(seconds: 5), (_) async {
-    var map = broker.upstream.getConfigMap();
-    var x = JSON.encode(map);
-
-    if (lastUpstreamConns.isNotEmpty || (x != lastUpstreamConns)) {
-      lastUpstreamConns = x;
-
-      config["upstream"] = map;
-      await saveConfig();
-    }
-  });
+  broker.upstream.onUpdate = (map) async {
+    config["upstream"] = map;
+    await saveConfig();
+  };
 }
 
 const String defaultConfig = """{
