@@ -191,6 +191,14 @@ class UpstreamNode extends BrokerStaticNode {
 
     return map;
   }
+
+  void update() {
+    if (onUpdate != null) {
+      onUpdate(getConfigMap());
+    }
+  }
+
+  Function onUpdate;
 }
 
 class CreateUpstreamBrokerNode extends BrokerNode {
@@ -232,6 +240,7 @@ class CreateUpstreamBrokerNode extends BrokerNode {
     var url = params["url"];
     var b = provider.getOrCreateNode("/sys/upstream", false) as UpstreamNode;
     b.addUpstreamConnection(name, url, ourName);
+    provider.upstream.update();
     return response..close();
   }
 }
@@ -253,6 +262,7 @@ class DeleteUpstreamConnectionNode extends BrokerNode {
       [int maxPermission = Permission.CONFIG]) {
     var b = provider.getOrCreateNode("/sys/upstream", false) as UpstreamNode;
     b.removeUpstreamConnection(name);
+    provider.upstream.update();
     return response..close();
   }
 }
@@ -274,6 +284,7 @@ class UpstreamUrlNode extends BrokerNode {
       un.enabled = true;
       un.start();
 
+      provider.upstream.update();
       return super.setValue(value, responder, response, maxPermission);
     }
 
@@ -295,6 +306,8 @@ class UpstreamNameNode extends BrokerNode {
       b.moveUpstreamConnection(un.name, value.toString());
     }
 
+    provider.upstream.update();
+
     return response..close();
   }
 }
@@ -315,6 +328,8 @@ class UpstreamEnabledNode extends BrokerNode {
       un.enabled = false;
       un.stop();
     }
+
+    provider.upstream.update();
 
     return super.setValue(value, responder, response, maxPermission);
   }
