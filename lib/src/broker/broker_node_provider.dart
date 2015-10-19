@@ -274,6 +274,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       String path = '/sys/tokens/root';
       TokenGroupNode tokens = new TokenGroupNode(path, this, 'root');
     }
+    TokenGroupNode.initSecretToken(this);
   }
   Future<Map> saveTokensNodes() async {
     Map m = {};
@@ -598,7 +599,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
             break;
           }
         }
-        
+        tokenNode.useCount();
         DsTimer.timerOnceBefore(saveConns, 3000);
         return connPath;
       }

@@ -16,6 +16,8 @@ class HttpClientLink implements ClientLink {
   final String token;
   final PrivateKey privateKey;
 
+  String tokenHash;
+  
   Requester requester;
   Responder responder;
 
@@ -69,6 +71,12 @@ class HttpClientLink implements ClientLink {
         responder = new Responder(nodeProvider);
       }
     }
+    if (token != null && token.length > 16) {
+      // pre-generate tokenHash
+      String tokenId = token.substring(0, 16);
+      String hashStr =   CryptoProvider.sha256(UTF8.encode('$dsId$token'));
+      tokenHash = '&token=$tokenId$hashStr';
+    }
   }
 
   int _connDelay = 1;
@@ -90,14 +98,8 @@ class HttpClientLink implements ClientLink {
     if (home != null) {
       connUrl = '$connUrl&home=$home';
     }
-    if (token != null && token.length > 16) {
-      String tokenId = token.substring(0, 16);
-      
-      Uint8List bytes = ByteDataUtil.list2Uint8List(UTF8.encode('$dsId$token'));
-      SHA256Digest sha256 = new SHA256Digest();
-      Uint8List hashed = sha256.process(new Uint8List.fromList(bytes));
-      String hashStr =  Base64.encode(hashed);
-      connUrl = '$connUrl&token=$tokenId$hashStr';
+    if (tokenHash != null) {
+      connUrl = '$connUrl$tokenHash';
     }
     Uri connUri = Uri.parse(connUrl);
     logger.info("Connecting to ${_conn}");
@@ -169,8 +171,11 @@ class HttpClientLink implements ClientLink {
 //      initHttp();
 //    }
     try {
-      var socket = await HttpHelper.connectToWebSocket(
-          '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+      String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}';
+      if (tokenHash != null) {
+        wsUrl = '$wsUrl$tokenHash';
+      }
+      var socket = await HttpHelper.connectToWebSocket(wsUrl);
       _wsConnection = new WebSocketConnection(socket,
           clientLink: this, enableTimeout: true, enableAck: enableAck);
 

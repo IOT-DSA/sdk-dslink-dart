@@ -6,6 +6,7 @@ class HttpServerLink implements ServerLink {
   final String session;
   final String token;
   String path;
+  String trustedTokenHash;
   Completer<Requester> onRequesterReadyCompleter = new Completer<Requester>();
 
   Future<Requester> get onRequesterReady => onRequesterReadyCompleter.future;
@@ -67,7 +68,7 @@ class HttpServerLink implements ServerLink {
   }
 
   /// check if public key matches the dsId
-  bool get valid {
+  bool get isDsIdValid {
     return publicKey.verifyDsId(dsId);
   }
 

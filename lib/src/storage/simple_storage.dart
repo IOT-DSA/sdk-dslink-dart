@@ -226,7 +226,7 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
     Map rslt = {};
     List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
-      String name = entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1);
+      String name = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1));
       File f = new File(entity.path);
       Future future = f.readAsString().then((String str){
         rslt[name] = DsJson.decode(str);
