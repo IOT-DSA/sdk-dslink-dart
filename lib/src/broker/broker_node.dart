@@ -154,7 +154,12 @@ class UpstreamNode extends BrokerStaticNode {
       node.stop();
       node.toBeRemoved = true;
       children.remove(name);
+      var rp = "/sys/upstream/${name}/";
+      provider.nodes.remove(rp.substring(0, rp.length - 1));
+      List<String> toRemove = provider.nodes.keys.where((x) => x.startsWith(rp)).toList();
+      toRemove.forEach(provider.nodes.remove);
       updateList(name);
+      provider.clearUpstreamNodes();
     }
   }
 

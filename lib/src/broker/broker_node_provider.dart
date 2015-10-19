@@ -322,6 +322,32 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     DsTimer.timerOnceAfter(saveConns, 3000);
   }
 
+  void clearUpstreamNodes() {
+    List names = upstreamDataNode.children.keys.toList();
+    for (String name in names) {
+      var val = upstreamDataNode.children[name];
+      if (val is! RemoteLinkNode) {
+        continue;
+      }
+
+      RemoteLinkNode node = val;
+      RemoteLinkManager manager = node._linkManager;
+      if (manager.disconnected != null || !upstream.children.containsKey(name)) {
+        String fullId = _connPath2id[manager.path];
+        _connPath2id.remove(manager.path);
+        _id2connPath.remove(fullId);
+        upstreamDataNode.children.remove(name);
+        manager.inTree = false;
+        // remove server link if it's not connected
+        if (_links.containsKey(fullId)) {
+          _links.remove(fullId);
+        }
+        upstreamDataNode.updateList(name);
+      }
+    }
+    DsTimer.timerOnceAfter(saveConns, 3000);
+  }
+
   /// add a node to the tree
   void setNode(String path, LocalNode newNode) {
     LocalNode node = nodes[path];
