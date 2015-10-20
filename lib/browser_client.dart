@@ -91,10 +91,10 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   return _cachedPrivateKey;
 }
 
-void _startStorageLock(String lockKey, String token){
+void _startStorageLock(String lockKey, String lockToken){
   void onStorage(StorageEvent e){
     if (e.key == lockKey) {
-      window.localStorage[lockKey] = token;
+      window.localStorage[lockKey] = lockToken;
     }
   }
   window.onStorage.listen(onStorage);

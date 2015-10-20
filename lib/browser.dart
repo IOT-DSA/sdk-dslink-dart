@@ -44,6 +44,7 @@ class LinkProvider {
   String prefix;
   bool isRequester;
   bool isResponder;
+  String token;
 
   LinkProvider(this.brokerUrl, this.prefix,
       {this.defaultNodes,
@@ -52,7 +53,8 @@ class LinkProvider {
       this.dataStore,
       this.loadNodes: false,
       this.isRequester: true,
-      this.isResponder: true}) {
+      this.isResponder: true,
+      this.token}) {
     if (dataStore == null) {
       dataStore = LocalDataStorage.INSTANCE;
     }
@@ -89,7 +91,8 @@ class LinkProvider {
     link = new BrowserECDHLink(brokerUrl, prefix, privateKey,
         nodeProvider: provider,
         isRequester: isRequester,
-        isResponder: isResponder);
+        isResponder: isResponder,
+        token:token);
 
   }
 

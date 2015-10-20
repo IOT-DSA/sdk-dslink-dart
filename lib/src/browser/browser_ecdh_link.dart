@@ -8,7 +8,8 @@ class BrowserECDHLink implements ClientLink {
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   final String dsId;
-
+  final String token;
+  
   final Requester requester;
   final Responder responder;
   final PrivateKey privateKey;
@@ -37,11 +38,13 @@ class BrowserECDHLink implements ClientLink {
   String _wsUpdateUri;
   String _httpUpdateUri;
   String _conn;
+  String tokenHash;
 
   BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider,
       bool isRequester: true,
-      bool isResponder: true})
+      bool isResponder: true,
+      this.token})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
@@ -51,13 +54,23 @@ class BrowserECDHLink implements ClientLink {
               if (!_conn.contains('://')) {
                 _conn = 'http://$_conn';
               }
+              if (token != null && token.length > 16) {
+                // pre-generate tokenHash
+                String tokenId = token.substring(0, 16);
+                String hashStr =   CryptoProvider.sha256(UTF8.encode('$dsId$token'));
+                tokenHash = '&token=$tokenId$hashStr';
+              }
             }
 
   int _connDelay = 1;
   connect() async {
     if (_closed) return;
     lockCryptoProvider();
-    Uri connUri = Uri.parse('$_conn?dsId=$dsId');
+    String connUrl = '$_conn?dsId=$dsId';
+    if (tokenHash != null) {
+      connUrl = '$connUrl$tokenHash';
+    }
+    Uri connUri = Uri.parse(connUrl);
     logger.info('Connecting: $connUri');
     try {
       Map requestJson = {
@@ -66,7 +79,7 @@ class BrowserECDHLink implements ClientLink {
         'isResponder': responder != null,
         'version': DSA_VERSION
       };
-      HttpRequest request = await HttpRequest.request(connUri.toString(),
+      HttpRequest request = await HttpRequest.request(connUrl,
           method: 'POST',
           withCredentials: false,
           mimeType: 'application/json',
@@ -82,13 +95,21 @@ class BrowserECDHLink implements ClientLink {
       if (serverConfig['wsUri'] is String) {
         _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
             .replaceFirst('http', 'ws');
+        if (tokenHash != null) {
+          _wsUpdateUri = '$_wsUpdateUri$tokenHash';
+        }
+
       }
 
       if (serverConfig['httpUri'] is String) {
         // TODO implement http
         _httpUpdateUri =
             '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
+        if (tokenHash != null) {
+          _httpUpdateUri = '$_httpUpdateUri$tokenHash';
+        }
       }
+
       // server start to support version since 1.0.4
       // and this is the version ack is added
       enableAck = serverConfig.containsKey('version');
