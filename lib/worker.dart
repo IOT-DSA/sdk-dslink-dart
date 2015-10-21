@@ -24,7 +24,9 @@ WorkerSocket createFakeWorker(WorkerFunction function,
   var receiver = new ReceivePort();
   var socket = new WorkerSocket.master(receiver);
   Timer.run(() {
-    function(new Worker(receiver.sendPort, metadata));
+    var w = new Worker(receiver.sendPort, metadata);
+    w._master = socket;
+    function(w);
   });
   return socket;
 }
@@ -77,12 +79,21 @@ WorkerPool createWorkerPool(int count, WorkerFunction function,
 
 class WorkerPool {
   final List<WorkerSocket> sockets;
+  Map<String, Producer> _methods = {};
 
   WorkerPool(this.sockets) {
     for (var i = 0; i < sockets.length; i++) {
       _workCounts[i] = 0;
+      sockets[i]._pool = this;
+      sockets[i].onReceivedMessageHandler = (msg) {
+        if (onMessageReceivedHandler != null) {
+          onMessageReceivedHandler(i, msg);
+        }
+      };
     }
   }
+
+  Function onMessageReceivedHandler;
 
   Future waitFor() {
     return Future.wait(sockets.map((it) => it.waitFor()).toList());
@@ -119,7 +130,7 @@ class WorkerPool {
   }
 
   void addMethod(String name, Producer handler) {
-    forEach((socket) => socket.addMethod(name, handler));
+    _methods[name] = handler;
   }
 
   Future<List<dynamic>> callMethod(String name, [argument]) {
@@ -196,12 +207,21 @@ class Worker {
   Worker(this.port, [Map<String, dynamic> meta])
       : metadata = meta == null ? {} : meta;
 
-  WorkerSocket createSocket() => new WorkerSocket.worker(port);
+  WorkerSocket createSocket() {
+    var sock = new WorkerSocket.worker(port);
+    if (_master != null) {
+      sock._master = _master;
+      _master._targetWorker = sock;
+    }
+    return sock;
+  }
   Future<WorkerSocket> init({Map<String, Producer> methods}) async =>
       await createSocket().init(methods: methods);
 
   dynamic get(String key) => metadata[key];
   bool has(String key) => metadata.containsKey(key);
+
+  WorkerSocket _master;
 }
 
 typedef Future<T> WorkerMethod<T>([argument]);
@@ -211,186 +231,128 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   SendPort _sendPort;
 
   WorkerSocket.master(this.receiver) : isWorker = false {
-    receiver.listen((msg) {
-      if (msg == null || msg is! Map) {
-        return;
-      }
-
-      String type = msg["type"];
-
-      if (type == null) {
-        return;
-      }
-
-      if (type == "send_port") {
-        _sendPort = msg["port"];
-        if (!_readyCompleter.isCompleted) {
-          _readyCompleter.complete();
-        }
-      } else if (type == "data") {
-        _controller.add(msg["data"]);
-      } else if (type == "error") {
-        _controller.addError(msg["error"]);
-      } else if (type == "ping") {
-        _sendPort.send(msg["id"]);
-      } else if (type == "pong") {
-        var id = msg["id"];
-        if (_pings.containsKey(id)) {
-          _pings[id].complete();
-          _pings.remove(id);
-        }
-      } else if (type == "request") {
-        _handleRequest(msg["name"], msg["id"], msg["argument"]);
-      } else if (type == "response") {
-        var id = msg["id"];
-        var result = msg["result"];
-        if (msg.containsKey("error")) {
-          if (_responseHandlers.containsKey(id)) {
-            _responseHandlers.remove(id).completeError(
-                msg["error"],
-                new StackTrace.fromString(msg["stack"])
-            );
-          } else {
-            throw new Exception("Invalid Request ID: ${id}");
-          }
-        } else {
-          if (_responseHandlers.containsKey(id)) {
-            _responseHandlers.remove(id).complete(result);
-          } else {
-            throw new Exception("Invalid Request ID: ${id}");
-          }
-        }
-      } else if (type == "stopped") {
-        _stopCompleter.complete();
-      } else if (type == "session.created") {
-        var id = msg["session"];
-        _remoteSessions[id] = new _WorkerSession(this, id, false);
-        _sendPort.send({"type": "session.ready", "session": id});
-        _sessionController.add(_remoteSessions[id]);
-      } else if (type == "session.ready") {
-        var id = msg["session"];
-        if (_sessionReady.containsKey(id)) {
-          _sessionReady[id].complete();
-          _sessionReady.remove(id);
-        }
-      } else if (type == "session.data") {
-        var id = msg["session"];
-        if (_ourSessions.containsKey(id)) {
-          (_ourSessions[id] as _WorkerSession)._messages.add(msg["data"]);
-        } else if (_remoteSessions.containsKey(id)) {
-          (_remoteSessions[id] as _WorkerSession)._messages.add(msg["data"]);
-        }
-      } else if (type == "session.done") {
-        var id = msg["session"];
-        if (_ourSessions.containsKey(id)) {
-          var c = (_ourSessions[id] as _WorkerSession)._doneCompleter;
-          if (!c.isCompleted) {
-            c.complete();
-          }
-          _ourSessions.remove(id);
-        } else if (_remoteSessions.containsKey(id)) {
-          var c = (_remoteSessions[id] as _WorkerSession)._doneCompleter;
-          if (!c.isCompleted) {
-            c.complete();
-          }
-          _remoteSessions.remove(id);
-        }
-      } else {
-        throw new Exception("Unknown message: ${msg}");
-      }
-    });
+    receiver.listen(handleData);
   }
 
   WorkerSocket.worker(SendPort port)
       : _sendPort = port,
         receiver = new ReceivePort(),
         isWorker = true {
-    _sendPort.send({"type": "send_port", "port": receiver.sendPort});
+    _sendPort.send({"t": "send_port", "port": receiver.sendPort});
 
-    receiver.listen((msg) {
-      if (msg == null || msg is! Map) {
-        return;
+    receiver.listen(handleData);
+  }
+
+  Function onReceivedMessageHandler;
+
+  WorkerPool _pool;
+
+  handleData(msg) {
+    if (onReceivedMessageHandler != null) {
+      onReceivedMessageHandler(msg);
+    }
+
+    if (msg == null || msg is! Map) {
+      return;
+    }
+
+    String type = msg["t"];
+
+    if (type == null) {
+      type = msg["type"];
+    }
+
+    if (type == null) {
+      return;
+    }
+
+    if (type == "send_port") {
+      _sendPort = msg["port"];
+      if (!_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
       }
-
-      String type = msg["type"];
-
-      if (type == null) {
-        return;
+    } else if (type == "data") {
+      _controller.add(msg["d"]);
+    } else if (type == "error") {
+      _controller.addError(msg["e"]);
+    } else if (type == "ping") {
+      _sendPort.send({
+        "t": "pong",
+        "i": msg["i"]
+      });
+    } else if (type == "pong") {
+      var id = msg["i"];
+      if (_pings.containsKey(id)) {
+        _pings[id].complete();
+        _pings.remove(id);
       }
-
-      if (type == "data") {
-        _controller.add(msg["data"]);
-      } else if (type == "error") {
-        _controller.addError(msg["error"]);
-      } else if (type == "stop") {
-        _stopCompleter.complete();
-        _sendPort.send({"type": "stopped"});
-      } else if (type == "ping") {
-        _sendPort.send({"type": "pong", "id": msg["id"]});
-      } else if (type == "pong") {
-        var id = msg["id"];
-        if (_pings.containsKey(id)) {
-          _pings[id].complete();
-          _pings.remove(id);
-        }
-      } else if (type == "request") {
-        _handleRequest(msg["name"], msg["id"], msg["argument"]);
-      } else if (type == "session.created") {
-        var id = msg["session"];
-        _remoteSessions[id] = new _WorkerSession(this, id, false);
-        _sendPort.send({"type": "session.ready", "session": id});
-        _sessionController.add(_remoteSessions[id]);
-      } else if (type == "session.ready") {
-        var id = msg["session"];
-        if (_sessionReady.containsKey(id)) {
-          _sessionReady[id].complete();
-          _sessionReady.remove(id);
-        }
-      } else if (type == "session.data") {
-        var id = msg["session"];
-        if (_ourSessions.containsKey(id)) {
-          (_ourSessions[id] as _WorkerSession)._messages.add(msg["data"]);
-        } else if (_remoteSessions.containsKey(id)) {
-          (_remoteSessions[id] as _WorkerSession)._messages.add(msg["data"]);
-        }
-      } else if (type == "session.done") {
-        var id = msg["session"];
-        if (_ourSessions.containsKey(id)) {
-          var c = (_ourSessions[id] as _WorkerSession)._doneCompleter;
-          if (!c.isCompleted) {
-            c.complete();
-          }
-          _ourSessions.remove(id);
-        } else if (_remoteSessions.containsKey(id)) {
-          var c = (_remoteSessions[id] as _WorkerSession)._doneCompleter;
-          if (!c.isCompleted) {
-            c.complete();
-          }
-          _remoteSessions.remove(id);
-        }
-      } else if (type == "response") {
-        var id = msg["id"];
-        var result = msg["result"];
-        if (msg.containsKey("error")) {
-          if (_responseHandlers.containsKey(id)) {
-            _responseHandlers.remove(id).completeError(
-                msg["error"],
-                new StackTrace.fromString(msg["stack"])
-            );
-          } else {
-            throw new Exception("Invalid Request ID: ${id}");
-          }
+    } else if (type == "req") {
+      _handleRequest(msg["n"], msg["i"], msg["a"]);
+    } else if (type == "res") {
+      var id = msg["i"];
+      var result = msg["r"];
+      var err = msg["e"];
+      if (err != null) {
+        if (_responseHandlers.containsKey(id)) {
+          _responseHandlers.remove(id).completeError(
+              err,
+              new StackTrace.fromString(msg["s"])
+          );
         } else {
-          if (_responseHandlers.containsKey(id)) {
-            _responseHandlers.remove(id).complete(result);
-          } else {
-            throw new Exception("Invalid Request ID: ${id}");
-          }
+          throw new Exception("Invalid Request ID: ${id}");
         }
       } else {
-        throw new Exception("Unknown message: ${msg}");
+        if (_responseHandlers.containsKey(id)) {
+          _responseHandlers.remove(id).complete(result);
+        } else {
+          throw new Exception("Invalid Request ID: ${id}");
+        }
       }
-    });
+    } else if (type == "stop") {
+      if (!_stopCompleter.isCompleted) {
+        _stopCompleter.complete();
+      }
+      _sendPort.send({"t": "stopped"});
+    } else if (type == "stopped") {
+      if (!_stopCompleter.isCompleted) {
+        _stopCompleter.complete();
+      }
+    } else if (type == "session.created") {
+      var id = msg["s"];
+      _remoteSessions[id] = new _WorkerSession(this, id, false);
+      _sendPort.send({"t": "session.ready", "s": id});
+      _sessionController.add(_remoteSessions[id]);
+    } else if (type == "session.ready") {
+      var id = msg["s"];
+      if (_sessionReady.containsKey(id)) {
+        _sessionReady[id].complete();
+        _sessionReady.remove(id);
+      }
+    } else if (type == "session.data") {
+      var id = msg["s"];
+      if (_ourSessions.containsKey(id)) {
+        (_ourSessions[id] as _WorkerSession)._messages.add(msg["d"]);
+      } else if (_remoteSessions.containsKey(id)) {
+        (_remoteSessions[id] as _WorkerSession)._messages.add(msg["d"]);
+      }
+    } else if (type == "session.done") {
+      var id = msg["s"];
+      if (_ourSessions.containsKey(id)) {
+        var c = (_ourSessions[id] as _WorkerSession)._doneCompleter;
+        if (!c.isCompleted) {
+          c.complete();
+        }
+        _ourSessions.remove(id);
+      } else if (_remoteSessions.containsKey(id)) {
+        var c = (_remoteSessions[id] as _WorkerSession)._doneCompleter;
+        if (!c.isCompleted) {
+          c.complete();
+        }
+        _remoteSessions.remove(id);
+      }
+    } else {
+      throw new Exception("Unknown message: ${msg}");
+    }
   }
 
   Map<int, Completer> _pings = {};
@@ -420,34 +382,82 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     _requestHandlers[name] = producer;
   }
 
+  WorkerSocket _master;
+  WorkerSocket _targetWorker;
+
   Future callMethod(String name, [argument]) {
+    if (isWorker && _master != null) {
+      var handler = _master._requestHandlers[name];
+      if (handler == null) {
+        handler = _master._pool._methods[name];
+      }
+
+      var result = handler(argument);
+      if (result is! Future) {
+        return new Future.value(result);
+      } else {
+        return result;
+      }
+    } else if (_targetWorker != null) {
+      var handler = _targetWorker._requestHandlers[name];
+      if (handler == null) {
+        handler = _targetWorker._pool._methods[name];
+      }
+
+      var result = handler(argument);
+      if (result is! Future) {
+        return new Future.value(result);
+      } else {
+        return result;
+      }
+    }
+
     var completer = new Completer();
-    _responseHandlers[_reqId] = completer;
-    _sendPort.send(
-        {"type": "request", "id": _reqId, "name": name, "argument": argument});
-    _reqId++;
+
+    var rid = 0;
+    while (_responseHandlers[rid] != null) {
+      rid++;
+    }
+
+    _responseHandlers[rid] = completer;
+    if (argument == null) {
+      _sendPort.send(
+          {"t": "req", "i": rid, "n": name});
+    } else {
+      _sendPort.send(
+          {"t": "req", "i": rid, "n": name, "a": argument});
+    }
     return completer.future;
   }
 
   WorkerMethod<dynamic> getMethod(String name) =>
       ([argument]) => callMethod(name, argument);
 
-  int _reqId = 0;
-
   _handleRequest(String name, int id, argument) async {
     try {
-      if (_requestHandlers.containsKey(name)) {
-        var result = await _requestHandlers[name](argument);
-        _sendPort.send({"type": "response", "id": id, "result": result});
+      if ((_pool != null && _pool._methods.containsKey(name)) || _requestHandlers.containsKey(name)) {
+        var handler = (_pool != null && _pool._methods.containsKey(name)) ?
+          _pool._methods[name] :
+          _requestHandlers[name];
+        var result = handler(argument);
+        if (result is Future) {
+          result = await result;
+        }
+
+        if (result == null) {
+          _sendPort.send({"t": "res", "i": id});
+        } else {
+          _sendPort.send({"t": "res", "i": id, "r": result});
+        }
       } else {
         throw new Exception("Invalid Method: ${name}");
       }
     } catch (e, stack) {
       _sendPort.send({
-        "type": "response",
-        "id": id,
-        "error": e != null ? e.toString() : null,
-        "stack": stack != null ? stack.toString() : null
+        "t": "res",
+        "i": id,
+        "e": e != null ? e.toString() : null,
+        "s": stack != null ? stack.toString() : null
       });
     }
   }
@@ -462,21 +472,21 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   Future ping() {
     var completer = new Completer();
     _pings[_pingId] = completer;
-    _sendPort.send({"type": "ping", "id": _pingId});
+    _sendPort.send({"t": "ping", "i": _pingId});
     _pingId++;
     return completer.future;
   }
 
   @override
   void add(event) {
-    _sendPort.send({"type": "data", "data": event});
+    _sendPort.send({"t": "data", "data": event});
   }
 
   void send(event) => add(event);
 
   @override
   void addError(errorEvent, [StackTrace stackTrace]) {
-    _sendPort.send({"type": "error", "error": errorEvent});
+    _sendPort.send({"t": "error", "e": errorEvent});
   }
 
   @override
@@ -490,7 +500,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
   @override
   Future close() {
-    _sendPort.send({"type": "stop"});
+    _sendPort.send({"t": "stop"});
     return _stopCompleter.future.then((_) {
       if (isMaster) {
         receiver.close();
@@ -505,7 +515,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   Future<WorkerSession> createSession() async {
     var s = generateBasicId(length: 25);
     var session = new _WorkerSession(this, s, true);
-    _sendPort.send({"type": "session.created", "session": s});
+    _sendPort.send({"t": "session.created", "s": s});
     await ((_sessionReady[s] = new Completer.sync()).future);
     _ourSessions[s] = session;
     return session;
@@ -568,7 +578,7 @@ class _WorkerSession extends WorkerSession {
 
   @override
   Future close() {
-    _socket._sendPort.send({"type": "session.done", "session": id});
+    _socket._sendPort.send({"t": "session.done", "s": id});
     new Future(() {
       if (!_doneCompleter.isCompleted) {
         _doneCompleter.complete();
@@ -589,7 +599,7 @@ class _WorkerSession extends WorkerSession {
   @override
   void send(data) {
     _socket._sendPort
-        .send({"type": "session.data", "session": id, "data": data});
+        .send({"t": "session.data", "s": id, "d": data});
   }
 
   @override
