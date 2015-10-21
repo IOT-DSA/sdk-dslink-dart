@@ -244,10 +244,21 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       } else if (type == "response") {
         var id = msg["id"];
         var result = msg["result"];
-        if (_responseHandlers.containsKey(id)) {
-          _responseHandlers.remove(id).complete(result);
+        if (msg.containsKey("error")) {
+          if (_responseHandlers.containsKey(id)) {
+            _responseHandlers.remove(id).completeError(
+                msg["error"],
+                new StackTrace.fromString(msg["stack"])
+            );
+          } else {
+            throw new Exception("Invalid Request ID: ${id}");
+          }
         } else {
-          throw new Exception("Invalid Request ID: ${id}");
+          if (_responseHandlers.containsKey(id)) {
+            _responseHandlers.remove(id).complete(result);
+          } else {
+            throw new Exception("Invalid Request ID: ${id}");
+          }
         }
       } else if (type == "stopped") {
         _stopCompleter.complete();
@@ -360,10 +371,21 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       } else if (type == "response") {
         var id = msg["id"];
         var result = msg["result"];
-        if (_responseHandlers.containsKey(id)) {
-          _responseHandlers.remove(id).complete(result);
+        if (msg.containsKey("error")) {
+          if (_responseHandlers.containsKey(id)) {
+            _responseHandlers.remove(id).completeError(
+                msg["error"],
+                new StackTrace.fromString(msg["stack"])
+            );
+          } else {
+            throw new Exception("Invalid Request ID: ${id}");
+          }
         } else {
-          throw new Exception("Invalid Request ID: ${id}");
+          if (_responseHandlers.containsKey(id)) {
+            _responseHandlers.remove(id).complete(result);
+          } else {
+            throw new Exception("Invalid Request ID: ${id}");
+          }
         }
       } else {
         throw new Exception("Unknown message: ${msg}");
@@ -412,14 +434,21 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
   int _reqId = 0;
 
-  void _handleRequest(String name, int id, argument) {
-    if (_requestHandlers.containsKey(name)) {
-      var val = _requestHandlers[name](argument);
-      new Future.value(val).then((result) {
+  _handleRequest(String name, int id, argument) async {
+    try {
+      if (_requestHandlers.containsKey(name)) {
+        var result = await _requestHandlers[name](argument);
         _sendPort.send({"type": "response", "id": id, "result": result});
+      } else {
+        throw new Exception("Invalid Method: ${name}");
+      }
+    } catch (e, stack) {
+      _sendPort.send({
+        "type": "response",
+        "id": id,
+        "error": e != null ? e.toString() : null,
+        "stack": stack != null ? stack.toString() : null
       });
-    } else {
-      throw new Exception("Invalid Method: ${name}");
     }
   }
 
