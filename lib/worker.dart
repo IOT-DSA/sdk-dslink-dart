@@ -479,7 +479,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
   @override
   void add(event) {
-    _sendPort.send({"t": "data", "data": event});
+    _sendPort.send({"t": "data", "d": event});
   }
 
   void send(event) => add(event);
