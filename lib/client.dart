@@ -259,6 +259,24 @@ class LinkProvider {
       });
     }
 
+    if (const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false)) {
+      var runtimeConfig = Zone.current["dslink.runtime.config"];
+
+      if (runtimeConfig != null) {
+        var closeHandler = () {
+          close();
+
+          if (_logFileOut != null) {
+            try {
+              _logFileOut.close();
+            } catch (e) {}
+          }
+        };
+
+        runtimeConfig["closeHandler"] = closeHandler;
+      }
+    }
+
     String helpStr =
         "usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]";
 
