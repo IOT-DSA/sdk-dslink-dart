@@ -6,6 +6,8 @@ import 'dart:io';
 import '../../utils.dart';
 import 'dart:async';
 
+void _ignoreError(Object obj){}
+
 class SimpleStorageManager implements IStorageManager {
   Map<String, SimpleResponderStorage> rsponders =
       new Map<String, SimpleResponderStorage>();
@@ -165,7 +167,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
     }
   }
   void destroy() {
-    file.delete();
+    file.delete().catchError(_ignoreError);;
   }
   List<ValueUpdate> _cachedValue;
   Future<ISubscriptionNodeStorage> load() async {
@@ -200,6 +202,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
 
 /// basic key/value pair storage
 class SimpleValueStorageBucket implements IValueStorageBucket {
+  
   String category;
   Directory dir;
   SimpleValueStorageBucket(this.category, String path) {
@@ -215,11 +218,11 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
   }
   void removeValue(String key) {
     File f = new File('${dir.path}/${Uri.encodeComponent(key)}');
-    f.delete();
+    f.delete().catchError(_ignoreError);
   }
  
   void destroy() {
-    dir.delete(recursive:true);
+    dir.delete(recursive:true).catchError(_ignoreError);
   }
 
   Future<Map> load() {
