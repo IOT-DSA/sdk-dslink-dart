@@ -104,6 +104,7 @@ InvokeResponse deleteDataNode(Map params, Responder responder,
         parentNode.parent = null;
         parent.children.remove(name);
         parent.updateList(name);
+        parentNode.clearValue();
       } else {
         return response..close(DSError.INVALID_PARAMETER);
       }
@@ -121,6 +122,7 @@ void removeDataNodeRecursive(BrokerDataNode node, String name) {
   node.parent = null;
   parent.children.remove(name);
   parent.updateList(name);
+  node.clearValue();
 }
 
 Map dataNodeFunctions = {

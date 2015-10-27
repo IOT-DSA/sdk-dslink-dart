@@ -68,6 +68,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     quarantineNode = nodes['/quarantine'];
     upstreamDataNode = nodes['/upstream'];
     tokens = nodes['/sys/tokens'];
+    new BrokerQueryNode("/sys/query", this);
 
     enabledPermission = defaultPermission != null;
     
