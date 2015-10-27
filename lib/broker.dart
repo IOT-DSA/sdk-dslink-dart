@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'src/http/websocket_conn.dart';
 import 'dart:typed_data';
+import 'query.dart';
 
 part 'src/broker/broker_node_provider.dart';
 part 'src/broker/broker_node.dart';
@@ -29,6 +30,8 @@ part 'src/broker/tokens.dart';
 
 part 'src/http/server_link.dart';
 part 'src/http/server.dart';
+
+part 'src/broker/query_node.dart';
 
 Future<DsHttpServer> startBrokerServer(int port, {bool persist: true}) async {
   var broker = new BrokerNodeProvider();
