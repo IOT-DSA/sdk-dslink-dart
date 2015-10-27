@@ -88,6 +88,11 @@ abstract class LocalNode extends Node {
       });
     }
   }
+  
+  void clearValue() {
+    _valueReady = false;
+    _lastValueUpdate = null;
+  }
 
   /// Checks if this node exists.
   /// list and subscribe can be called on a node that doesn't exist

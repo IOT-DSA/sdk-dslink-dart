@@ -229,7 +229,11 @@ class RemoteLinkNode extends RemoteNode implements LocalNode {
     }
     _valueReady = true;
   }
-
+  void clearValue() {
+    _valueReady = false;
+    _lastValueUpdate = null;
+  }
+  
   final String path;
 
   /// root of the link

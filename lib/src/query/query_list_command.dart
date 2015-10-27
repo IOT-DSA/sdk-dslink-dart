@@ -31,8 +31,8 @@ class _ListNodeMatch{
       if (strs[0] != '') {
         prefix = strs[0];
       }
-      if (strs[0] != '') {
-        prefix = strs[0];
+      if (strs[1] != '') {
+        postfix = strs[1];
       }
     } else {
       body = str;
@@ -50,7 +50,7 @@ class _ListNodeMatch{
         return NOMATCH;
       }
       if (multiple) {
-        if (postfix != null && !str.startsWith(postfix)) {
+        if (postfix == null || str.endsWith(postfix)) {
           return MATCHPOST;
         } else {
           return NOMATCHPOST;
@@ -83,14 +83,18 @@ class _ListingNode {
       int absn = n.abs();
       if (absn == parsedpath.length) {
         selfMatch = true;
-      } else if (absn < parsedpath.length && listener == null) {
-        listener = node.listStream.listen(onList);
+      } else if (absn < parsedpath.length) {
+        if (listener == null) {
+          listener = node.listStream.listen(onList);
+        }
         node.children.forEach((String name, LocalNode node) {
           checkChild(name, node, n);
         });
       }
     }
   }
+  
+  bool _removed = false;
   
   bool _selfMatch = false;
   void set selfMatch(bool val) {
@@ -101,9 +105,12 @@ class _ListingNode {
   }
   
   void onList(String str){
+    if (str.startsWith('@') || str.startsWith(r'$')) {
+      return;
+    }
     LocalNode child = node.children[str];
     if (child == null) {
-      // todo child removed
+      deleteChild(str);
     } else {
       for (int pos in matchedPos) {
         checkChild(str, child, pos);
@@ -131,6 +138,15 @@ class _ListingNode {
         childListing.addMatchPos(-abspos);
         childListing.addMatchPos(abspos + 1);
       }
+    }
+  }
+  void deleteChild(String name) {
+    String path = '${node.path}/$name';
+    _ListingNode childListing = command._dict[path];
+    if (childListing != null) {
+      childListing.selfMatch = false;
+      childListing._removed = true;
+      command.update(path);
     }
   }
   
@@ -164,9 +180,6 @@ class QueryCommandList extends BrokerQueryCommand{
   
   bool _pending = false;
   void update(String path){
-    if (path == null) {
-      int debug1 = 1;
-    }
     _changes.add(path);
     if (!_pending) {
       _pending = true;
@@ -182,6 +195,10 @@ class QueryCommandList extends BrokerQueryCommand{
         rows.add([listing.node, '+']);
       } else {
         rows.add([listing.node, '-']);
+      }
+      if (listing._removed) {
+        listing.destroy();
+        _dict.remove(path);
       }
     }
     _changes.clear();

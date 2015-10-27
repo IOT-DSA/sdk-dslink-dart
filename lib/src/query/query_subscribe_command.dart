@@ -22,6 +22,8 @@ class _QuerySubscription{
   }
   
   List getRowData(){
+    // TODO make sure node still in tree
+    // because list remove node update could come one frame later
     if (added) {
       added = false;
       return [node.path, '+', lastUpdate.value, lastUpdate.ts];
@@ -69,11 +71,15 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
       _QuerySubscription sub = subscriptions[path];
       if (sub != null) {
         if (sub.removed) {
-          rows.add([path, '-', null, null]);
+          rows.add([path, '-', null, ValueUpdate.getTs()]);
           subscriptions.remove(path);
           sub.destroy();
         } else {
-          rows.add(sub.getRowData());
+          List data = sub.getRowData();
+          if (data != null) {
+            rows.add(data);
+          }
+          
         }
       }
     }
