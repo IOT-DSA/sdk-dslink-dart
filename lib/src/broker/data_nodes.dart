@@ -34,6 +34,13 @@ class BrokerDataNode extends BrokerNode {
       }
     });
   }
+  
+  void clearValue(){
+    updateValue(null);
+    if (storage != null){
+      storage.removeValue(path);
+    }
+  }
 }
 class BrokerDataRoot extends BrokerDataNode {
   BrokerNode parent;
@@ -99,6 +106,7 @@ InvokeResponse deleteDataNode(Map params, Responder responder,
       removeDataNodeRecursive(parentNode, parentNode.path.substring(parentNode.path.lastIndexOf('/') + 1));
     } else {
       if (parentNode.children.isEmpty) {
+        parentNode.clearValue();
         BrokerDataNode parent = parentNode.parent;
         String name = parentNode.path.substring(parentNode.path.lastIndexOf('/') + 1);
         parentNode.parent = null;
@@ -117,6 +125,7 @@ void removeDataNodeRecursive(BrokerDataNode node, String name) {
   for (String name in node.children.keys.toList()) {
     removeDataNodeRecursive(node.children[name], name);
   }
+  node.clearValue();
   BrokerDataNode parent = node.parent;
   node.parent = null;
   parent.children.remove(name);
