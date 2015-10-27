@@ -21,6 +21,9 @@ class BrokerQueryManager {
       String path = commands[0].substring(5);
       BrokerQueryCommand listcommand = new QueryCommandList(path, this);
       listcommand = _getOrAddCommand(listcommand);
+      if (listcommand == null) {
+        return null;
+      }
       BrokerQueryCommand subcommand = new QueryCommandSubscribe(this);
       subcommand.base = listcommand;
       subcommand = _getOrAddCommand(subcommand);
@@ -36,7 +39,13 @@ class BrokerQueryManager {
     if (_dict.containsKey(key)){
       return _dict[key];
     }
-    command.init();
+    try {
+      command.init();
+    } catch (err) {
+      command.destroy();
+      return null;
+    }
+    
     // add to base command's next
     if (command.base != null) {
       command.base.addNext(command);

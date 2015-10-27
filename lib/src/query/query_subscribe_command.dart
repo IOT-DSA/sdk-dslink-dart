@@ -7,7 +7,7 @@ class _QuerySubscription{
   
   /// if removed, the subscription will be destroyed next frame
   bool removed = false;
-  bool added = true;
+  bool justAdded = true;
   _QuerySubscription(this.command, this.node) {
     if (node.valueReady) {
       valueCallback(node.lastValueUpdate);
@@ -18,14 +18,14 @@ class _QuerySubscription{
   ValueUpdate lastUpdate;
   void valueCallback(ValueUpdate value){
     lastUpdate = value;
-    command.update(node.path);
+    command.updateRow(getRowData());
   }
   
   List getRowData(){
     // TODO make sure node still in tree
     // because list remove node update could come one frame later
-    if (added) {
-      added = false;
+    if (justAdded) {
+      justAdded = false;
       return [node.path, '+', lastUpdate.value, lastUpdate.ts];
     } else {
       return [node.path, '', lastUpdate.value, lastUpdate.ts];
@@ -57,8 +57,16 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
   Map<String, _QuerySubscription> subscriptions = new Map<String, _QuerySubscription>();
   
   bool _pending = false;
-  void update(String path){
+  void updatePath(String path){
     _changes.add(path);
+    if (!_pending) {
+      _pending = true;
+      DsTimer.callLater(_doUpdate);
+    }
+  }
+  List _pendingRows = [];
+  void updateRow(List row){
+    _pendingRows.add(row);
     if (!_pending) {
       _pending = true;
       DsTimer.callLater(_doUpdate);
@@ -66,12 +74,15 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
   }
   void _doUpdate(){
     _pending = false;
-    List rows = [];
+    List rows = _pendingRows;
+    _pendingRows = [];
     for (String path in _changes) {
       _QuerySubscription sub = subscriptions[path];
       if (sub != null) {
         if (sub.removed) {
-          rows.add([path, '-', null, ValueUpdate.getTs()]);
+          if (!sub.justAdded) {
+            rows.add([path, '-', null, ValueUpdate.getTs()]);
+          }
           subscriptions.remove(path);
           sub.destroy();
         } else {
@@ -105,7 +116,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
         } else if (data[1] == '-') {
           if (subscriptions.containsKey(node.path)) {
             subscriptions[node.path].removed = true;
-            update(node.path);
+            updatePath(node.path);
           }
         }
       }
