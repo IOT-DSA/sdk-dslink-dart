@@ -149,6 +149,7 @@ class _ListingNode {
     if (childListing != null) {
       childListing.selfMatch = false;
       childListing.destroy();
+      command._dict.remove(childListing.node.path);
     }
   }
   
@@ -156,7 +157,6 @@ class _ListingNode {
     if (listener != null) {
       listener.cancel();
     }
-    command._dict.remove(node.path);
   }
 }
 

@@ -24,12 +24,21 @@ class _QuerySubscription{
   List getRowData(){
     // TODO make sure node still in tree
     // because list remove node update could come one frame later
-    if (justAdded) {
-      justAdded = false;
-      return [node.path, '+', lastUpdate.value, lastUpdate.ts];
-    } else {
-      return [node.path, '', lastUpdate.value, lastUpdate.ts];
+    if (!removed && lastUpdate != null) {
+      if (justAdded) {
+         justAdded = false;
+         return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+      } else {
+         return [node.path, '', lastUpdate.value, lastUpdate.ts];
+      }
     }
+    return null;
+  }
+  List getRowDataForNewResponse(){
+    if (!removed && !justAdded && lastUpdate != null) {
+      return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+    }
+    return null;
   }
   
   void destroy(){
@@ -49,8 +58,20 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
   QueryCommandSubscribe(BrokerQueryManager manager) : super(manager);
   
   void addResponse(InvokeResponse response) {
+    if (_pending) {
+      // send all pending update to existing responses
+      // so the new response can continue on a clear state
+      _doUpdate();
+    }
     super.addResponse(response);
-    response.updateStream(null, columns:columns);
+    List rows = [];
+    subscriptions.forEach((String path, _QuerySubscription sub) {
+      List data = sub.getRowDataForNewResponse();
+      if (data != null) {
+        rows.add(data);
+      }
+    });
+    response.updateStream(rows, columns:columns);
   }
   
   Set<String> _changes = new Set<String>();
@@ -73,6 +94,9 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
     }
   }
   void _doUpdate(){
+    if (!_pending) {
+      return;
+    }
     _pending = false;
     List rows = _pendingRows;
     _pendingRows = [];
