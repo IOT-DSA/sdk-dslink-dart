@@ -56,8 +56,9 @@ abstract class BrokerQueryCommand {
     if (_cachedQueryId == null) {
       if (base != null) {
         _cachedQueryId = '$base|$this';
+      } else {
+        _cachedQueryId = toString();
       }
-      _cachedQueryId = toString();
     }
     return _cachedQueryId;
   }

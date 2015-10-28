@@ -218,7 +218,7 @@ class QueryCommandList extends BrokerQueryCommand{
   }
   
   String toString() {
-    return 'list ${rawpath.join(",")}';
+    return 'list ${rawpath.join("/")}';
   }
   
   void destroy() {
