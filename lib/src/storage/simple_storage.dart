@@ -232,7 +232,12 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
       String name = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1));
       File f = new File(entity.path);
       Future future = f.readAsString().then((String str){
-        rslt[name] = DsJson.decode(str);
+        try{
+          rslt[name] = DsJson.decode(str);
+        }catch(err) {
+          logger.fine(err);
+        }
+        
       });
       loading.add(future);
     }

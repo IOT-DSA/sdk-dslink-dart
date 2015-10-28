@@ -9,7 +9,7 @@ abstract class LocalNode extends Node {
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
       _listChangeController = new BroadcastStreamController<String>(
-          onStartListListen, onAllListCancel);
+          onStartListListen, onAllListCancel, null, true);
     }
     return _listChangeController;
   }

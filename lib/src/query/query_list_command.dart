@@ -94,13 +94,16 @@ class _ListingNode {
     }
   }
   
-  bool _removed = false;
-  
   bool _selfMatch = false;
   void set selfMatch(bool val) {
     if (_selfMatch != val ) {
       _selfMatch = val;
-      command.update(node.path);
+      if (_selfMatch) {
+        command.updateRow([node, '+']);
+      } else {
+        command.updateRow([node, '-']);
+      }
+      
     }
   }
   
@@ -145,8 +148,7 @@ class _ListingNode {
     _ListingNode childListing = command._dict[path];
     if (childListing != null) {
       childListing.selfMatch = false;
-      childListing._removed = true;
-      command.update(path);
+      childListing.destroy();
     }
   }
   
@@ -154,6 +156,7 @@ class _ListingNode {
     if (listener != null) {
       listener.cancel();
     }
+    command._dict.remove(node.path);
   }
 }
 
@@ -179,35 +182,20 @@ class QueryCommandList extends BrokerQueryCommand{
   Set<String> _changes = new Set<String>();
   
   bool _pending = false;
-  void update(String path){
-    _changes.add(path);
-    if (!_pending) {
-      _pending = true;
-      DsTimer.callLater(_doUpdate);
+  void updateRow(List row){
+    for (var next in nexts) {
+      next.updateFromBase([row]);
     }
   }
-  void _doUpdate(){
-    _pending = false;
+  void addNext(BrokerQueryCommand next) {
+    super.addNext(next);
     List rows = [];
-    for (String path in _changes) {
-      _ListingNode listing = _dict[path];
+    _dict.forEach((String path, _ListingNode listing){
       if (listing._selfMatch) {
         rows.add([listing.node, '+']);
-      } else {
-        rows.add([listing.node, '-']);
       }
-      if (listing._removed) {
-        listing.destroy();
-        _dict.remove(path);
-      }
-    }
-    _changes.clear();
-    for (var next in nexts) {
-      next.updateFromBase(rows);
-    }
-//    for (var resp in responses){
-//      resp.updateStream(rows);
-//    }
+    });
+    next.updateFromBase(rows);
   }
   
   void updateFromBase(List updates) {

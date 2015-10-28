@@ -1,7 +1,7 @@
 part of dslink.utils;
 
 class BroadcastStreamController<T> implements StreamController<T> {
-  StreamController<T> _controller = new StreamController<T>();
+  StreamController<T> _controller;
   CachedStreamWrapper<T> _stream;
   Stream<T> get stream => _stream;
 
@@ -9,7 +9,8 @@ class BroadcastStreamController<T> implements StreamController<T> {
   Function _onAllCancel;
 
   BroadcastStreamController(
-      [void onStartListen(), void onAllCancel(), void onListen(callback(T))]) {
+      [void onStartListen(), void onAllCancel(), void onListen(callback(T)), bool sync]) {
+    _controller = new StreamController<T>(sync:sync);
     _stream = new CachedStreamWrapper(
         _controller.stream
             .asBroadcastStream(onListen: _onListen, onCancel: _onCancel),
