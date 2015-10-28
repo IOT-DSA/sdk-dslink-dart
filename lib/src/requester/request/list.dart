@@ -169,6 +169,8 @@ class ListController implements RequestUpdater {
     r'$settings'
   ];
   void _onProfileUpdate(RequesterListUpdate update) {
+    _profileLoader.cancel();
+    _profileLoader = null;
     changes.addAll(
         update.changes.where((str) => !_ignoreProfileProps.contains(str)));
     _ready = true;
