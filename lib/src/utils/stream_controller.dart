@@ -9,7 +9,7 @@ class BroadcastStreamController<T> implements StreamController<T> {
   Function _onAllCancel;
 
   BroadcastStreamController(
-      [void onStartListen(), void onAllCancel(), void onListen(callback(T)), bool sync]) {
+      [void onStartListen(), void onAllCancel(), void onListen(callback(T)), bool sync = false]) {
     _controller = new StreamController<T>(sync:sync);
     _stream = new CachedStreamWrapper(
         _controller.stream
