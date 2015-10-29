@@ -1,8 +1,6 @@
 part of dslink.responder;
 
 typedef SimpleNode _NodeFactory(String path);
-typedef LocalNode NodeFactory(String path);
-typedef SimpleNode SimpleNodeFactory(String path);
 
 /// A simple table result.
 /// This is used to return simple tables from an action.
@@ -94,8 +92,6 @@ abstract class MutableNodeProvider {
   LocalNode addNode(String path, Map m);
   /// Removes the node specified at [path].
   void removeNode(String path);
-  // Add a profile to the node provider.
-  void addProfile(String name, NodeFactory factory);
 }
 
 class SimpleNodeProvider extends NodeProviderImpl
@@ -132,11 +128,6 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
   }
 
-  @override
-  void addProfile(String name, SimpleNodeFactory factory) {
-    _profiles[name] = factory;
-  }
-
   /// Creates a node at [path].
   /// If a node already exists at this path, an exception is thrown.
   SimpleNode createNode(String path) {
@@ -167,7 +158,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// Creates a [SimpleNodeProvider].
   /// If [m] and optionally [profiles] is specified,
   /// the provider is initialized with these values.
-  SimpleNodeProvider([Map m, Map<String, SimpleNodeFactory> profiles]) {
+  SimpleNodeProvider([Map m, Map profiles]) {
     // by default, the first SimpleNodeProvider is the static instance
     if (instance == null) {
        instance = this;
@@ -193,13 +184,9 @@ class SimpleNodeProvider extends NodeProviderImpl
   SimpleHiddenNode sys;
 
   @override
-  void init([Map m, Map<String, SimpleNodeFactory> profiles]) {
+  void init([Map m, Map profiles]) {
     if (profiles != null) {
-      if (profiles.isNotEmpty) {
-        _profiles.addAll(profiles);
-      } else {
-        _profiles = profiles;
-      }
+      _registerProfiles(profiles);
     }
 
     if (m != null) {
@@ -247,8 +234,8 @@ class SimpleNodeProvider extends NodeProviderImpl
 
     if (node == null) {
       String profile = m[r'$is'];
-      if (_profiles.containsKey(profile)) {
-        node = _profiles[profile](path);
+      if (_profileFactories.containsKey(profile)) {
+        node = _profileFactories[profile](path);
       } else {
         node = getOrCreateNode(path);
       }
@@ -291,7 +278,15 @@ class SimpleNodeProvider extends NodeProviderImpl
     nodes.remove(path);
   }
 
-  Map<String, _NodeFactory> _profiles = new Map<String, _NodeFactory>();
+  Map<String, _NodeFactory> _profileFactories = new Map<String, _NodeFactory>();
+
+  void _registerProfiles(Map m) {
+    m.forEach((key, val) {
+      if (key is String && val is _NodeFactory) {
+        _profileFactories[key] = val;
+      }
+    });
+  }
 
   /// Permissions
   IPermissionManager permissions = new DummyPermissionManager();
@@ -600,7 +595,7 @@ class SimpleNode extends LocalNodeImpl {
   /// - [SimpleTableResult]
   /// - [AsyncTableResult]
   ///
-  /// You can also return a future that resolves to one (like if the method is async) of the following types:
+  /// You can also return a future (like if the method is async) of the following types:
   /// - [Stream]
   /// - [Iterable]
   /// - [Map]
