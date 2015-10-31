@@ -84,6 +84,7 @@ InvokeResponse addDataNode(Map params, Responder responder,
     parentNode.updateList(name);
     DsTimer.timerOnceBefore(
         (responder.nodeProvider as BrokerNodeProvider).saveDataNodes, 1000);
+    return response..close();
   }
   return response..close(DSError.INVALID_PARAMETER);
 }
@@ -111,6 +112,7 @@ InvokeResponse deleteDataNode(Map params, Responder responder,
     }
     DsTimer.timerOnceBefore(
         (responder.nodeProvider as BrokerNodeProvider).saveDataNodes, 1000);
+    return response..close();
   }
   return response..close(DSError.INVALID_PARAMETER);
 }
