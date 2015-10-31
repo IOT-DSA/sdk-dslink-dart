@@ -15,3 +15,6 @@ pubspec.lock
 /tool/personal
 .packages
 doc/
+/data.json
+/usernodes.json
+/defs.json
