@@ -185,7 +185,6 @@ class Requester extends ConnectionHandler {
     _connected = false;
 
     var newRequests = new Map<int, Request>();
-    ;
     newRequests[0] = _subsciption;
     _requests.forEach((n, req) {
       if (req.rid <= lastRid && req.updater is! ListController) {
