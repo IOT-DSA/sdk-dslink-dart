@@ -19,7 +19,7 @@ class UriComponentDecoder {
         i += 2;
       } else {
         if (!bytes.isEmpty) {
-          codes.addAll(UTF8.decode(bytes, allowMalformed: true).codeUnits);
+          codes.addAll(const Utf8Decoder(allowMalformed: true).convert(bytes).codeUnits);
           bytes.clear();
         }
         if (codeUnit == _PLUS) {
@@ -29,8 +29,9 @@ class UriComponentDecoder {
         }
       }
     }
+
     if (!bytes.isEmpty) {
-      codes.addAll(UTF8.decode(bytes).codeUnits);
+      codes.addAll(const Utf8Decoder().convert(bytes).codeUnits);
       bytes.clear();
     }
     return new String.fromCharCodes(codes);

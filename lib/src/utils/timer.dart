@@ -27,7 +27,7 @@ class DsTimer {
     return new Future.delayed(time, action);
   }
 
-  // TODO does it need to use another hashset for quick search?
+  // TODO: does it need to use another hashset for quick search?
   static List<Function> _callbacks = [];
 
   //static Map<Function, int> _timerCallbacks = new Map<Function, int>();
@@ -177,7 +177,7 @@ class DsTimer {
 
   static void timerCancel(Function callback) {
     if (_functionsMap.containsKey(callback)) {
-      // TODO what if timerCancel is called from another timer of group?
+      // TODO: what if timerCancel is called from another timer of group?
       TimerFunctions existTf = _functionsMap[callback];
       existTf.remove(callback);
     }
