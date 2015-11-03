@@ -7,18 +7,25 @@ import "package:dslink/responder.dart";
 /// An Action for Deleting a Given Node
 class DeleteActionNode extends SimpleNode {
   final String targetPath;
+  final Function onDelete;
 
   /// When this action is invoked, [provider.removeNode] will be called with [targetPath].
-  DeleteActionNode(String path, SimpleNodeProvider provider, this.targetPath) : super(path, provider);
+  DeleteActionNode(String path, MutableNodeProvider provider, this.targetPath, {
+    this.onDelete
+  }) : super(path, provider);
 
   /// When this action is invoked, [provider.removeNode] will be called with the parent of this action.
-  DeleteActionNode.forParent(String path, SimpleNodeProvider provider)
-      : this(path, provider, new Path(path).parentPath);
+  DeleteActionNode.forParent(String path, MutableNodeProvider provider, {
+    Function onDelete
+  }) : this(path, provider, new Path(path).parentPath, onDelete: onDelete);
 
   /// Handles an action invocation and deletes the target path.
   @override
   Object onInvoke(Map<String, dynamic> params) {
     provider.removeNode(targetPath);
+    if (onDelete != null) {
+      onDelete();
+    }
     return {};
   }
 }
