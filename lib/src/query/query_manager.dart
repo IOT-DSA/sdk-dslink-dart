@@ -3,21 +3,22 @@ part of dslink.query;
 
 class BrokerQueryManager {
   NodeProvider provider;
-  BrokerQueryManager(this.provider) {
-    
-  }
+
+  BrokerQueryManager(this.provider) {}
+
   BrokerQueryCommand parseList(List str) {
-    // TODO implement this
+    // TODO: implement this
     return null;
   }
+
   BrokerQueryCommand parseDql(String str) {
     if (str.startsWith('[')) {
        return parseList(DsJson.decode(str));
     }
-    // TODO implement full dql spec
+    // TODO: implement full dql spec
     // this is just a temp quick parser for basic /data node query
-    List<String> commands  = str.split('|');
-    if (commands.length == 2 && commands[0].startsWith('list /data') && commands[1].startsWith('subscribe')){
+    List<String> commands  = str.split('|').map((x) => x.trim()).toList();
+    if (commands.length == 2 && commands[0].startsWith('list /data') && commands[1].startsWith('subscribe')) {
       String path = commands[0].substring(5);
       BrokerQueryCommand listcommand = new QueryCommandList(path, this);
       listcommand = _getOrAddCommand(listcommand);
@@ -34,6 +35,7 @@ class BrokerQueryManager {
   
   
   Map<String, BrokerQueryCommand> _dict = new Map<String, BrokerQueryCommand>();
+
   BrokerQueryCommand _getOrAddCommand(BrokerQueryCommand command) {
     String key = command.getQueryId();
     if (_dict.containsKey(key)){
