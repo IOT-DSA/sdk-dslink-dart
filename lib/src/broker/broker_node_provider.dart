@@ -38,8 +38,14 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
   bool enabledDataNodes = false;
   bool acceptAllConns = true;
   
-  BrokerNodeProvider({this.enabledQuarantine: false, this.acceptAllConns: true,
-  List defaultPermission, this.downstreamName: 'conns', this.storage, this.enabledDataNodes:true}) {
+  BrokerNodeProvider({
+    this.enabledQuarantine: false,
+    this.acceptAllConns: true,
+    List defaultPermission,
+    this.downstreamName: 'conns',
+    this.storage,
+    this.enabledDataNodes: true
+  }) {
     permissions = new BrokerPermissions();
     // initialize root nodes
     root = new RootNode('/', this);
@@ -113,6 +119,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       }
     }
   }
+
   void initSys() {
     new BrokerVersionNode("/sys/version", this, DSA_VERSION);
     new StartTimeNode("/sys/startTime", this);
@@ -250,6 +257,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
        });
     }
   }
+
   Future<Map> saveDataNodes() async {
     Map m = {};
     dataNode.children.forEach((String name, BrokerDataNode node) {
@@ -261,6 +269,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     return m;
   }
+
   loadTokensNodes() async {
     File connsFile = new File("tokens.json");
     try {
@@ -277,6 +286,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     TokenGroupNode.initSecretToken(this);
   }
+
   Future<Map> saveTokensNodes() async {
     Map m = {};
     tokens.children.forEach((String name, TokenGroupNode node) {
@@ -288,6 +298,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     }
     return m;
   }
+
   Future<Map> saveConns() async {
     Map m = {};
     connsNode.children.forEach((String name, RemoteLinkNode node) {
@@ -393,6 +404,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
      }
      return node;
   }
+
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     if (path.startsWith('/data/')) {
       return _getOrCreateDataNode(path, addToTree);
@@ -595,6 +607,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
       return null;
     }
   }
+
   String getLinkPath(String fullId, String token) {
     if (_id2connPath.containsKey(fullId)) {
       return _id2connPath[fullId];
@@ -635,6 +648,7 @@ class BrokerNodeProvider extends NodeProviderImpl implements ServerLinkManager {
     // fall back to normal path searching when it fails
     return makeConnPath(fullId);
   }
+
   void prepareUpstreamLink(String name) {
     String connPath = '/upstream/$name';
     String upStreamId = '@upstream@$name';

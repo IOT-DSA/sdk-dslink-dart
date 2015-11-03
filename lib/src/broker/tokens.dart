@@ -147,7 +147,7 @@ class TokenNode extends BrokerNode {
     return provider.connsNode;
   }
   
-  void useCount(){
+  void useCount() {
     if (count >0) {
       count--;
       configs[r'$$count'] = count;
