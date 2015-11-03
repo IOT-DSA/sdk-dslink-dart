@@ -139,6 +139,8 @@ class CallbackNode extends SimpleNode {
   final ChildChangedCallback onChildRemovedCallback;
   final ActionFunction onActionInvoke;
   final LoadChildCallback onLoadChildCallback;
+  final SimpleCallback onSubscribeCallback;
+  final SimpleCallback onUnsubscribeCallback;
 
   CallbackNode(String path,
       {SimpleNodeProvider provider,
@@ -147,13 +149,17 @@ class CallbackNode extends SimpleNode {
       ChildChangedCallback onChildRemoved,
       SimpleCallback onCreated,
       SimpleCallback onRemoving,
-      LoadChildCallback onLoadChild})
+      LoadChildCallback onLoadChild,
+      SimpleCallback onSubscribe,
+      SimpleCallback onUnsubscribe})
       : super(path, provider),
         onChildAddedCallback = onChildAdded,
         onChildRemovedCallback = onChildRemoved,
         onCreatedCallback = onCreated,
         onRemovingCallback = onRemoving,
-        onLoadChildCallback = onLoadChild;
+        onLoadChildCallback = onLoadChild,
+        onSubscribeCallback = onSubscribe,
+        onUnsubscribeCallback = onUnsubscribe;
 
   @override
   onInvoke(Map<String, dynamic> params) {
@@ -198,6 +204,20 @@ class CallbackNode extends SimpleNode {
       return onLoadChildCallback(name, data, provider);
     } else {
       return super.onLoadChild(name, data, provider);
+    }
+  }
+
+  @override
+  onSubscribe() {
+    if (onSubscribeCallback != null) {
+      return onSubscribeCallback();
+    }
+  }
+
+  @override
+  onUnsubscribe() {
+    if (onUnsubscribeCallback != null) {
+      return onUnsubscribeCallback();
     }
   }
 }
