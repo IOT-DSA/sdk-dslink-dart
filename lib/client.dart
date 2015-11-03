@@ -476,28 +476,7 @@ class LinkProvider {
       provider = new SimpleNodeProvider(null, profiles);
     }
 
-    if (provider is SerializableNodeProvider &&
-        !_reconnecting) {
-      _nodesFile = getConfig('nodes') == null
-          ? new File("${_basePath}/nodes.json")
-          : new File.fromUri(Uri.parse(getConfig('nodes')));
-      Map loadedNodesData;
-
-      if (loadNodesJson) {
-        _nodesFile = getConfig('nodes') == null
-          ? new File("${_basePath}/nodes.json")
-          : new File.fromUri(Uri.parse(getConfig('nodes')));
-        try {
-          String nodesStr = _nodesFile.readAsStringSync();
-          loadedNodesData = DsJson.decode(nodesStr);
-        } catch (err) {}
-      }
-      if (loadedNodesData != null) {
-        (provider as SerializableNodeProvider).init(loadedNodesData);
-      } else if (defaultNodes != null) {
-        (provider as SerializableNodeProvider).init(defaultNodes);
-      }
-    }
+    loadNodesFile();
 
     void doRun() {
       link = new HttpClientLink(brokerUrl, prefix, privateKey,
@@ -533,6 +512,33 @@ class LinkProvider {
     }
   }
 
+  void loadNodesFile() {
+    if (provider is SerializableNodeProvider &&
+      !_reconnecting) {
+      _nodesFile = getConfig('nodes') == null
+        ? new File("${_basePath}/nodes.json")
+        : new File.fromUri(Uri.parse(getConfig('nodes')));
+      Map loadedNodesData;
+
+      if (loadNodesJson) {
+        _nodesFile = getConfig('nodes') == null
+          ? new File("${_basePath}/nodes.json")
+          : new File.fromUri(Uri.parse(getConfig('nodes')));
+        try {
+          String nodesStr = _nodesFile.readAsStringSync();
+          loadedNodesData = DsJson.decode(nodesStr);
+        } catch (err) {}
+      }
+
+      if (loadedNodesData != null) {
+        onNodesDeserialized(loadedNodesData);
+        (provider as SerializableNodeProvider).init(loadedNodesData);
+      } else if (defaultNodes != null) {
+        (provider as SerializableNodeProvider).init(defaultNodes);
+      }
+    }
+  }
+
   /// The dslink.json contents. This is only available after [configure] is called.
   Map dslinkJson;
 
@@ -546,6 +552,9 @@ class LinkProvider {
     }
     return null;
   }
+
+  /// Handles deserialization of node data.
+  void onNodesDeserialized(Map json) {}
 
   bool _initialized = false;
   bool _ready = false;
