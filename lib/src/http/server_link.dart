@@ -45,8 +45,7 @@ class HttpServerLink implements ServerLink {
       {NodeProvider nodeProvider,
       this.session, this.token,
       this.enableTimeout: false, this.enableAck: true})
-      : dsId = id
-      {
+      : dsId = id {
       path = linkManager.getLinkPath(id, token);
       if (path != null) {
         requester = linkManager.getRequester(id);
@@ -54,7 +53,7 @@ class HttpServerLink implements ServerLink {
           responder = linkManager.getResponder(id, nodeProvider, session);
         }
       }
-         
+
       for (int i = 0; i < 3; ++i) {
         List<int> bytes = new List<int>(12);
         for (int j = 0; j < 12; ++j) {
@@ -85,7 +84,7 @@ class HttpServerLink implements ServerLink {
       String httpUri: '/http',
       int updateInterval: 200,
       Map linkData,
-      bool trusted:false}) async {
+      bool trusted: false}) async {
     isRequester = clientResponder;
     isResponder = clientRequester;
     pendingLinkData = linkData;

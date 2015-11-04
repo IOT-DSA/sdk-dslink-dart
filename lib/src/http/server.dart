@@ -155,7 +155,12 @@ class DsHttpServer {
 
   void _handleConn(HttpRequest request, String dsId) {
     String tokenHash = request.requestedUri.queryParameters["token"];
-    bool trusted = tokenHash != null && tokenHash.substring(0,16) == TokenGroupNode.trustedToken.id;
+    bool trusted = false;
+
+    if (tokenHash != null) {
+      var tkn = tokenHash.substring(0, 16);
+      trusted = TokenGroupNode.trustedTokens.values.any((x) => x.id == tkn);
+    }
 
     request.fold([], foldList).then((List<int> merged) {
       try {
@@ -169,7 +174,7 @@ class DsHttpServer {
           request.response.close();
           return;
         }
-        String str = UTF8.decode(merged);
+        String str = const Utf8Decoder().convert(merged);
         Map m = DsJson.decode(str);
         
         HttpServerLink link = _linkManager.getLinkAndConnectNode(dsId);
@@ -183,7 +188,7 @@ class DsHttpServer {
           }
           
           link = new HttpServerLink(
-              dsId, new PublicKey.fromBytes(bytes), _linkManager, token:tokenHash,
+              dsId, new PublicKey.fromBytes(bytes), _linkManager, token: tokenHash,
               nodeProvider: nodeProvider, enableTimeout: true);
           if (trusted) {
             link.trustedTokenHash = tokenHash;

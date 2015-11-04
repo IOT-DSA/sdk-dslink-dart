@@ -4,17 +4,22 @@ class TokenGroupNode extends BrokerStaticNode {
   // a token map used by both global tokens, and user tokens
   static Map<String, TokenNode> tokens = new Map<String, TokenNode>();
   
-  static TokenNode _trustedToken;
-  static TokenNode get trustedToken => _trustedToken;
-  static String initSecretToken(BrokerNodeProvider provider){
+  static Map<String, TokenNode> _trustedTokens = {};
+  static Map<String, TokenNode> get trustedTokens => _trustedTokens;
+
+  static TokenNode createTrustedToken(String name, BrokerNodeProvider provider) {
+    if (_trustedTokens.containsKey(name)) {
+      return _trustedTokens[name];
+    }
+
     String token = makeToken();
     String tokenId = token.substring(0, 16);
     TokenNode node = new TokenNode(null, provider, null, tokenId);
     node.configs[r'$$token'] = token;
     node.init();
     TokenGroupNode.tokens[tokenId] = node;
-    _trustedToken = node;
-    return token;
+    _trustedTokens[name] = node;
+    return node;
   }
   
   static String makeToken() {
