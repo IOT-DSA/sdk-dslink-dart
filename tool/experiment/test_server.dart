@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:dslink/server.dart';
-import 'package:broker_dart/broker.dart';
+import 'package:dsbroker/broker.dart';
 import 'package:dslink/client.dart';
 
 void main(List<String> args) {

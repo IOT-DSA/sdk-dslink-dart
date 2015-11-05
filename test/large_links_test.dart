@@ -6,7 +6,7 @@ import "dart:async";
 import "dart:convert";
 import "dart:typed_data";
 
-import "package:broker_dart/broker.dart";
+import "package:dsbroker/broker.dart";
 import "package:dslink/server.dart";
 import "package:dslink/dslink.dart";
 import "package:dslink/io.dart";
