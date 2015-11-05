@@ -53,7 +53,7 @@ void main() {
 //  __assertEqual(auth, authCompare, 'auth');
 //}
 
-void testApi() async {
+testApi() async {
   PrivateKey prikey = new PrivateKey.loadFromString(clientPrivate);
   PublicKey pubkey = prikey.publicKey;
 

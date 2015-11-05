@@ -9,9 +9,10 @@ dependencies:
   crypto: "^0.9.0"
 dev_dependencies:
   test: ">=0.12.0 <0.13.0"
+  broker_dart:
+    git: "https://github.com/IOT-DSA/broker-dart.git"
   browser: any
 environment:
   sdk: ">=1.9.0-dev"
 executables:
-  dsbroker: broker
   dsbeacon: beacon

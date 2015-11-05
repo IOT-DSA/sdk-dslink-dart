@@ -17,7 +17,7 @@ import 'src/http/websocket_conn.dart';
 
 import "package:logging/logging.dart";
 
-import "package:dslink/broker.dart" show BrokerDiscoveryClient;
+import "package:dslink/broker_discovery.dart" show BrokerDiscoveryClient;
 
 export "src/crypto/pk.dart";
 

@@ -1,4 +1,8 @@
-part of dslink.broker;
+library dslink.broker_discovery;
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 class BrokerDiscoveryClient {
   RawDatagramSocket _socket;

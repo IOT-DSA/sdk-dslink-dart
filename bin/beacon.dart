@@ -2,7 +2,7 @@ import "dart:io";
 
 import "package:args/args.dart";
 
-import "package:dslink/broker.dart"
+import "package:dslink/dslink.dart"
     show BrokerDiscoveryClient, BrokerDiscoverRequest;
 
 main(List<String> args) async {

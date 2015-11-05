@@ -2,7 +2,7 @@
 @Timeout(const Duration(seconds: 10))
 library dslink.test.vm.discovery;
 
-import "package:dslink/broker.dart" show BrokerDiscoveryClient, BrokerDiscoverRequest;
+import "package:dslink/broker_discovery.dart" show BrokerDiscoveryClient, BrokerDiscoverRequest;
 
 import "package:test/test.dart";
 
