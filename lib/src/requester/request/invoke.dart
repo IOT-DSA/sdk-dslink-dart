@@ -79,6 +79,7 @@ class InvokeController implements RequestUpdater {
   List<TableColumn> _cachedColumns;
 
   String mode = 'stream';
+  String lastStatus = StreamStatus.initialize;
   
   InvokeController(this.node, this.requester, Map params,
       [int maxPermission = Permission.CONFIG]) {
@@ -131,11 +132,11 @@ class InvokeController implements RequestUpdater {
       streamStatus = StreamStatus.closed;
       _controller.add(
           new RequesterInvokeUpdate(null, null, null, streamStatus, error:error, meta:meta));
-    } else if (updates != null || meta != null || streamStatus == StreamStatus.closed) {
+    } else if (updates != null || meta != null || streamStatus != lastStatus) {
       _controller.add(new RequesterInvokeUpdate(
           updates, columns, _cachedColumns, streamStatus, meta:meta));
     }
-
+    lastStatus = streamStatus;
     if (streamStatus == StreamStatus.closed) {
       _controller.close();
     }
