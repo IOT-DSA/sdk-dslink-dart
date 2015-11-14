@@ -713,18 +713,28 @@ class SimpleNode extends LocalNodeImpl {
   set writable(value) {
     if (value == null) {
       configs.remove(r"$writable");
+    } else if (value is bool) {
+      if (value) {
+        configs[r"$writable"] = "write";
+      } else {
+        configs.remove(r"$writable");
+      }
     } else {
-      configs[r"$writable"] = value is bool ? "write" : value;
+      configs[r"$writable"] = value.toString();
     }
 
     updateList(r"$writable");
   }
 
   /// Checks if this node has the specified config.
-  bool hasConfig(String name) => configs.containsKey(name.startsWith(r"$") ? name : '\$' + name);
+  bool hasConfig(String name) => configs.containsKey(
+      name.startsWith(r"$") ? name : '\$' + name
+  );
 
   /// Checks if this node has the specified attribute.
-  bool hasAttribute(String name) => attributes.containsKey(name.startsWith("@") ? name : '@' + name);
+  bool hasAttribute(String name) => attributes.containsKey(
+      name.startsWith("@") ? name : '@' + name
+  );
 
   /// Remove this node from it's parent.
   void remove() {
