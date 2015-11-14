@@ -19,6 +19,8 @@ part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
 
+typedef ExecutableFunction();
+
 /// The DSA Version
 const String DSA_VERSION = "1.1.2";
 
@@ -125,6 +127,23 @@ class Interval {
   int get inMilliseconds => duration.inMilliseconds;
 }
 
+abstract class Disposable {
+  void dispose();
+}
+
+class FunctionDisposable extends Disposable {
+  final ExecutableFunction function;
+
+  FunctionDisposable(this.function);
+
+  @override
+  void dispose() {
+    if (function != null) {
+      function();
+    }
+  }
+}
+
 /// Schedule Tasks
 class Scheduler {
   static Timer get currentTimer => Zone.current["dslink.scheduler.timer"];
@@ -148,6 +167,39 @@ class Scheduler {
 
     return new Timer.periodic(duration, (timer) async {
       await runZoned(action, zoneValues: {"dslink.scheduler.timer": timer});
+    });
+  }
+
+  static Disposable safeEvery(interval, action()) {
+    Duration duration;
+
+    if (interval is Duration) {
+      duration = interval;
+    } else if (interval is int) {
+      duration = new Duration(milliseconds: interval);
+    } else if (interval is Interval) {
+      duration = interval.duration;
+    } else {
+      throw new Exception("Invalid Interval: ${interval}");
+    }
+
+    ExecutableFunction schedule;
+    Timer timer;
+    bool disposed = false;
+    schedule = () async {
+      await action();
+      if (!disposed) {
+        new Timer(duration, schedule);
+      }
+    };
+
+    timer = new Timer(duration, schedule);
+
+    return new FunctionDisposable(() {
+      if (timer != null) {
+        timer.cancel();
+      }
+      disposed = true;
     });
   }
 

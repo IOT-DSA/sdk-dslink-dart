@@ -114,8 +114,11 @@ class LinkProvider {
   /// [loadNodesJson] specifies whether to load the nodes.json file or not.
   /// [defaultLogLevel] specifies the default log level.
   /// [nodeProvider] is the same as [provider]. It is provided for backwards compatibility.
-  LinkProvider(this.args, this.prefix,
-      {this.isRequester: false,
+  LinkProvider(
+      this.args,
+      this.prefix,
+      {
+      this.isRequester: false,
       this.command: 'link',
       this.isResponder: true,
       this.defaultNodes,
