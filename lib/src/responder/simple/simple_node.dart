@@ -77,6 +77,101 @@ class AsyncTableResult {
   }
 }
 
+/// A Live-Updating Table
+class LiveTable {
+  final List<TableColumn> columns;
+  final List<LiveTableRow> rows;
+
+  LiveTable.create(this.columns, this.rows);
+
+  factory LiveTable([List<TableColumn> columns]) {
+    return new LiveTable.create(columns == null ? [] : columns, []);
+  }
+
+  void onRowUpdate(LiveTableRow row) {
+    _resp.updateStream([row.values], meta: {
+      "modify": "replace ${row.index}-${row.index}"
+    });
+  }
+
+  void doOnClose(Function f) {
+    _onClose.add(f);
+  }
+
+  List<Function> _onClose = [];
+
+  LiveTableRow createRow(List<dynamic> values, {bool ready: true}) {
+    if (values == null) values = [];
+    var row = new LiveTableRow(this, values);
+    row.index = rows.length;
+    rows.add(row);
+    if (ready && _resp != null) {
+      _resp.updateStream([row.values], meta: {
+        "mode": "append"
+      });
+    }
+    return row;
+  }
+
+  void clear() {
+    rows.clear();
+    _resp.updateStream([], meta: {
+      "mode": "refresh"
+    }, columns: []);
+  }
+
+  void resend() {
+    sendTo(_resp);
+  }
+
+  void sendTo(InvokeResponse resp) {
+    _resp = resp;
+
+    _resp.onClose = (r) {
+      close(true);
+    };
+
+    resp.updateStream(getCurrentState(), columns: columns.map((x) {
+      return x.getData();
+    }).toList(), streamStatus: StreamStatus.open, meta: {
+      "mode": "append"
+    });
+  }
+
+  void close([bool isFromRequester = false]) {
+    while (_onClose.isNotEmpty) {
+      _onClose.removeAt(0)();
+    }
+
+    if (!isFromRequester) {
+      _resp.close();
+    }
+  }
+
+  List getCurrentState() {
+    return rows.map((x) => x.values).toList();
+  }
+
+  InvokeResponse _resp;
+}
+
+class LiveTableRow {
+  final LiveTable table;
+  final List<dynamic> values;
+
+  int index = -1;
+
+  LiveTableRow(this.table, this.values);
+
+  void setValue(int idx, value) {
+    if (idx > values.length - 1) {
+      values.length += 1;
+    }
+    values[idx] = value;
+    table.onRowUpdate(this);
+  }
+}
+
 /// Interface for node providers that are serializable.
 abstract class SerializableNodeProvider {
   /// Initialize the node provider.
@@ -526,7 +621,10 @@ class SimpleNode extends LocalNodeImpl {
       };
 
       rslt.then((value) {
-        if (value is Stream) {
+        if (value is LiveTable) {
+          r = null;
+          value.sendTo(response);
+        } else if (value is Stream) {
           Stream stream = value;
           StreamSubscription sub;
 
@@ -562,8 +660,7 @@ class SimpleNode extends LocalNodeImpl {
             var error = new DSError("invokeException", msg: e.toString());
             try {
               error.detail = stack.toString();
-            } catch (e) {
-            }
+            } catch (e) {}
             response.close(error);
           }, cancelOnError: true);
         } else if (value is Table) {
@@ -584,6 +681,8 @@ class SimpleNode extends LocalNodeImpl {
       });
       r.write(response);
       return response;
+    } else if (rslt is LiveTable) {
+      rslt.sendTo(response);
     } else {
       response.close();
     }
