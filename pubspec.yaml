@@ -9,8 +9,7 @@ dependencies:
   crypto: "^0.9.0"
   msgpack: 
     git: 
-      url: git://github.com/kaendfinger/dart-msgpack.git
-      ref: dsa
+      url: git://github.com/DirectMyFile/msgpack.dart.git
 dev_dependencies:
   test: ">=0.12.0 <0.13.0"
   dsbroker:
