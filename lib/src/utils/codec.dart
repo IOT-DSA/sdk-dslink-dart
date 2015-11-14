@@ -128,7 +128,7 @@ abstract class DsCodec {
     "json": DsJson.instance,
     "msgpack": DsMsgPackCodecImpl.instance
   };
-  
+
   static final DsCodec defaultCodec = DsJson.instance as DsCodec;
 
   static void register(String name, DsCodec codec) {
@@ -278,6 +278,7 @@ class DsMsgPackCodecImpl extends DsCodec {
     if (rslt is Map) {
       return rslt;
     }
+    _unpacker.data = null;
     return {};
   }
 
