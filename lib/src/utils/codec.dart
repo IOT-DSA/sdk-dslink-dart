@@ -2,13 +2,15 @@ part of dslink.utils;
 
 class BinaryData {
   /// used when only partial data is received
-  /// don't merge them before it's finished
+  /// don"t merge them before it's finished
   List<ByteData> mergingList;
 
   ByteData bytes;
+
   BinaryData(ByteData bytes) {
     this.bytes = bytes;
   }
+
   BinaryData.fromList(List<int> list) {
     bytes = ByteDataUtil.fromList(list);
   }
@@ -122,13 +124,19 @@ class BinaryData {
 //}
 
 abstract class DsCodec {
-  static final Map<String, DsCodec> _codecs = {'json':DsJson.instance, 'msgpack':DsMsgPackCodecImpl.instance};
+  static final Map<String, DsCodec> _codecs = {
+    "json": DsJson.instance,
+    "msgpack": DsMsgPackCodecImpl.instance
+  };
+  
   static final DsCodec defaultCodec = DsJson.instance as DsCodec;
+
   static void register(String name, DsCodec codec) {
     if (name != null && codec != null) {
       _codecs[name] = codec;
     }
   }
+
   static DsCodec getCodec(String name) {
     DsCodec rslt = _codecs[name];
     if (rslt == null) {
@@ -136,19 +144,22 @@ abstract class DsCodec {
     }
     return rslt;
   }
-  
+
   Object _blankData;
+
   Object get blankData {
     if (_blankData == null) {
       _blankData = encodeFrame({});
     }
     return _blankData;
   }
+
   /// output String or List<int>
   Object encodeFrame(Map val);
 
   /// input can be String or List<int>
   Map decodeStringFrame(String input);
+
   Map decodeBinaryFrame(List<int> input);
 }
 
@@ -164,6 +175,7 @@ abstract class DsJson {
   }
 
   String encodeJson(Object val, {bool pretty: false});
+
   Object decodeJson(String str);
 }
 
@@ -198,12 +210,14 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   Map decodeBinaryFrame(List<int> bytes) {
     return decodeStringFrame(UTF8.decode(bytes));
   }
+
   Map decodeStringFrame(String str) {
     if (_reviver == null) {
       _reviver = (key, value) {
-        if (value is String && value.startsWith('\u001Bbytes:')) {
+        if (value is String && value.startsWith("\u001Bbytes:")) {
           try {
-            return ByteDataUtil.fromUint8List(Base64.decode(value.substring(7)));
+            return ByteDataUtil.fromUint8List(
+                Base64.decode(value.substring(7)));
           } catch (err) {
             return null;
           }
@@ -227,7 +241,8 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
     if (_encoder == null) {
       _encoder = (value) {
         if (value is ByteData) {
-          return '\u001Bbytes:${Base64.encode(ByteDataUtil.toUint8List(value))}';
+          return "\u001Bbytes:${Base64.encode(
+              ByteDataUtil.toUint8List(value))}";
         }
         return null;
       };
@@ -247,18 +262,26 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   JsonEncoder _unsafeEncoder;
   JsonEncoder _unsafePrettyEncoder;
 }
+
 class DsMsgPackCodecImpl extends DsCodec {
   static DsMsgPackCodecImpl instance = new DsMsgPackCodecImpl();
-  
+
   Map decodeBinaryFrame(List<int> input) {
     Uint8List data = ByteDataUtil.list2Uint8List(input);
-    Unpacker unpacker = new Unpacker(data.buffer, data.offsetInBytes);
-    Object rslt = unpacker.unpack();
+    if (_unpacker == null) {
+      _unpacker = new Unpacker(data.buffer, data.offsetInBytes);
+    } else {
+      _unpacker.reset(data.buffer);
+      _unpacker.offset = data.offsetInBytes;
+    }
+    Object rslt = _unpacker.unpack();
     if (rslt is Map) {
       return rslt;
     }
     return {};
   }
+
+  Unpacker _unpacker;
 
   Map decodeStringFrame(String input) {
     // not supported
@@ -266,9 +289,6 @@ class DsMsgPackCodecImpl extends DsCodec {
   }
 
   Object encodeFrame(Map val) {
-    print(val);
-    List rslt =  (new Packer()).pack(val);
-    print('msgpack encoded length: ${rslt.length}');
-    return rslt;
+    return const Packer().pack(val);
   }
 }

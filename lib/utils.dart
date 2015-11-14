@@ -2,14 +2,13 @@
 library dslink.utils;
 
 import "dart:async";
-import 'dart:convert';
-import 'dart:collection';
-import 'dart:typed_data';
-
+import "dart:convert";
+import "dart:collection";
+import "dart:typed_data";
 import "dart:math";
 
 import "package:logging/logging.dart";
-import 'package:msgpack/msgpack.dart';
+import "package:msgpack/msgpack.dart";
 
 part "src/utils/better_iterator.dart";
 part "src/utils/base64.dart";
@@ -21,13 +20,11 @@ part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
 
 /// The DSA Version
-const String DSA_VERSION = '1.1.2';
+const String DSA_VERSION = "1.1.2";
 
 Logger _logger;
 
 bool _DEBUG_MODE;
-
-//final JsonUtf8Encoder jsonUtf8Encoder = new JsonUtf8Encoder();
 
 List foldList(List a, List b) {
   return a..addAll(b);
@@ -185,7 +182,7 @@ class Scheduler {
   }
 }
 
-String buildEnumType(Iterable<String> values) => "enum[${values.join(',')}]";
+String buildEnumType(Iterable<String> values) => "enum[${values.join(",")}]";
 
 List<String> parseEnumType(String type) {
   if (!type.startsWith("enum[") || !type.endsWith("]")) {
