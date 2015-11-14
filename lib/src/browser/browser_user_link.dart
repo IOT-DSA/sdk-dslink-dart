@@ -28,20 +28,28 @@ class BrowserUserLink implements ClientLink {
 
   String wsUpdateUri;
   String httpUpdateUri;
-
+  String format = 'json';
+  
   BrowserUserLink(
       {NodeProvider nodeProvider,
       bool isRequester: true,
       bool isResponder: true,
       this.wsUpdateUri,
       this.httpUpdateUri, 
-      this.enableAck:false})
+      this.enableAck:false,
+      String format})
       : requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
             : null {
     if (wsUpdateUri.startsWith('http')) {
       wsUpdateUri = 'ws${wsUpdateUri.substring(4)}';
+    }
+    if (format != null) {
+      this.format = format;
+    }
+    if (window.location.hash.contains('dsa_json')) {
+      this.format = 'json';
     }
   }
 
@@ -56,8 +64,8 @@ class BrowserUserLink implements ClientLink {
 //    if (reconnect && _httpConnection == null) {
 //      initHttp();
 //    }
-    var socket = new WebSocket('$wsUpdateUri?session=$session');
-    _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck);
+    var socket = new WebSocket('$wsUpdateUri?session=$session&format=$format');
+    _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, useCodec:DsCodec.getCodec(format));
 
     if (responder != null) {
       responder.connection = _wsConnection.responderChannel;

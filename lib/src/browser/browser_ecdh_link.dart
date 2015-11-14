@@ -39,12 +39,15 @@ class BrowserECDHLink implements ClientLink {
   String _httpUpdateUri;
   String _conn;
   String tokenHash;
-
+  /// formats sent to broker
+  List formats = ['msgpack', 'json'];
+  /// format received from broker
+  String format = 'json';
   BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider,
       bool isRequester: true,
       bool isResponder: true,
-      this.token})
+      this.token, List formats})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
@@ -59,6 +62,12 @@ class BrowserECDHLink implements ClientLink {
                 String tokenId = token.substring(0, 16);
                 String hashStr =   CryptoProvider.sha256(UTF8.encode('$dsId$token'));
                 tokenHash = '&token=$tokenId$hashStr';
+              }
+              if (formats != null) {
+                this.formats = formats;
+              }
+              if (window.location.hash.contains('dsa_json')) {
+                formats = ['json'];
               }
             }
 
@@ -77,6 +86,7 @@ class BrowserECDHLink implements ClientLink {
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
         'isResponder': responder != null,
+        'formats': formats,
         'version': DSA_VERSION
       };
       HttpRequest request = await HttpRequest.request(connUrl,
@@ -98,7 +108,6 @@ class BrowserECDHLink implements ClientLink {
         if (tokenHash != null) {
           _wsUpdateUri = '$_wsUpdateUri$tokenHash';
         }
-
       }
 
       if (serverConfig['httpUri'] is String) {
@@ -113,7 +122,9 @@ class BrowserECDHLink implements ClientLink {
       // server start to support version since 1.0.4
       // and this is the version ack is added
       enableAck = serverConfig.containsKey('version');
-      
+      if (serverConfig['format'] is String) {
+       format = serverConfig['format'];
+      }
       initWebsocket(false);
       _connDelay = 1;
       _wsDelay = 1;
@@ -131,13 +142,13 @@ class BrowserECDHLink implements ClientLink {
 //    if (reconnect && _httpConnection == null) {
 //      initHttp();
 //    }
-    var socket =
-        new WebSocket('$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}');
+    String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}&format=$format';
+    var socket = new WebSocket(wsUrl);
     _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, onConnect: () {
       if (!_onConnectedCompleter.isCompleted) {
         _onConnectedCompleter.complete();
       }
-    });
+    }, useCodec:DsCodec.getCodec(format));
 
     if (responder != null) {
       responder.connection = _wsConnection.responderChannel;

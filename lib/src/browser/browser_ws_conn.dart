@@ -25,7 +25,10 @@ class WebSocketConnection extends Connection {
   Function onConnect;
 
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, this.clientLink, {this.onConnect, bool enableAck:false}) {
+  WebSocketConnection(this.socket, this.clientLink, {this.onConnect, bool enableAck:false, DsCodec useCodec}) {
+    if (useCodec != null) {
+      codec = useCodec;
+    }
     if (!enableAck) {
       nextMsgId = -1;
     }
@@ -235,6 +238,9 @@ class WebSocketConnection extends Connection {
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);
       Object encoded = codec.encodeFrame(m);
+      if (encoded is List) {
+        encoded = ByteDataUtil.list2Uint8List(encoded);
+      }
       socket.send(encoded);
       _dataSent = true;
     }

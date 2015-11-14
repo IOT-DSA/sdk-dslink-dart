@@ -48,11 +48,16 @@ class HttpClientLink implements ClientLink {
   bool enableAck = false;
 
   Map linkData;
-
+  
+  /// formats sent to broker
+  List formats = ['msgpack', 'json'];
+  /// format received from broker
+  String format = 'json';
+  
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
       bool isResponder: true, Requester overrideRequester,
-      Responder overrideResponder, this.home, this.token, this.linkData
+      Responder overrideResponder, this.home, this.token, this.linkData, List formats
       //this.enableHttp: false
       })
       : privateKey = privateKey,
@@ -63,6 +68,9 @@ class HttpClientLink implements ClientLink {
       } else {
         requester = new Requester();
       }
+    }
+    if (formats != null) {
+      this.formats = formats;
     }
     if (isResponder) {
       if (overrideResponder != null) {
@@ -109,6 +117,7 @@ class HttpClientLink implements ClientLink {
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
         'isResponder': responder != null,
+        'formats':formats,
         'version': DSA_VERSION
       };
       if (linkData != null) {
@@ -145,7 +154,10 @@ class HttpClientLink implements ClientLink {
           _wsUpdateUri = '$_wsUpdateUri&home=$home';
         }
       }
-
+      
+      if (serverConfig['format'] is String) {
+        format = serverConfig['format'];
+      }
 //      if (serverConfig['httpUri'] is String) {
 //        _httpUpdateUri =
 //            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
@@ -171,13 +183,13 @@ class HttpClientLink implements ClientLink {
 //      initHttp();
 //    }
     try {
-      String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}';
+      String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}&format=$format';
       if (tokenHash != null) {
         wsUrl = '$wsUrl$tokenHash';
       }
       var socket = await HttpHelper.connectToWebSocket(wsUrl);
       _wsConnection = new WebSocketConnection(socket,
-          clientLink: this, enableTimeout: true, enableAck: enableAck);
+          clientLink: this, enableTimeout: true, enableAck: enableAck, useCodec:DsCodec.getCodec(format));
 
       logger.info("Connected");
       if (!_onConnectedCompleter.isCompleted) {

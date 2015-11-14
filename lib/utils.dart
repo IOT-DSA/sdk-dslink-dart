@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import "dart:math";
 
 import "package:logging/logging.dart";
+import 'package:msgpack/msgpack.dart';
 
 part "src/utils/better_iterator.dart";
 part "src/utils/base64.dart";
@@ -20,7 +21,7 @@ part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
 
 /// The DSA Version
-const String DSA_VERSION = '1.1.1';
+const String DSA_VERSION = '1.1.2';
 
 Logger _logger;
 

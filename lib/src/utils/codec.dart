@@ -122,7 +122,7 @@ class BinaryData {
 //}
 
 abstract class DsCodec {
-  static final Map<String, DsCodec> _codecs = {'json':DsJson.instance};
+  static final Map<String, DsCodec> _codecs = {'json':DsJson.instance, 'msgpack':DsMsgPackCodecImpl.instance};
   static final DsCodec defaultCodec = DsJson.instance as DsCodec;
   static void register(String name, DsCodec codec) {
     if (name != null && codec != null) {
@@ -246,4 +246,29 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
 
   JsonEncoder _unsafeEncoder;
   JsonEncoder _unsafePrettyEncoder;
+}
+class DsMsgPackCodecImpl extends DsCodec {
+  static DsMsgPackCodecImpl instance = new DsMsgPackCodecImpl();
+  
+  Map decodeBinaryFrame(List<int> input) {
+    Uint8List data = ByteDataUtil.list2Uint8List(input);
+    Unpacker unpacker = new Unpacker(data.buffer, data.offsetInBytes);
+    Object rslt = unpacker.unpack();
+    if (rslt is Map) {
+      return rslt;
+    }
+    return {};
+  }
+
+  Map decodeStringFrame(String input) {
+    // not supported
+    return {};
+  }
+
+  Object encodeFrame(Map val) {
+    print(val);
+    List rslt =  (new Packer()).pack(val);
+    print('msgpack encoded length: ${rslt.length}');
+    return rslt;
+  }
 }
