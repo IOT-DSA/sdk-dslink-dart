@@ -25,7 +25,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
       }
       for (Object obj in updates) {
         List row;
-        if (obj is List && obj is! ByteData) {
+        if (obj is List) {
           if (obj.length < colLen) {
             row = obj.toList();
             for (int i = obj.length; i < colLen; ++i) {
@@ -42,6 +42,12 @@ class RequesterInvokeUpdate extends RequesterUpdate {
           }
         } else if (obj is Map) {
           row = [];
+          if (columns == null) {
+            Map map = obj;
+            List<String> keys = map.keys.toList();
+            columns = keys.map((x) => new TableColumn(x, "dynamic")).toList();
+          }
+
           if (columns != null) {
             for (TableColumn column in columns) {
               if (obj.containsKey(column.name)) {
