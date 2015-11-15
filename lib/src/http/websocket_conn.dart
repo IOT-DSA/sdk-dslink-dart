@@ -265,6 +265,7 @@ class WebSocketConnection extends Connection {
         pendingAck.addAll(rslt.processors);
       }
     }
+
     if (needSend) {
       if (nextMsgId != -1) {
         if (pendingAck.length > 0) {

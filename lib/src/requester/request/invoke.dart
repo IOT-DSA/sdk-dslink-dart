@@ -25,7 +25,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
       }
       for (Object obj in updates) {
         List row;
-        if (obj is List) {
+        if (obj is List && obj is! ByteData) {
           if (obj.length < colLen) {
             row = obj.toList();
             for (int i = obj.length; i < colLen; ++i) {

@@ -183,7 +183,7 @@ main() async {
   $.onValueChange("/Page_Color").listen((ValueUpdate update) async { // Wait for background color changes.
     String color = update.value;
     try {
-      color = "#${int.parse(update.value).toRadixString(16)}";
+      color = "#${int.parse(update.value).toRadixString(16).padLeft(6, '0')}";
     } catch (e) {}
     bodyElement
       ..style.removeProperty("background")
@@ -194,7 +194,7 @@ main() async {
   $.onValueChange("/Text_Color").listen((ValueUpdate update) async { // Wait for text color changes.
     String color = update.value;
     try {
-      color = "#${int.parse(update.value).toRadixString(16)}";
+      color = "#${int.parse(update.value).toRadixString(16).padLeft(6, '0')}";
     } catch (e) {}
     textElement
       ..style.color = color

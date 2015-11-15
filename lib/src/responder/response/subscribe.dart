@@ -4,6 +4,7 @@ class RespSubscribeListener {
   Function callback;
   LocalNode node;
   RespSubscribeListener(this.node, this.callback);
+
   void cancel() {
     if (callback != null) {
       node.unsubscribe(callback);
@@ -78,6 +79,7 @@ class SubscribeResponse extends Response {
     changed.add(controller);
     prepareSending();
   }
+
   @override
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
@@ -276,7 +278,7 @@ class RespSubscribeController {
          waitingValues..clear()..add(lastValue);
       }
     }
-    // TODO, don't allow this to be called from same controller more oftern than 100ms
+    // TODO, don't allow this to be called from same controller more often than 100ms
     // the first response can happen ASAP, but
     if (_permitted && sid > -1) {
       response.subscriptionChanged(this);
@@ -318,15 +320,16 @@ class RespSubscribeController {
     }
     bool valueRemoved = false;
     if (!waitingValues.isEmpty && waitingValues.first.waitingAck != ackId) {
-      print('invalidAck ${waitingValues.first.value} ${waitingValues.first.waitingAck}');
+      logger.warning('invalid ack ${waitingValues.first.value} ${waitingValues.first.waitingAck}');
       
       ValueUpdate matchUpdate;
-      for(ValueUpdate update in waitingValues) {
+      for (ValueUpdate update in waitingValues) {
         if (update.waitingAck == ackId) {
           matchUpdate = update;
           break;
         }
       }
+
       if (matchUpdate != null) {
         while (!waitingValues.isEmpty && waitingValues.first != matchUpdate) {
           ValueUpdate removed = waitingValues.removeFirst();
@@ -368,6 +371,7 @@ class RespSubscribeController {
     }
     lastValue = values.last;
   }
+
   void destroy() {
     if (_storage != null) {
       ISubscriptionResponderStorage storageM = response.responder.storage;

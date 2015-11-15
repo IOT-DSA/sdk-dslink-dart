@@ -1,9 +1,11 @@
 /// DSA Requester API
 library dslink.requester;
 
-import 'common.dart';
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data';
+
+import 'common.dart';
 import 'utils.dart';
 
 export "package:dslink/utils.dart" show parseEnumType;
