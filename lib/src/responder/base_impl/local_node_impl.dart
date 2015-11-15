@@ -89,7 +89,7 @@ abstract class LocalNodeImpl extends LocalNode {
   Response setValue(Object value, Responder responder, Response response,
       [int maxPermission = Permission.CONFIG]) {
     updateValue(value);
-    // TODO check value type
+    // TODO: check value type
     return response..close();
   }
 }

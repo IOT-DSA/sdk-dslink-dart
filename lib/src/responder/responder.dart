@@ -42,11 +42,12 @@ class Responder extends ConnectionHandler {
   Responder(this.nodeProvider, [this.reqId]) {
     _subscription = new SubscribeResponse(this, 0);
     _responses[0] = _subscription;
-    // TODO load reqId
+    // TODO: load reqId
     if (reqId != null && reqId.length < 43) {
       groups = [reqId];
     }
   }
+
   Response addResponse(Response response) {
     if (response._sentStreamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
@@ -66,11 +67,12 @@ class Responder extends ConnectionHandler {
     }
     return response;
   }
+
   void traceResponseRemoved(Response response){
     ResponseTrace update = response.getTraceData('-');
     for (ResponseTraceCallback callback in _traceCallbacks) {
       callback(update);
-    }  
+    }
   }
 
   void onData(List list) {
@@ -90,6 +92,7 @@ class Responder extends ConnectionHandler {
         // when rid is invalid, nothing needs to be sent back
         return;
       }
+
       switch (m['method']) {
         case 'list':
           list(m);
@@ -112,6 +115,7 @@ class Responder extends ConnectionHandler {
         default:
       }
     }
+
     if (m['rid'] is int && m['method'] != 'close') {
       _closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     }

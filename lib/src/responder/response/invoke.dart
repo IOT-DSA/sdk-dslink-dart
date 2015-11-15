@@ -7,6 +7,7 @@ class _InvokeResponseUpdate {
   List columns;
   List updates;
   Map meta;
+
   _InvokeResponseUpdate(this.status, this.updates, this.columns, this.meta);
 }
 

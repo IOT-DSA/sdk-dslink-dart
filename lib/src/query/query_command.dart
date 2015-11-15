@@ -32,10 +32,8 @@ abstract class BrokerQueryCommand {
   }
 
   /// init after checking command is not a duplication
-  void init(){
-    
-  }
-  
+  void init() {}
+
   void updateFromBase(List updats);
 
   void destroy() {
@@ -48,7 +46,6 @@ abstract class BrokerQueryCommand {
     _manager._dict.remove(getQueryId());
   }
 
-  
   String _cachedQueryId;
 
   /// return a unified String as the key of the map

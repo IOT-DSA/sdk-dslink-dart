@@ -5,6 +5,7 @@ class RequesterListUpdate extends RequesterUpdate {
   /// when changes is null, means everything could have been changed
   List<String> changes;
   RemoteNode node;
+
   RequesterListUpdate(this.node, this.changes, String streamStatus)
       : super(streamStatus);
 }
@@ -16,14 +17,16 @@ class ListDefListener {
   StreamSubscription listener;
 
   bool ready = false;
-  ListDefListener(
-      this.node, this.requester, void callback(RequesterListUpdate)) {
+
+  ListDefListener(this.node, this.requester,
+      void callback(RequesterListUpdate)) {
     listener =
         requester.list(node.remotePath).listen((RequesterListUpdate update) {
-      ready = update.streamStatus != StreamStatus.initialize;
-      callback(update);
-    });
+          ready = update.streamStatus != StreamStatus.initialize;
+          callback(update);
+        });
   }
+
   void cancel() {
     listener.cancel();
   }
@@ -33,17 +36,21 @@ class ListController implements RequestUpdater {
   final RemoteNode node;
   final Requester requester;
   BroadcastStreamController<RequesterListUpdate> _controller;
+
   Stream<RequesterListUpdate> get stream => _controller.stream;
   Request request;
+
   ListController(this.node, this.requester) {
     _controller = new BroadcastStreamController<RequesterListUpdate>(
         onStartListen, _onAllCancel, _onListen);
   }
+
   bool get initialized {
     return request != null && request.streamStatus != StreamStatus.initialize;
   }
 
   String disconnectTs;
+
   void onDisconnect() {
     disconnectTs = ValueUpdate.getTs();
     node.configs[r'$disconnectedTs'] = disconnectTs;
@@ -60,7 +67,9 @@ class ListController implements RequestUpdater {
   }
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
-  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
+
+  void onUpdate(String streamStatus, List updates, List columns, Map meta,
+      DSError error) {
     bool reseted = false;
     // TODO implement error handling
     if (updates != null) {
@@ -137,6 +146,7 @@ class ListController implements RequestUpdater {
   }
 
   ListDefListener _profileLoader;
+
   void loadProfile(String defName) {
     _ready = true;
     String defPath = defName;
@@ -159,7 +169,7 @@ class ListController implements RequestUpdater {
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
       _profileLoader =
-          new ListDefListener(node.profile, requester, _onProfileUpdate);
+      new ListDefListener(node.profile, requester, _onProfileUpdate);
     }
   }
 
@@ -168,6 +178,7 @@ class ListController implements RequestUpdater {
     r'$permission',
     r'$settings'
   ];
+
   void _onProfileUpdate(RequesterListUpdate update) {
     _profileLoader.cancel();
     _profileLoader = null;
@@ -178,6 +189,7 @@ class ListController implements RequestUpdater {
   }
 
   bool _ready = true;
+
   void onProfileUpdated() {
     if (_ready) {
       if (request.streamStatus != StreamStatus.initialize) {
@@ -192,6 +204,7 @@ class ListController implements RequestUpdater {
   }
 
   bool _pendingRemoveDef = false;
+
   void _checkRemoveDef() {
     _pendingRemoveDef = false;
   }
@@ -206,12 +219,10 @@ class ListController implements RequestUpdater {
   void _onListen(callback(RequesterListUpdate)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
-        List changes = []
-          ..addAll(node.configs.keys)
-          ..addAll(node.attributes.keys)
-          ..addAll(node.children.keys);
+        List changes = []..addAll(node.configs.keys)..addAll(
+            node.attributes.keys)..addAll(node.children.keys);
         RequesterListUpdate update =
-            new RequesterListUpdate(node, changes, request.streamStatus);
+        new RequesterListUpdate(node, changes, request.streamStatus);
         callback(update);
       });
     }

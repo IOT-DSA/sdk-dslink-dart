@@ -4,6 +4,7 @@ class ListResponse extends Response {
   final LocalNode node;
   StreamSubscription _nodeChangeListener;
   int _permission;
+
   ListResponse(Responder responder, int rid, this.node)
       : super(responder, rid) {
     _permission =
@@ -18,13 +19,16 @@ class ListResponse extends Response {
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
   bool initialResponse = true;
+
   void changed(String key) {
     if (_permission == Permission.NONE) {
       return;
     }
+
     if (_permission < Permission.CONFIG && key.startsWith(r'$$')) {
       return;
     }
+
     if (changes.isEmpty) {
       changes.add(key);
       prepareSending();
@@ -34,15 +38,16 @@ class ListResponse extends Response {
   }
 
   bool _disconnectSent = false;
+
   @override
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
-    
+
     if (waitingAckId != -1) {
       _waitingAckCount++;
       _lastWatingAckId = waitingAckId;
     }
-    
+
     Object updateIs;
     Object updateBase;
     List updateConfigs = [];
@@ -66,8 +71,8 @@ class ListResponse extends Response {
         node.configs.remove(r'$disconnectedTs');
       }
     }
-    // TODO handle permission and permission change
 
+    // TODO: handle permission and permission change
     if (initialResponse || changes.contains(r'$is')) {
       initialResponse = false;
       node.configs.forEach((name, value) {
@@ -129,30 +134,30 @@ class ListResponse extends Response {
     if (updateIs != null) {
       updates.add(updateIs);
     }
-    updates
-      ..addAll(updateConfigs)
-      ..addAll(updateAttributes)
-      ..addAll(updateChildren);
+    updates..addAll(updateConfigs)..addAll(updateAttributes)..addAll(
+        updateChildren);
 
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
 
   int _waitingAckCount = 0;
   int _lastWatingAckId = -1;
-   
+
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
     if (receiveAckId == _lastWatingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount --;
     }
-    
+
     if (_sendingAfterAck) {
       _sendingAfterAck = false;
       prepareSending();
     }
   }
+
   bool _sendingAfterAck = false;
+
   void prepareSending() {
     if (_sendingAfterAck) {
       return;
@@ -166,12 +171,12 @@ class ListResponse extends Response {
       responder.addProcessor(this);
     }
   }
-  
-  
+
+
   void _close() {
     _nodeChangeListener.cancel();
   }
-  
+
   /// for the broker trace action
   ResponseTrace getTraceData([String change = '+']) {
     return new ResponseTrace(node.path, 'list', rid, change, null);

@@ -1,10 +1,10 @@
 part of dslink.query;
 
-class _QuerySubscription{
+class _QuerySubscription {
   final QueryCommandSubscribe command;
   final LocalNode node;
   RespSubscribeListener listener;
-  
+
   /// if removed, the subscription will be destroyed next frame
   bool removed = false;
   bool justAdded = true;
@@ -14,40 +14,40 @@ class _QuerySubscription{
     }
     listener = node.subscribe(valueCallback);
   }
-  
+
   ValueUpdate lastUpdate;
-  void valueCallback(ValueUpdate value){
+  void valueCallback(ValueUpdate value) {
     lastUpdate = value;
     command.updateRow(getRowData());
   }
-  
-  List getRowData(){
+
+  List getRowData() {
     // TODO make sure node still in tree
     // because list remove node update could come one frame later
     if (!removed && lastUpdate != null) {
       if (justAdded) {
-         justAdded = false;
-         return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+        justAdded = false;
+        return [node.path, '+', lastUpdate.value, lastUpdate.ts];
       } else {
-         return [node.path, '', lastUpdate.value, lastUpdate.ts];
+        return [node.path, '', lastUpdate.value, lastUpdate.ts];
       }
     }
     return null;
   }
-  List getRowDataForNewResponse(){
+
+  List getRowDataForNewResponse() {
     if (!removed && !justAdded && lastUpdate != null) {
       return [node.path, '+', lastUpdate.value, lastUpdate.ts];
     }
     return null;
   }
-  
-  void destroy(){
+
+  void destroy() {
     listener.cancel();
   }
 }
 
-class QueryCommandSubscribe extends BrokerQueryCommand{
-  
+class QueryCommandSubscribe extends BrokerQueryCommand {
   static List columns = [
     {'name': 'path', 'type': 'string'},
     {'name': 'change', 'type': 'string'},
@@ -56,7 +56,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
   ];
 
   QueryCommandSubscribe(BrokerQueryManager manager) : super(manager);
-  
+
   void addResponse(InvokeResponse response) {
     if (_pending) {
       // send all pending update to existing responses
@@ -71,29 +71,32 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
         rows.add(data);
       }
     });
-    response.updateStream(rows, columns:columns);
+    response.updateStream(rows, columns: columns);
   }
-  
+
   Set<String> _changes = new Set<String>();
-  Map<String, _QuerySubscription> subscriptions = new Map<String, _QuerySubscription>();
-  
+  Map<String, _QuerySubscription> subscriptions =
+      new Map<String, _QuerySubscription>();
+
   bool _pending = false;
-  void updatePath(String path){
+  void updatePath(String path) {
     _changes.add(path);
     if (!_pending) {
       _pending = true;
       DsTimer.callLater(_doUpdate);
     }
   }
+
   List _pendingRows = [];
-  void updateRow(List row){
+  void updateRow(List row) {
     _pendingRows.add(row);
     if (!_pending) {
       _pending = true;
       DsTimer.callLater(_doUpdate);
     }
   }
-  void _doUpdate(){
+
+  void _doUpdate() {
     if (!_pending) {
       return;
     }
@@ -114,18 +117,17 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
           if (data != null) {
             rows.add(data);
           }
-          
         }
       }
     }
     _changes.clear();
-    for (var resp in responses){
+    for (var resp in responses) {
       resp.updateStream(rows);
     }
   }
 
   // must be list result
-  // new matched node [node,'+'] 
+  // new matched node [node,'+']
   // remove matched node [node, '-']
   void updateFromBase(List updates) {
     for (List data in updates) {
@@ -146,16 +148,15 @@ class QueryCommandSubscribe extends BrokerQueryCommand{
       }
     }
   }
-  
+
   String toString() {
-     return r'subscribe $value';
-   }
+    return r'subscribe $value';
+  }
 
   void destroy() {
     super.destroy();
-    subscriptions.forEach((String key, _QuerySubscription sub){
+    subscriptions.forEach((String key, _QuerySubscription sub) {
       sub.destroy();
     });
   }
-
 }

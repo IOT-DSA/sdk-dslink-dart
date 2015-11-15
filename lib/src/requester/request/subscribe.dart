@@ -4,7 +4,9 @@ class ReqSubscribeListener implements StreamSubscription {
   Function callback;
   Requester requester;
   String path;
+
   ReqSubscribeListener(this.requester, this.path, this.callback);
+
   Future cancel() {
     if (callback != null) {
       requester.unsubscribe(path, callback);
@@ -35,7 +37,9 @@ class ReqSubscribeListener implements StreamSubscription {
 /// real logic is in SubscribeRequest itself
 class SubscribeController implements RequestUpdater {
   SubscribeRequest request;
+
   SubscribeController();
+
   void onDisconnect() {
     // TODO: implement onDisconnect
   }
@@ -44,13 +48,15 @@ class SubscribeController implements RequestUpdater {
     // TODO: implement onReconnect
   }
 
-  void onUpdate(String status, List updates, List columns, Map meta, DSError error) {
+  void onUpdate(String status, List updates, List columns, Map meta,
+      DSError error) {
     // do nothing
   }
 }
 
-class SubscribeRequest extends Request implements ConnectionProcessor{
+class SubscribeRequest extends Request implements ConnectionProcessor {
   int lastSid = 0;
+
   int getNextSid() {
     do {
       if (lastSid < 0x7FFFFFFF) {
@@ -61,12 +67,12 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
     } while (subsriptionids.containsKey(lastSid));
     return lastSid;
   }
-  
+
   final Map<String, ReqSubscribeController> subsriptions =
-      new Map<String, ReqSubscribeController>();
+  new Map<String, ReqSubscribeController>();
 
   final Map<int, ReqSubscribeController> subsriptionids =
-      new Map<int, ReqSubscribeController>();
+  new Map<int, ReqSubscribeController>();
 
   SubscribeRequest(Requester requester, int rid)
       : super(requester, rid, new SubscribeController(), null) {
@@ -140,6 +146,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
   }
 
   HashSet<String> _changedPaths = new HashSet<String>();
+
   void addSubscription(ReqSubscribeController controller, int level) {
     String path = controller.node.remotePath;
     subsriptions[path] = controller;
@@ -155,20 +162,23 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
       prepareSending();
     } else if (subsriptionids.containsKey(controller.sid)) {
       logger.severe(
-          'unexpected remoteSubscription in the requester, sid: ${controller.sid}');
+          'unexpected remoteSubscription in the requester, sid: ${controller
+              .sid}');
     }
   }
 
-  Map<int, ReqSubscribeController> toRemove = new Map<int, ReqSubscribeController>();
-  
+  Map<int, ReqSubscribeController> toRemove = new Map<
+      int,
+      ReqSubscribeController>();
+
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
-    
+
     if (waitingAckId != -1) {
       _waitingAckCount++;
       _lastWatingAckId = waitingAckId;
     }
-    
+
     if (requester.connection == null) {
       return;
     }
@@ -199,7 +209,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
           sub._destroy();
         }
       });
-      requester._sendRequest({'method': 'unsubscribe', 'sids': removeSids}, null);
+      requester._sendRequest(
+          {'method': 'unsubscribe', 'sids': removeSids}, null);
       toRemove.clear();
     }
   }
@@ -207,20 +218,22 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
   bool _pendingSending = false;
   int _waitingAckCount = 0;
   int _lastWatingAckId = -1;
-   
+
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
     if (receiveAckId == _lastWatingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount --;
     }
-    
+
     if (_sendingAfterAck) {
       _sendingAfterAck = false;
       prepareSending();
     }
   }
+
   bool _sendingAfterAck = false;
+
   void prepareSending() {
     if (_sendingAfterAck) {
       return;
@@ -234,7 +247,6 @@ class SubscribeRequest extends Request implements ConnectionProcessor{
       requester.addProcessor(this);
     }
   }
-  
 }
 
 class ReqSubscribeController {
@@ -244,6 +256,7 @@ class ReqSubscribeController {
   Map<Function, int> callbacks = new Map<Function, int>();
   int currentQos = -1;
   int sid;
+
   ReqSubscribeController(this.node, this.requester) {
     sid = requester._subsciption.getNextSid();
   }
@@ -292,7 +305,7 @@ class ReqSubscribeController {
   bool updateQos() {
     int qosCache = 0;
     callbacks.forEach((callback, qos) {
-      qosCache |=  qos;
+      qosCache |= qos;
     });
     if (qosCache != currentQos) {
       currentQos = qosCache;
@@ -302,14 +315,14 @@ class ReqSubscribeController {
   }
 
   ValueUpdate _lastUpdate;
+
   void addValue(ValueUpdate update) {
     _lastUpdate = update;
     for (Function callback in callbacks.keys.toList()) {
       callback(_lastUpdate);
     }
-    ;
   }
-  
+
   void _destroy() {
     callbacks.clear();
     node._subscribeController = null;

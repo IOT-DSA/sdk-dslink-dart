@@ -1,8 +1,13 @@
 /// Helper Nodes for Responders
 library dslink.nodes;
 
+import "dart:async";
+import "dart:convert";
+
 import "package:dslink/common.dart";
 import "package:dslink/responder.dart";
+
+import "package:dslink/utils.dart" show Producer;
 
 /// An Action for Deleting a Given Node
 class DeleteActionNode extends SimpleNode {
@@ -131,16 +136,102 @@ typedef void ChildChangedCallback(String name, Node node);
 typedef SimpleNode LoadChildCallback(
     String name, Map data, SimpleNodeProvider provider);
 
+typedef Future ResolveNodeHandler(CallbackNode node);
+
+class ResolvingNodeProvider extends SimpleNodeProvider {
+  ResolveNodeHandler handler;
+
+  ResolvingNodeProvider([Map defaultNodes, Map profiles]) :
+        super(defaultNodes, profiles);
+
+  @override
+  LocalNode getNode(String path) {
+    LocalNode node = super.getNode(path);
+    if (path != "/" && node != null) {
+      return node;
+    }
+
+    if (handler == null) {
+      return null;
+    }
+
+    CallbackNode n = new CallbackNode(path, provider: this);
+    bool isListReady = false;
+    n.isListReady = () => isListReady;
+    handler(n).then((m) {
+      if (!m) {
+        isListReady = true;
+        String ts = ValueUpdate.getTs();
+        n.getDisconnectedStatus = () => ts;
+        n.listChangeController.add(r"$is");
+        return;
+      }
+      isListReady = true;
+      n.listChangeController.add(r"$is");
+    }).catchError((e) {
+      isListReady = true;
+      String ts = ValueUpdate.getTs();
+      n.getDisconnectedStatus = () => ts;
+      n.listChangeController.add(r"$is");
+      throw e;
+    });
+    return n;
+  }
+
+  @override
+  SimpleNode addNode(String path, Map m) {
+    if (path == '/' || !path.startsWith('/')) return null;
+
+    Path p = new Path(path);
+    SimpleNode pnode = getNode(p.parentPath);
+
+    SimpleNode node;
+
+    if (pnode != null) {
+      node = pnode.onLoadChild(p.name, m, this);
+    }
+
+    if (node == null) {
+      String profile = m[r'$is'];
+      if (profileMap.containsKey(profile)) {
+        node = profileMap[profile](path);
+      } else {
+        node = new CallbackNode(path);
+      }
+    }
+
+    nodes[path] = node;
+    node.load(m);
+
+    node.onCreated();
+
+    if (pnode != null) {
+      pnode.children[p.name] = node;
+      pnode.onChildAdded(p.name, node);
+      pnode.updateList(p.name);
+    }
+
+    return node;
+  }
+
+  @override
+  LocalNode getOrCreateNode(String path, [bool addToTree = true]) => getNode(path);
+}
+
 /// A Simple Node which delegates all basic methods to given functions.
 class CallbackNode extends SimpleNode {
-  final SimpleCallback onCreatedCallback;
-  final SimpleCallback onRemovingCallback;
-  final ChildChangedCallback onChildAddedCallback;
-  final ChildChangedCallback onChildRemovedCallback;
-  final ActionFunction onActionInvoke;
-  final LoadChildCallback onLoadChildCallback;
-  final SimpleCallback onSubscribeCallback;
-  final SimpleCallback onUnsubscribeCallback;
+  SimpleCallback onCreatedCallback;
+  SimpleCallback onRemovingCallback;
+  ChildChangedCallback onChildAddedCallback;
+  ChildChangedCallback onChildRemovedCallback;
+  ActionFunction onActionInvoke;
+  LoadChildCallback onLoadChildCallback;
+  SimpleCallback onSubscribeCallback;
+  SimpleCallback onUnsubscribeCallback;
+  Producer<bool> isListReady;
+  Producer<String> getDisconnectedStatus;
+  SimpleCallback onAllListCancelCallback;
+  SimpleCallback onListStartListen;
 
   CallbackNode(String path,
       {SimpleNodeProvider provider,
@@ -219,5 +310,143 @@ class CallbackNode extends SimpleNode {
     if (onUnsubscribeCallback != null) {
       return onUnsubscribeCallback();
     }
+  }
+
+  @override
+  bool get listReady {
+    if (isListReady != null) {
+      return isListReady();
+    } else {
+      return true;
+    }
+  }
+
+  @override
+  String get disconnected {
+    if (getDisconnectedStatus != null) {
+      return getDisconnectedStatus();
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  onStartListListen() {
+    if (onListStartListen != null) {
+      onListStartListen();
+    }
+    super.onStartListListen();
+  }
+
+  @override
+  onAllListCancel() {
+    if (onAllListCancelCallback != null) {
+      onAllListCancelCallback();
+    }
+    super.onAllListCancel();
+  }
+}
+
+class NodeNamer {
+  static final List<String> BANNED_CHARS = [
+    r"%",
+    r".",
+    r"/",
+    r"\",
+    r"?",
+    r"*",
+    r":",
+    r"|",
+    r"<",
+    r">",
+    r"$",
+    r"@"
+  ];
+
+  static String createName(String input) {
+    var out = new StringBuffer();
+    cu(String n) => const Utf8Encoder().convert(n)[0];
+    mainLoop: for (var i = 0; i < input.length; i++) {
+      String char = input[i];
+
+      if (char == "%" && (i + 1 < input.length)) {
+        String hexA = input[i + 1];
+        if ((cu(hexA) >= cu("0") && cu(hexA) <= cu("9")) ||
+            (cu(hexA) >= cu("a") && cu(hexA) <= cu("f")) ||
+            (cu(hexA) >= cu("A") && cu(hexA) <= cu("F"))
+          ) {
+          if (i + 2 < input.length) {
+            String hexB = input[i + 2];
+            if ((cu(hexB) > cu("0") && cu(hexB) <= cu("9")) ||
+                (cu(hexB) >= cu("a") && cu(hexB) <= cu("f")) ||
+                (cu(hexB) >= cu("A") && cu(hexB) <= cu("F"))
+            ) {
+              i += 2;
+              out.write("%");
+              out.write(hexA);
+              out.write(hexB);
+              continue;
+            } else {
+              ++i;
+              out.write("%${hexA}");
+              continue;
+            }
+          }
+        }
+      }
+
+      for (String bannedChar in BANNED_CHARS) {
+        if (char == bannedChar) {
+          var e = char.codeUnitAt(0).toRadixString(16);
+          out.write("%${e}");
+          continue mainLoop;
+        }
+      }
+
+      out.write(char);
+    }
+    return out.toString();
+  }
+
+  static String decodeName(String input) {
+    var out = new StringBuffer();
+    cu(String n) => const Utf8Encoder().convert(n)[0];
+    mainLoop: for (var i = 0; i < input.length; i++) {
+      String char = input[i];
+
+      if (char == "%") {
+        String hexA = input[i + 1];
+        if ((cu(hexA) >= cu("0") && cu(hexA) <= cu("9")) ||
+            (cu(hexA) >= cu("a") && cu(hexA) <= cu("f")) ||
+            (cu(hexA) >= cu("A") && cu(hexA) <= cu("F"))
+        ) {
+          String s = hexA;
+
+          if (i + 2 < input.length) {
+            String hexB = input[i + 2];
+            if ((cu(hexB) > cu("0") && cu(hexB) <= cu("9")) ||
+                (cu(hexB) >= cu("a") && cu(hexB) <= cu("f")) ||
+                (cu(hexB) >= cu("A") && cu(hexB) <= cu("F"))
+            ) {
+              ++i;
+              s += hexB;
+            }
+          }
+
+          int c = int.parse(s, radix: 16);
+          out.writeCharCode(c);
+          i++;
+          continue;
+        }
+      }
+
+      out.write(char);
+    }
+
+    return out.toString();
+  }
+
+  static String joinWithGoodName(String p, String name) {
+    return new Path(p).child(NodeNamer.createName(name)).path;
   }
 }

@@ -20,6 +20,7 @@ part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
 
 typedef ExecutableFunction();
+typedef T Producer<T>();
 
 /// The DSA Version
 const String DSA_VERSION = "1.1.2";

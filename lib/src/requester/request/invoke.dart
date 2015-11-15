@@ -7,12 +7,13 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   DSError error;
   Map meta;
 
-  RequesterInvokeUpdate(
-      this.updates, this.rawColumns, this.columns, String streamStatus,
+  RequesterInvokeUpdate(this.updates, this.rawColumns, this.columns,
+      String streamStatus,
       {this.meta, this.error})
       : super(streamStatus);
 
   List<List> _rows;
+
   List<List> get rows {
     int colLen = -1;
     if (columns != null) {
@@ -32,7 +33,8 @@ class RequesterInvokeUpdate extends RequesterUpdate {
               row.add(columns[i].defaultValue);
             }
           } else if (obj.length > colLen) {
-            if (colLen == -1) { // when column is unknown, just return all values
+            if (colLen == -1) {
+              // when column is unknown, just return all values
               row = obj.toList();
             } else {
               row = obj.sublist(0, colLen);
@@ -86,7 +88,7 @@ class InvokeController implements RequestUpdater {
 
   String mode = 'stream';
   String lastStatus = StreamStatus.initialize;
-  
+
   InvokeController(this.node, this.requester, Map params,
       [int maxPermission = Permission.CONFIG]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
@@ -100,11 +102,11 @@ class InvokeController implements RequestUpdater {
     if (maxPermission != Permission.CONFIG) {
       reqMap['permit'] = Permission.names[maxPermission];
     }
-// TODO update node before invoke to load columns
+// TODO: update node before invoke to load columns
 //    if(!node.isUpdated()) {
 //      node._list().listen(_onNodeUpdate)
 //    } else {
-   
+
     _request = requester._sendRequest(reqMap, this);
 //    }
   }
@@ -116,14 +118,15 @@ class InvokeController implements RequestUpdater {
   }
 
   void _onNodeUpdate(RequesterListUpdate listUpdate) {
-    //TODO, close the stream when configs are loaded
+    // TODO: close the stream when configs are loaded
   }
 
-  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
+  void onUpdate(String streamStatus, List updates, List columns, Map meta,
+      DSError error) {
     if (meta != null && meta['mode'] is String) {
       mode = meta['mode'];
     }
-    // TODO implement error
+    // TODO: implement error
     if (columns != null) {
       if (_cachedColumns == null || mode == 'refresh') {
         _cachedColumns = TableColumn.parseColumns(columns);
@@ -133,14 +136,15 @@ class InvokeController implements RequestUpdater {
     } else if (_cachedColumns == null) {
       _cachedColumns = getNodeColumns(node);
     }
-    
+
     if (error != null) {
       streamStatus = StreamStatus.closed;
       _controller.add(
-          new RequesterInvokeUpdate(null, null, null, streamStatus, error:error, meta:meta));
+          new RequesterInvokeUpdate(
+              null, null, null, streamStatus, error: error, meta: meta));
     } else if (updates != null || meta != null || streamStatus != lastStatus) {
       _controller.add(new RequesterInvokeUpdate(
-          updates, columns, _cachedColumns, streamStatus, meta:meta));
+          updates, columns, _cachedColumns, streamStatus, meta: meta));
     }
     lastStatus = streamStatus;
     if (streamStatus == StreamStatus.closed) {
@@ -149,5 +153,6 @@ class InvokeController implements RequestUpdater {
   }
 
   void onDisconnect() {}
+
   void onReconnect() {}
 }

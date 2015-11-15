@@ -302,6 +302,8 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
   }
 
+  Map<String, _NodeFactory> get profileMap => _profiles;
+
   @override
   Map save() {
     return root.save();
@@ -314,7 +316,8 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   /// Sets the given [node] to the given [path].
-  void setNode(String path, SimpleNode node) {
+  void setNode(String path, SimpleNode node, {bool registerChildren: false}) {
+    print("SET ${path} to ${node}");
     if (path == '/' || !path.startsWith('/')) return null;
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
@@ -324,7 +327,14 @@ class SimpleNodeProvider extends NodeProviderImpl
     node.onCreated();
     pnode.children[p.name] = node;
     pnode.onChildAdded(p.name, node);
+
     pnode.updateList(p.name);
+
+    if (registerChildren) {
+      for (SimpleNode c in node.children.values) {
+        setNode(c.path, c);
+      }
+    }
   }
 
   @override

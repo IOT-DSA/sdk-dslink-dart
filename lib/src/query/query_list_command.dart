@@ -1,13 +1,14 @@
 part of dslink.query;
 
-class _ListNodeMatch{
+class _ListNodeMatch {
   static const int MATCHED = 1;
   static const int NOMATCH = 0;
   static const int MATCHPOST = 3;
   static const int NOMATCHPOST = 2;
-  
+
   String prefix;
   String postfix;
+
   /// true for * and false for ?
   bool multiple = false;
   bool invalid = false;
@@ -20,7 +21,7 @@ class _ListNodeMatch{
     List strs;
     if (str.contains('?')) {
       strs = str.split('?');
-    } else if (str.contains('*')){
+    } else if (str.contains('*')) {
       strs = str.split('*');
       multiple = true;
     }
@@ -68,15 +69,15 @@ class _ListNodeMatch{
 class _ListingNode {
   QueryCommandList command;
   List<_ListNodeMatch> parsedpath;
+
   /// negtive value in the pos means partial matched already
   Set<int> matchedPos = new Set<int>();
   LocalNode node;
-  
+
   StreamSubscription listener;
-  
-  _ListingNode(this.command, this.node, this.parsedpath) {
-  }
-  
+
+  _ListingNode(this.command, this.node, this.parsedpath) {}
+
   void addMatchPos(int n) {
     if (!matchedPos.contains(n)) {
       matchedPos.add(n);
@@ -93,21 +94,20 @@ class _ListingNode {
       }
     }
   }
-  
+
   bool _selfMatch = false;
   void set selfMatch(bool val) {
-    if (_selfMatch != val ) {
+    if (_selfMatch != val) {
       _selfMatch = val;
       if (_selfMatch) {
         command.updateRow([node, '+']);
       } else {
         command.updateRow([node, '-']);
       }
-      
     }
   }
-  
-  void onList(String str){
+
+  void onList(String str) {
     if (str.startsWith('@') || str.startsWith(r'$')) {
       return;
     }
@@ -120,6 +120,7 @@ class _ListingNode {
       }
     }
   }
+
   void checkChild(String name, LocalNode child, int pos) {
     int abspos = pos.abs();
     if (abspos >= parsedpath.length) {
@@ -143,6 +144,7 @@ class _ListingNode {
       }
     }
   }
+
   void deleteChild(String name) {
     String path = '${node.path}/$name';
     _ListingNode childListing = command._dict[path];
@@ -152,15 +154,15 @@ class _ListingNode {
       command._dict.remove(childListing.node.path);
     }
   }
-  
-  void destroy(){
+
+  void destroy() {
     if (listener != null) {
       listener.cancel();
     }
   }
 }
 
-class QueryCommandList extends BrokerQueryCommand{
+class QueryCommandList extends BrokerQueryCommand {
   List<String> rawpath;
   List<_ListNodeMatch> parsedpath;
   QueryCommandList(Object path, BrokerQueryManager manager) : super(manager) {
@@ -170,34 +172,35 @@ class QueryCommandList extends BrokerQueryCommand{
       rawpath = path;
     }
   }
-  void init(){
+  void init() {
     parsedpath = new List<_ListNodeMatch>(rawpath.length);
     for (int i = 0; i < rawpath.length; ++i) {
       parsedpath[i] = new _ListNodeMatch(rawpath[i]);
     }
   }
-  
+
   Map<String, _ListingNode> _dict = new Map<String, _ListingNode>();
-  
+
   Set<String> _changes = new Set<String>();
-  
+
   bool _pending = false;
-  void updateRow(List row){
+  void updateRow(List row) {
     for (var next in nexts) {
       next.updateFromBase([row]);
     }
   }
+
   void addNext(BrokerQueryCommand next) {
     super.addNext(next);
     List rows = [];
-    _dict.forEach((String path, _ListingNode listing){
+    _dict.forEach((String path, _ListingNode listing) {
       if (listing._selfMatch) {
         rows.add([listing.node, '+']);
       }
     });
     next.updateFromBase(rows);
   }
-  
+
   void updateFromBase(List updates) {
     for (List data in updates) {
       if (data[0] is LocalNode) {
@@ -216,14 +219,14 @@ class QueryCommandList extends BrokerQueryCommand{
       }
     }
   }
-  
+
   String toString() {
     return 'list ${rawpath.join("/")}';
   }
-  
+
   void destroy() {
     super.destroy();
-    _dict.forEach((String key, _ListingNode listing){
+    _dict.forEach((String key, _ListingNode listing) {
       listing.destroy();
     });
   }
