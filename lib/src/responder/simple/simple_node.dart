@@ -120,6 +120,14 @@ class LiveTable {
     }, columns: []);
   }
 
+  void override() {
+    _resp.updateStream(getCurrentState(), meta: {
+      "mode": "refresh"
+    }, columns: columns.map((x) {
+      return x.getData();
+    }).toList());
+  }
+
   void resend() {
     sendTo(_resp);
   }
@@ -152,6 +160,7 @@ class LiveTable {
     return rows.map((x) => x.values).toList();
   }
 
+  InvokeResponse get response => _resp;
   InvokeResponse _resp;
 }
 
