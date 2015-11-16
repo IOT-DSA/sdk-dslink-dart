@@ -16,6 +16,10 @@ class SimpleTableResult {
   SimpleTableResult([this.rows, this.columns]);
 }
 
+abstract class WaitForMe {
+  Future get onLoaded;
+}
+
 /// An Asynchronous Table Result
 /// This can be used to return asynchronous tables from actions.
 class AsyncTableResult {

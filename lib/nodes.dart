@@ -145,17 +145,25 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
         super(defaultNodes, profiles);
 
   @override
-  LocalNode getNode(String path) {
+  LocalNode getNode(String path, {Completer<CallbackNode> onLoaded}) {
     LocalNode node = super.getNode(path);
     if (path != "/" && node != null) {
+      if (onLoaded != null && !onLoaded.isCompleted) {
+        onLoaded.complete(node);
+      }
       return node;
     }
 
     if (handler == null) {
+      if (onLoaded != null && !onLoaded.isCompleted) {
+        onLoaded.complete(null);
+      }
       return null;
     }
 
+    Completer c = new Completer();
     CallbackNode n = new CallbackNode(path, provider: this);
+    n.onLoadedCompleter = c;
     bool isListReady = false;
     n.isListReady = () => isListReady;
     handler(n).then((m) {
@@ -164,16 +172,35 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
         String ts = ValueUpdate.getTs();
         n.getDisconnectedStatus = () => ts;
         n.listChangeController.add(r"$is");
+
+        if (onLoaded != null && !onLoaded.isCompleted) {
+          onLoaded.complete(n);
+        }
+
+        if (c != null && !c.isCompleted) {
+          c.complete();
+        }
+
         return;
       }
       isListReady = true;
       n.listChangeController.add(r"$is");
-    }).catchError((e) {
+      if (onLoaded != null && !onLoaded.isCompleted) {
+        onLoaded.complete(n);
+      }
+
+      if (c != null && !c.isCompleted) {
+        c.complete();
+      }
+    }).catchError((e, stack) {
       isListReady = true;
       String ts = ValueUpdate.getTs();
       n.getDisconnectedStatus = () => ts;
       n.listChangeController.add(r"$is");
-      throw e;
+
+      if (c != null && !c.isCompleted) {
+        c.completeError(e, stack);
+      }
     });
     return n;
   }
@@ -219,7 +246,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
 }
 
 /// A Simple Node which delegates all basic methods to given functions.
-class CallbackNode extends SimpleNode {
+class CallbackNode extends SimpleNode implements WaitForMe {
   SimpleCallback onCreatedCallback;
   SimpleCallback onRemovingCallback;
   ChildChangedCallback onChildAddedCallback;
@@ -232,6 +259,7 @@ class CallbackNode extends SimpleNode {
   Producer<String> getDisconnectedStatus;
   SimpleCallback onAllListCancelCallback;
   SimpleCallback onListStartListen;
+  Completer onLoadedCompleter;
 
   CallbackNode(String path,
       {SimpleNodeProvider provider,
@@ -302,6 +330,15 @@ class CallbackNode extends SimpleNode {
   onSubscribe() {
     if (onSubscribeCallback != null) {
       return onSubscribeCallback();
+    }
+  }
+
+  @override
+  Future get onLoaded {
+    if (onLoadedCompleter != null) {
+      return onLoadedCompleter.future;;
+    } else {
+      return new Future.sync(() => null);
     }
   }
 

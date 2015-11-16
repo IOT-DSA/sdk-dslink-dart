@@ -169,12 +169,15 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
-
       LocalNode node;
-
       node = nodeProvider.getOrCreateNode(path.path, false);
-
-      addResponse(new ListResponse(this, rid, node));
+      if (node is WaitForMe) {
+        (node as WaitForMe).onLoaded.then((_) {
+          addResponse(new ListResponse(this, rid, node));
+        });
+      } else {
+        addResponse(new ListResponse(this, rid, node));
+      }
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
@@ -237,22 +240,55 @@ class Responder extends ConnectionHandler {
 
       parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
 
-      LocalNode node = parentNode.getChild(path.name);
-      if (node == null) {
-        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
-        return;
+      doInvoke([LocalNode overriden]) {
+        LocalNode node = overriden == null ? parentNode.getChild(path.name) : overriden;
+        if (node == null) {
+          if (overriden == null) {
+            node = nodeProvider.getNode(path.path);
+            if (node == null) {
+              _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+              return;
+            }
+
+            if (node is WaitForMe) {
+              (node as WaitForMe).onLoaded.then((_) => doInvoke(node));
+              return;
+            } else {
+              doInvoke(node);
+              return;
+            }
+          } else {
+            _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+            return;
+          }
+        }
+        int permission = nodeProvider.permissions.getPermission(path.path, this);
+        int maxPermit = Permission.parse(m['permit']);
+        if (maxPermit < permission) {
+          permission = maxPermit;
+        }
+
+        if (node.getInvokePermission() <= permission) {
+          node.invoke(m['params'], this,
+              addResponse(new InvokeResponse(this, rid, parentNode, node, path.name)), parentNode,
+              permission);
+        } else {
+          _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        }
       }
-      int permission = nodeProvider.permissions.getPermission(path.path, this);
-      int maxPermit = Permission.parse(m['permit']);
-      if (maxPermit < permission) {
-        permission = maxPermit;
-      }
-      if (node.getInvokePermission() <= permission) {
-        node.invoke(m['params'], this,
-            addResponse(new InvokeResponse(this, rid, parentNode, node, path.name)), parentNode,
-            permission);
+
+      if (parentNode is WaitForMe) {
+        (parentNode as WaitForMe).onLoaded.then((_) {
+          doInvoke();
+        }).catchError((e, stack) {
+          var err = new DSError("resolveError", msg: e.toString(), detail: stack.toString());
+          _closeResponse(
+              m['rid'],
+              error: err
+          );
+        });
       } else {
-        _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        doInvoke();
       }
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
