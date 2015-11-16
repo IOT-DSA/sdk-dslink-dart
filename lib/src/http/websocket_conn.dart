@@ -3,8 +3,8 @@ library dslink.http.websocket;
 import "dart:async";
 import "dart:io";
 
-import "package:dslink/common.dart";
-import "package:dslink/utils.dart";
+import "../../common.dart";
+import "../../utils.dart";
 
 import "package:logging/logging.dart";
 
