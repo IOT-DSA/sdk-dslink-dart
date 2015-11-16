@@ -9,6 +9,8 @@ Requester requester;
 VideoElement video;
 JsObject videoObject;
 
+String codec = 'video/webm; codecs="vorbis, vp8"';
+
 main() async {
   //updateLogLevel("ALL");
   video = querySelector("#video");
@@ -16,15 +18,28 @@ main() async {
 
   var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://localhost:8080/conn");
 
-  link = new LinkProvider(brokerUrl, "VideoDisplay-", isRequester: true);
+  link = new LinkProvider(brokerUrl, "VideoDisplay-", isRequester: true, isResponder: false);
 
   await link.connect();
   requester = await link.onRequesterReady;
+
+  String getHash() {
+    if (window.location.hash.isEmpty) {
+      return "";
+    }
+    var h = window.location.hash.substring(1);
+    if (h.startsWith("mpeg4:")) {
+      codec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+      h = h.substring("mpeg4:".length);
+    }
+    return h;
+  }
+
   window.onHashChange.listen((HashChangeEvent event) {
-    setup(window.location.hash.substring(1));
+    setup(getHash());
   });
 
-  await setup(window.location.hash.isNotEmpty ? window.location.hash.substring(1) : "/downstream/File/video");
+  await setup(getHash().isNotEmpty ? getHash() : "/downstream/File/video");
 }
 
 setup(String path) async {
@@ -35,14 +50,17 @@ setup(String path) async {
 
   int size = (await requester.getNodeValue(sizePath)).value;
 
+  print("Video Size: ${size} bytes");
+
   var source = new MediaSource();
-  video.src = Url.createObjectUrlFromSource(source);
 
   source.addEventListener("sourceopen", (e) async {
-    var buff = source.addSourceBuffer('video/webm; codecs="vorbis,vp8"');
-
+    CHUNK_COUNT = (size / 512000).round();
     var chunkSize = (size / CHUNK_COUNT).ceil();
 
+    print("Chunk Size: ${chunkSize} bytes");
+
+    var buff = source.addSourceBuffer(codec);
     for (var i = 0; i < CHUNK_COUNT; ++i) {
       var start = chunkSize * i;
       var end = start + chunkSize;
@@ -56,13 +74,21 @@ setup(String path) async {
 
       print("Chunk #${i}");
 
-      buff.appendBuffer(data.buffer);
+      print("${start}-${end}");
+
+      if (i + 1 == CHUNK_COUNT) {
+        source.endOfStream();
+      } else {
+        buff.appendBuffer(data.buffer);
+      }
+
+      await buff.on["updateend"].first;
     }
 
-    buff.abort();
     source.endOfStream();
   });
 
+  video.src = Url.createObjectUrlFromSource(source);
   video.autoplay = true;
   video.play();
 }
