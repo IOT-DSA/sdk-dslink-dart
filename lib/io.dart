@@ -78,14 +78,18 @@ class HttpHelper {
     }
     String nonce = CryptoUtils.bytesToBase64(nonceData);
 
+    int port = uri.port;
+    if (port == 0) {
+      port = uri.scheme == "wss" ? 443 : 80;
+    }
+
     uri = new Uri(
         scheme: uri.scheme == "wss" ? "https" : "http",
         userInfo: uri.userInfo,
         host: uri.host,
-        port: uri.port,
+        port: port,
         path: uri.path,
-        query: uri.query,
-      fragment: uri.fragment
+        query: uri.query
     );
 
     HttpClient _client = httpClient == null ? (new HttpClient()
