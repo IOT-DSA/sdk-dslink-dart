@@ -145,9 +145,9 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
         super(defaultNodes, profiles);
 
   @override
-  LocalNode getNode(String path, {Completer<CallbackNode> onLoaded}) {
+  LocalNode getNode(String path, {Completer<CallbackNode> onLoaded, bool forceHandle: false}) {
     LocalNode node = super.getNode(path);
-    if (path != "/" && node != null) {
+    if (path != "/" && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
         onLoaded.complete(node);
       }

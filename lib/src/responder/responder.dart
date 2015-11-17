@@ -6,9 +6,9 @@ class Responder extends ConnectionHandler {
   String reqId;
 
   int maxCacheLength = ConnectionProcessor.DEFAULT_CACHE_SIZE;
-  
+
   ISubscriptionResponderStorage storage;
-  
+
   void initStorage(ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage> nodes) {
     if (storage != null) {
       storage.destroy();
@@ -25,7 +25,7 @@ class Responder extends ConnectionHandler {
       }
     }
   }
-  
+
   /// list of permission group
   List<String> groups = [];
   void updateGroups(List<String> vals) {
@@ -62,7 +62,7 @@ class Responder extends ConnectionHandler {
         ResponseTrace update = response.getTraceData(''); // no logged change is needed
         for (ResponseTraceCallback callback in _traceCallbacks) {
           callback(update);
-        }    
+        }
       }
     }
     return response;
@@ -171,8 +171,12 @@ class Responder extends ConnectionHandler {
       int rid = m['rid'];
       LocalNode node;
       node = nodeProvider.getOrCreateNode(path.path, false);
+      if (node == null) node = new SimpleNode(path.path);
       if (node is WaitForMe) {
-        (node as WaitForMe).onLoaded.then((_) {
+        (node as WaitForMe).onLoaded.then((n) {
+          if (n is LocalNode) {
+            node = n;
+          }
           addResponse(new ListResponse(this, rid, node));
         });
       } else {
@@ -185,7 +189,6 @@ class Responder extends ConnectionHandler {
 
   void subscribe(Map m) {
     if (m['paths'] is List) {
-      int rid = m['rid'];
       for (Object p in m['paths']) {
         String pathstr;
         int qos = 0;
@@ -206,7 +209,7 @@ class Responder extends ConnectionHandler {
           }
         }
         Path path = Path.getValidNodePath(pathstr);
-        
+
         if (path != null && path.isAbsolute) {
           LocalNode node = nodeProvider.getOrCreateNode(path.path, false);
           _subscription.add(path.path, node, sid, qos);
@@ -220,7 +223,6 @@ class Responder extends ConnectionHandler {
 
   void unsubscribe(Map m) {
     if (m['sids'] is List) {
-      int rid = m['rid'];
       for (Object sid in m['sids']) {
         if (sid is int) {
           _subscription.remove(sid);
@@ -241,10 +243,10 @@ class Responder extends ConnectionHandler {
       parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
 
       doInvoke([LocalNode overriden]) {
-        LocalNode node = overriden == null ? parentNode.getChild(path.name) : overriden;
+        LocalNode node = overriden == null ? nodeProvider.getNode(path.path) : overriden;
         if (node == null) {
           if (overriden == null) {
-            node = nodeProvider.getNode(path.path);
+            node = parentNode.getChild(path.name);
             if (node == null) {
               _closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
               return;
@@ -414,17 +416,17 @@ class Responder extends ConnectionHandler {
   void onReconnected() {
     super.onReconnected();
   }
-  
+
   List<ResponseTraceCallback> _traceCallbacks;
-  
+
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     _subscription.addTraceCallback(_traceCallback);
     _responses.forEach((int rid, Response response){
       _traceCallback(response.getTraceData());
     });
-    
+
     if (_traceCallbacks == null) _traceCallbacks = new List<ResponseTraceCallback>();
-   
+
     _traceCallbacks.add(_traceCallback);
   }
   void removeTraceCallback(ResponseTraceCallback _traceCallback) {

@@ -90,10 +90,10 @@ class LinkProvider {
   Responder overrideResponder;
 
   Map linkData;
-  
+
   /// connect to user home space
   String home;
-  
+
   /// connection token
   String token;
 
@@ -308,7 +308,7 @@ class LinkProvider {
     String name = opts["name"];
     home = opts["home"];
     token = opts["token"];
-    
+
     if (name != null) {
       if (name.endsWith("-")) {
         prefix = name;
