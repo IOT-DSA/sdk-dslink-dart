@@ -120,11 +120,11 @@ class WebSocketConnection extends Connection {
       try {
         m = codec.decodeBinaryFrame(data);
         if (logger.isLoggable(Level.FINE)) {
-          logger.fine("WebSocket JSON(binary): ${m}");
+          logger.fine("WebSocket(binary): ${m}");
         }
       } catch (err, stack) {
         logger.fine(
-            "Failed to decode JSON bytes in WebSocket Connection", err, stack);
+            "Failed to decode binary data in WebSocket Connection", err, stack);
         close();
         return;
       }
@@ -158,10 +158,10 @@ class WebSocketConnection extends Connection {
       try {
         m = codec.decodeStringFrame(data);
         if (logger.isLoggable(Level.FINE)) {
-          logger.fine("WebSocket JSON: ${m}");
+          logger.fine("WebSocket String: ${m}");
         }
       } catch (err) {
-        logger.severe("Failed to decode JSON from WebSocket Connection", err);
+        logger.severe("Failed to decode string data from WebSocket Connection", err);
         close();
         return;
       }
