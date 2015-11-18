@@ -56,7 +56,7 @@ abstract class ISubscriptionNodeStorage {
 /// removeValue and valueRemoved will be both called, either one can be used
   void valueRemoved(Iterable<ValueUpdate> updates){}
   
-  
+  /// clear the values, but still leave the qos data in storage
   void clear(int qos);
   void destroy();
   
@@ -68,10 +68,16 @@ abstract class ISubscriptionNodeStorage {
 
 
 /// a storage class for general purpose key/value pair
-/// TODO, should we add class to maintain a single value so the set/remove is more efficient?
 abstract class IValueStorageBucket {
-  void setValue(String key, Object value);
-  void removeValue(String key);
+  IValueStorage getValueStorage(String key);
   Future<Map> load();
+  void destroy();
+}
+
+/// basic value storage
+abstract class IValueStorage {
+  String get key;
+  void setValue(Object value);
+  Future getValueAsync();
   void destroy();
 }

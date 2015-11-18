@@ -211,16 +211,11 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
       dir.createSync(recursive: true);
     }
   }
-  void setValue(String key, Object value) {
-    // TODO optimize this part so it doesn't need to re-create path and File object everytime
-     File f = new File('${dir.path}/${Uri.encodeComponent(key)}');
-     f.writeAsString(DsJson.encode(value));
+
+  IValueStorage getValueStorage(String key) {
+    return new SimpleValueStorage(this, key);
   }
-  void removeValue(String key) {
-    File f = new File('${dir.path}/${Uri.encodeComponent(key)}');
-    f.delete().catchError(_ignoreError);
-  }
- 
+  
   void destroy() {
     dir.delete(recursive:true).catchError(_ignoreError);
   }
@@ -246,5 +241,32 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
       completer.complete(rslt);
     });
     return completer.future;
+  }
+}
+
+
+class SimpleValueStorage extends IValueStorage {
+  String key;
+  SimpleValueStorageBucket bucket;
+  File _file;
+  
+  SimpleValueStorage(this.bucket, this.key) {
+    _file = new File('${bucket.dir.path}/${Uri.encodeComponent(key)}'); 
+  }
+  
+  void setValue(Object value) {
+    // TODO optimize this part so it doesn't need to re-create path and File object everytime
+    _file.writeAsString(DsJson.encode(value));
+  }
+  void destroy() {
+    _file.delete().catchError(_ignoreError);
+  }
+ 
+  getValueAsync() async {
+    try {
+      return DsJson.decode(await _file.readAsString());
+    } catch (err) {
+    }
+    return null;
   }
 }
