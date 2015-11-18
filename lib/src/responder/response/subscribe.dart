@@ -16,7 +16,7 @@ class RespSubscribeListener {
 class SubscribeResponse extends Response {
   SubscribeResponse(Responder responder, int rid) : super(responder, rid);
 
-  final Map<String, RespSubscribeController> subsriptions =
+  final Map<String, RespSubscribeController> subscriptions =
       new Map<String, RespSubscribeController>();
   final Map<int, RespSubscribeController> subsriptionids =
       new Map<int, RespSubscribeController>();
@@ -26,8 +26,8 @@ class SubscribeResponse extends Response {
 
   RespSubscribeController add(String path, LocalNode node, int sid, int qos) {
     RespSubscribeController controller;
-    if (subsriptions[path] != null) {
-      controller = subsriptions[path];
+    if (subscriptions[path] != null) {
+      controller = subscriptions[path];
       if (controller.sid != sid) {
         if (controller.sid >= 0) {
           subsriptionids.remove(controller.sid);
@@ -46,15 +46,17 @@ class SubscribeResponse extends Response {
           .getPermission(node.path, responder);
       controller = new RespSubscribeController(
           this, node, sid, permission >= Permission.READ, qos);
-      subsriptions[path] = controller;
+      subscriptions[path] = controller;
+
       if (sid >= 0) {
         subsriptionids[sid] = controller;
       }
+
       if (responder._traceCallbacks != null){
-        ResponseTrace update = new ResponseTrace(path,'subscribe',0,'+');
+        ResponseTrace update = new ResponseTrace(path, 'subscribe', 0, '+');
         for (ResponseTraceCallback callback in responder._traceCallbacks) {
           callback(update);
-        }  
+        }
       }
     }
     return controller;
@@ -65,7 +67,7 @@ class SubscribeResponse extends Response {
       RespSubscribeController controller = subsriptionids[sid];
       subsriptionids[sid].destroy();
       subsriptionids.remove(sid);
-      subsriptions.remove(controller.node.path);
+      subscriptions.remove(controller.node.path);
       if (responder._traceCallbacks != null){
         ResponseTrace update = new ResponseTrace(controller.node.path,'subscribe',0,'-');
         for (ResponseTraceCallback callback in responder._traceCallbacks) {
@@ -109,7 +111,7 @@ class SubscribeResponse extends Response {
     } else {
       _waitingAckCount --;
     }
-    subsriptions.forEach((String path, RespSubscribeController controller){
+    subscriptions.forEach((String path, RespSubscribeController controller){
       if (controller._qosLevel > 0) {
         controller.onAck(receiveAckId);
       }
@@ -140,7 +142,7 @@ class SubscribeResponse extends Response {
   
   void _close() {
     List pendingControllers;
-    subsriptions.forEach((path, RespSubscribeController controller) {
+    subscriptions.forEach((path, RespSubscribeController controller) {
       if (controller._qosLevel == 0) {
         controller.destroy();
       } else {
@@ -151,10 +153,10 @@ class SubscribeResponse extends Response {
         pendingControllers.add(controller);
       }
     });
-    subsriptions.clear();
+    subscriptions.clear();
     if (pendingControllers != null) {
       for (RespSubscribeController controller in pendingControllers) {
-        subsriptions[controller.node.path] = controller;
+        subscriptions[controller.node.path] = controller;
       }
     }
     
@@ -164,7 +166,7 @@ class SubscribeResponse extends Response {
     _sendingAfterAck = false;
   }
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
-    subsriptions.forEach((path, controller) {
+    subscriptions.forEach((path, controller) {
       ResponseTrace update = new ResponseTrace(controller.node.path,'subscribe',0,'+');
       _traceCallback(update);
     });

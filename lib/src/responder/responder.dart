@@ -169,19 +169,9 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
-      LocalNode node;
-      node = nodeProvider.getOrCreateNode(path.path, false);
-      if (node == null) node = new SimpleNode(path.path);
-      if (node is WaitForMe) {
-        (node as WaitForMe).onLoaded.then((n) {
-          if (n is LocalNode) {
-            node = n;
-          }
-          addResponse(new ListResponse(this, rid, node));
-        });
-      } else {
+      _getNode(path).then((node) {
         addResponse(new ListResponse(this, rid, node));
-      }
+      });
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
@@ -211,24 +201,32 @@ class Responder extends ConnectionHandler {
         Path path = Path.getValidNodePath(pathstr);
 
         if (path != null && path.isAbsolute) {
-          LocalNode node = nodeProvider.getOrCreateNode(path.path, false);
-
-          if (node is WaitForMe) {
-            (node as WaitForMe).onLoaded.then((n) {
-              if (n is LocalNode) {
-                node = n;
-              }
-
-              _subscription.add(path.path, node, sid, qos);
-            });
-          } else {
+          _getNode(path).then((node) {
             _subscription.add(path.path, node, sid, qos);
-          }
+            _closeResponse(m['rid']);
+          }).catchError((e) {
+            _closeResponse(m['rid'], error: new DSError("nodeError", msg: e.toString()));
+          });
+        } else {
+          _closeResponse(m['rid']);
         }
       }
-      _closeResponse(m['rid']);
     } else {
       _closeResponse(m['rid'], error: DSError.INVALID_PATHS);
+    }
+  }
+
+  Future<LocalNode> _getNode(Path p) {
+    LocalNode node = nodeProvider.getOrCreateNode(p.path, false);
+    if (node is WaitForMe) {
+      return (node as WaitForMe).onLoaded.then((n) {
+        if (n is LocalNode) {
+          node = n;
+        }
+        return node;
+      });
+    } else {
+      return new Future.value(node);
     }
   }
 

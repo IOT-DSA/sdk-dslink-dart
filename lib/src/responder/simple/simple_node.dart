@@ -215,11 +215,23 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// All the nodes in this node provider.
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
+  List<SimpleNodeFactory> _resolverFactories = [];
+
   @override
   LocalNode getNode(String path) {
     if (nodes.containsKey(path)) {
       return nodes[path];
     }
+
+    if (_resolverFactories.isNotEmpty) {
+      for (var f in _resolverFactories) {
+        var node = f(path);
+        if (node != null) {
+          return node;
+        }
+      }
+    }
+
     return null;
   }
 
@@ -228,16 +240,28 @@ class SimpleNodeProvider extends NodeProviderImpl
   ///
   /// When [addToTree] is false, the node will not be inserted into the node provider.
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
-    if (nodes.containsKey(path)) {
-      return nodes[path];
+    LocalNode node = getNode(path);
+
+    if (node != null) {
+      return node;
     }
 
     if (addToTree) {
       return createNode(path);
     } else {
-      var node = new SimpleNode(path, this);
+      node = new SimpleNode(path, this);
       return node;
     }
+  }
+
+  void registerResolver(SimpleNodeFactory factory) {
+    if (!_resolverFactories.contains(factory)) {
+      _resolverFactories.add(factory);
+    }
+  }
+
+  void unregisterResolver(SimpleNodeFactory factory) {
+    _resolverFactories.remove(factory);
   }
 
   @override
