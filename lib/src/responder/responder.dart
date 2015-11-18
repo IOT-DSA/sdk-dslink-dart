@@ -212,7 +212,18 @@ class Responder extends ConnectionHandler {
 
         if (path != null && path.isAbsolute) {
           LocalNode node = nodeProvider.getOrCreateNode(path.path, false);
-          _subscription.add(path.path, node, sid, qos);
+
+          if (node is WaitForMe) {
+            (node as WaitForMe).onLoaded.then((n) {
+              if (n is LocalNode) {
+                node = n;
+              }
+
+              _subscription.add(path.path, node, sid, qos);
+            });
+          } else {
+            _subscription.add(path.path, node, sid, qos);
+          }
         }
       }
       _closeResponse(m['rid']);
