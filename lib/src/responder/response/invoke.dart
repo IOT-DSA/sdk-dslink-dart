@@ -32,7 +32,7 @@ class InvokeResponse extends Response {
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
     if (_err != null) {
-      responder._closeResponse(rid, response: this, error: _err);
+      responder.closeResponse(rid, response: this, error: _err);
       if (_sentStreamStatus == StreamStatus.closed) {
         _close();
       }

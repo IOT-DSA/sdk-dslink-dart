@@ -9,7 +9,7 @@ class Response implements ConnectionProcessor{
   /// close the request from responder side and also notify the requester
   void close([DSError err = null]) {
     _sentStreamStatus = StreamStatus.closed;
-    responder._closeResponse(rid, error: err, response: this);
+    responder.closeResponse(rid, error: err, response: this);
   }
 
   /// close the response now, no need to send more response update
