@@ -97,6 +97,22 @@ class BroadcastStreamController<T> implements StreamController<T> {
   void set onResume(void onResumeHandler()) {
     throw('BroadcastStreamController.onResume not implemented');
   }
+
+  ControllerCancelCallback get onCancel {
+    throw('BroadcastStreamController.onCancel not implemented');
+  }
+
+  ControllerCallback get onListen {
+    throw('BroadcastStreamController.onListen not implemented');
+  }
+
+  ControllerCallback get onPause {
+    throw('BroadcastStreamController.onPause not implemented');
+  }
+
+  ControllerCallback get onResume {
+    throw('BroadcastStreamController.onResume not implemented');
+  }
 }
 
 class CachedStreamWrapper<T> implements Stream<T> {
