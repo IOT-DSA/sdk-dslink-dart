@@ -53,7 +53,8 @@ abstract class ISubscriptionNodeStorage {
   void removeValue(ValueUpdate value);
   
   /// for some database it's easier to remove multiple data together
-/// removeValue and valueRemoved will be both called, either one can be used
+  /// removeValue and valueRemoved will be both called, either one can be used
+  /// [updates] are all the remaining value that are still in the list
   void valueRemoved(Iterable<ValueUpdate> updates){}
   
   /// clear the values, but still leave the qos data in storage
