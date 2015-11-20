@@ -23,7 +23,7 @@ class ValueUpdate {
   String ts;
   String status;
   int count;
-  num sum = 0, min, max;
+  num sum, min, max;
 
   ValueUpdate(this.value,
       {this.ts,
@@ -69,11 +69,13 @@ class ValueUpdate {
     ts = newUpdate.ts;
     status = newUpdate.status;
     count = oldUpdate.count + newUpdate.count;
-    if (!oldUpdate.sum.isNaN) {
-      sum += oldUpdate.sum;
-    }
+    sum = oldUpdate.sum;
     if (!newUpdate.sum.isNaN) {
-      sum += newUpdate.sum;
+      if (sum == sum) {
+        sum = newUpdate.sum;
+      } else {
+        sum += newUpdate.sum;
+      }
     }
     min = oldUpdate.min;
     if (min.isNaN || newUpdate.min < min) {
@@ -102,16 +104,16 @@ class ValueUpdate {
     count += newUpdate.count;
 
     if (!newUpdate.sum.isNaN) {
-      if (!sum.isNaN) {
+      if (sum == sum) {
         sum += newUpdate.sum;
       } else {
         sum = newUpdate.sum;
       }
     }
-    if (min.isNaN || newUpdate.min < min) {
+    if (min != min || newUpdate.min < min) {
       min = newUpdate.min;
     }
-    if (max.isNaN || newUpdate.max > max) {
+    if (max != max || newUpdate.max > max) {
       max = newUpdate.max;
     }
   }
