@@ -3,6 +3,7 @@ part of dslink.responder;
 typedef SimpleNode _NodeFactory(String path);
 typedef LocalNode NodeFactory(String path);
 typedef SimpleNode SimpleNodeFactory(String path);
+typedef Future<ByteData> IconResolver(String name);
 
 /// A simple table result.
 /// This is used to return simple tables from an action.
@@ -312,6 +313,31 @@ class SimpleNodeProvider extends NodeProviderImpl
     sys = new SimpleHiddenNode('/sys', this);
     nodes[sys.path] = sys;
 
+    getIconNode = new SimpleActionNode("/sys/getIcon", (Map<String, dynamic> params) async {
+      String p = params["Path"];
+
+      if (p == null) {
+        throw new Exception("Icon Path not specified.");
+      }
+
+      var bytes = await resolveIcon(p);
+
+      return {
+        "Icon": bytes
+      };
+    })..load({
+      r"$is": "getIcon",
+      r"$invokable": "read",
+      r"$columns": [
+        {"name":"Icon", "type":"bytes"}
+      ],
+      r"$params": [
+        {"name": "Path", "type": "string"},
+      ]
+    });
+    nodes[getIconNode.path] = getIconNode;
+    sys.addChild("getIcon", getIconNode);
+
     init(m, profiles);
   }
 
@@ -323,6 +349,9 @@ class SimpleNodeProvider extends NodeProviderImpl
 
   /// sys node
   SimpleHiddenNode sys;
+
+  /// getIcon node
+  SimpleActionNode getIconNode;
 
   @override
   void init([Map m, Map<String, SimpleNodeFactory> profiles]) {
@@ -351,6 +380,16 @@ class SimpleNodeProvider extends NodeProviderImpl
     SimpleNode node = getNode(path);
     node.updateValue(value);
   }
+
+  Future<ByteData> resolveIcon(String name) async {
+    if (iconResolver != null) {
+      return iconResolver(name);
+    }
+
+    return null;
+  }
+
+  IconResolver iconResolver;
 
   /// Sets the given [node] to the given [path].
   void setNode(String path, SimpleNode node, {bool registerChildren: false}) {

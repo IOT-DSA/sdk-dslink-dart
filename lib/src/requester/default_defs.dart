@@ -70,6 +70,15 @@ class DefaultDefNodes {
           "type": "dynamic"
         }
       ]
+    },
+    "getIcon": {
+      r"$invokable": "read",
+      r"$columns": [
+        {"name":"Icon", "type":"bytes"}
+      ],
+      r"$params": [
+        {"name": "Path", "type": "string"},
+      ]
     }
   };
 

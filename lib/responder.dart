@@ -3,6 +3,9 @@ library dslink.responder;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data' show ByteData;
+
+import 'package:dslink/nodes.dart';
 
 import 'common.dart';
 import 'utils.dart';

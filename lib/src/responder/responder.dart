@@ -438,6 +438,7 @@ class Responder extends ConnectionHandler {
 
     _traceCallbacks.add(_traceCallback);
   }
+
   void removeTraceCallback(ResponseTraceCallback _traceCallback) {
     _traceCallbacks.remove(_traceCallback);
     if (_traceCallbacks.isEmpty) {
