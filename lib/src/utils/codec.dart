@@ -290,6 +290,6 @@ class DsMsgPackCodecImpl extends DsCodec {
   }
 
   Object encodeFrame(Map val) {
-    return const Packer().pack(val);
+    return pack(val);
   }
 }
