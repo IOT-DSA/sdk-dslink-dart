@@ -26,6 +26,7 @@ class HttpClientLink implements ClientLink {
   ECDH get nonce => _nonce;
 
   WebSocketConnection _wsConnection;
+
 //  HttpClientConnection _httpConnection;
 
   static const Map<String, int> saltNameMap = const {
@@ -42,23 +43,24 @@ class HttpClientLink implements ClientLink {
   }
 
   String _wsUpdateUri;
-//  String _httpUpdateUri;
+
   String _conn;
-//  bool enableHttp;
+
   bool enableAck = false;
 
   Map linkData;
 
   /// formats sent to broker
   List formats = ['msgpack', 'json'];
+
   /// format received from broker
   String format = 'json';
 
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider, bool isRequester: true,
+      {
+      NodeProvider nodeProvider, bool isRequester: true,
       bool isResponder: true, Requester overrideRequester,
       Responder overrideResponder, this.home, this.token, this.linkData, List formats
-      //this.enableHttp: false
       })
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}' {
@@ -69,9 +71,11 @@ class HttpClientLink implements ClientLink {
         requester = new Requester();
       }
     }
+
     if (formats != null) {
       this.formats = formats;
     }
+
     if (isResponder) {
       if (overrideResponder != null) {
         responder = overrideResponder;
@@ -79,10 +83,12 @@ class HttpClientLink implements ClientLink {
         responder = new Responder(nodeProvider);
       }
     }
+
     if (token != null && token.length > 16) {
       // pre-generate tokenHash
       String tokenId = token.substring(0, 16);
-      String hashStr = CryptoProvider.sha256(const Utf8Encoder().convert('$dsId$token'));
+      String hashStr = CryptoProvider.sha256(
+          const Utf8Encoder().convert('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
   }
@@ -120,6 +126,7 @@ class HttpClientLink implements ClientLink {
         'formats':formats,
         'version': DSA_VERSION
       };
+
       if (linkData != null) {
         requestJson['linkData'] = linkData;
       }
@@ -162,7 +169,6 @@ class HttpClientLink implements ClientLink {
       initWebsocket(false);
       _connDelay = 1;
       _wsDelay = 1;
-
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       if (_connDelay < 60) _connDelay++;
@@ -175,13 +181,17 @@ class HttpClientLink implements ClientLink {
     if (_closed) return;
 
     try {
-      String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}&format=$format';
+      String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
+          salts[0])}&format=$format';
       if (tokenHash != null) {
         wsUrl = '$wsUrl$tokenHash';
       }
       var socket = await HttpHelper.connectToWebSocket(wsUrl);
       _wsConnection = new WebSocketConnection(socket,
-          clientLink: this, enableTimeout: true, enableAck: enableAck, useCodec:DsCodec.getCodec(format));
+          clientLink: this,
+          enableTimeout: true,
+          enableAck: enableAck,
+          useCodec: DsCodec.getCodec(format));
 
       logger.info("Connected");
       if (!_onConnectedCompleter.isCompleted) {
@@ -206,9 +216,9 @@ class HttpClientLink implements ClientLink {
     } catch (error) {
       logger.fine(error);
       if (error is WebSocketException && (
-            error.message.contains('not upgraded to websocket') // error from dart
+          error.message.contains('not upgraded to websocket') // error from dart
               || error.message.contains('(401)') // error from nodejs
-          )) {
+      )) {
         DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       } else if (reconnect) {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
