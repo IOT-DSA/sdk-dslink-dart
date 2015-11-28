@@ -9,6 +9,7 @@ import "common.dart";
 import "utils.dart";
 import "requester.dart";
 import "responder.dart";
+
 import "src/crypto/pk.dart";
 
 part "src/browser/browser_user_link.dart";
@@ -18,16 +19,16 @@ part "src/browser/browser_ws_conn.dart";
 /// A Storage System for DSA Data
 abstract class DataStorage {
   /// Get a key's value.
-  String get(String key);
+  Future<String> get(String key);
 
   /// Check if a key is stored.
-  bool has(String key);
+  Future<bool> has(String key);
 
   /// Remove the specified key.
-  String remove(String key);
+  Future<String> remove(String key);
 
   /// Store a key value pair.
-  void store(String key, String value);
+  Future store(String key, String value);
 }
 
 /// Storage for DSA in Local Storage
@@ -37,18 +38,18 @@ class LocalDataStorage extends DataStorage {
   LocalDataStorage();
 
   @override
-  String get(String key) => window.localStorage[key];
+  Future<String> get(String key) async => window.localStorage[key];
 
   @override
-  bool has(String key) => window.localStorage.containsKey(key);
+  Future<bool> has(String key) async => window.localStorage.containsKey(key);
 
   @override
-  void store(String key, String value) {
-      window.localStorage[key] = value;
+  Future store(String key, String value) async {
+    window.localStorage[key] = value;
   }
 
   @override
-  String remove(String key) => window.localStorage.remove(key);
+  Future<String> remove(String key) async => window.localStorage.remove(key);
 }
 
 PrivateKey _cachedPrivateKey;
@@ -66,15 +67,15 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   String keyLockPath = "dsa_key_lock:${window.location.pathname}";
   String randomToken = "${new DateTime.now().millisecondsSinceEpoch} ${DSRandom.instance.nextUint16()} ${DSRandom.instance.nextUint16()}";
 
-  if (storage.has(keyPath)) {
+  if (await storage.has(keyPath)) {
     storage.store(keyLockPath, randomToken);
     await new Future.delayed(new Duration(milliseconds: 20));
     if (storage.get(keyLockPath) == randomToken) {
       _startStorageLock(keyLockPath, randomToken);
-      _cachedPrivateKey = new PrivateKey.loadFromString(storage.get(keyPath));
+      _cachedPrivateKey = new PrivateKey.loadFromString(await storage.get(keyPath));
       return _cachedPrivateKey;
     } else {
-      // use temp key, don"t lock it;
+      // use temp key, don't lock it;
       keyLockPath = null;
     }
   }
@@ -82,16 +83,16 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   _cachedPrivateKey = await PrivateKey.generate();
 
   if (keyLockPath != null) {
-    storage.store(keyPath, _cachedPrivateKey.saveToString());
-    storage.store(keyLockPath, randomToken);
+    await storage.store(keyPath, _cachedPrivateKey.saveToString());
+    await storage.store(keyLockPath, randomToken);
     _startStorageLock(keyLockPath, randomToken);
   }
 
   return _cachedPrivateKey;
 }
 
-void _startStorageLock(String lockKey, String lockToken){
-  void onStorage(StorageEvent e){
+void _startStorageLock(String lockKey, String lockToken) {
+  void onStorage(StorageEvent e) {
     if (e.key == lockKey) {
       window.localStorage[lockKey] = lockToken;
     }

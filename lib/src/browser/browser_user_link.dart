@@ -3,6 +3,7 @@ part of dslink.browser_client;
 /// a client link for both http and ws
 class BrowserUserLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   static String session = DSRandom.instance.nextUint16().toRadixString(16) +
@@ -28,13 +29,12 @@ class BrowserUserLink implements ClientLink {
   String wsUpdateUri;
   String format = "json";
 
-  BrowserUserLink(
-      {NodeProvider nodeProvider,
-      bool isRequester: true,
-      bool isResponder: true,
-      this.wsUpdateUri,
-      this.enableAck:false,
-      String format})
+  BrowserUserLink({NodeProvider nodeProvider,
+  bool isRequester: true,
+  bool isResponder: true,
+  this.wsUpdateUri,
+  this.enableAck: false,
+  String format})
       : requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
@@ -58,9 +58,11 @@ class BrowserUserLink implements ClientLink {
   }
 
   int _wsDelay = 1;
+
   initWebsocket([bool reconnect = true]) {
     var socket = new WebSocket("$wsUpdateUri?session=$session&format=$format");
-    _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, useCodec:DsCodec.getCodec(format));
+    _wsConnection = new WebSocketConnection(
+        socket, this, enableAck: enableAck, useCodec: DsCodec.getCodec(format));
 
     if (responder != null) {
       responder.connection = _wsConnection.responderChannel;
