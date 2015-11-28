@@ -16,55 +16,50 @@ class BrowserUserLink implements ClientLink {
   PrivateKey privateKey;
 
   WebSocketConnection _wsConnection;
-//  HttpBrowserConnection _httpConnection;
 
   bool enableAck;
-  
-  static const Map<String, int> saltNameMap = const {'salt': 0, 'saltS': 1,};
+
+  static const Map<String, int> saltNameMap = const {"salt": 0, "saltS": 1,};
 
   updateSalt(String salt, [int saltId = 0]) {
     // TODO: implement updateSalt
   }
 
   String wsUpdateUri;
-  String httpUpdateUri;
-  String format = 'json';
-  
+  String format = "json";
+
   BrowserUserLink(
       {NodeProvider nodeProvider,
       bool isRequester: true,
       bool isResponder: true,
       this.wsUpdateUri,
-      this.httpUpdateUri, 
       this.enableAck:false,
       String format})
       : requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
             : null {
-    if (wsUpdateUri.startsWith('http')) {
-      wsUpdateUri = 'ws${wsUpdateUri.substring(4)}';
+    if (wsUpdateUri.startsWith("http")) {
+      wsUpdateUri = "ws${wsUpdateUri.substring(4)}";
     }
+
     if (format != null) {
       this.format = format;
     }
-    if (window.location.hash.contains('dsa_json')) {
-      this.format = 'json';
+
+    if (window.location.hash.contains("dsa_json")) {
+      this.format = "json";
     }
   }
 
   void connect() {
     lockCryptoProvider();
     initWebsocket(false);
-    //initHttp();
   }
 
   int _wsDelay = 1;
   initWebsocket([bool reconnect = true]) {
-//    if (reconnect && _httpConnection == null) {
-//      initHttp();
-//    }
-    var socket = new WebSocket('$wsUpdateUri?session=$session&format=$format');
+    var socket = new WebSocket("$wsUpdateUri?session=$session&format=$format");
     _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, useCodec:DsCodec.getCodec(format));
 
     if (responder != null) {
@@ -80,7 +75,7 @@ class BrowserUserLink implements ClientLink {
       });
     }
     _wsConnection.onDisconnected.then((connection) {
-      logger.info('Disconnected');
+      logger.info("Disconnected");
       if (_wsConnection._opened) {
         _wsDelay = 1;
         initWebsocket(false);
@@ -88,37 +83,9 @@ class BrowserUserLink implements ClientLink {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;
       } else {
-//        initHttp();
         _wsDelay = 5;
         DsTimer.timerOnceAfter(initWebsocket, 5000);
       }
     });
   }
-
-//  initHttp() {
-//    _httpConnection = new HttpBrowserConnection(
-//        '$httpUpdateUri?session=$session', this, '0', '0', true);
-//
-//    if (responder != null) {
-//      responder.connection = _httpConnection.responderChannel;
-//    }
-//
-//    if (requester != null) {
-//      _httpConnection.onRequesterReady.then((channel) {
-//        requester.connection = channel;
-//        if (!_onRequesterReadyCompleter.isCompleted) {
-//          _onRequesterReadyCompleter.complete(requester);
-//        }
-//      });
-//    }
-//    _httpConnection.onDisconnected.then((bool authFailed) {
-//      _httpConnection = null;
-//      if (authFailed) {
-//        DsTimer.timerCancel(initWebsocket);
-//        connect();
-//      } else {
-//        // reconnection of websocket should handle this case
-//      }
-//    });
-//  }
 }

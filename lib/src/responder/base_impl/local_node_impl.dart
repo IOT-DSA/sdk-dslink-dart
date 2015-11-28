@@ -6,6 +6,7 @@ abstract class NodeProviderImpl extends NodeProvider {
 
 abstract class LocalNodeImpl extends LocalNode {
   LocalNodeImpl(String path) : super(path);
+
   Map serialize(bool withChildren) {
     var rslt = {};
     configs.forEach((key, val) {
@@ -23,6 +24,7 @@ abstract class LocalNodeImpl extends LocalNode {
   }
 
   bool _loaded = false;
+
   bool get loaded => _loaded;
 
   void load(Map m) {
@@ -57,8 +59,8 @@ abstract class LocalNodeImpl extends LocalNode {
     listChangeController.add(name);
   }
 
-  Response setAttribute(
-      String name, Object value, Responder responder, Response response) {
+  Response setAttribute(String name, Object value, Responder responder,
+      Response response) {
     if (!attributes.containsKey(name) || attributes[name] != value) {
       attributes[name] = value;
       updateList(name);
@@ -66,8 +68,8 @@ abstract class LocalNodeImpl extends LocalNode {
     return response..close();
   }
 
-  Response removeAttribute(
-      String name, Responder responder, Response response) {
+  Response removeAttribute(String name, Responder responder,
+      Response response) {
     if (attributes.containsKey(name)) {
       attributes.remove(name);
       updateList(name);
@@ -75,8 +77,8 @@ abstract class LocalNodeImpl extends LocalNode {
     return response..close();
   }
 
-  Response setConfig(
-      String name, Object value, Responder responder, Response response) {
+  Response setConfig(String name, Object value, Responder responder,
+      Response response) {
     var config = Configs.getConfig(name, profile);
     return response..close(config.setConfig(value, this, responder));
   }

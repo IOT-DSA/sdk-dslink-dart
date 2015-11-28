@@ -3,6 +3,7 @@ part of dslink.responder;
 class RespSubscribeListener {
   Function callback;
   LocalNode node;
+
   RespSubscribeListener(this.node, this.callback);
 
   void cancel() {
@@ -17,12 +18,12 @@ class SubscribeResponse extends Response {
   SubscribeResponse(Responder responder, int rid) : super(responder, rid);
 
   final Map<String, RespSubscribeController> subscriptions =
-      new Map<String, RespSubscribeController>();
+    new Map<String, RespSubscribeController>();
   final Map<int, RespSubscribeController> subsriptionids =
-      new Map<int, RespSubscribeController>();
+    new Map<int, RespSubscribeController>();
 
   final LinkedHashSet<RespSubscribeController> changed =
-      new LinkedHashSet<RespSubscribeController>();
+  new LinkedHashSet<RespSubscribeController>();
 
   RespSubscribeController add(String path, LocalNode node, int sid, int qos) {
     RespSubscribeController controller;
@@ -52,7 +53,7 @@ class SubscribeResponse extends Response {
         subsriptionids[sid] = controller;
       }
 
-      if (responder._traceCallbacks != null){
+      if (responder._traceCallbacks != null) {
         ResponseTrace update = new ResponseTrace(path, 'subscribe', 0, '+');
         for (ResponseTraceCallback callback in responder._traceCallbacks) {
           callback(update);
@@ -68,11 +69,12 @@ class SubscribeResponse extends Response {
       subsriptionids[sid].destroy();
       subsriptionids.remove(sid);
       subscriptions.remove(controller.node.path);
-      if (responder._traceCallbacks != null){
-        ResponseTrace update = new ResponseTrace(controller.node.path,'subscribe',0,'-');
+      if (responder._traceCallbacks != null) {
+        ResponseTrace update = new ResponseTrace(
+            controller.node.path, 'subscribe', 0, '-');
         for (ResponseTraceCallback callback in responder._traceCallbacks) {
           callback(update);
-        }  
+        }
       }
     }
   }
@@ -85,17 +87,14 @@ class SubscribeResponse extends Response {
   @override
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
-    
+
     if (waitingAckId != -1) {
       _waitingAckCount++;
       _lastWatingAckId = waitingAckId;
     }
-  
+
     List updates = [];
     for (RespSubscribeController controller in changed) {
-      if (controller.sid == -1) {
-        int debuga = 1;
-      }
       updates.addAll(controller.process(waitingAckId));
     }
     responder.updateResponse(this, updates);
@@ -104,14 +103,14 @@ class SubscribeResponse extends Response {
 
   int _waitingAckCount = 0;
   int _lastWatingAckId = -1;
-   
+
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
     if (receiveAckId == _lastWatingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount --;
     }
-    subscriptions.forEach((String path, RespSubscribeController controller){
+    subscriptions.forEach((String path, RespSubscribeController controller) {
       if (controller._qosLevel > 0) {
         controller.onAck(receiveAckId);
       }
@@ -121,7 +120,9 @@ class SubscribeResponse extends Response {
       prepareSending();
     }
   }
+
   bool _sendingAfterAck = false;
+
   void prepareSending() {
     if (_sendingAfterAck) {
       return;
@@ -139,7 +140,7 @@ class SubscribeResponse extends Response {
       responder.addProcessor(this);
     }
   }
-  
+
   void _close() {
     List pendingControllers;
     subscriptions.forEach((path, RespSubscribeController controller) {
@@ -159,15 +160,17 @@ class SubscribeResponse extends Response {
         subscriptions[controller.node.path] = controller;
       }
     }
-    
+
     subsriptionids.clear();
     _waitingAckCount = 0;
     _lastWatingAckId = -1;
     _sendingAfterAck = false;
   }
+
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     subscriptions.forEach((path, controller) {
-      ResponseTrace update = new ResponseTrace(controller.node.path,'subscribe',0,'+');
+      ResponseTrace update = new ResponseTrace(
+          controller.node.path, 'subscribe', 0, '+');
       _traceCallback(update);
     });
   }
@@ -180,6 +183,7 @@ class RespSubscribeController {
   int sid;
 
   bool _permitted = true;
+
   void set permitted(bool val) {
     if (val == _permitted) return;
     _permitted = val;
@@ -189,26 +193,29 @@ class RespSubscribeController {
   }
 
   List<ValueUpdate> lastValues = new List<ValueUpdate>();
-  ListQueue<ValueUpdate> waitingValues;//; = new ListQueue<ValueUpdate>();
+  ListQueue<ValueUpdate> waitingValues;
+
+  //; = new ListQueue<ValueUpdate>();
   ValueUpdate lastValue;
-    
+
   int _qosLevel = -1;
   ISubscriptionNodeStorage _storage;
-  
+
   void set qosLevel(int v) {
     if (v < 0 || v > 3) v = 0;
-    if (_qosLevel == v) 
+    if (_qosLevel == v)
       return;
-    
+
     _qosLevel = v;
     if (waitingValues == null && _qosLevel > 0) {
-      waitingValues = new ListQueue<ValueUpdate>(); 
+      waitingValues = new ListQueue<ValueUpdate>();
     }
-    caching = (v&1) == 1;
-    persist = (v&2) == 2;
+    caching = (v & 1) == 1;
+    persist = (v & 2) == 2;
   }
-  
+
   bool _caching = false;
+
   void set caching(bool val) {
     if (val == _caching) return;
     _caching = val;
@@ -216,7 +223,9 @@ class RespSubscribeController {
       lastValues.clear();
     }
   }
+
   bool _persist = false;
+
   void set persist(bool val) {
     if (val == _persist) return;
     _persist = val;
@@ -224,15 +233,15 @@ class RespSubscribeController {
     if (storageM != null) {
       if (_persist) {
         _storage = storageM.getOrCreateValue(node.path);
-      } else if (_storage != null){
+      } else if (_storage != null) {
         storageM.destroyValue(node.path);
         _storage = null;
       }
     }
   }
 
-  RespSubscribeController(
-      this.response, this.node, this.sid, this._permitted, int qos) {
+  RespSubscribeController(this.response, this.node, this.sid, this._permitted,
+      int qos) {
     this.qosLevel = qos;
     _listener = node.subscribe(addValue, _qosLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
@@ -241,43 +250,48 @@ class RespSubscribeController {
   }
 
   bool _isCacheValid = true;
+
   void addValue(ValueUpdate val) {
     if (_caching && _isCacheValid) {
       lastValues.add(val);
       if (lastValues.length > response.responder.maxCacheLength) {
         // cache is no longer valid, fallback to rollup mode
         _isCacheValid = false;
-        lastValue = new ValueUpdate(null,ts:'');
+        lastValue = new ValueUpdate(null, ts: '');
         for (ValueUpdate update in lastValues) {
           lastValue.mergeAdd(update);
         }
         lastValues.clear();
         if (_qosLevel > 0) {
           if (_storage != null) {
-              _storage.setValue(waitingValues, lastValue);
+            _storage.setValue(waitingValues, lastValue);
           }
-          waitingValues..clear()..add(lastValue);
+          waitingValues
+            ..clear()
+            ..add(lastValue);
         }
       } else {
         lastValue = val;
         if (_qosLevel > 0) {
           waitingValues.add(lastValue);
           if (_storage != null) {
-              _storage.addValue(lastValue);
+            _storage.addValue(lastValue);
           }
         }
       }
     } else {
       if (lastValue != null) {
-        lastValue =  new ValueUpdate.merge(lastValue, val);
+        lastValue = new ValueUpdate.merge(lastValue, val);
       } else {
         lastValue = val;
       }
       if (_qosLevel > 0) {
-         if (_storage != null) {
-             _storage.setValue(waitingValues, lastValue);
-         }
-         waitingValues..clear()..add(lastValue);
+        if (_storage != null) {
+          _storage.setValue(waitingValues, lastValue);
+        }
+        waitingValues
+          ..clear()
+          ..add(lastValue);
       }
     }
     // TODO, don't allow this to be called from same controller more often than 100ms
@@ -315,15 +329,17 @@ class RespSubscribeController {
     lastValue = null;
     return rslts;
   }
-  
+
   void onAck(int ackId) {
     if (waitingValues.isEmpty) {
       return;
     }
     bool valueRemoved = false;
     if (!waitingValues.isEmpty && waitingValues.first.waitingAck != ackId) {
-      logger.warning('invalid ack ${waitingValues.first.value} ${waitingValues.first.waitingAck}');
-      
+      logger.warning(
+          'invalid ack ${waitingValues.first.value} ${waitingValues.first
+              .waitingAck}');
+
       ValueUpdate matchUpdate;
       for (ValueUpdate update in waitingValues) {
         if (update.waitingAck == ackId) {

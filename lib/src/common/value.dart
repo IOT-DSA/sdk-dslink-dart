@@ -10,15 +10,15 @@ class ValueUpdate {
     }
     int hh = timeZoneOffset ~/ 60;
     int mm = timeZoneOffset % 60;
-    return "$s${hh<10?'0':''}$hh:${mm<10?'0':''}$mm";
+    return "$s${hh < 10 ? '0' : ''}$hh:${mm < 10 ? '0' : ''}$mm";
   }();
 
   static String getTs() {
     return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
   }
-  
+
   int waitingAck = -1;
-  
+
   Object value;
   String ts;
   String status;
@@ -96,7 +96,7 @@ class ValueUpdate {
     return _latency;
   }
 
-  /// merge the new update into existing instance 
+  /// merge the new update into existing instance
   void mergeAdd(ValueUpdate newUpdate) {
     value = newUpdate.value;
     ts = newUpdate.ts;
@@ -117,7 +117,7 @@ class ValueUpdate {
       max = newUpdate.max;
     }
   }
-  
+
   bool equals(ValueUpdate other) {
     if (value is Map) {
       // assume Map is same if it's generated at same time stampe
@@ -127,12 +127,12 @@ class ValueUpdate {
     } else if (value is List) {
       // assume List is same if it's generated at same time stampe
       if (other.value is! List) {
-         return false;
-       }
+        return false;
+      }
     } else if (value != other.value) {
       return false;
     }
-    
+
     if (other.ts != ts || other.count != count) {
       return false;
     }
@@ -141,25 +141,26 @@ class ValueUpdate {
     }
     return other.sum == sum && other.min == min && other.max == max;
   }
-  
-  Map toMap(){
+
+  Map toMap() {
     Map m = {'ts': ts, 'value': value};
-     if (count == 0) {
-       m['count'] = 0;
-     } else if (count > 1) {
-       m['count'] = count;
-       if (sum.isFinite) {
-         m['sum'] = sum;
-       }
-       if (max.isFinite) {
-         m['max'] = max;
-       }
-       if (min.isFinite) {
-         m['min'] = min;
-       }
-     }
-     return m;
+    if (count == 0) {
+      m['count'] = 0;
+    } else if (count > 1) {
+      m['count'] = count;
+      if (sum.isFinite) {
+        m['sum'] = sum;
+      }
+      if (max.isFinite) {
+        m['max'] = max;
+      }
+      if (min.isFinite) {
+        m['min'] = min;
+      }
+    }
+    return m;
   }
+
   /// could be the value or the key stored by ValueStorage
   Object storedData;
 }

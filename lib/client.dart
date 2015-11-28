@@ -1,19 +1,19 @@
 /// Provides the base APIs for the DSLink SDK on the Dart VM.
 library dslink.client;
 
-import 'dart:async';
-import 'dart:io';
-import 'dart:convert';
+import "dart:async";
+import "dart:io";
+import "dart:convert";
 
-import 'package:args/args.dart';
+import "package:args/args.dart";
 
-import 'common.dart';
-import 'requester.dart';
-import 'responder.dart';
-import 'utils.dart';
-import 'io.dart';
-import 'src/crypto/pk.dart';
-import 'src/http/websocket_conn.dart';
+import "common.dart";
+import "requester.dart";
+import "responder.dart";
+import "utils.dart";
+import "io.dart";
+import "src/crypto/pk.dart";
+import "src/http/websocket_conn.dart";
 
 import "package:logging/logging.dart";
 
@@ -21,8 +21,7 @@ import "package:dslink/broker_discovery.dart" show BrokerDiscoveryClient;
 
 export "src/crypto/pk.dart";
 
-part 'src/http/client_link.dart';
-//part 'src/http/client_http_conn.dart';
+part "src/http/client_link.dart";
 
 /// A Handler for Argument Results
 typedef void OptionResultsHandler(ArgResults results);
@@ -54,7 +53,7 @@ class LinkProvider {
   bool isRequester = false;
 
   /// The Command Name
-  String command = 'link';
+  String command = "link";
 
   /// Are we a responder?
   bool isResponder = true;
@@ -119,7 +118,7 @@ class LinkProvider {
       this.prefix,
       {
       this.isRequester: false,
-      this.command: 'link',
+      this.command: "link",
       this.isResponder: true,
       this.defaultNodes,
       Map nodes,
@@ -292,7 +291,7 @@ class LinkProvider {
       }
     }
 
-    brokerUrl = opts['broker'];
+    brokerUrl = opts["broker"];
     if (brokerUrl == null && !opts["discover"]) {
       print(
           "No Broker URL Specified. One of [--broker, --discover] is required.");
@@ -342,16 +341,14 @@ class LinkProvider {
     }
 
     if (brokerUrl != null) {
-      if (!brokerUrl.startsWith('http')) {
-        brokerUrl = 'http://$brokerUrl';
+      if (!brokerUrl.startsWith("http")) {
+        brokerUrl = "http://$brokerUrl";
       }
     }
 
-    Uri brokerUri = Uri.parse(brokerUrl);
-
-    File keyFile = getConfig('key') == null
+    File keyFile = getConfig("key") == null
         ? new File("${_basePath}/.dslink.key")
-        : new File.fromUri(Uri.parse(getConfig('key')));
+        : new File.fromUri(Uri.parse(getConfig("key")));
     String key;
 
     try {
@@ -518,15 +515,15 @@ class LinkProvider {
   void loadNodesFile() {
     if (provider is SerializableNodeProvider &&
       !_reconnecting) {
-      _nodesFile = getConfig('nodes') == null
+      _nodesFile = getConfig("nodes") == null
         ? new File("${_basePath}/nodes.json")
-        : new File.fromUri(Uri.parse(getConfig('nodes')));
+        : new File.fromUri(Uri.parse(getConfig("nodes")));
       Map loadedNodesData;
 
       if (loadNodesJson) {
-        _nodesFile = getConfig('nodes') == null
+        _nodesFile = getConfig("nodes") == null
           ? new File("${_basePath}/nodes.json")
-          : new File.fromUri(Uri.parse(getConfig('nodes')));
+          : new File.fromUri(Uri.parse(getConfig("nodes")));
         try {
           String nodesStr = _nodesFile.readAsStringSync();
           loadedNodesData = DsJson.decode(nodesStr);
@@ -548,10 +545,10 @@ class LinkProvider {
   /// Gets a configuration value from the dslink.json
   Object getConfig(String key) {
     if (dslinkJson != null &&
-        dslinkJson['configs'] is Map &&
-        dslinkJson['configs'][key] is Map &&
-        dslinkJson['configs'][key].containsKey('value')) {
-      return dslinkJson['configs'][key]['value'];
+        dslinkJson["configs"] is Map &&
+        dslinkJson["configs"][key] is Map &&
+        dslinkJson["configs"][key].containsKey("value")) {
+      return dslinkJson["configs"][key]["value"];
     }
     return null;
   }

@@ -17,7 +17,6 @@ abstract class LocalNode extends Node {
   /// List Stream.
   /// See [listChangeController].
   Stream<String> get listStream => listChangeController.stream;
-  StreamSubscription _listReqListener;
 
   /// Callback for when listing this node has started.
   void onStartListListen() {}
@@ -66,11 +65,11 @@ abstract class LocalNode extends Node {
     }
     return null;
   }
-  
+
   bool _valueReady = false;
   /// Is the value ready?
   bool get valueReady => _valueReady;
-  
+
   /// Updates this node's value to the specified [value].
   void updateValue(Object update, {bool force: false}) {
     _valueReady = true;
@@ -88,7 +87,7 @@ abstract class LocalNode extends Node {
       });
     }
   }
-  
+
   void clearValue() {
     _valueReady = false;
     _lastValueUpdate = null;
@@ -213,7 +212,7 @@ abstract class LocalNode extends Node {
 abstract class NodeProvider {
   /// Gets an existing node.
   LocalNode getNode(String path);
-  
+
   /// Gets a node at the given [path] if it exists.
   /// If it does not exist, create a new node and return it.
   ///

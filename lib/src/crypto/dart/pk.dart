@@ -1,15 +1,13 @@
 library dslink.pk.dart;
 
-import '../pk.dart';
-import '../../../utils.dart';
-import 'dart:typed_data';
-import 'dart:math' as Math;
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:async';
-import 'dart:isolate';
+import "dart:async";
+import "dart:convert";
+import "dart:collection";
+import "dart:typed_data";
+import "dart:math" as Math;
+import "dart:isolate";
 
-import 'package:bignum/bignum.dart';
+import "package:bignum/bignum.dart";
 import "package:cipher/cipher.dart" hide PublicKey, PrivateKey;
 import "package:cipher/digests/sha256.dart";
 import "package:cipher/key_generators/ec_key_generator.dart";
@@ -18,12 +16,15 @@ import "package:cipher/random/secure_random_base.dart";
 import "package:cipher/random/block_ctr_random.dart";
 import "package:cipher/block/aes_fast.dart";
 
-import 'package:cipher/ecc/ecc_base.dart';
-import 'package:cipher/ecc/ecc_fp.dart' as fp;
+import "package:cipher/ecc/ecc_base.dart";
+import "package:cipher/ecc/ecc_fp.dart" as fp;
 
-part 'isolate.dart';
+import "../pk.dart";
+import "../../../utils.dart";
 
-/// hard code the EC curve data here, so the compiler don't have to register all curves
+part "isolate.dart";
+
+/// hard code the EC curve data here, so the compiler don"t have to register all curves
 ECDomainParameters _secp256r1 = () {
   BigInteger q = new BigInteger(
       "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
@@ -44,7 +45,7 @@ ECDomainParameters _secp256r1 = () {
   var curve = new fp.ECCurve(q, a, b);
 
   return new ECDomainParametersImpl(
-      'secp256r1', curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
+      "secp256r1", curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
 }();
 
 class DartCryptoProvider implements CryptoProvider {
@@ -85,7 +86,7 @@ class DartCryptoProvider implements CryptoProvider {
 
   Future<ECDH> getSecret(PublicKeyImpl publicKeyRemote) async {
     if (ECDHIsolate.running) {
-      return ECDHIsolate._sendRequest(publicKeyRemote, '');
+      return ECDHIsolate._sendRequest(publicKeyRemote, "");
     }
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
@@ -111,8 +112,8 @@ class DartCryptoProvider implements CryptoProvider {
   }
 
   PrivateKey loadFromString(String str) {
-    if (str.contains(' ')) {
-      List ss = str.split(' ');
+    if (str.contains(" ")) {
+      List ss = str.split(" ");
       var d = new BigInteger.fromBytes(1, Base64.decode(ss[0]));
       ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
       var Q = _secp256r1.curve.decodePoint(Base64.decode(ss[1]));
@@ -165,7 +166,7 @@ class ECDHImpl extends ECDH {
   }
 
   String hashSalt(String salt) {
-    List raw = []..addAll(UTF8.encode(salt))..addAll(bytes);
+    List raw = []..addAll(const Utf8Encoder().convert(salt))..addAll(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     var hashed = sha256.process(new Uint8List.fromList(raw));
     return Base64.encode(hashed);
@@ -200,7 +201,7 @@ class PrivateKeyImpl implements PrivateKey {
   }
 
   String saveToString() {
-    return '${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}';
+    return "${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}";
   }
 
   Future<ECDHImpl> getSecret(String key) async {
@@ -264,7 +265,7 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
   }
 
   void addEntropy(String str) {
-    List utf = UTF8.encode(str);
+    List utf = const Utf8Encoder().convert(str);
     int length2 = (utf.length).ceil() * 16;
     if (length2 > utf.length) {
       utf = utf.toList();
@@ -289,7 +290,7 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
 String bytes2hex(List<int> bytes) {
   var result = new StringBuffer();
   for (var part in bytes) {
-    result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+    result.write("${part < 16 ? "0" : ""}${part.toRadixString(16)}");
   }
   return result.toString();
 }

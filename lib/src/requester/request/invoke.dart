@@ -117,10 +117,6 @@ class InvokeController implements RequestUpdater {
     }
   }
 
-  void _onNodeUpdate(RequesterListUpdate listUpdate) {
-    // TODO: close the stream when configs are loaded
-  }
-
   void onUpdate(String streamStatus, List updates, List columns, Map meta,
       DSError error) {
     if (meta != null && meta['mode'] is String) {

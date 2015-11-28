@@ -1,20 +1,19 @@
 /// Base API for DSA in the Browser
 library dslink.browser_client;
 
-import 'dart:async';
-import 'dart:html';
-import 'dart:convert';
-import 'dart:typed_data';
-import 'common.dart';
-import 'utils.dart';
-import 'requester.dart';
-import 'responder.dart';
-import 'src/crypto/pk.dart';
+import "dart:async";
+import "dart:html";
+import "dart:convert";
+import "dart:typed_data";
+import "common.dart";
+import "utils.dart";
+import "requester.dart";
+import "responder.dart";
+import "src/crypto/pk.dart";
 
-part 'src/browser/browser_user_link.dart';
-part 'src/browser/browser_ecdh_link.dart';
-//part 'src/browser/browser_http_conn.dart';
-part 'src/browser/browser_ws_conn.dart';
+part "src/browser/browser_user_link.dart";
+part "src/browser/browser_ecdh_link.dart";
+part "src/browser/browser_ws_conn.dart";
 
 /// A Storage System for DSA Data
 abstract class DataStorage {
@@ -63,10 +62,10 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
     storage = LocalDataStorage.INSTANCE;
   }
 
-  String keyPath = 'dsa_key:${window.location.pathname}';
-  String keyLockPath = 'dsa_key_lock:${window.location.pathname}';
-  String randomToken = '${new DateTime.now().millisecondsSinceEpoch} ${DSRandom.instance.nextUint16()} ${DSRandom.instance.nextUint16()}';
-      
+  String keyPath = "dsa_key:${window.location.pathname}";
+  String keyLockPath = "dsa_key_lock:${window.location.pathname}";
+  String randomToken = "${new DateTime.now().millisecondsSinceEpoch} ${DSRandom.instance.nextUint16()} ${DSRandom.instance.nextUint16()}";
+
   if (storage.has(keyPath)) {
     storage.store(keyLockPath, randomToken);
     await new Future.delayed(new Duration(milliseconds: 20));
@@ -75,7 +74,7 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
       _cachedPrivateKey = new PrivateKey.loadFromString(storage.get(keyPath));
       return _cachedPrivateKey;
     } else {
-      // use temp key, don't lock it;
+      // use temp key, don"t lock it;
       keyLockPath = null;
     }
   }

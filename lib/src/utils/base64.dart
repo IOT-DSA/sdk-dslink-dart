@@ -40,11 +40,11 @@ class Base64 {
 
   static String encodeString(String content,
       [int lineSize = 0, int paddingSpace = 0]) {
-    return Base64.encode(UTF8.encode(content), lineSize, paddingSpace);
+    return Base64.encode(const Utf8Encoder().convert(content), lineSize, paddingSpace);
   }
 
   static String decodeString(String input) {
-    return UTF8.decode(decode(input));
+    return const Utf8Decoder().convert(decode(input));
   }
 
   static String encode(List<int> bytes,

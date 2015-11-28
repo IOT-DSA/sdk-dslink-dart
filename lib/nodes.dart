@@ -336,7 +336,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   Future get onLoaded {
     if (onLoadedCompleter != null) {
-      return onLoadedCompleter.future;;
+      return onLoadedCompleter.future;
     } else {
       return new Future.sync(() => null);
     }

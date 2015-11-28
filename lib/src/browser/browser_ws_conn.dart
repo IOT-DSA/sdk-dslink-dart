@@ -84,7 +84,7 @@ class WebSocketConnection extends Connection {
     socket.sendString('{}');
     requireSend();
   }
-  
+
   /// special server command that need to be merged into message
   /// now only 2 possible value, salt, allowed
   Map _msgCommand;
@@ -100,8 +100,6 @@ class WebSocketConnection extends Connection {
     requireSend();
   }
 
-  
-
   void _onData(MessageEvent e) {
     logger.fine('onData:');
     _dataReceiveCount = 0;
@@ -109,7 +107,7 @@ class WebSocketConnection extends Connection {
     if (e.data is ByteBuffer) {
       try {
         Uint8List bytes = (e.data as ByteBuffer).asUint8List();
-        
+
         // TODO(rick): JSONUtf8Decoder
         m = codec.decodeBinaryFrame(bytes);
         logger.fine('$m');
@@ -178,7 +176,7 @@ class WebSocketConnection extends Connection {
   }
 
   int nextMsgId = 1;
-  
+
   bool _sending = false;
   void _send() {
     _sending = false;
@@ -197,7 +195,7 @@ class WebSocketConnection extends Connection {
     }
 
     List pendingAck = [];
-    
+
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
@@ -219,7 +217,7 @@ class WebSocketConnection extends Connection {
         pendingAck.addAll(rslt.processors);
       }
     }
-    
+
     if (needSend) {
       if (nextMsgId != -1) {
         if (pendingAck.length > 0) {
@@ -233,7 +231,7 @@ class WebSocketConnection extends Connection {
         }
       }
 
-      
+
       logger.fine('send: $m');
 //      Uint8List list = jsonUtf8Encoder.convert(m);
 //      socket.sendTypedData(list);

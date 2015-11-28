@@ -1,31 +1,16 @@
 /// DSA Broker Server
 library dslink.server;
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import "dart:io";
 
-import 'common.dart';
-import 'utils.dart';
-import 'requester.dart';
-import 'responder.dart';
+export "src/crypto/pk.dart";
 
-import 'src/crypto/pk.dart';
-import 'src/http/websocket_conn.dart';
-
-export 'src/crypto/pk.dart';
-
-//part 'src/http/server_http_conn.dart';
-
-
-
-abstract class IRemoteRequester{
+abstract class IRemoteRequester {
   /// user when the requester is proxied to another responder
   String get responderPath;
 }
 
-ContentType _jsonContentType =
-    new ContentType("application", "json", charset: "utf-8");
+ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
 
 void updateResponseBeforeWrite(HttpRequest request,
     [int statusCode = HttpStatus.OK,
@@ -49,7 +34,7 @@ void updateResponseBeforeWrite(HttpRequest request,
     origin = "*";
   }
 
-  response.headers.set('Access-Control-Allow-Origin', origin);
+  response.headers.set("Access-Control-Allow-Origin", origin);
 
   if (!noContentType) {
     if (contentType == null) {

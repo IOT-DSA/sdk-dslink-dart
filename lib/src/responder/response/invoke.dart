@@ -38,7 +38,7 @@ class InvokeResponse extends Response {
       }
       return;
     }
-    
+
     for (_InvokeResponseUpdate update in pendingData) {
       List outColumns;
       if (update.columns != null) {
@@ -69,15 +69,13 @@ class InvokeResponse extends Response {
 
   DSError _err;
 
-  bool _closed = false;
   OnInvokeClosed onClose;
   void _close() {
-    _closed = true;
     if (onClose != null) {
       onClose(this);
     }
   }
-  
+
   /// for the broker trace action
   ResponseTrace getTraceData([String change = '+']) {
     return new ResponseTrace(parentNode.path, 'invoke', rid, change, name);

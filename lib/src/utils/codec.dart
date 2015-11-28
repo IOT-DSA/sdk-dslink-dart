@@ -15,113 +15,6 @@ class BinaryData {
     bytes = ByteDataUtil.fromList(list);
   }
 }
-//
-//class BinaryInCache {
-//  Map<String, BinaryData> caches = new Map<String, BinaryData>();
-//  ByteData fetchData(String id) {
-//    BinaryData data = caches[id];
-//    if (data != null && data.bytes != null) {
-//      caches.remove(id);
-//      return data.bytes;
-//    }
-//    return null;
-//  }
-//
-//  void receiveData(List<int> inputList) {
-//    Uint8List input;
-//    if (inputList is Uint8List) {
-//      input = inputList;
-//    } else {
-//      input = new Uint8List.fromList(inputList);
-//    }
-//    // TODO error handling
-//    ByteData bytedata = new ByteData.view(
-//        input.buffer, input.offsetInBytes, input.lengthInBytes);
-//    int headerSize = bytedata.getUint32(0);
-//    int count = headerSize ~/ 9;
-//    for (int i = 0; i < headerSize; i += 9) {
-//      int start = bytedata.getUint32(i);
-//      int end;
-//      if (i < headerSize - 9) {
-//        end = bytedata.getUint32(i + 9);
-//      } else {
-//        end = input.length;
-//      }
-//      ByteData bytes =
-//          input.buffer.asByteData(start + input.offsetInBytes, end - start);
-//      String id = bytedata.getUint32(i + 4).toString();
-//      bool finished = bytedata.getUint8(i + 8) == 0;
-//      BinaryData data = caches[id];
-//      if (data == null) {
-//        // create new binary data
-//        data = new BinaryData(null);
-//        if (finished) {
-//          data.bytes = bytes;
-//        } else {
-//          data.mergingList = [bytes];
-//        }
-//        caches[id] = data;
-//      } else {
-//        // merge partial data
-//        if (data.mergingList != null) {
-//          data.mergingList.add(bytes);
-//        } else {
-//          // this shouldn't happen!
-//          data.mergingList = [bytes];
-//        }
-//        if (finished) {
-//          data.bytes = ByteDataUtil.mergeBytes(data.mergingList);
-//          data.mergingList = null;
-//        }
-//      }
-//    }
-//  }
-//}
-//
-//class BinaryOutCache {
-//  int id = 0;
-//  Map<int, BinaryData> caches = new Map<int, BinaryData>();
-//  bool get hasData {
-//    return !caches.isEmpty;
-//  }
-//
-//  int addBinaryData(ByteData data) {
-//    int newId = ++id;
-//    caches[newId] = new BinaryData(data);
-//    return newId;
-//  }
-//
-//  Uint8List export() {
-//    //TODO send partial data;
-//    int count = 0;
-//    int totalLength = 0;
-//    caches.forEach((int id, BinaryData data) {
-//      ++count;
-//      totalLength += data.bytes.lengthInBytes;
-//    });
-//    int headpos = 0;
-//    int datapos = count * 9;
-//    Uint8List output = new Uint8List(totalLength + datapos);
-//    ByteData bytedata = new ByteData.view(output.buffer);
-//    List idToRemove = [];
-//    caches.forEach((int id, BinaryData data) {
-//      bytedata.setUint32(headpos, datapos);
-//      bytedata.setUint32(headpos + 4, id);
-////      if (partial) {
-////        bytedata.setUint8(headpos + 8, 1);
-////      } else {
-//      idToRemove.add(id);
-////      }
-//      output.setAll(headpos + 9, ByteDataUtil.toUint8List(data.bytes));
-//      headpos += 9;
-//      datapos += data.bytes.lengthInBytes;
-//    });
-//    for (int id in idToRemove) {
-//      caches.remove(id);
-//    }
-//    return output;
-//  }
-//}
 
 abstract class DsCodec {
   static final Map<String, DsCodec> _codecs = {
@@ -208,7 +101,7 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   JsonDecoder _unsafeDecoder;
 
   Map decodeBinaryFrame(List<int> bytes) {
-    return decodeStringFrame(UTF8.decode(bytes));
+    return decodeStringFrame(const Utf8Decoder().convert(bytes));
   }
 
   Map decodeStringFrame(String str) {
@@ -260,7 +153,6 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   }
 
   JsonEncoder _unsafeEncoder;
-  JsonEncoder _unsafePrettyEncoder;
 }
 
 class DsMsgPackCodecImpl extends DsCodec {

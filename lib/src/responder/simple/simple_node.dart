@@ -923,17 +923,19 @@ class SimpleNode extends LocalNodeImpl {
 
   Response setAttribute(
       String name, Object value, Responder responder, Response response) {
-    if (onSetAttribute(name, value) != true)
+    if (onSetAttribute(name, value) != true) {
       // when callback returns true, value is rejected
-      Response resp = super.setAttribute(name, value, responder, response);
+      super.setAttribute(name, value, responder, response);
+    }
     return response;
   }
 
   Response setConfig(
       String name, Object value, Responder responder, Response response) {
-    if (onSetConfig(name, value) != true)
+    if (onSetConfig(name, value) != true) {
       // when callback returns true, value is rejected
-      Response resp = super.setConfig(name, value, responder, response);
+      super.setConfig(name, value, responder, response);
+    }
     return response;
   }
 
@@ -989,7 +991,7 @@ class SimpleHiddenNode extends SimpleNode {
     if (configs.containsKey(r'$writable')) {
       rslt[r'$writable'] = configs[r'$writable'];
     }
-    // TODO add permission of current requester
+    // TODO: add permission of current requester
     return rslt;
   }
 }

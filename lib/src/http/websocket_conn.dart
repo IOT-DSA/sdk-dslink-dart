@@ -17,11 +17,9 @@ class WebSocketConnection extends Connection {
 
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> onRequestReadyCompleter =
-  new Completer<ConnectionChannel>();
+  Completer<ConnectionChannel> onRequestReadyCompleter = new Completer<ConnectionChannel>();
 
-  Future<ConnectionChannel> get onRequesterReady =>
-      onRequestReadyCompleter.future;
+  Future<ConnectionChannel> get onRequesterReady => onRequestReadyCompleter.future;
 
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
 
@@ -48,7 +46,7 @@ class WebSocketConnection extends Connection {
     if (enableTimeout) {
       pingTimer = new Timer.periodic(const Duration(seconds: 20), onPingTimer);
     }
-    // TODO(rinick): when it"s used in client link, wait for the server to send {allowed} before complete this
+    // TODO(rinick): when it's used in client link, wait for the server to send {allowed} before complete this
   }
 
   Timer pingTimer;
@@ -120,7 +118,7 @@ class WebSocketConnection extends Connection {
       try {
         m = codec.decodeBinaryFrame(data);
         if (logger.isLoggable(Level.FINE)) {
-          logger.fine("WebSocket(binary): ${m}");
+          logger.fine("Received from WebSocket(binary): ${m}");
         }
       } catch (err, stack) {
         logger.fine(

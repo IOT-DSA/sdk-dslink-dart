@@ -1,6 +1,6 @@
 part of dslink.browser_client;
 
-/// a client link for both http and ws
+/// a client link for websocket
 class BrowserECDHLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Completer _onConnectedCompleter = new Completer();
@@ -9,7 +9,7 @@ class BrowserECDHLink implements ClientLink {
 
   final String dsId;
   final String token;
-  
+
   final Requester requester;
   final Responder responder;
   final PrivateKey privateKey;
@@ -18,10 +18,9 @@ class BrowserECDHLink implements ClientLink {
   ECDH get nonce => _nonce;
 
   WebSocketConnection _wsConnection;
-//  HttpBrowserConnection _httpConnection;
 
   bool enableAck = false;
-  
+
   static const Map<String, int> saltNameMap = const {
     'salt': 0,
     'saltS': 1,
@@ -36,7 +35,6 @@ class BrowserECDHLink implements ClientLink {
   }
 
   String _wsUpdateUri;
-  String _httpUpdateUri;
   String _conn;
   String tokenHash;
   /// formats sent to broker
@@ -60,7 +58,7 @@ class BrowserECDHLink implements ClientLink {
               if (token != null && token.length > 16) {
                 // pre-generate tokenHash
                 String tokenId = token.substring(0, 16);
-                String hashStr =   CryptoProvider.sha256(UTF8.encode('$dsId$token'));
+                String hashStr = CryptoProvider.sha256(const Utf8Encoder().convert('$dsId$token'));
                 tokenHash = '&token=$tokenId$hashStr';
               }
               if (formats != null) {
@@ -110,26 +108,15 @@ class BrowserECDHLink implements ClientLink {
         }
       }
 
-      if (serverConfig['httpUri'] is String) {
-        // TODO implement http
-        _httpUpdateUri =
-            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
-        if (tokenHash != null) {
-          _httpUpdateUri = '$_httpUpdateUri$tokenHash';
-        }
-      }
-
       // server start to support version since 1.0.4
       // and this is the version ack is added
       enableAck = serverConfig.containsKey('version');
       if (serverConfig['format'] is String) {
-       format = serverConfig['format'];
+        format = serverConfig['format'];
       }
       initWebsocket(false);
       _connDelay = 1;
       _wsDelay = 1;
-      // initHttp();
-
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
       if (_connDelay < 60) _connDelay++;
@@ -139,9 +126,6 @@ class BrowserECDHLink implements ClientLink {
   int _wsDelay = 1;
   initWebsocket([bool reconnect = true]) {
     if (_closed) return;
-//    if (reconnect && _httpConnection == null) {
-//      initHttp();
-//    }
     String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}&format=$format';
     var socket = new WebSocket(wsUrl);
     _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, onConnect: () {
@@ -182,45 +166,11 @@ class BrowserECDHLink implements ClientLink {
           if (_wsDelay < 60) _wsDelay++;
         }
       } else {
-//        initHttp();
         _wsDelay = 5;
         DsTimer.timerOnceAfter(initWebsocket, 5000);
       }
     });
   }
-
-//  initHttp() {
-//    if (_closed) return;
-//    _httpConnection =
-//        new HttpBrowserConnection(_httpUpdateUri, this, salts[2], salts[1]);
-//
-//    if (!_onConnectedCompleter.isCompleted) {
-//      _onConnectedCompleter.complete();
-//    }
-//
-//    if (responder != null) {
-//      responder.connection = _httpConnection.responderChannel;
-//    }
-//
-//    if (requester != null) {
-//      _httpConnection.onRequesterReady.then((channel) {
-//        requester.connection = channel;
-//        if (!_onRequesterReadyCompleter.isCompleted) {
-//          _onRequesterReadyCompleter.complete(requester);
-//        }
-//      });
-//    }
-//    _httpConnection.onDisconnected.then((bool authFailed) {
-//      if (_closed) return;
-//      _httpConnection = null;
-//      if (authFailed) {
-//        DsTimer.timerCancel(initWebsocket);
-//        connect();
-//      } else {
-//        // reconnection of websocket should handle this case
-//      }
-//    });
-//  }
 
   bool _closed = false;
   void close() {
@@ -231,9 +181,5 @@ class BrowserECDHLink implements ClientLink {
       _wsConnection.close();
       _wsConnection = null;
     }
-//    if (_httpConnection != null) {
-//      _httpConnection.close();
-//      _httpConnection = null;
-//    }
   }
 }

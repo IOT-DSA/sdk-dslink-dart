@@ -3,7 +3,7 @@ part of dslink.common;
 abstract class ConnectionProcessor {
   static const int ACK_WAIT_COUNT = 64;
   static const int DEFAULT_CACHE_SIZE = 1024;
-  
+
   void startSendingData(int waitingAckId, int currentTime);
   void ackReceived(int receiveAckId, int startTime, int currentTime);
 }
@@ -11,7 +11,6 @@ abstract class ConnectionProcessor {
 abstract class ConnectionHandler {
   ConnectionChannel _conn;
   StreamSubscription _connListener;
-  StreamSubscription _beforeSendListener;
   ConnectionChannel get connection => _conn;
 
   set connection(ConnectionChannel conn) {
@@ -92,7 +91,7 @@ abstract class ConnectionHandler {
     _toSendList = [];
     return new ProcessorResult(rslt, processors);
   }
-  
+
   void clearProcessors(){
     _processors.clear();
     _pendingSend = false;

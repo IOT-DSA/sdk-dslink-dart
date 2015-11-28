@@ -17,7 +17,7 @@ class HttpClientLink implements ClientLink {
   final PrivateKey privateKey;
 
   String tokenHash;
-  
+
   Requester requester;
   Responder responder;
 
@@ -48,12 +48,12 @@ class HttpClientLink implements ClientLink {
   bool enableAck = false;
 
   Map linkData;
-  
+
   /// formats sent to broker
   List formats = ['msgpack', 'json'];
   /// format received from broker
   String format = 'json';
-  
+
   HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider, bool isRequester: true,
       bool isResponder: true, Requester overrideRequester,
@@ -82,7 +82,7 @@ class HttpClientLink implements ClientLink {
     if (token != null && token.length > 16) {
       // pre-generate tokenHash
       String tokenId = token.substring(0, 16);
-      String hashStr =   CryptoProvider.sha256(UTF8.encode('$dsId$token'));
+      String hashStr = CryptoProvider.sha256(const Utf8Encoder().convert('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
   }
@@ -126,7 +126,7 @@ class HttpClientLink implements ClientLink {
 
       logger.fine("DS ID: ${dsId}");
 
-      request.add(UTF8.encode(DsJson.encode(requestJson)));
+      request.add(const Utf8Encoder().convert(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
       List<int> merged = await response.fold([], foldList);
       String rslt = UTF8.decode(merged);
@@ -154,19 +154,14 @@ class HttpClientLink implements ClientLink {
           _wsUpdateUri = '$_wsUpdateUri&home=$home';
         }
       }
-      
+
       if (serverConfig['format'] is String) {
         format = serverConfig['format'];
       }
-//      if (serverConfig['httpUri'] is String) {
-//        _httpUpdateUri =
-//            '${connUri.resolve(serverConfig['httpUri'])}?dsId=$dsId';
-//      }
 
       initWebsocket(false);
       _connDelay = 1;
       _wsDelay = 1;
-      //initHttp();
 
     } catch (err) {
       DsTimer.timerOnceAfter(connect, _connDelay * 1000);
@@ -179,9 +174,6 @@ class HttpClientLink implements ClientLink {
   initWebsocket([bool reconnect = true]) async {
     if (_closed) return;
 
-//    if (reconnect && _httpConnection == null) {
-//      initHttp();
-//    }
     try {
       String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}&format=$format';
       if (tokenHash != null) {
@@ -222,52 +214,8 @@ class HttpClientLink implements ClientLink {
         DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;
       }
-//      else {
-//        initHttp();
-//        _wsDelay = 5;
-//        DsTimer.timerOnceAfter(initWebsocket, 5000);
-//      }
     }
   }
-
-//  initHttp() async {
-//    if (!enableHttp) {
-//      return;
-//    }
-//
-//    if (_closed) return;
-//
-//    _httpConnection =
-//        new HttpClientConnection(_httpUpdateUri, this, salts[2], salts[1]);
-//
-//    logger.info("Connected");
-//    if (!_onConnectedCompleter.isCompleted) {
-//      _onConnectedCompleter.complete();
-//    }
-//
-//    if (responder != null) {
-//      responder.connection = _httpConnection.responderChannel;
-//    }
-//
-//    if (requester != null) {
-//      _httpConnection.onRequesterReady.then((channel) {
-//        requester.connection = channel;
-//        if (!_onRequesterReadyCompleter.isCompleted) {
-//          _onRequesterReadyCompleter.complete(requester);
-//        }
-//      });
-//    }
-//
-//    _httpConnection.onDisconnected.then((bool authFailed) {
-//      if (_closed) return;
-//      _httpConnection = null;
-//      if (authFailed) {
-//        DsTimer.timerOnceAfter(connect, _connDelay * 1000);
-//      } else {
-//        // reconnection of websocket should handle this case
-//      }
-//    });
-//  }
 
   bool _closed = false;
 
@@ -279,10 +227,6 @@ class HttpClientLink implements ClientLink {
       _wsConnection.close();
       _wsConnection = null;
     }
-//    if (_httpConnection != null) {
-//      _httpConnection.close();
-//      _httpConnection = null;
-//    }
   }
 }
 

@@ -3,21 +3,23 @@ part of dslink.common;
 /// Base Class for any and all nodes in the SDK.
 /// If you are writing a link, please look at the [dslink.responder.SimpleNode] class.
 class Node {
-  static String getDisplayName(String nameOrPath){
+  static String getDisplayName(String nameOrPath) {
     if (nameOrPath.contains('/')) {
       List names = nameOrPath.split('/');
       nameOrPath = names.removeLast();
-      while(nameOrPath == '' && !names.isEmpty) {
+      while (nameOrPath == '' && !names.isEmpty) {
         nameOrPath = names.removeLast();
       }
     }
-    if (nameOrPath.contains('%')){
+    if (nameOrPath.contains('%')) {
       nameOrPath = UriComponentDecoder.decode(nameOrPath);
     }
     return nameOrPath;
   }
+
   /// This node's profile.
   Node profile;
+
   /// Node Attributes
   Map<String, Object> attributes = {};
 
@@ -111,7 +113,7 @@ class Node {
       });
     }
   }
-  
+
   void forEachConfig(void callback(String name, Object value)) {
     configs.forEach(callback);
     if (profile != null) {
@@ -133,7 +135,7 @@ class Node {
       });
     }
   }
-  
+
   /// Gets a map for the data that will be listed in the parent node's children property.
   Map getSimpleMap() {
     Map rslt = {};
@@ -161,6 +163,7 @@ class Node {
 class Path {
   /// Regular Expression for invalid characters in paths.
   static final RegExp invalidChar = new RegExp(r'[\.\\\?\*:|"<>]');
+
   /// Regular Expression for invalid characters in names.
   static final RegExp invalidNameChar = new RegExp(r'[\/\.\\\?\*:|"<>]');
 
@@ -215,9 +218,10 @@ class Path {
 
   /// Get a child of this path.
   Path child(String name) =>
-    new Path((path.endsWith("/") ? path.substring(0, path.length - 1) : path) +
-      "/" +
-      (name.startsWith("/") ? name.substring(1) : name));
+      new Path(
+          (path.endsWith("/") ? path.substring(0, path.length - 1) : path) +
+              "/" +
+              (name.startsWith("/") ? name.substring(1) : name));
 
   /// The name of this path.
   /// This is the last component of the path.
