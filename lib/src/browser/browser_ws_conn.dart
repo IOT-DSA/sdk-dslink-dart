@@ -108,7 +108,6 @@ class WebSocketConnection extends Connection {
       try {
         Uint8List bytes = (e.data as ByteBuffer).asUint8List();
 
-        // TODO(rick): JSONUtf8Decoder
         m = codec.decodeBinaryFrame(bytes);
         logger.fine('$m');
 

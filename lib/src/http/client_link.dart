@@ -27,8 +27,6 @@ class HttpClientLink implements ClientLink {
 
   WebSocketConnection _wsConnection;
 
-//  HttpClientConnection _httpConnection;
-
   static const Map<String, int> saltNameMap = const {
     'salt': 0,
     'saltS': 1,
@@ -136,7 +134,7 @@ class HttpClientLink implements ClientLink {
       request.add(const Utf8Encoder().convert(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
       List<int> merged = await response.fold([], foldList);
-      String rslt = UTF8.decode(merged);
+      String rslt = const Utf8Decoder().convert(merged);
       Map serverConfig = DsJson.decode(rslt);
       saltNameMap.forEach((name, idx) {
         //read salts
