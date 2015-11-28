@@ -10,11 +10,11 @@ import "dart:math";
 import "package:crypto/crypto.dart";
 
 /// Read raw text from stdin.
-Stream<String> readStdinText() => stdin.transform(UTF8.decoder);
+Stream<String> readStdinText() => stdin.transform(const Utf8Decoder());
 
 /// Read each line from stdin.
 Stream<String> readStdinLines() =>
-    readStdinText().transform(new LineSplitter());
+    readStdinText().transform(const LineSplitter());
 
 /// Helpers for working with HTTP
 class HttpHelper {
@@ -46,13 +46,13 @@ class HttpHelper {
   static Future<String> fetchUrl(String url, {Map<String, String> headers}) async {
     var request = await createRequest("GET", url, headers: headers);
     var response = await request.close();
-    return UTF8.decode(await readBytesFromResponse(response));
+    return const Utf8Decoder().convert(await readBytesFromResponse(response));
   }
 
   /// Fetches the specified [url] from HTTP as JSON.
   /// If [headers] is specified, the headers will be added onto the request.
   static Future<dynamic> fetchJSON(String url, {Map<String, String> headers}) async {
-    return JSON.decode(await fetchUrl(url, headers: headers));
+    return const JsonDecoder().convert(await fetchUrl(url, headers: headers));
   }
 
   static const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -116,8 +116,7 @@ class HttpHelper {
         request.headers.add("Sec-WebSocket-Protocol", protocols.toList());
       }
       return request.close();
-    })
-    .then((response) {
+    }).then((response) {
       void error(String message) {
         // Flush data.
         response.detachSocket().then((socket) {
