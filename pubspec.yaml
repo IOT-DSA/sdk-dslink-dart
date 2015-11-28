@@ -7,8 +7,8 @@ dependencies:
   cipher: '>=0.7.1 <1.0.0'
   logging: ">=0.9.0 <0.13.0"
   crypto: "^0.9.0"
-  msgpack: 
-    git: 
+  msgpack:
+    git:
       url: git://github.com/DirectMyFile/msgpack.dart.git
 dev_dependencies:
   test: ">=0.12.0 <0.13.0"
@@ -16,6 +16,6 @@ dev_dependencies:
     git: "https://github.com/IOT-DSA/broker-dart.git"
   browser: any
 environment:
-  sdk: ">=1.9.0-dev"
+  sdk: ">=1.11.0"
 executables:
   dsbeacon: beacon
