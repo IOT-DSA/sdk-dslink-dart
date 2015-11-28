@@ -93,9 +93,11 @@ class LiveTable {
   }
 
   void onRowUpdate(LiveTableRow row) {
-    _resp.updateStream([row.values], meta: {
-      "modify": "replace ${row.index}-${row.index}"
-    });
+    if (_resp != null) {
+      _resp.updateStream([row.values], meta: {
+        "modify": "replace ${row.index}-${row.index}"
+      });
+    }
   }
 
   void doOnClose(Function f) {
@@ -119,17 +121,21 @@ class LiveTable {
 
   void clear() {
     rows.clear();
-    _resp.updateStream([], meta: {
-      "mode": "refresh"
-    }, columns: []);
+    if (_resp != null) {
+      _resp.updateStream([], meta: {
+        "mode": "refresh"
+      }, columns: []);
+    }
   }
 
   void override() {
-    _resp.updateStream(getCurrentState(), meta: {
-      "mode": "refresh"
-    }, columns: columns.map((x) {
-      return x.getData();
-    }).toList());
+    if (_resp != null) {
+      _resp.updateStream(getCurrentState(), meta: {
+        "mode": "refresh"
+      }, columns: columns.map((x) {
+        return x.getData();
+      }).toList());
+    }
   }
 
   void resend() {
