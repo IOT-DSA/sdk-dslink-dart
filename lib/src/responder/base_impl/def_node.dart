@@ -39,4 +39,3 @@ class DefinitionNode extends LocalNodeImpl {
     return response..close();
   }
 }
-

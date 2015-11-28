@@ -1,9 +1,10 @@
 part of dslink.responder;
 
-class Response implements ConnectionProcessor{
+class Response implements ConnectionProcessor {
   final Responder responder;
   final int rid;
   String _sentStreamStatus = StreamStatus.initialize;
+
   Response(this.responder, this.rid);
 
   /// close the request from responder side and also notify the requester
@@ -14,15 +15,16 @@ class Response implements ConnectionProcessor{
 
   /// close the response now, no need to send more response update
   void _close() {}
-  
-  
+
   void prepareSending() {
     if (!_pendingSending) {
       _pendingSending = true;
       responder.addProcessor(this);
     }
   }
+
   bool _pendingSending = false;
+
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
   }
@@ -30,7 +32,7 @@ class Response implements ConnectionProcessor{
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
     // TODO: implement ackReceived
   }
-  
+
   /// for the broker trace action
   ResponseTrace getTraceData([String change = '+']) {
     return null;

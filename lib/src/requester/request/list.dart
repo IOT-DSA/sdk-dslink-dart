@@ -20,11 +20,10 @@ class ListDefListener {
 
   ListDefListener(this.node, this.requester,
       void callback(RequesterListUpdate)) {
-    listener =
-        requester.list(node.remotePath).listen((RequesterListUpdate update) {
-          ready = update.streamStatus != StreamStatus.initialize;
-          callback(update);
-        });
+    listener = requester.list(node.remotePath).listen((RequesterListUpdate update) {
+      ready = update.streamStatus != StreamStatus.initialize;
+      callback(update);
+    });
   }
 
   void cancel() {
@@ -216,13 +215,12 @@ class ListController implements RequestUpdater {
     }
   }
 
-  void _onListen(callback(RequesterListUpdate)) {
+  void _onListen(callback(RequesterListUpdate update)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
         List changes = []..addAll(node.configs.keys)..addAll(
             node.attributes.keys)..addAll(node.children.keys);
-        RequesterListUpdate update =
-        new RequesterListUpdate(node, changes, request.streamStatus);
+        RequesterListUpdate update = new RequesterListUpdate(node, changes, request.streamStatus);
         callback(update);
       });
     }

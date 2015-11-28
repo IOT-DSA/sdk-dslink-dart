@@ -23,8 +23,7 @@ abstract class CryptoProvider {
     Uint8List bytes = ByteDataUtil.list2Uint8List(list);
     return _CRYPTO_PROVIDER.base64_sha256(bytes);
   }
-  
-  
+
   DSRandom get random;
 
   Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old);
@@ -36,8 +35,8 @@ abstract class CryptoProvider {
   PrivateKey loadFromString(String str);
 
   PublicKey getKeyFromBytes(Uint8List bytes);
-  
-  String base64_sha256(Uint8List bytes); 
+
+  String base64_sha256(Uint8List bytes);
 }
 
 abstract class ECDH {

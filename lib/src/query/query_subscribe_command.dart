@@ -22,7 +22,7 @@ class _QuerySubscription {
   }
 
   List getRowData() {
-    // TODO make sure node still in tree
+    // TODO: make sure node still in tree
     // because list remove node update could come one frame later
     if (!removed && lastUpdate != null) {
       if (justAdded) {

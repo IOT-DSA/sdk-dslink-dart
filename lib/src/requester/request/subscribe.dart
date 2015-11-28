@@ -15,7 +15,7 @@ class ReqSubscribeListener implements StreamSubscription {
     return null;
   }
 
-  // TODO  define a custom class to replace StreamSubscription
+  // TODO: define a custom class to replace StreamSubscription
   Future asFuture([futureValue]) {
     return null;
   }
@@ -258,7 +258,7 @@ class ReqSubscribeController {
   int sid;
 
   ReqSubscribeController(this.node, this.requester) {
-    sid = requester._subsciption.getNextSid();
+    sid = requester._subscription.getNextSid();
   }
 
   void listen(callback(ValueUpdate), int qos) {
@@ -287,7 +287,7 @@ class ReqSubscribeController {
       }
     }
     if (qosChanged) {
-      requester._subsciption.addSubscription(this, currentQos);
+      requester._subscription.addSubscription(this, currentQos);
     }
   }
 
@@ -295,7 +295,7 @@ class ReqSubscribeController {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
-        requester._subsciption.removeSubscription(this);
+        requester._subscription.removeSubscription(this);
       } else if (cacheLevel == currentQos && currentQos > 1) {
         updateQos();
       }

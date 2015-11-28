@@ -32,7 +32,7 @@ class WebSocketConnection extends Connection {
     if (!enableAck) {
       nextMsgId = -1;
     }
-    socket.binaryType = 'arraybuffer';
+    socket.binaryType = "arraybuffer";
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
     socket.onMessage.listen(_onData, onDone: _onDone);
@@ -74,14 +74,14 @@ class WebSocketConnection extends Connection {
 
   bool _opened = false;
   void _onOpen(Event e) {
-    logger.info('Connected');
+    logger.info("Connected");
     _opened = true;
     if (onConnect != null) {
       onConnect();
     }
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
-    socket.sendString('{}');
+    socket.sendString("{}");
     requireSend();
   }
 
@@ -101,7 +101,7 @@ class WebSocketConnection extends Connection {
   }
 
   void _onData(MessageEvent e) {
-    logger.fine('onData:');
+    logger.fine("onData:");
     _dataReceiveCount = 0;
     Map m;
     if (e.data is ByteBuffer) {
@@ -109,30 +109,30 @@ class WebSocketConnection extends Connection {
         Uint8List bytes = (e.data as ByteBuffer).asUint8List();
 
         m = codec.decodeBinaryFrame(bytes);
-        logger.fine('$m');
+        logger.fine("$m");
 
-        if (m['salt'] is String) {
-          clientLink.updateSalt(m['salt']);
+        if (m["salt"] is String) {
+          clientLink.updateSalt(m["salt"]);
         }
         bool needAck = false;
-        if (m['responses'] is List && (m['responses'] as List).length > 0) {
+        if (m["responses"] is List && (m["responses"] as List).length > 0) {
           needAck = true;
           // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m['responses']);
+          _requesterChannel.onReceiveController.add(m["responses"]);
         }
 
-        if (m['requests'] is List && (m['requests'] as List).length > 0) {
+        if (m["requests"] is List && (m["requests"] as List).length > 0) {
           needAck = true;
           // send requests to responder channel
-          _responderChannel.onReceiveController.add(m['requests']);
+          _responderChannel.onReceiveController.add(m["requests"]);
         }
-        if (m['ack'] is int) {
-          ack(m['ack']);
+        if (m["ack"] is int) {
+          ack(m["ack"]);
         }
         if (needAck) {
-          Object msgId = m['msg'];
+          Object msgId = m["msg"];
           if (msgId != null) {
-            addConnCommand('ack', msgId);
+            addConnCommand("ack", msgId);
           }
         }
       } catch (err, stack) {
@@ -143,27 +143,27 @@ class WebSocketConnection extends Connection {
     } else if (e.data is String) {
       try {
         m = codec.decodeStringFrame(e.data);
-        logger.fine('$m');
+        logger.fine("$m");
 
         bool needAck = false;
-        if (m['responses'] is List && (m['responses'] as List).length > 0) {
+        if (m["responses"] is List && (m["responses"] as List).length > 0) {
           needAck = true;
           // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m['responses']);
+          _requesterChannel.onReceiveController.add(m["responses"]);
         }
 
-        if (m['requests'] is List && (m['requests'] as List).length > 0) {
+        if (m["requests"] is List && (m["requests"] as List).length > 0) {
           needAck = true;
           // send requests to responder channel
-          _responderChannel.onReceiveController.add(m['requests']);
+          _responderChannel.onReceiveController.add(m["requests"]);
         }
-        if (m['ack'] is int) {
-          ack(m['ack']);
+        if (m["ack"] is int) {
+          ack(m["ack"]);
         }
         if (needAck) {
-          Object msgId = m['msg'];
+          Object msgId = m["msg"];
           if (msgId != null) {
-            addConnCommand('ack', msgId);
+            addConnCommand("ack", msgId);
           }
         }
       } catch (err) {
@@ -182,7 +182,7 @@ class WebSocketConnection extends Connection {
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }
-    logger.fine('browser sending');
+    logger.fine("browser sending");
     bool needSend = false;
     Map m;
     if (_msgCommand != null) {
@@ -199,7 +199,7 @@ class WebSocketConnection extends Connection {
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
-        m['responses'] = rslt.messages;
+        m["responses"] = rslt.messages;
         needSend = true;
       }
       if (rslt.processors.length > 0) {
@@ -209,7 +209,7 @@ class WebSocketConnection extends Connection {
     rslt = _requesterChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
-        m['requests'] = rslt.messages;
+        m["requests"] = rslt.messages;
         needSend = true;
       }
       if (rslt.processors.length > 0) {
@@ -222,7 +222,7 @@ class WebSocketConnection extends Connection {
         if (pendingAck.length > 0) {
           pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m['msg'] = nextMsgId;
+        m["msg"] = nextMsgId;
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
@@ -231,9 +231,7 @@ class WebSocketConnection extends Connection {
       }
 
 
-      logger.fine('send: $m');
-//      Uint8List list = jsonUtf8Encoder.convert(m);
-//      socket.sendTypedData(list);
+      logger.fine("send: $m");
       Object encoded = codec.encodeFrame(m);
       if (encoded is List) {
         encoded = ByteDataUtil.list2Uint8List(encoded);
@@ -252,7 +250,7 @@ class WebSocketConnection extends Connection {
       }
     }
 
-    logger.fine('socket disconnected');
+    logger.fine("socket disconnected");
 
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();

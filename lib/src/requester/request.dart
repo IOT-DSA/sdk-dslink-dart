@@ -21,31 +21,31 @@ class Request {
   }
 
   void _update(Map m) {
-    if (m['stream'] is String) {
-      streamStatus = m['stream'];
+    if (m["stream"] is String) {
+      streamStatus = m["stream"];
     }
     List updates;
     List columns;
     Map meta;
-    if (m['updates'] is List) {
-      updates = m['updates'];
+    if (m["updates"] is List) {
+      updates = m["updates"];
     }
-    if (m['columns'] is List) {
-      columns = m['columns'];
+    if (m["columns"] is List) {
+      columns = m["columns"];
     }
-    if (m['meta'] is Map) {
-      meta = m['meta'];
+    if (m["meta"] is Map) {
+      meta = m["meta"];
     }
     // remove the request from global Map
     if (streamStatus == StreamStatus.closed) {
       requester._requests.remove(rid);
     }
     DSError error;
-    if (m.containsKey('error') && m['error'] is Map) {
-      error = new DSError.fromMap(m['error']);
+    if (m.containsKey("error") && m["error"] is Map) {
+      error = new DSError.fromMap(m["error"]);
       requester._errorController.add(error);
     }
-    
+
     updater.onUpdate(streamStatus, updates, columns, meta, error);
   }
 

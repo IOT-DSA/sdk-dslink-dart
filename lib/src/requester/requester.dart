@@ -18,12 +18,12 @@ class Requester extends ConnectionHandler {
   /// caching of nodes
   final RemoteNodeCache nodeCache;
 
-  SubscribeRequest _subsciption;
+  SubscribeRequest _subscription;
 
   Requester([RemoteNodeCache cache])
       : nodeCache = cache != null ? cache : new RemoteNodeCache() {
-    _subsciption = new SubscribeRequest(this, 0);
-    _requests[0] = _subsciption;
+    _subscription = new SubscribeRequest(this, 0);
+    _requests[0] = _subscription;
   }
 
   void onData(List list) {
@@ -56,7 +56,7 @@ class Requester extends ConnectionHandler {
     } while (_requests.containsKey(lastRid));
     return lastRid;
   }
-  
+
   ProcessorResult getSendingData(int currentTime, int waitingAckId) {
     ProcessorResult rslt = super.getSendingData(currentTime, waitingAckId);
     return rslt;
@@ -185,7 +185,7 @@ class Requester extends ConnectionHandler {
     _connected = false;
 
     var newRequests = new Map<int, Request>();
-    newRequests[0] = _subsciption;
+    newRequests[0] = _subscription;
     _requests.forEach((n, req) {
       if (req.rid <= lastRid && req.updater is! ListController) {
         req._close(DSError.DISCONNECTED);

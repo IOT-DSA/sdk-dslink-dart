@@ -7,13 +7,13 @@ import "../../responder.dart";
 import "../../common.dart";
 import "../../utils.dart";
 
-void _ignoreError(Object obj){}
+void _ignoreError(Object obj) {}
 
 class SimpleStorageManager implements IStorageManager {
-  Map<String, SimpleResponderStorage> rsponders =
-      new Map<String, SimpleResponderStorage>();
+  Map<String, SimpleResponderStorage> rsponders = new Map<String, SimpleResponderStorage>();
   Directory dir;
   Directory subDir;
+
   SimpleStorageManager(String path) {
     dir = new Directory(path);
     if (!dir.existsSync()) {
@@ -24,21 +24,25 @@ class SimpleStorageManager implements IStorageManager {
       subDir.createSync(recursive: true);
     }
   }
+
   ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String rpath) {
     if (rsponders.containsKey(rpath)) {
       return rsponders[rpath];
     }
     SimpleResponderStorage responder =
-        new SimpleResponderStorage("${subDir.path}/${Uri.encodeComponent(rpath)}", rpath);
+    new SimpleResponderStorage(
+        "${subDir.path}/${Uri.encodeComponent(rpath)}", rpath);
     rsponders[rpath] = responder;
     return responder;
   }
+
   void destroySubscriptionStorage(String rpath) {
     if (rsponders.containsKey(rpath)) {
       rsponders[rpath].destroy();
       rsponders.remove(rpath);
     }
   }
+
   void destroy() {
     rsponders.forEach((String rpath, SimpleResponderStorage responder) {
       responder.destroy();
@@ -49,29 +53,33 @@ class SimpleStorageManager implements IStorageManager {
     });
     values.clear();
   }
-  Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions() async{
-     List<Future<List<ISubscriptionNodeStorage>>> loading = [];
-     for (FileSystemEntity entity in subDir.listSync()) {
-       if (await FileSystemEntity.type(entity.path) == FileSystemEntityType.DIRECTORY) {
-         String rpath = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
-         SimpleResponderStorage responder =
-                 new SimpleResponderStorage(entity.path, rpath);
-         rsponders[rpath] = responder;
-         loading.add(responder.load());
-       }
-     }
-     return Future.wait(loading);
+
+  Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions() async {
+    List<Future<List<ISubscriptionNodeStorage>>> loading = [];
+    for (FileSystemEntity entity in subDir.listSync()) {
+      if (await FileSystemEntity.type(entity.path) ==
+          FileSystemEntityType.DIRECTORY) {
+        String rpath = Uri.decodeComponent(entity.path.substring(
+            entity.path.lastIndexOf(Platform.pathSeparator) + 1));
+        SimpleResponderStorage responder =
+        new SimpleResponderStorage(entity.path, rpath);
+        rsponders[rpath] = responder;
+        loading.add(responder.load());
+      }
+    }
+    return Future.wait(loading);
   }
 
   Map<String, SimpleValueStorageBucket> values =
-      new Map<String, SimpleValueStorageBucket>();
+  new Map<String, SimpleValueStorageBucket>();
 
   IValueStorageBucket getOrCreateValueStorageBucket(String category) {
     if (values.containsKey(category)) {
       return values[category];
     }
     SimpleValueStorageBucket store =
-        new SimpleValueStorageBucket(category, "${dir.path}/${Uri.encodeComponent(category)}");
+    new SimpleValueStorageBucket(
+        category, "${dir.path}/${Uri.encodeComponent(category)}");
     values[category] = store;
     return store;
   }
@@ -91,7 +99,8 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
   SimpleResponderStorage(String path, [this.responderPath]) {
     if (responderPath == null) {
-      responderPath = Uri.decodeComponent(path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
+      responderPath = Uri.decodeComponent(
+          path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
     }
 
     dir = new Directory(path);
@@ -99,18 +108,22 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
       dir.createSync(recursive: true);
     }
   }
+
   ISubscriptionNodeStorage getOrCreateValue(String path) {
     if (values.containsKey(path)) {
       return values[path];
     }
-    SimpleNodeStorage value = new SimpleNodeStorage(path, Uri.encodeComponent(path), dir.path, this);
+    SimpleNodeStorage value = new SimpleNodeStorage(
+        path, Uri.encodeComponent(path), dir.path, this);
     values[path] = value;
     return value;
   }
+
   Future<List<ISubscriptionNodeStorage>> load() async {
     List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
-      String name = entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1);
+      String name = entity.path.substring(
+          entity.path.lastIndexOf(Platform.pathSeparator) + 1);
       String path = Uri.decodeComponent(name);
       values[path] = new SimpleNodeStorage(path, name, dir.path, this);
       loading.add(values[path].load());
@@ -124,6 +137,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
       values.remove(path);
     }
   }
+
   void destroy() {
     values.forEach((String path, SimpleNodeStorage value) {
       value.destroy();
@@ -135,11 +149,13 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 class SimpleNodeStorage extends ISubscriptionNodeStorage {
   File file;
   String filename;
-  SimpleNodeStorage(
-      String path, this.filename, String parentPath, SimpleResponderStorage storage)
+
+  SimpleNodeStorage(String path, this.filename, String parentPath,
+      SimpleResponderStorage storage)
       : super(path, storage) {
     file = new File("$parentPath/$filename");
   }
+
   /// add data to List of values
   void addValue(ValueUpdate value) {
     qos = 3;
@@ -148,18 +164,22 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
       ..writeStringSync(value.storedData)
       ..closeSync();
   }
+
   void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
     newValue.storedData = " ${DsJson.encode(newValue.toMap())}\n";
     // add a space when qos = 2
     file.writeAsStringSync(newValue.storedData);
   }
+
   void removeValue(ValueUpdate value) {
     // do nothing, it's done in valueRemoved
   }
+
   void valueRemoved(Iterable<ValueUpdate> updates) {
     file.writeAsStringSync(updates.map((v) => v.storedData).join());
   }
+
   void clear(int qos) {
     if (qos == 3) {
       file.writeAsStringSync("");
@@ -167,10 +187,14 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
       file.writeAsStringSync(" ");
     }
   }
+
   void destroy() {
-    file.delete().catchError(_ignoreError);;
+    file.delete().catchError(_ignoreError);
+    ;
   }
+
   List<ValueUpdate> _cachedValue;
+
   Future<ISubscriptionNodeStorage> load() async {
     String str = await file.readAsString();
     List<String> strs = str.split("\n");
@@ -206,6 +230,7 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
 
   String category;
   Directory dir;
+
   SimpleValueStorageBucket(this.category, String path) {
     dir = new Directory(path);
     if (!dir.existsSync()) {
@@ -218,27 +243,27 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
   }
 
   void destroy() {
-    dir.delete(recursive:true).catchError(_ignoreError);
+    dir.delete(recursive: true).catchError(_ignoreError);
   }
 
   Future<Map> load() {
     Map rslt = {};
     List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
-      String name = Uri.decodeComponent(entity.path.substring(entity.path.lastIndexOf(Platform.pathSeparator)+1));
+      String name = Uri.decodeComponent(entity.path.substring(
+          entity.path.lastIndexOf(Platform.pathSeparator) + 1));
       File f = new File(entity.path);
-      Future future = f.readAsString().then((String str){
-        try{
+      Future future = f.readAsString().then((String str) {
+        try {
           rslt[name] = DsJson.decode(str);
-        }catch(err) {
+        } catch (err) {
           logger.fine(err);
         }
-
       });
       loading.add(future);
     }
     Completer<Map> completer = new Completer<Map>();
-    Future.wait(loading).then((obj){
+    Future.wait(loading).then((obj) {
       completer.complete(rslt);
     });
     return completer.future;
@@ -256,9 +281,10 @@ class SimpleValueStorage extends IValueStorage {
   }
 
   void setValue(Object value) {
-    // TODO optimize this part so it doesn"t need to re-create path and File object everytime
+    // TODO: optimize this part so it doesn"t need to re-create path and File object everytime
     _file.writeAsString(DsJson.encode(value));
   }
+
   void destroy() {
     _file.delete().catchError(_ignoreError);
   }
@@ -266,8 +292,7 @@ class SimpleValueStorage extends IValueStorage {
   getValueAsync() async {
     try {
       return DsJson.decode(await _file.readAsString());
-    } catch (err) {
-    }
+    } catch (err) {}
     return null;
   }
 }

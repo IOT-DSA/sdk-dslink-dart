@@ -4,7 +4,9 @@ part of dslink.browser_client;
 class BrowserECDHLink implements ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Completer _onConnectedCompleter = new Completer();
+
   Future get onConnected => _onConnectedCompleter.future;
+
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   final String dsId;
@@ -15,6 +17,7 @@ class BrowserECDHLink implements ClientLink {
   final PrivateKey privateKey;
 
   ECDH _nonce;
+
   ECDH get nonce => _nonce;
 
   WebSocketConnection _wsConnection;
@@ -37,10 +40,13 @@ class BrowserECDHLink implements ClientLink {
   String _wsUpdateUri;
   String _conn;
   String tokenHash;
+
   /// formats sent to broker
   List formats = ['msgpack', 'json'];
+
   /// format received from broker
   String format = 'json';
+
   BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
       {NodeProvider nodeProvider,
       bool isRequester: true,
@@ -52,24 +58,26 @@ class BrowserECDHLink implements ClientLink {
         responder = (isResponder && nodeProvider != null)
             ? new Responder(nodeProvider)
             : null {
-              if (!_conn.contains('://')) {
-                _conn = 'http://$_conn';
-              }
-              if (token != null && token.length > 16) {
-                // pre-generate tokenHash
-                String tokenId = token.substring(0, 16);
-                String hashStr = CryptoProvider.sha256(const Utf8Encoder().convert('$dsId$token'));
-                tokenHash = '&token=$tokenId$hashStr';
-              }
-              if (formats != null) {
-                this.formats = formats;
-              }
-              if (window.location.hash.contains('dsa_json')) {
-                formats = ['json'];
-              }
-            }
+    if (!_conn.contains('://')) {
+      _conn = 'http://$_conn';
+    }
+    if (token != null && token.length > 16) {
+      // pre-generate tokenHash
+      String tokenId = token.substring(0, 16);
+      String hashStr = CryptoProvider.sha256(
+          const Utf8Encoder().convert('$dsId$token'));
+      tokenHash = '&token=$tokenId$hashStr';
+    }
+    if (formats != null) {
+      this.formats = formats;
+    }
+    if (window.location.hash.contains('dsa_json')) {
+      formats = ['json'];
+    }
+  }
 
   int _connDelay = 1;
+
   connect() async {
     if (_closed) return;
     lockCryptoProvider();
@@ -124,15 +132,18 @@ class BrowserECDHLink implements ClientLink {
   }
 
   int _wsDelay = 1;
+
   initWebsocket([bool reconnect = true]) {
     if (_closed) return;
-    String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}&format=$format';
+    String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
+        salts[0])}&format=$format';
     var socket = new WebSocket(wsUrl);
-    _wsConnection = new WebSocketConnection(socket, this, enableAck:enableAck, onConnect: () {
+    _wsConnection =
+    new WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
       if (!_onConnectedCompleter.isCompleted) {
         _onConnectedCompleter.complete();
       }
-    }, useCodec:DsCodec.getCodec(format));
+    }, useCodec: DsCodec.getCodec(format));
 
     if (responder != null) {
       responder.connection = _wsConnection.responderChannel;
@@ -173,6 +184,7 @@ class BrowserECDHLink implements ClientLink {
   }
 
   bool _closed = false;
+
   void close() {
     _onConnectedCompleter = new Completer();
     if (_closed) return;
