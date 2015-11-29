@@ -1,6 +1,7 @@
 name: dslink
 version: 0.5.0
 description: DSLink SDK for Dart
+homepage: "http://iot-dsa.org/"
 dependencies:
   args: ">=0.12.0 <0.14.0"
   bignum: ">=0.0.5 <0.1.0"
@@ -10,6 +11,11 @@ dependencies:
   msgpack:
     git:
       url: git://github.com/DirectMyFile/msgpack.dart.git
+authors:
+  - Kenneth Endfinger <k.endfinger@dglogik.com>
+  - Rick Zhou <z.zhou@dglogik.com>
+  - Michael Bullington <m.bullington@dglogik.com>
+  - Matthew Butler <m.butler@dglogik.com>
 dev_dependencies:
   test: ">=0.12.0 <0.13.0"
   dsbroker:
