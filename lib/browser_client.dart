@@ -43,6 +43,8 @@ class LocalDataStorage extends DataStorage {
   @override
   Future<bool> has(String key) async => window.localStorage.containsKey(key);
 
+  bool hasSync(String key) => window.localStorage.containsKey(key);
+
   @override
   Future store(String key, String value) async {
     window.localStorage[key] = value;
@@ -59,6 +61,7 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   if (_cachedPrivateKey != null) {
     return _cachedPrivateKey;
   }
+
   if (storage == null) {
     storage = LocalDataStorage.INSTANCE;
   }
@@ -67,11 +70,15 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   String keyLockPath = "dsa_key_lock:${window.location.pathname}";
   String randomToken = "${new DateTime.now().millisecondsSinceEpoch} ${DSRandom.instance.nextUint16()} ${DSRandom.instance.nextUint16()}";
 
-  if (await storage.has(keyPath)) {
-    storage.store(keyLockPath, randomToken);
-    await new Future.delayed(new Duration(milliseconds: 20));
-    if (storage.get(keyLockPath) == randomToken) {
-      _startStorageLock(keyLockPath, randomToken);
+  var hasKeyPath = storage is LocalDataStorage ? storage.hasSync(keyPath) : await storage.has(keyPath);
+
+  if (hasKeyPath) {
+    await storage.store(keyLockPath, randomToken);
+    await new Future.delayed(const Duration(milliseconds: 20));
+    if (await storage.get(keyLockPath) == randomToken) {
+      if (storage is LocalDataStorage) {
+        _startStorageLock(keyLockPath, randomToken);
+      }
       _cachedPrivateKey = new PrivateKey.loadFromString(await storage.get(keyPath));
       return _cachedPrivateKey;
     } else {
@@ -85,7 +92,9 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   if (keyLockPath != null) {
     await storage.store(keyPath, _cachedPrivateKey.saveToString());
     await storage.store(keyLockPath, randomToken);
-    _startStorageLock(keyLockPath, randomToken);
+    if (storage is LocalDataStorage) {
+      _startStorageLock(keyLockPath, randomToken);
+    }
   }
 
   return _cachedPrivateKey;
