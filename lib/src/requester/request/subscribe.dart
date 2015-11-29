@@ -64,15 +64,15 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       } else {
         lastSid = 1;
       }
-    } while (subsriptionids.containsKey(lastSid));
+    } while (subscriptionIds.containsKey(lastSid));
     return lastSid;
   }
 
-  final Map<String, ReqSubscribeController> subsriptions =
-  new Map<String, ReqSubscribeController>();
+  final Map<String, ReqSubscribeController> subscriptions =
+    new Map<String, ReqSubscribeController>();
 
-  final Map<int, ReqSubscribeController> subsriptionids =
-  new Map<int, ReqSubscribeController>();
+  final Map<int, ReqSubscribeController> subscriptionIds =
+    new Map<int, ReqSubscribeController>();
 
   SubscribeRequest(Requester requester, int rid)
       : super(requester, rid, new SubscribeController(), null) {
@@ -86,10 +86,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
   @override
   void _close([DSError error]) {
-    if (subsriptions.isNotEmpty) {
-      subsriptions.forEach((String path, ReqSubscribeController controller) {
-        _changedPaths.add(path);
-      });
+    if (subscriptions.isNotEmpty) {
+      _changedPaths.addAll(subscriptions.keys);
     }
     _waitingAckCount = 0;
     _lastWatingAckId = -1;
@@ -103,7 +101,6 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       for (Object update in updates) {
         String path;
         int sid = -1;
-        ;
         Object value;
         String ts;
         Map meta;
@@ -134,12 +131,17 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
         } else {
           continue; // invalid response
         }
-        if (path != null && subsriptions.containsKey(path)) {
-          subsriptions[path]
-              .addValue(new ValueUpdate(value, ts: ts, meta: meta));
-        } else if (sid > -1 && subsriptionids.containsKey(sid)) {
-          subsriptionids[sid]
-              .addValue(new ValueUpdate(value, ts: ts, meta: meta));
+
+        ReqSubscribeController controller;
+        if (path != null) {
+          controller = subscriptions[path];
+        } else if (sid > -1) {
+          controller = subscriptionIds[sid];
+        }
+
+        if (controller != null) {
+          var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
+          controller.addValue(valueUpdate);
         }
       }
     }
@@ -149,27 +151,26 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
   void addSubscription(ReqSubscribeController controller, int level) {
     String path = controller.node.remotePath;
-    subsriptions[path] = controller;
-    subsriptionids[controller.sid] = controller;
+    subscriptions[path] = controller;
+    subscriptionIds[controller.sid] = controller;
     prepareSending();
     _changedPaths.add(path);
   }
 
   void removeSubscription(ReqSubscribeController controller) {
     String path = controller.node.remotePath;
-    if (subsriptions.containsKey(path)) {
-      toRemove[subsriptions[path].sid] = subsriptions[path];
+    if (subscriptions.containsKey(path)) {
+      toRemove[subscriptions[path].sid] = subscriptions[path];
       prepareSending();
-    } else if (subsriptionids.containsKey(controller.sid)) {
+    } else if (subscriptionIds.containsKey(controller.sid)) {
       logger.severe(
           'unexpected remoteSubscription in the requester, sid: ${controller
               .sid}');
     }
   }
 
-  Map<int, ReqSubscribeController> toRemove = new Map<
-      int,
-      ReqSubscribeController>();
+  Map<int, ReqSubscribeController> toRemove =
+    new Map<int, ReqSubscribeController>();
 
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
@@ -187,8 +188,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
     HashSet<String> processingPaths = _changedPaths;
     _changedPaths = new HashSet<String>();
     for (String path in processingPaths) {
-      if (subsriptions.containsKey(path)) {
-        ReqSubscribeController sub = subsriptions[path];
+      if (subscriptions.containsKey(path)) {
+        ReqSubscribeController sub = subscriptions[path];
         Map m = {'path': path, 'sid': sub.sid};
         if (sub.currentQos > 0) {
           m['qos'] = sub.currentQos;
@@ -204,8 +205,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       toRemove.forEach((int sid, ReqSubscribeController sub) {
         if (sub.callbacks.isEmpty) {
           removeSids.add(sid);
-          subsriptions.remove(sub.node.remotePath);
-          subsriptionids.remove(sub.sid);
+          subscriptions.remove(sub.node.remotePath);
+          subscriptionIds.remove(sub.sid);
           sub._destroy();
         }
       });
@@ -223,7 +224,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
     if (receiveAckId == _lastWatingAckId) {
       _waitingAckCount = 0;
     } else {
-      _waitingAckCount --;
+      _waitingAckCount--;
     }
 
     if (_sendingAfterAck) {
@@ -238,10 +239,12 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
     if (_sendingAfterAck) {
       return;
     }
+
     if (_waitingAckCount > ConnectionProcessor.ACK_WAIT_COUNT) {
       _sendingAfterAck = true;
       return;
     }
+
     if (!_pendingSending) {
       _pendingSending = true;
       requester.addProcessor(this);
@@ -261,7 +264,7 @@ class ReqSubscribeController {
     sid = requester._subscription.getNextSid();
   }
 
-  void listen(callback(ValueUpdate), int qos) {
+  void listen(callback(ValueUpdate update), int qos) {
     if (qos < 0 || qos > 3) {
       qos = 0;
     }
@@ -286,12 +289,13 @@ class ReqSubscribeController {
         callback(_lastUpdate);
       }
     }
+
     if (qosChanged) {
       requester._subscription.addSubscription(this, currentQos);
     }
   }
 
-  void unlisten(callback(ValueUpdate)) {
+  void unlisten(callback(ValueUpdate update)) {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
@@ -304,9 +308,11 @@ class ReqSubscribeController {
 
   bool updateQos() {
     int qosCache = 0;
-    callbacks.forEach((callback, qos) {
+
+    for (var qos in callbacks.values) {
       qosCache |= qos;
-    });
+    }
+
     if (qosCache != currentQos) {
       currentQos = qosCache;
       return true;

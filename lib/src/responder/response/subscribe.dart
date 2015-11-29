@@ -23,7 +23,7 @@ class SubscribeResponse extends Response {
     new Map<int, RespSubscribeController>();
 
   final LinkedHashSet<RespSubscribeController> changed =
-  new LinkedHashSet<RespSubscribeController>();
+    new LinkedHashSet<RespSubscribeController>();
 
   RespSubscribeController add(String path, LocalNode node, int sid, int qos) {
     RespSubscribeController controller;
@@ -90,10 +90,10 @@ class SubscribeResponse extends Response {
 
     if (waitingAckId != -1) {
       _waitingAckCount++;
-      _lastWatingAckId = waitingAckId;
+      _lastWaitingAckId = waitingAckId;
     }
 
-    List updates = [];
+    List updates = new List();
     for (RespSubscribeController controller in changed) {
       updates.addAll(controller.process(waitingAckId));
     }
@@ -102,10 +102,10 @@ class SubscribeResponse extends Response {
   }
 
   int _waitingAckCount = 0;
-  int _lastWatingAckId = -1;
+  int _lastWaitingAckId = -1;
 
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    if (receiveAckId == _lastWatingAckId) {
+    if (receiveAckId == _lastWaitingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount --;
@@ -149,7 +149,7 @@ class SubscribeResponse extends Response {
       } else {
         controller.sid = -1;
         if (pendingControllers == null) {
-          pendingControllers = [];
+          pendingControllers = new List();
         }
         pendingControllers.add(controller);
       }
@@ -163,7 +163,7 @@ class SubscribeResponse extends Response {
 
     subsriptionids.clear();
     _waitingAckCount = 0;
-    _lastWatingAckId = -1;
+    _lastWaitingAckId = -1;
     _sendingAfterAck = false;
   }
 
@@ -302,11 +302,12 @@ class RespSubscribeController {
   }
 
   List process(int waitingAckId) {
-    List rslts = [];
+    List rslts = new List();
     if (_caching && _isCacheValid) {
       for (ValueUpdate lastValue in lastValues) {
         rslts.add([sid, lastValue.value, lastValue.ts]);
       }
+
       if (_qosLevel > 0) {
         for (ValueUpdate update in lastValues) {
           update.waitingAck = waitingAckId;
@@ -336,9 +337,8 @@ class RespSubscribeController {
     }
     bool valueRemoved = false;
     if (!waitingValues.isEmpty && waitingValues.first.waitingAck != ackId) {
-      logger.warning(
-          'invalid ack ${waitingValues.first.value} ${waitingValues.first
-              .waitingAck}');
+      var msg = '${waitingValues.first.value} ${waitingValues.first.waitingAck}';
+      logger.warning('invalid ack ${msg}');
 
       ValueUpdate matchUpdate;
       for (ValueUpdate update in waitingValues) {
@@ -358,6 +358,7 @@ class RespSubscribeController {
         }
       }
     }
+
     while (!waitingValues.isEmpty && waitingValues.first.waitingAck == ackId) {
       ValueUpdate removed = waitingValues.removeFirst();
       if (_storage != null) {
@@ -365,6 +366,7 @@ class RespSubscribeController {
         valueRemoved = true;
       }
     }
+
     if (valueRemoved && _storage != null) {
       _storage.valueRemoved(waitingValues);
     }

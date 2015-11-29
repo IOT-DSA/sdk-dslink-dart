@@ -7,7 +7,7 @@ Map defaultProfileMap = {
     r"$invokable": "read",
     r"$result": "table",
     r"$params": [
-      {"name": "Timerange", "type": "string", 'editor': "daterange"},
+      {"name": "Timerange", "type": "string", "editor": "daterange"},
       {
         "name": "Interval",
         "type": "enum",
@@ -121,14 +121,14 @@ Map defaultProfileMap = {
       }
     },
     "token": {"delete": {r"$invokable": "config", r"$params": []}},
-    'tokenGroup': {
-      'add': {
+    "tokenGroup": {
+      "add": {
         r"$invokable": "config",
         r"$params": [
-          {'name': 'timeRange', "type": "string", 'editor': "daterange"},
-          {'name': 'count', "type": "number"},
+          {"name": "timeRange", "type": "string", "editor": "daterange"},
+          {"name": "count", "type": "number"},
         ],
-        r"$columns": [{'name': 'tokenName', 'type': 'string'}]
+        r"$columns": [{"name": "tokenName", "type": "string"}]
       }
     }
   }
