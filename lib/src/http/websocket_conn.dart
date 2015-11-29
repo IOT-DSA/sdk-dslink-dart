@@ -117,8 +117,8 @@ class WebSocketConnection extends Connection {
     if (data is List<int>) {
       try {
         m = codec.decodeBinaryFrame(data);
-        if (logger.isLoggable(Level.FINE)) {
-          logger.fine("Received from WebSocket(binary): ${m}");
+        if (logger.isLoggable(Level.FINEST)) {
+          logger.finest("Received from WebSocket(binary): ${m}");
         }
       } catch (err, stack) {
         logger.fine(
@@ -155,8 +155,8 @@ class WebSocketConnection extends Connection {
     } else if (data is String) {
       try {
         m = codec.decodeStringFrame(data);
-        if (logger.isLoggable(Level.FINE)) {
-          logger.fine("WebSocket String: ${m}");
+        if (logger.isLoggable(Level.FINEST)) {
+          logger.finest("WebSocket String: ${m}");
         }
       } catch (err) {
         logger.severe("Failed to decode string data from WebSocket Connection", err);
@@ -284,8 +284,8 @@ class WebSocketConnection extends Connection {
   void addData(Map m) {
     Object encoded = codec.encodeFrame(m);
 
-    if (logger.isLoggable(Level.FINE)) {
-      logger.fine("send: $m");
+    if (logger.isLoggable(Level.FINEST)) {
+      logger.finest("send: $m");
     }
 
     if (throughputEnabled) {
