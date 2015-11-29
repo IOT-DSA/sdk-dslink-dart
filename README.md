@@ -12,14 +12,14 @@ DSLink SDK for Dart
 ### Install
 
 ```bash
-pub global activate -sgit https://github.com/IOT-DSA/sdk-dslink-dart.git # Globally install the DSA Dart SDK
+pub global activate -sgit https://github.com/IOT-DSA/broker-dart.git # Globally install the DSA Broker
 ```
 
 ### Start a Broker
 
 ```bash
 dsbroker # If you have the pub global executable path setup.
-pub global run dslink:broker # If you do not have the pub global executable path setup.
+pub global run dsbroker:broker # If you do not have the pub global executable path setup.
 ```
 
 To connect a broker to another broker:

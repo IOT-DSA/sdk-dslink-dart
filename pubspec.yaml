@@ -1,5 +1,5 @@
 name: dslink
-version: 0.5.0
+version: 0.5.0+1
 description: DSLink SDK for Dart
 homepage: "http://iot-dsa.org/"
 dependencies:
