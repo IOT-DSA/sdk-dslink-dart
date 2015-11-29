@@ -66,15 +66,19 @@ class DsTimer {
       new Map<Function, TimerFunctions>();
 
   static TimerFunctions _getTimerFunctions(int time50) {
-    if (_pendingTimerMap.containsKey(time50)) {
-      return _pendingTimerMap[time50];
+    TimerFunctions tf = _pendingTimerMap[time50];
+
+    if (tf != null) {
+      return tf;
     }
-    TimerFunctions tf = new TimerFunctions(time50);
+
+    tf = new TimerFunctions(time50);
     _pendingTimerMap[time50] = tf;
     TimerFunctions it;
     if (_pendingTimer.isNotEmpty) {
       it = _pendingTimer.first;
     }
+
     while (it != null) {
       if (it.ts50 > time50) {
         it.insertBefore(tf);
@@ -85,9 +89,11 @@ class DsTimer {
         it = null;
       }
     }
+
     if (it == null) {
       _pendingTimer.add(tf);
     }
+
     if (!_pending) {
       _startTimer();
     }
@@ -110,7 +116,7 @@ class DsTimer {
 
   static int _lastTimeRun = -1;
 
-  /// do nothng if the callback is already in the list and will get called after 0 ~ N ms
+  /// do nothing if the callback is already in the list and will get called after 0 ~ N ms
   static void timerOnceBefore(Function callback, int ms) {
     int desiredTime50 =
         (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
@@ -122,6 +128,7 @@ class DsTimer {
         existTf.remove(callback);
       }
     }
+    
     if (desiredTime50 <= _lastTimeRun) {
       callLater(callback);
       return;
@@ -131,7 +138,7 @@ class DsTimer {
     _functionsMap[callback] = tf;
   }
 
-  /// do nothng if the callback is already in the list and will get called after N or more ms
+  /// do nothing if the callback is already in the list and will get called after N or more ms
   static void timerOnceAfter(Function callback, int ms) {
     int desiredTime50 =
         (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
@@ -176,9 +183,10 @@ class DsTimer {
   }
 
   static void timerCancel(Function callback) {
-    if (_functionsMap.containsKey(callback)) {
-      // TODO: what if timerCancel is called from another timer of group?
-      TimerFunctions existTf = _functionsMap[callback];
+    // TODO: what if timerCancel is called from another timer of group?
+    TimerFunctions existTf = _functionsMap[callback];
+
+    if (existTf != null) {
       existTf.remove(callback);
     }
   }
@@ -193,11 +201,11 @@ class DsTimer {
 
     List<Function> runnings = _callbacks;
 
-    _callbacks = [];
+    _callbacks = new List();
 
-    runnings.forEach((Function f) {
+    for (var f in runnings) {
       f();
-    });
+    }
 
     int currentTime = (new DateTime.now()).millisecondsSinceEpoch;
     _lastTimeRun = (currentTime / 50).floor();
@@ -218,9 +226,8 @@ class DsTimer {
           if (timerTimer != null && timerTimer.isActive) {
             timerTimer.cancel();
           }
-          timerTimer = new Timer(
-              new Duration(milliseconds: timerTs50 * 50 + 1 - currentTime),
-              _startTimer);
+          var duration = new Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
+          timerTimer = new Timer(duration, _startTimer);
         }
       }
     } else if (timerTimer != null) {
