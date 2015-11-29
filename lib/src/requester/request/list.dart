@@ -179,6 +179,10 @@ class ListController implements RequestUpdater {
   ];
 
   void _onProfileUpdate(RequesterListUpdate update) {
+    if (_profileLoader == null) {
+      logger.finest('warning, unexpected state of profile loading');
+      return;
+    }
     _profileLoader.cancel();
     _profileLoader = null;
     changes.addAll(
