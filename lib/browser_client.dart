@@ -44,10 +44,12 @@ class LocalDataStorage extends DataStorage {
   Future<bool> has(String key) async => window.localStorage.containsKey(key);
 
   bool hasSync(String key) => window.localStorage.containsKey(key);
+  String getSync(String key) => window.localStorage[key];
 
   @override
-  Future store(String key, String value) async {
+  Future store(String key, String value) {
     window.localStorage[key] = value;
+    return new Future.value();
   }
 
   @override
@@ -75,11 +77,13 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   if (hasKeyPath) {
     await storage.store(keyLockPath, randomToken);
     await new Future.delayed(const Duration(milliseconds: 20));
-    if (await storage.get(keyLockPath) == randomToken) {
+    var existingToken = storage is LocalDataStorage ? storage.getSync(keyLockPath) : await storage.get(keyLockPath);
+    var existingKey = storage is LocalDataStorage ? storage.getSync(keyPath) : await storage.get(keyPath);
+    if (existingToken == randomToken) {
       if (storage is LocalDataStorage) {
         _startStorageLock(keyLockPath, randomToken);
       }
-      _cachedPrivateKey = new PrivateKey.loadFromString(await storage.get(keyPath));
+      _cachedPrivateKey = new PrivateKey.loadFromString(existingKey);
       return _cachedPrivateKey;
     } else {
       // use temp key, don't lock it;
@@ -90,8 +94,8 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
   _cachedPrivateKey = await PrivateKey.generate();
 
   if (keyLockPath != null) {
-    await storage.store(keyPath, _cachedPrivateKey.saveToString());
-    await storage.store(keyLockPath, randomToken);
+    storage.store(keyPath, _cachedPrivateKey.saveToString());
+    storage.store(keyLockPath, randomToken);
     if (storage is LocalDataStorage) {
       _startStorageLock(keyLockPath, randomToken);
     }
