@@ -1,7 +1,7 @@
 import "package:dslink/browser.dart";
 
 import "dart:html";
-
+import "dart:typed_data";
 
 LinkProvider link;
 Requester requester;
@@ -34,12 +34,20 @@ setup(String path) {
   listener = requester.subscribe(path, handleValueUpdate);
 }
 
+String url;
+
 handleValueUpdate(ValueUpdate update) {
   if (update.value == null) {
     return;
   }
 
-  image.src = BrowserUtils.createBinaryUrl(update.value);
+  if (url != null) {
+    Url.revokeObjectUrl(url);
+  }
+
+  var blob = new Blob([(update.value as ByteData).buffer.asUint8List()]);
+
+  url = image.src = Url.createObjectUrl(blob);
 }
 
 ReqSubscribeListener listener;

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--suppress HtmlUnknownTarget -->
+<html>
+  <head>
+    <title>DSA Grid</title>
+    <link href="style.css" rel="stylesheet">
+
+    <style>
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .block {
+        border: solid 2px;
+        width: 32px;
+        height: 32px;
+        margin: 1px;
+        cursor: pointer;
+      }
+
+      #panel {
+        position: absolute;
+        display: run-in;
+      }
+
+      #root {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body id="body">
+    <div class="left" id="panel">
+      <div id="clear-btn" class="btn">Clear Grid</div>
+    </div>
+    <div id="root"></div>
+    <script type="application/dart" src="grid.dart"></script>
+    <script type="application/javascript" src="packages/browser/dart.js"></script>
+  </body>
+</html>
