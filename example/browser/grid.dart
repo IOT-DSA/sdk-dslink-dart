@@ -115,20 +115,6 @@ loadGrid(List<List<bool>> input) {
 
           r.set("/data/grid", _grid);
         });
-
-        cow.onMouseEnter.listen((e) {
-          if (_grid[i - 1][x - 1] != true) {
-            _grid[i - 1][x - 1] = null;
-          }
-          r.set("/data/grid", _grid);
-        });
-
-        cow.onMouseLeave.listen((e) {
-          if (_grid[i - 1][x - 1] == null) {
-            _grid[i - 1][x - 1] = false;
-            r.set("/data/grid", _grid);
-          }
-        });
         rowe.append(cow);
       }
 
