@@ -6,7 +6,6 @@ class UriComponentDecoder {
   static const int _PLUS = 0x2B;
 
   static String decode(String text) {
-    print(text);
     List codes = new List();
     List bytes = new List();
     int len = text.length;
