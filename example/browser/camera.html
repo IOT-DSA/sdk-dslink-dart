@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>DSA Camera Stream</title>
+  <head>
+    <title>DSA Camera Stream</title>
 
-  <style>
-    #image {
-      display: block;
-      vertical-align: middle;
-      margin: auto;
-    }
+    <style>
+      #image {
+        display: block;
+        vertical-align: middle;
+        margin: auto;
+      }
 
-    #body {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-      padding-top: 2%;
-      overflow: hidden;
-    }
-  </style>
-</head>
+      #body {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        padding-top: 2%;
+        overflow: hidden;
+      }
+    </style>
+  </head>
 
-<body id="body">
-<video id="video" hidden></video>
-<canvas id="canvas" hidden></canvas>
-<script type="application/dart" src="camera.dart"></script>
-<script type="application/javascript" src="packages/browser/dart.js"></script>
-</body>
+  <body id="body">
+    <video id="video" hidden></video>
+    <canvas id="canvas" hidden></canvas>
+    <script type="application/dart" src="camera.dart"></script>
+    <script type="application/javascript" src="packages/browser/dart.js"></script>
+  </body>
 </html>

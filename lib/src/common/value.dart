@@ -1,29 +1,61 @@
 part of dslink.common;
 
+/// Represents an update to a value subscription.
 class ValueUpdate {
+  /// DSA formatted timezone.
   static final String TIME_ZONE = () {
     int timeZoneOffset = (new DateTime.now()).timeZoneOffset.inMinutes;
-    String s = '+';
+    String s = "+";
     if (timeZoneOffset < 0) {
       timeZoneOffset = -timeZoneOffset;
-      s = '-';
+      s = "-";
     }
     int hh = timeZoneOffset ~/ 60;
     int mm = timeZoneOffset % 60;
-    return "$s${hh < 10 ? '0' : ''}$hh:${mm < 10 ? '0' : ''}$mm";
+    return "$s${hh < 10 ? '0' : ''}$hh:${mm < 10 ? "0" : ''}$mm";
   }();
 
+  /// Generates a timestamp in the proper DSA format.
   static String getTs() {
-    return '${(new DateTime.now()).toIso8601String()}$TIME_ZONE';
+    return "${(new DateTime.now()).toIso8601String()}$TIME_ZONE";
   }
 
+  /// The id of the ack we are waiting for.
   int waitingAck = -1;
 
+  /// The value for this update.
   Object value;
+
+  /// A [String] representation of the timestamp for this value.
   String ts;
+
+  DateTime _timestamp;
+
+  /// Gets a [DateTime] representation of the timestamp for this value.
+  DateTime get timestamp {
+    if (_timestamp == null) {
+      _timestamp = DateTime.parse(ts);
+    }
+    return _timestamp;
+  }
+
+  /// The current status of this value.
   String status;
+
+  /// How many updates have happened since the last response.
   int count;
-  num sum, min, max;
+
+  /// The sum value if one or more numeric values has been skipped.
+  num sum;
+
+  /// The minimum value if one or more numeric values has been skipped.
+  num min;
+
+  /// The maximum value if one or more numeric values has been skipped.
+  num max;
+
+  /// The timestamp for when this value update was created.
+  DateTime created;
 
   ValueUpdate(this.value,
       {this.ts,
@@ -37,23 +69,29 @@ class ValueUpdate {
       ts = getTs();
     }
 
+    created = new DateTime.now();
+
     if (meta != null) {
-      if (meta['count'] is int) {
-        count = meta['count'];
+      if (meta["count"] is int) {
+        count = meta["count"];
       } else if (value == null) {
         count = 0;
       }
-      if (meta['status'] is String) {
-        status = meta['status'];
+
+      if (meta["status"] is String) {
+        status = meta["status"];
       }
-      if (meta['sum'] is num) {
-        sum = meta['sum'];
+
+      if (meta["sum"] is num) {
+        sum = meta["sum"];
       }
-      if (meta['max'] is num) {
-        max = meta['max'];
+
+      if (meta["max"] is num) {
+        max = meta["max"];
       }
-      if (meta['min'] is num) {
-        min = meta['min'];
+
+      if (meta["min"] is num) {
+        min = meta["min"];
       }
     }
 
@@ -85,13 +123,16 @@ class ValueUpdate {
     if (max.isNaN || newUpdate.max > max) {
       max = newUpdate.max;
     }
+
+    created = newUpdate.created;
   }
 
   Duration _latency;
 
+  /// Calculates the latency
   Duration get latency {
     if (_latency == null) {
-      _latency = new DateTime.now().difference(DateTime.parse(ts));
+      _latency = created.difference(timestamp);
     }
     return _latency;
   }
@@ -120,12 +161,12 @@ class ValueUpdate {
 
   bool equals(ValueUpdate other) {
     if (value is Map) {
-      // assume Map is same if it's generated at same time stampe
+      // assume Map is same if it's generated at same timestamp
       if (other.value is! Map) {
         return false;
       }
     } else if (value is List) {
-      // assume List is same if it's generated at same time stampe
+      // assume List is same if it's generated at same timestamp
       if (other.value is! List) {
         return false;
       }
@@ -136,26 +177,28 @@ class ValueUpdate {
     if (other.ts != ts || other.count != count) {
       return false;
     }
+
     if (count == 1) {
       return true;
     }
     return other.sum == sum && other.min == min && other.max == max;
   }
 
+  /// Generates a map representation of this value update.
   Map toMap() {
-    Map m = {'ts': ts, 'value': value};
+    Map m = {"ts": ts, "value": value};
     if (count == 0) {
-      m['count'] = 0;
+      m["count"] = 0;
     } else if (count > 1) {
-      m['count'] = count;
+      m["count"] = count;
       if (sum.isFinite) {
-        m['sum'] = sum;
+        m["sum"] = sum;
       }
       if (max.isFinite) {
-        m['max'] = max;
+        m["max"] = max;
       }
       if (min.isFinite) {
-        m['min'] = min;
+        m["min"] = min;
       }
     }
     return m;

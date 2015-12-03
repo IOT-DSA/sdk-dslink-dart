@@ -20,7 +20,7 @@ main() async {
     setup(window.location.hash.substring(1));
   });
 
-  setup(window.location.hash.isNotEmpty ? window.location.hash.substring(1) : "/conns/Storage/images/image");
+  setup(window.location.hash.isNotEmpty ? window.location.hash.substring(1) : "/data/image");
 }
 
 setup(String path) {
@@ -45,7 +45,9 @@ handleValueUpdate(ValueUpdate update) {
     Url.revokeObjectUrl(url);
   }
 
-  var blob = new Blob([(update.value as ByteData).buffer.asUint8List()]);
+  var bytes = (update.value as ByteData).buffer.asUint8List();
+
+  var blob = new Blob([bytes]);
 
   url = image.src = Url.createObjectUrl(blob);
 }

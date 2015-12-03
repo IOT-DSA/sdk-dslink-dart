@@ -1,11 +1,8 @@
-@import "https://fonts.googleapis.com/css?family=Open+Sans:400,700";
-* {
-  font-family: 'Open Sans', sans-serif;
-}
 .line {
   border-top: 1px;
   border-style: solid;
 }
+
 .box {
   background: linear-gradient(180deg, #e5e5e5 20%, #d1d1d1 80%);
   box-shadow: 0 2px 5px 0 rgba(50, 50, 50, 0.85);
@@ -13,10 +10,12 @@
   word-wrap: break-word;
   margin: 5px;
 }
+
 .column {
   width: 50%;
   display: inline-block;
 }
+
 .center {
   display: block;
   text-align: center;
@@ -24,29 +23,37 @@
   margin-bottom: 0;
   padding: 0;
 }
+
 .left {
   float: left;
 }
+
 .right {
   float: right;
 }
+
 .middle {
   vertical-align: middle;
 }
+
 .container {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
 }
+
 .item {
   justify-content: center;
 }
+
 .inline-block {
   display: inline-block;
 }
+
 .header {
   display: block;
 }
+
 .btn {
   display: inline-block;
   transition-timing-function: ease;
@@ -65,17 +72,20 @@
   -ms-user-select: none;
   user-select: none;
 }
+
 .btn:active {
   color: white;
   border-color: #008EAB;
   background-color: #008EAB;
 }
+
 .btn:hover {
   background-color: #00AACC;
   color: white;
   border-color: #00AACC;
   cursor: pointer;
 }
+
 .btn-danger {
   display: inline-block;
   transition-timing-function: ease;
@@ -94,17 +104,20 @@
   -ms-user-select: none;
   user-select: none;
 }
+
 .btn-danger:active {
   color: white;
   border-color: #008EAB;
   background-color: #008EAB;
 }
+
 .btn-danger:hover {
   background-color: #d9534f;
   color: white;
   border-color: #d9534f;
   cursor: pointer;
 }
+
 .btn-warning {
   display: inline-block;
   transition-timing-function: ease;
@@ -123,17 +136,20 @@
   -ms-user-select: none;
   user-select: none;
 }
+
 .btn-warning:active {
   color: white;
   border-color: #008EAB;
   background-color: #008EAB;
 }
+
 .btn-warning:hover {
   background-color: #f0ad4e;
   color: white;
   border-color: #f0ad4e;
   cursor: pointer;
 }
+
 .input-box {
   display: inline-block;
   width: 256px;
@@ -151,9 +167,10 @@
   -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
+
 pre {
   display: block;
-  padding: 9.5px;
+  padding: 10px;
   margin: 0 0 10px;
   font-size: 13px;
   line-height: 1.42857143;
@@ -164,12 +181,15 @@ pre {
   border: 1px solid #cccccc;
   border-radius: 4px;
 }
+
 .status-minor {
   color: yellow;
 }
+
 .status-good {
   color: green;
 }
+
 .status-major {
   color: red;
 }
