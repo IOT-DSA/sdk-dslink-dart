@@ -21,10 +21,7 @@ dev_dependencies:
   dsbroker:
     git: "https://github.com/IOT-DSA/broker-dart.git"
   browser: any
-  less_dart: "^0.3.2"
 environment:
   sdk: ">=1.11.0"
 executables:
   dsbeacon: beacon
-transformers:
-  - less_dart
