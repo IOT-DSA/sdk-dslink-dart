@@ -59,7 +59,7 @@ class SimpleStorageManager implements IStorageManager {
     for (FileSystemEntity entity in subDir.listSync()) {
       if (await FileSystemEntity.type(entity.path) ==
           FileSystemEntityType.DIRECTORY) {
-        String rpath = Uri.decodeComponent(entity.path.substring(
+        String rpath = UriComponentDecoder.decode(entity.path.substring(
             entity.path.lastIndexOf(Platform.pathSeparator) + 1));
         SimpleResponderStorage responder =
         new SimpleResponderStorage(entity.path, rpath);
@@ -99,7 +99,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
   SimpleResponderStorage(String path, [this.responderPath]) {
     if (responderPath == null) {
-      responderPath = Uri.decodeComponent(
+      responderPath = UriComponentDecoder.decode(
           path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
     }
 
@@ -124,7 +124,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
     for (FileSystemEntity entity in dir.listSync()) {
       String name = entity.path.substring(
           entity.path.lastIndexOf(Platform.pathSeparator) + 1);
-      String path = Uri.decodeComponent(name);
+      String path = UriComponentDecoder.decode(name);
       values[path] = new SimpleNodeStorage(path, name, dir.path, this);
       loading.add(values[path].load());
     }
@@ -250,7 +250,7 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
     Map rslt = {};
     List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
-      String name = Uri.decodeComponent(entity.path.substring(
+      String name = UriComponentDecoder.decode(entity.path.substring(
           entity.path.lastIndexOf(Platform.pathSeparator) + 1));
       File f = new File(entity.path);
       Future future = f.readAsString().then((String str) {

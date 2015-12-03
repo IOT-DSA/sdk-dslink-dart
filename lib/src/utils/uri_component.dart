@@ -6,6 +6,7 @@ class UriComponentDecoder {
   static const int _PLUS = 0x2B;
 
   static String decode(String text) {
+    print(text);
     List codes = new List();
     List bytes = new List();
     int len = text.length;
@@ -13,10 +14,16 @@ class UriComponentDecoder {
       var codeUnit = text.codeUnitAt(i);
       if (codeUnit == _PERCENT) {
         if (i + 3 > text.length) {
-          throw new ArgumentError('Truncated URI');
+          bytes.add(_PERCENT);
+          continue;
         }
-        bytes.add(_hexCharPairToByte(text, i + 1));
-        i += 2;
+        int hexdecoded = _hexCharPairToByte(text, i + 1);
+        if (hexdecoded > 0) {
+          bytes.add(hexdecoded);
+          i += 2;
+        } else {
+          bytes.add(_PERCENT);
+        }
       } else {
         if (!bytes.isEmpty) {
           codes.addAll(const Utf8Decoder(allowMalformed: true).convert(bytes).codeUnits);
@@ -40,17 +47,15 @@ class UriComponentDecoder {
   static int _hexCharPairToByte(String s, int pos) {
     int byte = 0;
     for (int i = 0; i < 2; i++) {
-      var charCode = s.codeUnitAt(pos + i);
+      int charCode = s.codeUnitAt(pos + i);
       if (0x30 <= charCode && charCode <= 0x39) {
         byte = byte * 16 + charCode - 0x30;
-      } else {
+      } else if ((charCode>=0x41 && charCode <= 0x46) || (charCode>=0x61 && charCode <= 0x66)){
         // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
         charCode |= 0x20;
-        if (0x61 <= charCode && charCode <= 0x66) {
-          byte = byte * 16 + charCode - 0x57;
-        } else {
-          throw new ArgumentError("Invalid URL encoding");
-        }
+        byte = byte * 16 + charCode - 0x57;
+      } else {
+        return -1;
       }
     }
     return byte;
