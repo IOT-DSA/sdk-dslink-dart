@@ -279,17 +279,37 @@ class SimpleValueStorage extends IValueStorage {
   SimpleValueStorage(this.bucket, this.key) {
     _file = new File("${bucket.dir.path}/${Uri.encodeComponent(key)}");
   }
-
+  bool _pendingSet = false;
+  Object _pendingValue;
+  Object _setValue;
+  
+  /// set the value, if previous setting is not finished, it will be set later
   void setValue(Object value) {
-    // TODO: optimize this part so it doesn"t need to re-create path and File object everytime
-    _file.writeAsString(DsJson.encode(value));
+    _pendingValue = value;
+    if (_pendingSet) {
+      return;
+    }
+    _setValue = value;
+    _pendingSet = true;
+    _file.writeAsString(DsJson.encode(value)).then(onSetDone).catchError(onSetDone);
+  }
+  void onSetDone(Object obj) {
+    _pendingSet = false;
+    if (_setValue != _pendingValue) {
+      setValue(_pendingValue);
+    }
   }
 
   void destroy() {
+    _pendingValue = null;
+    _setValue = null;
     _file.delete().catchError(_ignoreError);
   }
 
   getValueAsync() async {
+    if (_pendingValue != null) {
+      return _pendingValue;
+    }
     try {
       return DsJson.decode(await _file.readAsString());
     } catch (err) {}
