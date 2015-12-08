@@ -2,6 +2,9 @@ part of dslink.responder;
 
 typedef void OnInvokeClosed(InvokeResponse response);
 
+/// return true if params are valid
+typedef bool OnReqParams(Map m);
+
 class _InvokeResponseUpdate {
   String status;
   List columns;
@@ -19,6 +22,8 @@ class InvokeResponse extends Response {
       : super(responder, rid);
 
   List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
+  
+  /// update data for the responder stream
   void updateStream(List updates,
       {List columns, String streamStatus: StreamStatus.open, Map meta}) {
     if (meta != null && meta['mode'] == 'refresh') {
@@ -26,6 +31,14 @@ class InvokeResponse extends Response {
     }
     pendingData.add(new _InvokeResponseUpdate(streamStatus, updates, columns, meta));
     prepareSending();
+  }
+  
+  OnReqParams onReqParams;
+  /// new parameter from the requester
+  void updateReqParams(Map m) {
+    if (onReqParams != null) {
+      onReqParams(m);
+    }
   }
 
   @override

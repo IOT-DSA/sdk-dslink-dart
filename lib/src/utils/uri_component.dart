@@ -1,5 +1,6 @@
 part of dslink.utils;
 
+/// a decoder class to decode malformed url encoded string
 class UriComponentDecoder {
   static const int _SPACE = 0x20;
   static const int _PERCENT = 0x25;

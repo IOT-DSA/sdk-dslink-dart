@@ -118,6 +118,16 @@ Map defaultProfileMap = {
             "type": "enum[none,textarea,password,daterange,date]"
           }
         ]
+      },
+      "streamingSet": {
+        r"$invokable": "write",
+        r"$params": [
+          {"name": "Path", "type": "string"},
+          {
+            "name": "Value",
+            "type": "dynamic"
+          }
+        ]
       }
     },
     "token": {"delete": {r"$invokable": "config", r"$params": []}},

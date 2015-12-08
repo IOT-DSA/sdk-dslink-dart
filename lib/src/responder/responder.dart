@@ -84,41 +84,43 @@ class Responder extends ConnectionHandler {
   }
 
   void _onReceiveRequest(Map m) {
-    if (m['method'] is String && m['rid'] is int) {
-      if (_responses.containsKey(m['rid'])) {
-        if (m['method'] == 'close') {
-          close(m);
-        }
-        // when rid is invalid, nothing needs to be sent back
+    Object method = m['method'];
+    if (m['rid'] is int) {
+      if (method == null) {
+        updateInvoke(m);
         return;
-      }
-
-      switch (m['method']) {
-        case 'list':
-          list(m);
+      } else {
+        if (_responses.containsKey(m['rid'])) {
+          if (method == 'close') {
+            close(m);
+          }
+          // when rid is invalid, nothing needs to be sent back
           return;
-        case 'subscribe':
-          subscribe(m);
-          return;
-        case 'unsubscribe':
-          unsubscribe(m);
-          return;
-        case 'invoke':
-          invoke(m);
-          return;
-        case 'set':
-          set(m);
-          return;
-        case 'remove':
-          remove(m);
-          return;
-        default:
+        }
+        switch (method) {
+          case 'list':
+            list(m);
+            return;
+          case 'subscribe':
+            subscribe(m);
+            return;
+          case 'unsubscribe':
+            unsubscribe(m);
+            return;
+          case 'invoke':
+            invoke(m);
+            return;
+          case 'set':
+            set(m);
+            return;
+          case 'remove':
+            remove(m);
+            return;
+          default:
+        }
       }
     }
-
-    if (m['rid'] is int && m['method'] != 'close') {
-      closeResponse(m['rid'], error: DSError.INVALID_METHOD);
-    }
+    closeResponse(m['rid'], error: DSError.INVALID_METHOD);
   }
 
   /// close the response from responder side and notify requester
@@ -303,6 +305,17 @@ class Responder extends ConnectionHandler {
       }
     } else {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
+    }
+  }
+  
+  void updateInvoke(Map m){
+    int rid = m['rid'];
+    if (_responses[rid] is InvokeResponse) {
+      if ( m['params'] is Map) {
+        (_responses[rid] as InvokeResponse).updateReqParams(m['params']);
+      }
+    } else {
+      closeResponse(m['rid'], error: DSError.INVALID_METHOD);
     }
   }
 

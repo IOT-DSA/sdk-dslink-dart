@@ -90,7 +90,7 @@ class InvokeController implements RequestUpdater {
   String lastStatus = StreamStatus.initialize;
 
   InvokeController(this.node, this.requester, Map params,
-      [int maxPermission = Permission.CONFIG]) {
+      [int maxPermission = Permission.CONFIG, void fetchRawReq(Request)]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
@@ -108,6 +108,10 @@ class InvokeController implements RequestUpdater {
 //    } else {
 
     _request = requester._sendRequest(reqMap, this);
+    
+    if (fetchRawReq != null) {
+      fetchRawReq(_request);
+    }
 //    }
   }
 

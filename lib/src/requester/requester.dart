@@ -153,9 +153,9 @@ class Requester extends ConnectionHandler {
   }
 
   Stream<RequesterInvokeUpdate> invoke(String path, Map params,
-      [int maxPermission = Permission.CONFIG]) {
+      [int maxPermission = Permission.CONFIG, void fetchRawReq(Request)]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
-    return node._invoke(params, this, maxPermission);
+    return node._invoke(params, this, maxPermission, fetchRawReq);
   }
 
   Future<RequesterUpdate> set(String path, Object value,

@@ -19,6 +19,10 @@ class Request {
   void resend() {
     requester.addToSendList(data);
   }
+  
+  void addReqParams(Map m) {
+    requester.addToSendList({'rid':rid, 'params':m});
+  }
 
   void _update(Map m) {
     if (m["stream"] is String) {
