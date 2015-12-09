@@ -171,8 +171,16 @@ class Responder extends ConnectionHandler {
     Path path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
-      _getNode(path).then((node) {
+
+      _getNode(path, (LocalNode node) {
         addResponse(new ListResponse(this, rid, node));
+      }, (e, stack) {
+        var error = new DSError(
+          "nodeError",
+          msg: e.toString(),
+          detail: stack.toString()
+        );
+        closeResponse(m['rid'], error: error);
       });
     } else {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
@@ -203,11 +211,16 @@ class Responder extends ConnectionHandler {
         Path path = Path.getValidNodePath(pathstr);
 
         if (path != null && path.isAbsolute) {
-          _getNode(path).then((node) {
+          _getNode(path, (LocalNode node) {
             _subscription.add(path.path, node, sid, qos);
             closeResponse(m['rid']);
-          }).catchError((e) {
-            closeResponse(m['rid'], error: new DSError("nodeError", msg: e.toString()));
+          }, (e, stack) {
+            var error = new DSError(
+              "nodeError",
+              msg: e.toString(),
+              detail: stack.toString()
+            );
+            closeResponse(m['rid'], error: error);
           });
         } else {
           closeResponse(m['rid']);
@@ -218,17 +231,30 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  Future<LocalNode> _getNode(Path p) {
-    LocalNode node = nodeProvider.getOrCreateNode(p.path, false);
-    if (node is WaitForMe) {
-      return (node as WaitForMe).onLoaded.then((n) {
-        if (n is LocalNode) {
-          node = n;
-        }
-        return node;
-      });
-    } else {
-      return new Future.value(node);
+  void _getNode(Path p, Taker<LocalNode> func, [TwoTaker<dynamic, dynamic> onError]) {
+    try {
+      LocalNode node = nodeProvider.getOrCreateNode(p.path, false);
+
+      if (node is WaitForMe) {
+        (node as WaitForMe).onLoaded.then((n) {
+          if (n is LocalNode) {
+            node = n;
+          }
+          func(node);
+        }).catchError((e, stack) {
+          if (onError != null) {
+            onError(e, stack);
+          }
+        });
+      } else {
+        func(node);
+      }
+    } catch (e, stack) {
+      if (onError != null) {
+        onError(e, stack);
+      } else {
+        rethrow;
+      }
     }
   }
 
@@ -294,10 +320,14 @@ class Responder extends ConnectionHandler {
         (parentNode as WaitForMe).onLoaded.then((_) {
           doInvoke();
         }).catchError((e, stack) {
-          var err = new DSError("resolveError", msg: e.toString(), detail: stack.toString());
+          var err = new DSError(
+            "nodeError",
+            msg: e.toString(),
+            detail: stack.toString()
+          );
           closeResponse(
-              m['rid'],
-              error: err
+            m['rid'],
+            error: err
           );
         });
       } else {
@@ -307,8 +337,8 @@ class Responder extends ConnectionHandler {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
   }
-  
-  void updateInvoke(Map m){
+
+  void updateInvoke(Map m) {
     int rid = m['rid'];
     if (_responses[rid] is InvokeResponse) {
       if ( m['params'] is Map) {
@@ -325,27 +355,36 @@ class Responder extends ConnectionHandler {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }
+
     if (!m.containsKey('value')) {
       closeResponse(m['rid'], error: DSError.INVALID_VALUE);
       return;
     }
+
     Object value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      LocalNode node;
+      _getNode(path, (LocalNode node) {
+        int permission = nodeProvider.permissions.getPermission(node.path, this);
+        int maxPermit = Permission.parse(m['permit']);
+        if (maxPermit < permission) {
+          permission = maxPermit;
+        }
 
-      node = nodeProvider.getOrCreateNode(path.path, false);
-
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
-      int maxPermit = Permission.parse(m['permit']);
-      if (maxPermit < permission) {
-        permission = maxPermit;
-      }
-      if (node.getSetPermission() <= permission) {
-        node.setValue(value, this, addResponse(new Response(this, rid)));
-      } else {
-        closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
-      }
+        if (node.getSetPermission() <= permission) {
+          node.setValue(value, this, addResponse(new Response(this, rid)));
+        } else {
+          closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        }
+        closeResponse(m['rid']);
+      }, (e, stack) {
+        var error = new DSError(
+          "nodeError",
+          msg: e.toString(),
+          detail: stack.toString()
+        );
+        closeResponse(m['rid'], error: error);
+      });
     } else if (path.isConfig) {
       LocalNode node;
 

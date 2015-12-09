@@ -4,7 +4,9 @@ part of dslink.requester;
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
   Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
+
   RemoteNodeCache() {}
+
   RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
       if (path.startsWith('defs')) {
@@ -66,11 +68,14 @@ class RemoteNode extends Node {
   RemoteNode(this.remotePath) {
     _getRawName();
   }
+
   void _getRawName() {
     if (remotePath == '/') {
       name = '/';
     } else {
-      name = remotePath.split('/').last;
+      name = remotePath
+        .split('/')
+        .last;
     }
   }
 
@@ -79,6 +84,7 @@ class RemoteNode extends Node {
     if (!isSelfUpdated()) {
       return false;
     }
+
     if (profile is RemoteNode && !(profile as RemoteNode).isSelfUpdated()) {
       return false;
     }
@@ -116,8 +122,9 @@ class RemoteNode extends Node {
   }
 
   Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester,
-      [int maxPermission = Permission.CONFIG, void fetchRawReq(Request)]) {
-    return new InvokeController(this, requester, params, maxPermission, fetchRawReq)._stream;
+    [int maxPermission = Permission.CONFIG, void fetchRawReq(Request request)]) {
+    return new InvokeController(
+      this, requester, params, maxPermission, fetchRawReq)._stream;
   }
 
   /// used by list api to update simple data for children

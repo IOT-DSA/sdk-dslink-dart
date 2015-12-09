@@ -21,6 +21,8 @@ part "src/utils/uri_component.dart";
 
 typedef ExecutableFunction();
 typedef T Producer<T>();
+typedef Taker<T>(T value);
+typedef TwoTaker<A, B>(A a, B b);
 
 /// The DSA Version
 const String DSA_VERSION = "1.1.2";
