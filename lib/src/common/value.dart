@@ -15,9 +15,17 @@ class ValueUpdate {
     return "$s${hh < 10 ? '0' : ''}$hh:${mm < 10 ? "0" : ''}$mm";
   }();
 
+  static String _lastTsStr;
+  static int _lastTs = 0;
   /// Generates a timestamp in the proper DSA format.
   static String getTs() {
-    return "${(new DateTime.now()).toIso8601String()}$TIME_ZONE";
+    DateTime d = new DateTime.now();
+    if (d.millisecondsSinceEpoch == _lastTs) {
+      return _lastTsStr;
+    }
+    _lastTs = d.millisecondsSinceEpoch;
+    _lastTsStr = "${d.toIso8601String()}$TIME_ZONE";
+    return _lastTsStr;
   }
 
   /// The id of the ack we are waiting for.
