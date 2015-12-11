@@ -31,8 +31,10 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
         String path = key.substring(prefix.length);
         WebNodeStorage value = new WebNodeStorage(path, prefix, this);
         value.load();
-        values[path] = value;
-        rslt.add(value);
+        if (value._cachedValue != null) {
+          values[path] = value;
+          rslt.add(value);
+        }
       }
     }
     return new Future.value(rslt);
@@ -104,6 +106,9 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
 
   void load() {
     String str = window.localStorage[storePath];
+    if (str == null) {
+      return;
+    }
     List<String> strs = str.split('\n');
     if (str.startsWith(' ')) {
       // where there is space, it's qos 2
