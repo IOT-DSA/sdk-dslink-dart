@@ -62,7 +62,10 @@ WorkerPool createWorkerScriptPool(int count, Uri uri,
   var workers = [];
   for (var i = 1; i <= count; i++) {
     workers.add(createWorkerScript(uri,
-        metadata: {"workerId": i}..addAll(metadata == null ? {} : metadata)));
+      metadata: {
+        "workerId": i
+      }..addAll(metadata == null ? {} : metadata)
+    ));
   }
   return new WorkerPool(workers);
 }
@@ -82,15 +85,7 @@ class WorkerPool {
   Map<String, Producer> _methods = {};
 
   WorkerPool(this.sockets) {
-    for (var i = 0; i < sockets.length; i++) {
-      _workCounts[i] = 0;
-      sockets[i]._pool = this;
-      sockets[i].onReceivedMessageHandler = (msg) {
-        if (onMessageReceivedHandler != null) {
-          onMessageReceivedHandler(i, msg);
-        }
-      };
-    }
+    resync();
   }
 
   Function onMessageReceivedHandler;
@@ -105,6 +100,42 @@ class WorkerPool {
 
   Future ping() {
     return Future.wait(sockets.map((it) => it.ping()).toList());
+  }
+
+  reduceWorkers(int count) async {
+    if (sockets.length > count) {
+      var toRemove = sockets.length - count;
+      List<WorkerSocket> socks = sockets
+        .skip(count)
+        .take(toRemove)
+        .toList();
+      for (var sock in socks) {
+        await sock.close();
+        sock.kill();
+        sockets.remove(sock);
+      }
+    }
+  }
+
+  resizeFunctionWorkers(int count, WorkerFunction function,
+    {Map<String, dynamic> metadata}) async {
+    if (sockets.length < count) {
+      for (var i = sockets.length + 1; i <= count; i++) {
+        var sock = createWorker(function, metadata: {
+          "workerId": i
+        }..addAll(metadata == null ? {} : metadata));
+        sock._pool = this;
+        sock.onReceivedMessageHandler = (msg) {
+          if (onMessageReceivedHandler != null) {
+            onMessageReceivedHandler(i, msg);
+          }
+        };
+        await sock.init();
+        sockets.add(sock);
+      }
+    } else {
+      await reduceWorkers(count);
+    }
   }
 
   void send(dynamic data) {
@@ -192,6 +223,18 @@ class WorkerPool {
 
   WorkerSocket getAvailableWorker() {
     return workerAt(getAvailableWorkerId());
+  }
+
+  void resync() {
+    for (var i = 0; i < sockets.length; i++) {
+      _workCounts[i] = 0;
+      sockets[i]._pool = this;
+      sockets[i].onReceivedMessageHandler = (msg) {
+        if (onMessageReceivedHandler != null) {
+          onMessageReceivedHandler(i, msg);
+        }
+      };
+    }
   }
 
   Map<int, int> _workCounts = {};
