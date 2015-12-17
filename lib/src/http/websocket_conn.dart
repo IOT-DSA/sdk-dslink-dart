@@ -66,8 +66,8 @@ class WebSocketConnection extends Connection {
   static int messageIn = 0;
   static int dataOut = 0;
   static int messageOut = 0;
-  static int packageIn = 0;
-  static int packageOut = 0;
+  static int frameIn = 0;
+  static int frameOut = 0;
   
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
@@ -108,7 +108,7 @@ class WebSocketConnection extends Connection {
   }
 
   void onData(dynamic data) {
-    packageIn++;
+    frameIn++;
     if (_onDisconnectedCompleter.isCompleted) {
       return;
     }
@@ -281,7 +281,7 @@ class WebSocketConnection extends Connection {
       }
       addData(m);
       _dataSent = true;
-      packageOut++;
+      frameOut++;
     }
   }
 
