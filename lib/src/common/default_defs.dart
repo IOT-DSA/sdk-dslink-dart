@@ -119,7 +119,7 @@ Map defaultProfileMap = {
           }
         ]
       },
-      "streamingSet": {
+      "publish": {
         r"$invokable": "write",
         r"$params": [
           {"name": "Path", "type": "string"},

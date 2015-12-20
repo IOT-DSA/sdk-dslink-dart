@@ -83,6 +83,7 @@ abstract class PrivateKey {
     _CRYPTO_PROVIDER.loadFromString(str);
 
   String saveToString();
+  /// get the secret from the remote public key
   Future<ECDH> getSecret(String tempKey);
 }
 
