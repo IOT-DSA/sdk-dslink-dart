@@ -558,7 +558,21 @@ class SimpleNode extends LocalNodeImpl {
     if (rslt is Iterable) {
       response.updateStream(rslt.toList(), streamStatus: StreamStatus.closed);
     } else if (rslt is Map) {
-      response.updateStream([rslt], streamStatus: StreamStatus.closed);
+      var columns = [];
+      var out = [];
+      for (var x in rslt.keys) {
+        columns.add({
+          "name": x,
+          "type": "dynamic"
+        });
+        out.add(rslt[x]);
+      }
+
+      response.updateStream(
+        [out],
+        columns: columns,
+        streamStatus: StreamStatus.closed
+      );
     } else if (rslt is SimpleTableResult) {
       response.updateStream(rslt.rows,
           columns: rslt.columns, streamStatus: StreamStatus.closed);
