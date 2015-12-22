@@ -136,8 +136,8 @@ Map defaultProfileMap = {
         r"$invokable": "config",
         r"$params": [
           {"name": "TimeRange", "type": "string", "editor": "daterange"},
-          {"name": "Count", "type": "number"},
-          {"name": "Managed", "type": "bool"},
+          {"name": "Count", "type": "number", "description":"how many times this token can be used"},
+          {"name": "Managed", "type": "bool", "description":"when a managed token is deleted, server will delete all the dslinks associated with the token"},
         ],
         r"$columns": [{"name": "tokenName", "type": "string"}]
       }
