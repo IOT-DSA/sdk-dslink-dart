@@ -120,6 +120,8 @@ abstract class BaseLink {
 
   /// trigger when requester channel is Ready
   Future<Requester> get onRequesterReady;
+  
+  void close();
 }
 
 /// Base Class for Server Link implementations.

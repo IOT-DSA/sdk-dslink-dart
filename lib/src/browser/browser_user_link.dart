@@ -90,4 +90,11 @@ class BrowserUserLink implements ClientLink {
       }
     });
   }
+  
+  void close() {
+    if (_wsConnection != null) {
+      _wsConnection.close();
+      _wsConnection = null;
+    }
+  }
 }

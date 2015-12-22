@@ -135,8 +135,9 @@ Map defaultProfileMap = {
       "add": {
         r"$invokable": "config",
         r"$params": [
-          {"name": "timeRange", "type": "string", "editor": "daterange"},
-          {"name": "count", "type": "number"},
+          {"name": "TimeRange", "type": "string", "editor": "daterange"},
+          {"name": "Count", "type": "number"},
+          {"name": "Managed", "type": "bool"},
         ],
         r"$columns": [{"name": "tokenName", "type": "string"}]
       }
