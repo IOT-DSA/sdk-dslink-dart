@@ -30,7 +30,7 @@ class AsyncTableResult {
   /// Table Rows
   List rows;
   /// Stream Status
-  String status = StreamStatus.initialize;
+  String status = StreamStatus.open;
   /// Table Metadata
   Map meta;
   /// Handler for when this is closed.
@@ -51,7 +51,12 @@ class AsyncTableResult {
     if (stat != null) {
       status = stat;
     }
-    write();
+
+    if (response == null) {
+      new Future(write);
+    } else {
+      write();
+    }
   }
 
   /// Write this result to the result given by [resp].

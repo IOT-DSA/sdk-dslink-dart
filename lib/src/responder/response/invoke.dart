@@ -22,7 +22,7 @@ class InvokeResponse extends Response {
       : super(responder, rid);
 
   List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
-  
+
   /// update data for the responder stream
   void updateStream(List updates,
       {List columns, String streamStatus: StreamStatus.open, Map meta}) {
@@ -32,7 +32,7 @@ class InvokeResponse extends Response {
     pendingData.add(new _InvokeResponseUpdate(streamStatus, updates, columns, meta));
     prepareSending();
   }
-  
+
   OnReqParams onReqParams;
   /// new parameter from the requester
   void updateReqParams(Map m) {
