@@ -57,12 +57,16 @@ class HttpHelper {
 
   static const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
+  static const bool enableStandardWebSocket =
+    const bool.fromEnvironment("calzone.build", defaultValue: false) ||
+      const bool.fromEnvironment("websocket.standard", defaultValue: false);
+
   /// Custom WebSocket Connection logic.
   static Future<WebSocket> connectToWebSocket(
       String url, {Iterable<String> protocols, Map<String, dynamic> headers, HttpClient httpClient}) async {
     Uri uri = Uri.parse(url);
 
-    if (const bool.fromEnvironment("calzone.build", defaultValue: false) || uri.scheme == "http" || uri.scheme == "ws") {
+    if (enableStandardWebSocket) {
       return await WebSocket.connect(url, protocols: protocols, headers: headers);
     }
 
