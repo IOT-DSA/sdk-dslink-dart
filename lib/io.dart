@@ -156,6 +156,86 @@ class HttpHelper {
         .then((socket) => new WebSocket.fromUpgradedSocket(socket, protocol: protocol, serverSide: false));
     });
   }
+
+  static Future<WebSocket> upgradeToWebSocket(HttpRequest request, [
+    protocolSelector(List<String> protocols)
+  ]) {
+    if (enableStandardWebSocket) {
+      return WebSocketTransformer.upgrade(request, protocolSelector: protocolSelector);
+    }
+
+    var response = request.response;
+    if (!WebSocketTransformer.isUpgradeRequest(request)) {
+      // Send error response.
+      response
+        ..statusCode = HttpStatus.BAD_REQUEST
+        ..close();
+      return new Future.error(
+        new WebSocketException("Invalid WebSocket upgrade request"));
+    }
+
+    Future upgrade(String protocol) {
+      // Send the upgrade response.
+      response
+        ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
+        ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
+        ..headers.add(HttpHeaders.UPGRADE, "websocket");
+      String key = request.headers.value("Sec-WebSocket-Key");
+      SHA1 sha1 = new SHA1();
+      sha1.add("$key$_webSocketGUID".codeUnits);
+      String accept = CryptoUtils.bytesToBase64(sha1.close());
+      response.headers.add("Sec-WebSocket-Accept", accept);
+      if (protocol != null) {
+        response.headers.add("Sec-WebSocket-Protocol", protocol);
+      }
+      response.headers.contentLength = 0;
+      return response.detachSocket()
+        .then((socket) => new WebSocket.fromUpgradedSocket(
+        socket, protocol: protocol, serverSide: true));
+    }
+
+    var protocols = request.headers['Sec-WebSocket-Protocol'];
+    if (protocols != null && protocolSelector != null) {
+      // The suggested protocols can be spread over multiple lines, each
+      // consisting of multiple protocols. To unify all of them, first join
+      // the lists with ', ' and then tokenize.
+      protocols = HttpHelper.tokenizeFieldValue(protocols.join(', '));
+      return new Future(() => protocolSelector(protocols))
+        .then((protocol) {
+        if (protocols.indexOf(protocol) < 0) {
+          throw new WebSocketException(
+            "Selected protocol is not in the list of available protocols");
+        }
+        return protocol;
+      })
+        .catchError((error) {
+        response
+          ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+          ..close();
+        throw error;
+      })
+        .then(upgrade);
+    } else {
+      return upgrade(null);
+    }
+  }
+
+  static List<String> tokenizeFieldValue(String headerValue) {
+    List<String> tokens = new List<String>();
+    int start = 0;
+    int index = 0;
+    while (index < headerValue.length) {
+      if (headerValue[index] == ",") {
+        tokens.add(headerValue.substring(start, index));
+        start = index + 1;
+      } else if (headerValue[index] == " " || headerValue[index] == "\t") {
+        start++;
+      }
+      index++;
+    }
+    tokens.add(headerValue.substring(start, index));
+    return tokens;
+  }
 }
 
 /// Generates a random socket port.

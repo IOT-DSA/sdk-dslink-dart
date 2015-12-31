@@ -112,9 +112,7 @@ simpleLinksTests() {
     await gap();
     var result = await requester.invoke("/conns/DataHost/Get", {}).first;
     expect(result.updates, hasLength(1));
-    expect(result.updates.first, equals({
-      "message": "Hello World"
-    }));
+    expect(result.updates.first, equals(["Hello World"]));
   });
 
   test("support invoking a simple table action with 0 parameters and 1 column", () async {
@@ -191,10 +189,10 @@ simpleLinksTests() {
         expect(input, equals("Hello World"));
 
         return [
-          {
-            "uppercase": input.toUpperCase(),
-            "lowercase": input.toLowerCase()
-          }
+          [
+            input.toString().toUpperCase(),
+            input.toString().toLowerCase()
+          ]
         ];
       }, provider)
     });
@@ -207,10 +205,10 @@ simpleLinksTests() {
     }).first;
     expect(result.updates, hasLength(1));
     expect(result.updates, equals([
-      {
-        "uppercase": "HELLO WORLD",
-        "lowercase": "hello world"
-      }
+      [
+        "HELLO WORLD",
+        "hello world"
+      ]
     ]));
   });
 
@@ -245,9 +243,9 @@ simpleLinksTests() {
         var data = ByteDataUtil.fromList(UTF8.encode(input));
 
         return [
-          {
-            "data": data
-          }
+          [
+            data
+          ]
         ];
       }, provider)
     });
@@ -261,10 +259,9 @@ simpleLinksTests() {
     expect(result.updates, hasLength(1));
     var firstUpdate = result.updates.first;
 
-    expect(firstUpdate, new isInstanceOf<Map>());
+    expect(firstUpdate, new isInstanceOf<List>());
     expect(firstUpdate, hasLength(1));
-    expect(firstUpdate, contains("data"));
-    var data = firstUpdate["data"];
+    var data = firstUpdate[0];
 
     expect(data, new isInstanceOf<ByteData>());
     var decoded = UTF8.decode(ByteDataUtil.toUint8List(data));

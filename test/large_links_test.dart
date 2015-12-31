@@ -3,14 +3,10 @@
 library dslink.test.vm.links.simple;
 
 import "dart:async";
-import "dart:convert";
-import "dart:typed_data";
 
 import "package:dsbroker/broker.dart";
-import "package:dslink/server.dart";
 import "package:dslink/dslink.dart";
 import "package:dslink/io.dart";
-import "package:dslink/nodes.dart";
 import "package:test/test.dart";
 
 import "common.dart";
@@ -42,7 +38,8 @@ largeLinksTest() {
   List<String> args, bool isRequester: false,
   bool isResponder: true, Map nodes, Map profiles}) async {
     var link = new LinkProvider(
-      ["--broker=http://127.0.0.1:${port}/conn"]..addAll(((args == null ? [] : args) as List<String>).toList()),
+      ["--broker=http://127.0.0.1:${port}/conn"]
+        ..addAll(((args == null ? [] : args) as List<String>).toList()),
       name,
       isRequester: isRequester,
       isResponder: isResponder,
