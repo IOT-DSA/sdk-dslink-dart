@@ -40,7 +40,7 @@ Map defaultProfileMap = {
       {
         "name": "Rollup",
         "type": buildEnumType(
-            ["avg", "min", "max", "sum", "first", "last", "count"])
+            ["avg", "min", "max", "sum", "first", "last", "and", "or", "count", "auto"])
       }
     ],
     r"$columns": [
