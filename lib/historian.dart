@@ -752,19 +752,13 @@ class WatchGroupNode extends SimpleNode {
   WatchGroupNode(String path) : super(path, link.provider);
 
   @override
-  onCreated() async {
+  onCreated() {
     var p = new Path(path);
     db = link[p.parentPath];
     _watchName = configs[r"$name"];
 
     if (_watchName == null) {
       _watchName = NodeNamer.decodeName(p.name);
-    }
-
-    if (db.database == null) {
-      Completer c = new Completer();
-      db.onDatabaseReady.add(c.complete);
-      await c.future;
     }
 
     link.addNode("${path}/addWatchPath", {
@@ -798,7 +792,15 @@ class WatchGroupNode extends SimpleNode {
       r"$is": "purgeGroup"
     });
 
-    db.database.addWatchGroupExtensions(this);
+    return new Future(() async {
+      if (db.database == null) {
+        Completer c = new Completer();
+        db.onDatabaseReady.add(c.complete);
+        await c.future;
+      }
+
+      db.database.addWatchGroupExtensions(this);
+    });
   }
 
   Stream<ValuePair> fetchHistory(String path, TimeRange range) {
