@@ -87,7 +87,7 @@ class LinkProvider {
     // move the waiting part of init into a later frame
     // we need to make sure provider is created at the first frame
     // not affected by any async code
-    return await initLinkWithPrivateKey();
+    await initLinkWithPrivateKey();
   }
 
   Future initLinkWithPrivateKey() async {
