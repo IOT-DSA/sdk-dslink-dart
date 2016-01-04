@@ -23,13 +23,32 @@ class InvokeResponse extends Response {
 
   List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
 
+  bool _hasSentColumns = false;
+
   /// update data for the responder stream
   void updateStream(List updates,
-      {List columns, String streamStatus: StreamStatus.open, Map meta}) {
+      {List columns, String streamStatus: StreamStatus.open,
+        Map meta, bool autoSendColumns: true}) {
     if (meta != null && meta['mode'] == 'refresh') {
       pendingData.clear();
     }
-    pendingData.add(new _InvokeResponseUpdate(streamStatus, updates, columns, meta));
+
+    if (!_hasSentColumns) {
+      if (columns == null &&
+        autoSendColumns &&
+        node != null &&
+        node.configs[r"$columns"] is List) {
+        columns = node.configs[r"$columns"];
+      }
+    }
+
+    if (columns != null) {
+      _hasSentColumns = true;
+    }
+
+    pendingData.add(
+      new _InvokeResponseUpdate(streamStatus, updates, columns, meta)
+    );
     prepareSending();
   }
 
