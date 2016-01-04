@@ -16,6 +16,7 @@ FILES=(
     lib/utils.dart
     lib/worker.dart
     lib/io.dart
+    lib/historian.dart
 )
 
 for FILE in ${FILES[@]}
