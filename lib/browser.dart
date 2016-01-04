@@ -63,6 +63,10 @@ class LinkProvider {
   bool _initCalled = false;
 
   Future init() async {
+    if (_initCalled) {
+      return;
+    }
+
     _initCalled = true;
 
     if (provider == null) {
