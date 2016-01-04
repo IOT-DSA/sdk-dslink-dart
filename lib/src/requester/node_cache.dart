@@ -18,6 +18,8 @@ class RemoteNodeCache {
     return _nodes[path];
   }
 
+  Iterable<String> get cachedNodePaths => _nodes.keys;
+
   bool isNodeCached(String path) {
     return _nodes.containsKey(path);
   }
@@ -135,6 +137,7 @@ class RemoteNode extends Node {
     } else {
       childPathPre = '$remotePath/';
     }
+
     m.forEach((String key, value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;
@@ -155,6 +158,25 @@ class RemoteNode extends Node {
     configs.clear();
     attributes.clear();
     children.clear();
+  }
+
+  Map save({bool includeValue: true}) {
+    var map = {};
+    map.addAll(configs);
+    map.addAll(attributes);
+    for (String key in children.keys) {
+      Node node = children[key];
+      map[key] = node is RemoteNode ? node.save() : node.getSimpleMap();
+    }
+
+    if (includeValue &&
+      _subscribeController != null &&
+      _subscribeController._lastUpdate != null) {
+      map["?value"] = _subscribeController._lastUpdate.value;
+      map["?value_timestamp"] = _subscribeController._lastUpdate.ts;
+    }
+
+    return map;
   }
 }
 

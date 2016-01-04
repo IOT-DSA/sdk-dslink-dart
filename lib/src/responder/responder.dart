@@ -18,7 +18,12 @@ class Responder extends ConnectionHandler {
       for (ISubscriptionNodeStorage node in nodes) {
         var values = node.getLoadedValues();
         LocalNode localnode = nodeProvider.getOrCreateNode(node.path, false);
-        RespSubscribeController controller = _subscription.add(node.path, localnode, -1, node.qos);
+        RespSubscribeController controller = _subscription.add(
+          node.path,
+          localnode,
+          -1,
+          node.qos
+        );
         if (values.isNotEmpty) {
           controller.resetCache(values);
         }
@@ -97,6 +102,7 @@ class Responder extends ConnectionHandler {
           // when rid is invalid, nothing needs to be sent back
           return;
         }
+
         switch (method) {
           case 'list':
             list(m);
@@ -116,7 +122,6 @@ class Responder extends ConnectionHandler {
           case 'remove':
             remove(m);
             return;
-          default:
         }
       }
     }
@@ -490,6 +495,7 @@ class Responder extends ConnectionHandler {
 
     _traceCallbacks.add(_traceCallback);
   }
+
   void removeTraceCallback(ResponseTraceCallback _traceCallback) {
     _traceCallbacks.remove(_traceCallback);
     if (_traceCallbacks.isEmpty) {

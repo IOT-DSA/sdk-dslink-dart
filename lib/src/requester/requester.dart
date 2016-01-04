@@ -62,7 +62,8 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request sendRequest(Map m, RequestUpdater updater) => _sendRequest(m, updater);
+  Request sendRequest(Map m, RequestUpdater updater) =>
+    _sendRequest(m, updater);
 
   Request _sendRequest(Map m, RequestUpdater updater) {
     m['rid'] = getNextRid();

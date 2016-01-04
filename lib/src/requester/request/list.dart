@@ -214,17 +214,26 @@ class ListController implements RequestUpdater {
 
   void onStartListen() {
     if (request == null) {
-      request = requester._sendRequest(
-          {'method': 'list', 'path': node.remotePath}, this);
+      request = requester._sendRequest({
+        'method': 'list',
+        'path': node.remotePath
+      }, this);
     }
   }
 
   void _onListen(callback(RequesterListUpdate update)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
-        List changes = []..addAll(node.configs.keys)..addAll(
-            node.attributes.keys)..addAll(node.children.keys);
-        RequesterListUpdate update = new RequesterListUpdate(node, changes, request.streamStatus);
+        List changes = [];
+        changes
+          ..addAll(node.configs.keys)
+          ..addAll(node.attributes.keys)
+          ..addAll(node.children.keys);
+        RequesterListUpdate update = new RequesterListUpdate(
+          node,
+          changes,
+          request.streamStatus
+        );
         callback(update);
       });
     }
