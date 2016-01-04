@@ -5,7 +5,8 @@ LinkProvider link;
 main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
   link = new LinkProvider(args, "Simple-", defaultNodes: {
-    "Message": {
+    "message": {
+      r"$name": "Message", // The pretty name of this node.
       r"$type": "string", // The type of the node is a string.
       r"$writable": "write", // This node's value can be set by a requester.
       "?value": "Hello World" // The default message value.
@@ -16,5 +17,5 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link.onValueChange("/Message").listen((_) => link.save());
+  link.onValueChange("/message").listen((_) => link.save());
 }

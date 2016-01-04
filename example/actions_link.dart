@@ -5,11 +5,13 @@ LinkProvider link;
 main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
   link = new LinkProvider(args, "Actions-", defaultNodes: {
-    "Message": {
+    "message": {
+      r"$name": "Message", // The pretty name of this node.
       r"$type": "string", // The type of the node is a string.
       r"$writable": "write", // This node's value can be set by a requester.
       "?value": "Hello World", // The default message value.
-      "Reset": { // An action on the message node.
+      "reset": { // An action on the message node.
+        r"$name": "Reset", // The pretty name of this action.
         r"$is": "reset", // This node takes on the 'reset' profile.
         r"$invokable": "write", // Invoking this action requires write permissions.
         r"$params": [], // This action does not have any parameters.
@@ -25,12 +27,14 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link.onValueChange("/Message").listen((update) => link.save());
+  link.onValueChange("/message").listen((update) => link.save());
 }
 
 // A simple node that resets the message value.
 class ResetNode extends SimpleNode {
-  ResetNode(String path, [SimpleNodeProvider provider]) : super(path, provider);
+  ResetNode(String path, [SimpleNodeProvider provider]) : super(path, provider) {
+    print("========= CREATE RESET =========");
+  }
 
   @override
   onInvoke(Map<String, dynamic> params) {

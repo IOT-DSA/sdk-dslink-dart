@@ -458,6 +458,10 @@ class LinkProvider {
       }
     }
 
+    if (_initialized) {
+      return;
+    }
+
     _initialized = true;
 
     if (profiles != null) {
