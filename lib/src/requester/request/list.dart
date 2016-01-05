@@ -31,7 +31,7 @@ class ListDefListener {
   }
 }
 
-class ListController implements RequestUpdater {
+class ListController implements RequestUpdater, ConnectionProcessor {
   final RemoteNode node;
   final Requester requester;
   BroadcastStreamController<RequesterListUpdate> _controller;
@@ -213,14 +213,23 @@ class ListController implements RequestUpdater {
   }
 
   void onStartListen() {
-    if (request == null) {
-      request = requester._sendRequest({
-        'method': 'list',
-        'path': node.remotePath
-      }, this);
+    if (request == null && !waitToSend) {
+      waitToSend = true;
+      requester.addProcessor(this);
     }
   }
-
+  bool waitToSend = false;
+  void startSendingData(int currentTime, int waitingAckId) {
+    if (!waitToSend) {
+      return;
+    }
+    request = requester._sendRequest(
+              {'method': 'list', 'path': node.remotePath}, this);
+    waitToSend = false;
+  }
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {
+  }
+  
   void _onListen(callback(RequesterListUpdate update)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
@@ -244,11 +253,11 @@ class ListController implements RequestUpdater {
   }
 
   void _destroy() {
+    waitToSend = false;
     if (_profileLoader != null) {
       _profileLoader.cancel();
       _profileLoader = null;
     }
-
     if (request != null) {
       requester.closeRequest(request);
       request = null;
