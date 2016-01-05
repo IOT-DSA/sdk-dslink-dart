@@ -539,6 +539,57 @@ abstract class HistorianAdapter {
   List<Map<String, dynamic>> getCreateDatabaseParameters();
 }
 
+class DatabaseNode extends SimpleNode {
+  Map config;
+  HistorianDatabaseAdapter database;
+  List<Function> onDatabaseReady = [];
+
+  DatabaseNode(String path) : super(path);
+
+  @override
+  onCreated() async {
+    config = configs[r"$$db_config"];
+    try {
+      database = await historian.getDatabase(config);
+      while (onDatabaseReady.isNotEmpty) {
+        onDatabaseReady.removeAt(0)();
+      }
+    } catch (e, stack) {
+      logger.severe(
+        "Failed to connect to database for ${path}",
+        e,
+        stack
+      );
+      remove();
+    }
+
+    link.addNode("${path}/createWatchGroup", {
+      r"$name": "Add Watch Group",
+      r"$is": "createWatchGroup",
+      r"$invokable": "write",
+      r"$params": [
+        {
+          "name": "Name",
+          "type": "string"
+        }
+      ]
+    });
+
+    link.addNode("${path}/delete", {
+      r"$name": "Delete",
+      r"$invokable": "write",
+      r"$is": "delete"
+    });
+  }
+
+  @override
+  onRemoving() {
+    if (database != null) {
+      database.close();
+    }
+  }
+}
+
 class WatchPathNode extends SimpleNode {
   String valuePath;
   WatchGroupNode group;
@@ -583,7 +634,10 @@ class WatchPathNode extends SimpleNode {
       await c.future;
     }
 
-    HistorySummary summary = await group.db.database.getSummary(groupName, valuePath);
+    HistorySummary summary = await group.db.database.getSummary(
+      groupName,
+      valuePath
+    );
 
     if (summary.first != null) {
       link.updateValue("${path}/startDate", summary.first.timestamp);
@@ -591,7 +645,10 @@ class WatchPathNode extends SimpleNode {
     }
 
     if (summary.last != null) {
-      ValueUpdate update = new ValueUpdate(summary.last.value, ts: summary.last.timestamp);
+      ValueUpdate update = new ValueUpdate(
+        summary.last.value,
+        ts: summary.last.timestamp
+      );
       link.updateValue("${path}/lwv", update);
       updateValue(update);
     }
@@ -678,6 +735,10 @@ class WatchPathNode extends SimpleNode {
     }
 
     storeBuffer();
+
+    while (onRemoveCallbacks.isNotEmpty) {
+      onRemoveCallbacks.removeAt(0)();
+    }
   }
 
   @override
@@ -687,61 +748,22 @@ class WatchPathNode extends SimpleNode {
     out.remove("startDate");
     out.remove("endDate");
     out.remove("getHistory");
+
+    while (onSaveCallbacks.isNotEmpty) {
+      onSaveCallbacks.removeAt(0)(out);
+    }
+
     return out;
   }
+
+  List<Function> onSaveCallbacks = [];
+  List<Function> onRemoveCallbacks = [];
 
   List<ValueUpdate> buffer = [];
   Disposable timer;
 
   Stream<ValuePair> fetchHistory(TimeRange range) {
     return group.fetchHistory(valuePath, range);
-  }
-}
-
-class DatabaseNode extends SimpleNode {
-  Map config;
-  HistorianDatabaseAdapter database;
-  List<Function> onDatabaseReady = [];
-
-  DatabaseNode(String path) : super(path);
-
-  @override
-  onCreated() async {
-    config = configs[r"$$db_config"];
-    try {
-      database = await historian.getDatabase(config);
-      while (onDatabaseReady.isNotEmpty) {
-        onDatabaseReady.removeAt(0)();
-      }
-    } catch (e, stack) {
-      logger.severe("Failed to connect to database for ${path}", e, stack);
-      remove();
-    }
-
-    link.addNode("${path}/createWatchGroup", {
-      r"$name": "Add Watch Group",
-      r"$is": "createWatchGroup",
-      r"$invokable": "write",
-      r"$params": [
-        {
-          "name": "Name",
-          "type": "string"
-        }
-      ]
-    });
-
-    link.addNode("${path}/delete", {
-      r"$name": "Delete",
-      r"$invokable": "write",
-      r"$is": "delete"
-    });
-  }
-
-  @override
-  onRemoving() {
-    if (database != null) {
-      database.close();
-    }
   }
 }
 
@@ -803,6 +825,14 @@ class WatchGroupNode extends SimpleNode {
     });
   }
 
+  @override
+  onRemoving() {
+    while (onRemoveCallbacks.isNotEmpty) {
+      onRemoveCallbacks.removeAt(0)();
+    }
+    super.onRemoving();
+  }
+
   Stream<ValuePair> fetchHistory(String path, TimeRange range) {
     return db.database.fetchHistory(name, path, range);
   }
@@ -810,6 +840,8 @@ class WatchGroupNode extends SimpleNode {
   Future storeValues(List<ValueEntry> entries) {
     return db.database.store(entries);
   }
+
+  List<Function> onRemoveCallbacks = [];
 }
 
 class ValueEntry {
