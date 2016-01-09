@@ -448,15 +448,13 @@ class AddWatchPathNode extends SimpleNode {
     String rp = NodeNamer.createName(wp);
     var p = new Path(path);
     var targetPath = "${p.parentPath}/${rp}";
-    var n = link.addNode(targetPath, {
+    var node = await link.requester.getRemoteNode(wp);
+    link.addNode(targetPath, {
       r"$name": wp,
       r"$value_path": wp,
-      r"$is": "watchPath"
+      r"$is": "watchPath",
+      r"$type": node.configs[r"$type"]
     });
-
-    var node = await link.requester.getRemoteNode(wp);
-    n.configs[r"$type"] = node.configs[r"$type"];
-    n.listChangeController.add(r"$is");
 
     link.save();
   }
