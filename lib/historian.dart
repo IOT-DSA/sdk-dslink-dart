@@ -675,6 +675,12 @@ class WatchPathNode extends SimpleNode {
       r"$is": "purgePath"
     });
 
+    link.addNode("${path}/delete", {
+      r"$name": "Delete",
+      r"$invokable": "write",
+      r"$is": "delete"
+    });
+
     link.onValueChange("${path}/enabled").listen((ValueUpdate update) {
       if (update.value == true) {
         sub();
