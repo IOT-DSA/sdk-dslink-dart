@@ -438,3 +438,16 @@ const List<String> alphabet = const [
 const List<int> numbers = const [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const List<String> specials = const ["@", "=", "_", "+", "-", "!", "."];
+
+Uint8List toUTF8(String str) {
+  int length = str.length;
+  Uint8List bytes = new Uint8List(length);
+  for (int i = 0; i < length; i++) {
+    int unit = str.codeUnitAt(i);
+    if (unit >= 128) {
+      return new Uint8List.fromList(const Utf8Encoder().convert(str));
+    }
+    bytes[i] = unit;
+  }
+  return bytes;
+}
