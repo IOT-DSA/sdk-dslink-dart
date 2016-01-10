@@ -281,6 +281,11 @@ class GetHistoryNode extends SimpleNode {
         "name": "Real Time",
         "type": "bool",
         "default": false
+      },
+      {
+        "name": "Batch Size",
+        "type": "number",
+        "default": 0
       }
     ];
 
@@ -306,6 +311,13 @@ class GetHistoryNode extends SimpleNode {
     Rollup rollup = rollupFactory == null ? null : rollupFactory();
     Duration interval = new Duration(
       milliseconds: parseInterval(params["Interval"]));
+    num batchSize = params["Batch Size"];
+
+    if (batchSize == null) {
+      batchSize = 0;
+    }
+
+    int batchCount = batchSize.toInt();
 
     TimeRange tr = parseTimeRange(range);
     if (params["Real Time"] == true) {
@@ -326,7 +338,7 @@ class GetHistoryNode extends SimpleNode {
         await for (ValuePair row in pairs) {
           count++;
           buffer.add(row.toRow());
-          if (count == 10) {
+          if (count != 0 && count == batchCount) {
             yield buffer;
             buffer = [];
             count = 0;
@@ -335,6 +347,7 @@ class GetHistoryNode extends SimpleNode {
 
         if (buffer.isNotEmpty) {
           yield buffer;
+          buffer.clear();
         }
       }
     } catch (e) {
