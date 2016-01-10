@@ -56,11 +56,42 @@ class DSLogUtils {
     });
   }
 
+  static withSequenceNumbers(handler()) {
+    return runZoned(handler, zoneValues: {
+      "dsa.logger.sequence": true
+    });
+  }
+
+  static withNoLoggerName(handler()) {
+    return runZoned(handler, zoneValues: {
+      "dsa.logger.show_name": false
+    });
+  }
+
+  static withInlineErrorsDisabled(handler()) {
+    return runZoned(handler, zoneValues: {
+      "dsa.logger.inline_errors": false
+    });
+  }
+
   static withLoggerOff(handler()) {
     return runZoned(handler, zoneValues: {
       "dsa.logger.print": false
     });
   }
+}
+
+bool _getLogSetting(LogRecord record, String name, [bool defaultValue = false]) {
+  bool env = new bool.fromEnvironment(name, defaultValue: null);
+  if (env != null) {
+    return env;
+  }
+
+  if (record.zone[name] is bool) {
+    return record.zone[name];
+  }
+
+  return defaultValue;
 }
 
 /// Fetches the logger instance.
@@ -74,13 +105,29 @@ Logger get logger {
 
   _logger.onRecord.listen((record) {
     List<String> lines = record.message.split("\n");
+    bool inlineErrors = _getLogSetting(
+      record,
+      "dsa.logger.inline_errors",
+      true
+    );
 
-    if (record.error != null) {
-      lines.addAll(record.error.toString().split("\n"));
-    }
+    bool enableSequenceNumbers = _getLogSetting(
+      record,
+      "dsa.logger.sequence",
+      false
+    );
 
-    if (record.stackTrace != null) {
-      lines.addAll(record.stackTrace.toString().split("\n"));
+    if (inlineErrors) {
+      if (record.error != null) {
+        lines.addAll(record.error.toString().split("\n"));
+      }
+
+      if (record.stackTrace != null) {
+        lines.addAll(record.stackTrace.toString()
+          .split("\n")
+          .where((x) => x.isNotEmpty)
+          .toList());
+      }
     }
 
     String rname = record.loggerName;
@@ -89,41 +136,58 @@ Logger get logger {
       rname = record.zone["dsa.logger.name"];
     }
 
-    bool showTimestamps = false;
+    bool showTimestamps = _getLogSetting(
+      record,
+      "dsa.logger.show_timestamps",
+      false
+    );
 
-    if (const bool.fromEnvironment("dsa.logger.show_timestamps", defaultValue: false)) {
-      showTimestamps = true;
-    }
-
-    if (record.zone["dsa.logger.timestamps"] is bool) {
-      showTimestamps = record.zone["dsa.logger.timestamps"];
-    }
-
-    if (!(const bool.fromEnvironment("dsa.logger.show_name", defaultValue: true))) {
+    if (!_getLogSetting(record, "dsa.logger.show_name", true)) {
       rname = null;
     }
 
     for (String line in lines) {
       String msg = "";
+
+      if (enableSequenceNumbers) {
+        msg += "[${record.sequenceNumber}]";
+      }
+
       if (showTimestamps) {
         msg += "[${record.time}]";
       }
+
+      msg += "[${record.level.name}]";
 
       if (rname != null) {
         msg += "[${rname}]";
       }
 
-      msg += "[${record.level.name}]";
       msg += " ";
       msg += line;
 
-      if (record.zone["dsa.logger.print"] != false) {
+      if (_getLogSetting(record, "dsa.logger.print", true)) {
         print(msg);
+      }
+    }
+
+    if (!inlineErrors) {
+      if (record.error != null) {
+        print(record.error);
+      }
+
+      if (record.stackTrace != null) {
+        print(record.stackTrace);
       }
     }
   });
 
-  _logger.level = Level.INFO;
+  updateLogLevel(
+    const String.fromEnvironment(
+      "dsa.logger.default_level",
+      defaultValue: "INFO"
+    )
+  );
 
   return _logger;
 }
