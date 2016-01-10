@@ -68,7 +68,7 @@ class WebSocketConnection extends Connection {
   static int messageOut = 0;
   static int frameIn = 0;
   static int frameOut = 0;
-  
+
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
       this.close();
@@ -305,7 +305,7 @@ class WebSocketConnection extends Connection {
   }
 
   void _onDone() {
-    logger.fine("Disconnected");
+    logger.info("Disconnected");
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
