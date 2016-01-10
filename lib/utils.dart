@@ -49,6 +49,20 @@ bool get DEBUG_MODE {
   return _DEBUG_MODE;
 }
 
+class DSLogUtils {
+  static withLoggerName(String name, handler()) {
+    return runZoned(handler, zoneValues: {
+      "dsa.logger.name": name
+    });
+  }
+
+  static withLoggerOff(handler()) {
+    return runZoned(handler, zoneValues: {
+      "dsa.logger.print": false
+    });
+  }
+}
+
 /// Fetches the logger instance.
 Logger get logger {
   if (_logger != null) {
@@ -59,13 +73,53 @@ Logger get logger {
   _logger = new Logger("DSA");
 
   _logger.onRecord.listen((record) {
-    print("[DSA][${record.level.name}] ${record.message}");
+    List<String> lines = record.message.split("\n");
+
     if (record.error != null) {
-      print(record.error);
+      lines.addAll(record.error.toString().split("\n"));
     }
 
     if (record.stackTrace != null) {
-      print(record.stackTrace);
+      lines.addAll(record.stackTrace.toString().split("\n"));
+    }
+
+    String rname = record.loggerName;
+
+    if (record.zone["dsa.logger.name"] is String) {
+      rname = record.zone["dsa.logger.name"];
+    }
+
+    bool showTimestamps = false;
+
+    if (const bool.fromEnvironment("dsa.logger.show_timestamps", defaultValue: false)) {
+      showTimestamps = true;
+    }
+
+    if (record.zone["dsa.logger.timestamps"] is bool) {
+      showTimestamps = record.zone["dsa.logger.timestamps"];
+    }
+
+    if (!(const bool.fromEnvironment("dsa.logger.show_name", defaultValue: true))) {
+      rname = null;
+    }
+
+    for (String line in lines) {
+      String msg = "";
+      if (showTimestamps) {
+        msg += "[${record.time}]";
+      }
+
+      if (rname != null) {
+        msg += "[${rname}]";
+      }
+
+      msg += "[${record.level.name}]";
+      msg += " ";
+      msg += line;
+
+      if (record.zone["dsa.logger.print"] != false) {
+        print(msg);
+      }
     }
   });
 
