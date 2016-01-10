@@ -80,7 +80,7 @@ class ECDHIsolate {
     _checkRequest();
   }
 
-  static ECDHIsoltateRequest _waitingReq;
+  static ECDHIsolateRequest _waitingReq;
   static void _checkRequest() {
     if (_waitingReq == null && _requests.length > 0) {
       _waitingReq = _requests.removeFirst();
@@ -91,24 +91,24 @@ class ECDHIsolate {
     }
   }
 
-  static ListQueue<ECDHIsoltateRequest> _requests =
-      new ListQueue<ECDHIsoltateRequest>();
+  static ListQueue<ECDHIsolateRequest> _requests =
+      new ListQueue<ECDHIsolateRequest>();
 
   /// when oldprivate is '', don't use cache
   static Future<ECDH> _sendRequest(
       PublicKey publicKeyRemote, String oldprivate) {
-    var req = new ECDHIsoltateRequest(publicKeyRemote, oldprivate);
+    var req = new ECDHIsolateRequest(publicKeyRemote, oldprivate);
     _requests.add(req);
     _checkRequest();
     return req.future;
   }
 }
 
-class ECDHIsoltateRequest {
+class ECDHIsolateRequest {
   PublicKeyImpl publicKeyRemote;
   String oldPrivate;
 
-  ECDHIsoltateRequest(this.publicKeyRemote, this.oldPrivate);
+  ECDHIsolateRequest(this.publicKeyRemote, this.oldPrivate);
 
   Completer<ECDH> _completer = new Completer<ECDH>();
   Future<ECDH> get future => _completer.future;

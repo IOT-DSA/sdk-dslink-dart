@@ -166,9 +166,19 @@ class ECDHImpl extends ECDH {
   }
 
   String hashSalt(String salt) {
-    List raw = []..addAll(const Utf8Encoder().convert(salt))..addAll(bytes);
+    Uint8List encoded = toUTF8(salt);
+    Uint8List raw = new Uint8List(encoded.length + bytes.length);
+    int i;
+    for (i = 0; i < encoded.length; i++) {
+      raw[i] = encoded[i];
+    }
+
+    for (var x = 0; x < bytes.length; x++) {
+      raw[i] = bytes[x];
+      i++;
+    }
     SHA256Digest sha256 = new SHA256Digest();
-    var hashed = sha256.process(new Uint8List.fromList(raw));
+    var hashed = sha256.process(raw);
     return Base64.encode(hashed);
   }
 }
