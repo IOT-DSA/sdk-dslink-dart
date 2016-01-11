@@ -120,7 +120,7 @@ abstract class BaseLink {
 
   /// trigger when requester channel is Ready
   Future<Requester> get onRequesterReady;
-  
+
   void close();
 }
 
@@ -143,6 +143,15 @@ abstract class ClientLink extends BaseLink {
   /// shortPolling is only valid in http mode
   /// saltId: 0 salt, 1:saltS, 2:saltL
   updateSalt(String salt, [int saltId = 0]);
+
+  String get logName => null;
+
+  String formatLogMessage(String msg) {
+    if (logName != null) {
+      return "[${logName}] ${msg}";
+    }
+    return msg;
+  }
 
   void connect();
 }

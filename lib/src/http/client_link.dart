@@ -1,7 +1,7 @@
 part of dslink.client;
 
 /// a client link for both http and ws
-class HttpClientLink implements ClientLink {
+class HttpClientLink extends ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Completer _onConnectedCompleter = new Completer();
 
@@ -114,7 +114,7 @@ class HttpClientLink implements ClientLink {
       connUrl = '$connUrl$tokenHash';
     }
     Uri connUri = Uri.parse(connUrl);
-    logger.info("Connecting to ${_conn}");
+    logger.info(formatLogMessage("Connecting to ${_conn}"));
     try {
       HttpClientRequest request = await client.postUrl(connUri);
       Map requestJson = {
@@ -129,13 +129,22 @@ class HttpClientLink implements ClientLink {
         requestJson['linkData'] = linkData;
       }
 
-      logger.fine("DS ID: ${dsId}");
+      logger.finest(formatLogMessage(
+        "Handshake Request: ${requestJson}"
+      ));
+
+      logger.fine(formatLogMessage("ID: ${dsId}"));
 
       request.add(toUTF8(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
       List<int> merged = await response.fold([], foldList);
       String rslt = const Utf8Decoder().convert(merged);
       Map serverConfig = DsJson.decode(rslt);
+
+      logger.finest(formatLogMessage(
+        "Handshake Response: ${requestJson}"
+      ));
+
       saltNameMap.forEach((name, idx) {
         //read salts
         salts[idx] = serverConfig[name];
@@ -191,7 +200,7 @@ class HttpClientLink implements ClientLink {
           enableAck: enableAck,
           useCodec: DsCodec.getCodec(format));
 
-      logger.info("Connected");
+      logger.info(formatLogMessage("Connected"));
       if (!_onConnectedCompleter.isCompleted) {
         _onConnectedCompleter.complete();
       }
@@ -211,8 +220,12 @@ class HttpClientLink implements ClientLink {
       _wsConnection.onDisconnected.then((connection) {
         initWebsocket();
       });
-    } catch (error) {
-      logger.fine(error);
+    } catch (error, stack) {
+      logger.fine(
+        formatLogMessage("Error while initializing WebSocket"),
+        error,
+        stack
+      );
       if (error is WebSocketException && (
           error.message.contains('not upgraded to websocket') // error from dart
               || error.message.contains('(401)') // error from nodejs

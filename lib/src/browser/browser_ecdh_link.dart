@@ -1,7 +1,7 @@
 part of dslink.browser_client;
 
 /// a client link for websocket
-class BrowserECDHLink implements ClientLink {
+class BrowserECDHLink extends ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
   Completer _onConnectedCompleter = new Completer();
 

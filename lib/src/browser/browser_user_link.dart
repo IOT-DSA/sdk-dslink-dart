@@ -1,7 +1,7 @@
 part of dslink.browser_client;
 
 /// a client link for both http and ws
-class BrowserUserLink implements ClientLink {
+class BrowserUserLink extends ClientLink {
   Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
 
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
@@ -90,7 +90,7 @@ class BrowserUserLink implements ClientLink {
       }
     });
   }
-  
+
   void close() {
     if (_wsConnection != null) {
       _wsConnection.close();

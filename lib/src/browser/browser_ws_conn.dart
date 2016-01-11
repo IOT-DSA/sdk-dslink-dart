@@ -41,7 +41,7 @@ class WebSocketConnection extends Connection {
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
     _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
 
-    pingTimer = new Timer.periodic(new Duration(seconds: 20), onPingTimer);
+    pingTimer = new Timer.periodic(const Duration(seconds: 20), onPingTimer);
   }
 
   Timer pingTimer;

@@ -121,11 +121,14 @@ class WebSocketConnection extends Connection {
       try {
         m = codec.decodeBinaryFrame(data);
         if (logger.isLoggable(Level.FINEST)) {
-          logger.finest("Received from WebSocket(binary): ${m}");
+          logger.finest(formatLogMessage("receive: ${m}"));
         }
       } catch (err, stack) {
         logger.fine(
-            "Failed to decode binary data in WebSocket Connection", err, stack);
+          formatLogMessage("Failed to decode binary data in WebSocket Connection"),
+          err,
+          stack
+        );
         close();
         return;
       }
@@ -159,10 +162,14 @@ class WebSocketConnection extends Connection {
       try {
         m = codec.decodeStringFrame(data);
         if (logger.isLoggable(Level.FINEST)) {
-          logger.finest("WebSocket String: ${m}");
+          logger.finest(formatLogMessage("receive: ${m}"));
         }
-      } catch (err) {
-        logger.severe("Failed to decode string data from WebSocket Connection", err);
+      } catch (err, stack) {
+        logger.severe(
+          formatLogMessage("Failed to decode string data from WebSocket Connection"),
+          err,
+          stack
+        );
         close();
         return;
       }
@@ -289,7 +296,7 @@ class WebSocketConnection extends Connection {
     Object encoded = codec.encodeFrame(m);
 
     if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("send: $m");
+      logger.finest(formatLogMessage("send: $m"));
     }
 
     if (throughputEnabled) {
@@ -298,14 +305,14 @@ class WebSocketConnection extends Connection {
       } else if (encoded is List<int>) {
         dataOut += encoded.length;
       } else {
-        logger.warning("invalid data frame");
+        logger.warning(formatLogMessage("invalid data frame"));
       }
     }
     socket.add(encoded);
   }
 
   void _onDone() {
-    logger.info("Disconnected");
+    logger.info(formatLogMessage("Disconnected"));
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
@@ -325,6 +332,19 @@ class WebSocketConnection extends Connection {
       pingTimer.cancel();
     }
   }
+
+  String formatLogMessage(String msg) {
+    if (clientLink != null) {
+      return clientLink.formatLogMessage(msg);
+    }
+
+    if (logName != null) {
+      return "[${logName}] ${msg}";
+    }
+    return msg;
+  }
+
+  String logName;
 
   void close() {
     if (socket.readyState == WebSocket.OPEN ||
