@@ -82,10 +82,12 @@ class DSLogUtils {
 }
 
 bool _getLogSetting(LogRecord record, String name, [bool defaultValue = false]) {
-  bool env = new bool.fromEnvironment(name, defaultValue: null);
-  if (env != null) {
-    return env;
-  }
+  try {
+    bool env = new bool.fromEnvironment(name, defaultValue: null);
+    if (env != null) {
+      return env;
+    }
+  } catch (e) {}
 
   if (record.zone[name] is bool) {
     return record.zone[name];
