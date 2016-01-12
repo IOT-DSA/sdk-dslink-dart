@@ -421,7 +421,7 @@ class Responder extends ConnectionHandler {
 
   void remove(Map m) {
     Path path = Path.getValidPath(m['path']);
-    if (path == null || path.isAbsolute) {
+    if (path == null || !path.isAbsolute) {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
     }
