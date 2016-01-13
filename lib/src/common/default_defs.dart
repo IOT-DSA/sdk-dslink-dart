@@ -39,8 +39,18 @@ Map defaultProfileMap = {
       },
       {
         "name": "Rollup",
-        "type": buildEnumType(
-            ["avg", "min", "max", "sum", "first", "last", "and", "or", "count", "auto"])
+        "type": buildEnumType([
+          "avg",
+          "min",
+          "max",
+          "sum",
+          "first",
+          "last",
+          "and",
+          "or",
+          "count",
+          "auto"
+        ])
       }
     ],
     r"$columns": [
@@ -52,7 +62,9 @@ Map defaultProfileMap = {
     "userNode": {
       "addChild": {
         r"$invokable": "config",
-        r"$params": [{"name": "Name", "type": "string"}]
+        r"$params": [
+          {"name": "Name", "type": "string"}
+        ]
       },
       "addLink": {
         r"$invokable": "config",
@@ -66,7 +78,9 @@ Map defaultProfileMap = {
     "userRoot": {
       "addChild": {
         r"$invokable": "config",
-        r"$params": [{"name": "Name", "type": "string"}]
+        r"$params": [
+          {"name": "Name", "type": "string"}
+        ]
       },
       "addLink": {
         r"$invokable": "config",
@@ -79,7 +93,9 @@ Map defaultProfileMap = {
     "dataNode": {
       "addNode": {
         r"$invokable": "write",
-        r"$params": [{"name": "Name", "type": "string"}]
+        r"$params": [
+          {"name": "Name", "type": "string"}
+        ]
       },
       "addValue": {
         r"$invokable": "write",
@@ -97,13 +113,29 @@ Map defaultProfileMap = {
       },
       "deleteNode": {
         r"$invokable": "write",
-        r"$params": [{"name": "Recursive", "type": "bool"}]
-      }
+        r"$params": [
+          {"name": "Recursive", "type": "bool"}
+        ]
+      },
+      "renameNode": {
+        r"$invokable": "write",
+        r"$params": [
+          {"name": "Name", "type": "string"}
+        ]
+      },
+      "duplicateNode": {
+        r"$invokable": "write",
+        r"$params": [
+          {"name": "Name", "type": "string"}
+        ]
+      },
     },
     "dataRoot": {
       "addNode": {
         r"$invokable": "write",
-        r"$params": [{"name": "Name", "type": "string"}]
+        r"$params": [
+          {"name": "Name", "type": "string"}
+        ]
       },
       "addValue": {
         r"$invokable": "write",
@@ -123,23 +155,33 @@ Map defaultProfileMap = {
         r"$invokable": "write",
         r"$params": [
           {"name": "Path", "type": "string"},
-          {
-            "name": "Value",
-            "type": "dynamic"
-          }
+          {"name": "Value", "type": "dynamic"}
         ]
       }
     },
-    "token": {"delete": {r"$invokable": "config", r"$params": []}},
+    "token": {
+      "delete": {r"$invokable": "config", r"$params": []}
+    },
     "tokenGroup": {
       "add": {
         r"$invokable": "config",
         r"$params": [
           {"name": "TimeRange", "type": "string", "editor": "daterange"},
-          {"name": "Count", "type": "number", "description":"how many times this token can be used"},
-          {"name": "Managed", "type": "bool", "description":"when a managed token is deleted, server will delete all the dslinks associated with the token"},
+          {
+            "name": "Count",
+            "type": "number",
+            "description": "how many times this token can be used"
+          },
+          {
+            "name": "Managed",
+            "type": "bool",
+            "description":
+                "when a managed token is deleted, server will delete all the dslinks associated with the token"
+          },
         ],
-        r"$columns": [{"name": "tokenName", "type": "string"}]
+        r"$columns": [
+          {"name": "tokenName", "type": "string"}
+        ]
       }
     }
   }
