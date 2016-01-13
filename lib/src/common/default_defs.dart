@@ -155,7 +155,8 @@ Map defaultProfileMap = {
         r"$invokable": "write",
         r"$params": [
           {"name": "Path", "type": "string"},
-          {"name": "Value", "type": "dynamic"}
+          {"name": "Value", "type": "dynamic"},
+          {"name": "Timestamp", "type": "string"}
         ]
       }
     },
