@@ -133,14 +133,32 @@ class LiveTable {
     }
   }
 
-  void override() {
+  void refresh([int idx = -1]) {
     if (_resp != null) {
-      _resp.updateStream(getCurrentState(), meta: {
-        "mode": "refresh"
-      }, columns: columns.map((x) {
-        return x.getData();
-      }).toList());
+      if (idx == -1) {
+        _resp.updateStream(getCurrentState(), columns: columns.map((x) {
+          return x.getData();
+        }).toList(), streamStatus: StreamStatus.open, meta: {
+          "mode": "refresh"
+        });
+      } else {
+        _resp.updateStream(getCurrentState(idx), streamStatus: StreamStatus.open, meta: {
+          "modify": "replace ${idx}-${rows.length}"
+        });
+      }
     }
+  }
+
+  void reindex() {
+    var i = 0;
+    for (LiveTableRow row in rows) {
+      row.index = i;
+      i++;
+    }
+  }
+
+  void override() {
+    refresh();
   }
 
   void resend() {
@@ -171,8 +189,12 @@ class LiveTable {
     }
   }
 
-  List getCurrentState() {
-    return rows.map((x) => x.values).toList();
+  List getCurrentState([int from = -1]) {
+    List<LiveTableRow> rw = rows;
+    if (from != -1) {
+      rw = rw.sublist(from);
+    }
+    return rw.map((x) => x.values).toList();
   }
 
   InvokeResponse get response => _resp;
@@ -193,6 +215,13 @@ class LiveTableRow {
     }
     values[idx] = value;
     table.onRowUpdate(this);
+  }
+
+  void delete() {
+    table.rows.remove(this);
+    var idx = index;
+    table.refresh(idx);
+    table.reindex();
   }
 }
 
