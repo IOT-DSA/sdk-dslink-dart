@@ -450,12 +450,32 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   @override
-  void removeNode(String path) {
+  void removeNode(String path, {bool recurse: true}) {
     if (path == '/' || !path.startsWith('/')) return;
     SimpleNode node = getNode(path);
 
     if (node == null) {
       return;
+    }
+
+    if (recurse) {
+      String base = path;
+      if (!base.endsWith("/")) {
+        base += "/";
+      }
+
+      List<String> targets = nodes.keys.where((String x) {
+        return x.startsWith(base);
+      }).toList();
+      targets.sort((a, b) {
+        return countCharacterFrequency(b, "/").compareTo(
+          countCharacterFrequency(a, "/")
+        );
+      });
+
+      for (String target in targets) {
+        removeNode(target, recurse: false);
+      }
     }
 
     node.onRemoving();

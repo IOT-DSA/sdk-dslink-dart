@@ -34,6 +34,13 @@ List foldList(List a, List b) {
   return a..addAll(b);
 }
 
+// Count the frequency of the character [char] in the string [input].
+int countCharacterFrequency(String input, String char) {
+  var c = char.codeUnitAt(0);
+
+  return input.codeUnits.where((u) => c == u).length;
+}
+
 /// Gets if we are in checked mode.
 bool get DEBUG_MODE {
   if (_DEBUG_MODE != null) {
