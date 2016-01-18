@@ -445,7 +445,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       pnode.onChildAdded(p.name, node);
       pnode.updateList(p.name);
     }
-
+    
     return node;
   }
 
@@ -464,17 +464,15 @@ class SimpleNodeProvider extends NodeProviderImpl
         base += "/";
       }
 
+      int baseSlashFreq = countCharacterFrequency(base, "/");
+
       List<String> targets = nodes.keys.where((String x) {
-        return x.startsWith(base);
+        return x.startsWith(base) &&
+          baseSlashFreq == countCharacterFrequency(x, "/");
       }).toList();
-      targets.sort((a, b) {
-        return countCharacterFrequency(b, "/").compareTo(
-          countCharacterFrequency(a, "/")
-        );
-      });
 
       for (String target in targets) {
-        removeNode(target, recurse: false);
+        removeNode(target);
       }
     }
 
