@@ -59,28 +59,32 @@ largeLinksTest() {
 
   test("are able to send large numbers of value updates", () async {
     LinkProvider host = await createLink("DataHost", nodes: {
-      "Number": {
+      "number": {
         r"$type": "number",
         "?value": 1
       }
     });
 
-    var client = await createLink("DataClient", isRequester: true, isResponder: false);
+    var client = await createLink(
+      "DataClient",
+      isRequester: true,
+      isResponder: false
+    );
     var requester = await client.onRequesterReady;
     await gap();
 
     var sent = [];
     var received = [];
-    var sub = requester.subscribe("/conns/DataHost/Number", (ValueUpdate update) {
+    var sub = requester.subscribe("/downstream/DataHost/number", (ValueUpdate update) {
       received.add(update.value);
     }, 1);
 
     await gap();
 
-    for (var i = 1; i <= 500; i++) {
-      host.val("/Number", i);
+    for (var i = 1; i <= 5000; i++) {
+      host.val("/number", i);
       sent.add(i);
-      await new Future.delayed(const Duration(milliseconds: 10));
+      await new Future.delayed(const Duration(milliseconds: 1));
     }
 
     await gap();

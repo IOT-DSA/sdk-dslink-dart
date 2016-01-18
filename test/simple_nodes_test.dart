@@ -19,13 +19,13 @@ main() {
 simpleNodeTests() {
   test("retains configs", () {
     var provider = createSimpleNodeProvider(nodes: {
-      "Message": {
+      "message": {
         r"$name": "A Message",
         r"$type": "string"
       }
     });
 
-    var msg = provider.getNode("/Message");
+    var msg = provider.getNode("/message");
 
     expect(msg.configs[r"$is"], equals("node"));
     expect(msg.configs[r"$name"], equals("A Message"));
@@ -38,13 +38,13 @@ simpleNodeTests() {
 
   test("retains attributes", () {
     var provider = createSimpleNodeProvider(nodes: {
-      "Message": {
+      "message": {
         "@name": "A Message",
         "@type": "string"
       }
     });
 
-    var msg = provider.getNode("/Message");
+    var msg = provider.getNode("/message");
 
     expect(msg.attributes["@name"], equals("A Message"));
     expect(msg.attributes["@type"], equals("string"));
@@ -56,14 +56,14 @@ simpleNodeTests() {
 
   test("retains children", () {
     var provider = createSimpleNodeProvider(nodes: {
-      "Container": {
-        "Message": {
+      "container": {
+        "message": {
           r"$type": "string"
         }
       }
     });
 
-    var c = provider.getNode("/Container");
+    var c = provider.getNode("/container");
 
     expect(c.configs, hasLength(1));
     expect(c.children, hasLength(1));

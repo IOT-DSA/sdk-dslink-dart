@@ -1,4 +1,3 @@
-@TestOn("vm")
 library dslink.test.workers;
 
 import "dart:async";
@@ -13,23 +12,26 @@ void main() {
 }
 
 void workerTests(WorkerSocket factory(WorkerFunction func, [Map<String, dynamic> metadata])) {
-  test("receives a message", () async {
-    WorkerSocket socket = await factory(receiveMessageWorker).init();
+  test("calls a simple method that returns a result", () async {
+    for (int i = 1; i <= 10; i++) {
+      WorkerSocket socket = await factory(transformStringWorker).init();
 
-    try {
-      Timer.run(() {
-        socket.add("Hello World");
-      });
-      var result = await socket.first.timeout(new Duration(milliseconds: 250), onTimeout: () => null);
+      try {
+        for (int x = 1; x <= 5; x++) {
+          var result = await socket.callMethod("transform", "Hello World")
+            .timeout(const Duration(seconds: 3), onTimeout: () => null);
 
-      expect(result, isNotNull, reason: "Worker should have sent the message back.");
-    } finally {
-      await socket.close();
+          expect(result, equals("hello world"));
+        }
+      } finally {
+        await socket.close();
+      }
     }
   });
 }
 
-receiveMessageWorker(Worker worker) async {
-  WorkerSocket socket = await worker.init();
-  socket.add(await socket.first);
+transformStringWorker(Worker worker) async {
+  await worker.init(methods: {
+    "transform": (String input) => input.toLowerCase()
+  });
 }

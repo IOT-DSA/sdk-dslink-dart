@@ -7,7 +7,6 @@ import "dart:convert";
 import "dart:typed_data";
 
 import "package:dsbroker/broker.dart";
-import "package:dslink/server.dart";
 import "package:dslink/dslink.dart";
 import "package:dslink/io.dart";
 import "package:dslink/nodes.dart";
@@ -66,7 +65,7 @@ simpleLinksTests() {
 
   test("provide single level nodes to the broker", () async {
     LinkProvider host = await createLink("DataHost", nodes: {
-      "Message": {
+      "message": {
         r"$type": "string",
         "?value": "Hello World"
       }
@@ -75,20 +74,20 @@ simpleLinksTests() {
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
     await gap();
-    var firstParentUpdate = await firstListUpdate(requester, "/conns/DataHost");
-    expect(firstParentUpdate.node.children, hasLength(1));
-    expect(firstParentUpdate.node.children.keys, contains("Message"));
-    var firstMessageUpdate = await firstListUpdate(requester, "/conns/DataHost/Message");
-    expect(firstMessageUpdate.node.getConfig(r"$type"), equals("string"));
-    await expectNodeValue(requester, "/conns/DataHost/Message", "Hello World");
-    host.val("/Message", "Goodbye World");
+    var parent = await requester.getRemoteNode("/downstream/DataHost");
+    expect(parent.children, hasLength(1));
+    expect(parent.children.keys, contains("message"));
+    var message = await requester.getRemoteNode("/downstream/DataHost/message");
+    expect(message.getConfig(r"$type"), equals("string"));
+    await expectNodeValue(requester, "/downstream/DataHost/message", "Hello World");
+    host.val("/message", "Goodbye World");
     await gap();
-    await expectNodeValue(requester, "/conns/DataHost/Message", "Goodbye World");
+    await expectNodeValue(requester, "/downstream/DataHost/message", "Goodbye World");
   });
 
   test("support invoking a simple action with 0 parameters and 1 result", () async {
-    LinkProvider host = await createLink("DataHost", nodes: {
-      "Get": {
+    await createLink("DataHost", nodes: {
+      "get": {
         r"$is": "get",
         r"$invokable": "read",
         r"$result": "values",
@@ -110,13 +109,13 @@ simpleLinksTests() {
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
     await gap();
-    var result = await requester.invoke("/conns/DataHost/Get", {}).first;
+    var result = await requester.invoke("/downstream/DataHost/get", {}).first;
     expect(result.updates, hasLength(1));
     expect(result.updates.first, equals(["Hello World"]));
   });
 
   test("support invoking a simple table action with 0 parameters and 1 column", () async {
-    LinkProvider host = await createLink("DataHost", nodes: {
+    await createLink("DataHost", nodes: {
       "Get": {
         r"$is": "get",
         r"$invokable": "read",
@@ -144,7 +143,7 @@ simpleLinksTests() {
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
     await gap();
-    var result = await requester.invoke("/conns/DataHost/Get", {}).first;
+    var result = await requester.invoke("/downstream/DataHost/Get", {}).first;
     expect(result.updates, hasLength(2));
     expect(result.updates, equals([
       {
@@ -157,8 +156,8 @@ simpleLinksTests() {
   });
 
   test("support invoking a table action with 1 parameter and 2 columns", () async {
-    LinkProvider host = await createLink("DataHost", nodes: {
-      "Get": {
+    await createLink("DataHost", nodes: {
+      "get": {
         r"$is": "get",
         r"$invokable": "read",
         r"$result": "table",
@@ -200,7 +199,7 @@ simpleLinksTests() {
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
     await gap();
-    var result = await requester.invoke("/conns/DataHost/Get", {
+    var result = await requester.invoke("/downstream/DataHost/get", {
       "input": "Hello World"
     }).first;
     expect(result.updates, hasLength(1));
@@ -213,8 +212,8 @@ simpleLinksTests() {
   });
 
   test("support invoking an action to receive binary data", () async {
-    LinkProvider host = await createLink("DataHost", nodes: {
-      "Get": {
+    await createLink("DataHost", nodes: {
+      "get": {
         r"$is": "get",
         r"$invokable": "read",
         r"$result": "values",
@@ -253,7 +252,7 @@ simpleLinksTests() {
     var client = await createLink("DataClient", isRequester: true, isResponder: false);
     var requester = await client.onRequesterReady;
     await gap();
-    var result = await requester.invoke("/conns/DataHost/Get", {
+    var result = await requester.invoke("/downstream/DataHost/get", {
       "input": "Hello World"
     }).first;
     expect(result.updates, hasLength(1));

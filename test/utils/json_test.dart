@@ -3,7 +3,7 @@ library dslink.test.common.json;
 import "dart:convert";
 
 import "package:test/test.dart";
-import "package:dslink/utils.dart" show Base64, BinaryData, BinaryInCache, BinaryOutCache, ByteDataUtil, DsCodec, DsJson;
+import "package:dslink/utils.dart" show Base64, BinaryData, ByteDataUtil, DsCodec, DsJson;
 
 void main() {
   group("JSON", jsonTests);
