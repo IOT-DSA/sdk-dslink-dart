@@ -95,10 +95,11 @@ class Responder extends ConnectionHandler {
         updateInvoke(m);
         return;
       } else {
-        if (method == 'close') {
-          if (_responses.containsKey(m['rid'])) {
+        if (_responses.containsKey(m['rid'])) {
+          if (method == 'close') {
             close(m);
           }
+          // when rid is invalid, nothing needs to be sent back
           return;
         }
 
@@ -178,7 +179,7 @@ class Responder extends ConnectionHandler {
 
       _getNode(path, (LocalNode node) {
         addResponse(new ListResponse(this, rid, node));
-      }, false, (e, stack) {
+      }, (e, stack) {
         var error = new DSError(
           "nodeError",
           msg: e.toString(),
@@ -203,13 +204,11 @@ class Responder extends ConnectionHandler {
           } else {
             continue;
           }
-
           if (p['sid'] is int) {
             sid = p['sid'];
           } else {
             continue;
           }
-
           if (p['qos'] is int) {
             qos = p['qos'];
           }
@@ -220,7 +219,7 @@ class Responder extends ConnectionHandler {
           _getNode(path, (LocalNode node) {
             _subscription.add(path.path, node, sid, qos);
             closeResponse(m['rid']);
-          }, true, (e, stack) {
+          }, (e, stack) {
             var error = new DSError(
               "nodeError",
               msg: e.toString(),
@@ -237,9 +236,9 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void _getNode(Path p, Taker<LocalNode> func, bool store, [TwoTaker<dynamic, dynamic> onError]) {
+  void _getNode(Path p, Taker<LocalNode> func, [TwoTaker<dynamic, dynamic> onError]) {
     try {
-      LocalNode node = nodeProvider.getOrCreateNode(p.path, store);
+      LocalNode node = nodeProvider.getOrCreateNode(p.path, false);
 
       if (node is WaitForMe) {
         (node as WaitForMe).onLoaded.then((n) {
@@ -383,7 +382,7 @@ class Responder extends ConnectionHandler {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }
         closeResponse(m['rid']);
-      }, false, (e, stack) {
+      }, (e, stack) {
         var error = new DSError(
           "nodeError",
           msg: e.toString(),
@@ -412,7 +411,7 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.setAttribute(
-          path.name, value, this, addResponse(new Response(this, rid)));
+            path.name, value, this, addResponse(new Response(this, rid)));
       }
     } else {
       // shouldn't be possible to reach here
@@ -488,7 +487,7 @@ class Responder extends ConnectionHandler {
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     _subscription.addTraceCallback(_traceCallback);
-    _responses.forEach((int rid, Response response) {
+    _responses.forEach((int rid, Response response){
       _traceCallback(response.getTraceData());
     });
 
