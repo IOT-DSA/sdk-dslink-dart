@@ -135,17 +135,11 @@ class LiveTable {
 
   void refresh([int idx = -1]) {
     if (_resp != null) {
-      if (idx == -1) {
-        _resp.updateStream(getCurrentState(), columns: columns.map((x) {
-          return x.getData();
-        }).toList(), streamStatus: StreamStatus.open, meta: {
-          "mode": "refresh"
-        });
-      } else {
-        _resp.updateStream(getCurrentState(idx), streamStatus: StreamStatus.open, meta: {
-          "modify": "replace ${idx}-${rows.length}"
-        });
-      }
+      _resp.updateStream(getCurrentState(), columns: columns.map((x) {
+        return x.getData();
+      }).toList(), streamStatus: StreamStatus.open, meta: {
+        "mode": "refresh"
+      });
     }
   }
 
@@ -445,7 +439,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       pnode.onChildAdded(p.name, node);
       pnode.updateList(p.name);
     }
-    
+
     return node;
   }
 
@@ -476,10 +470,10 @@ class SimpleNodeProvider extends NodeProviderImpl
       }
     }
 
-    node.onRemoving();
-    node.removed = true;
     Path p = new Path(path);
     SimpleNode pnode = getNode(p.parentPath);
+    node.onRemoving();
+    node.removed = true;
 
     if (pnode != null) {
       pnode.children.remove(p.name);

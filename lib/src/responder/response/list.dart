@@ -173,7 +173,6 @@ class ListResponse extends Response {
     }
   }
 
-
   void _close() {
     _nodeChangeListener.cancel();
   }
