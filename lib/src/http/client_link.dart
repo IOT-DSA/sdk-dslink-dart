@@ -142,7 +142,7 @@ class HttpClientLink extends ClientLink {
       Map serverConfig = DsJson.decode(rslt);
 
       logger.finest(formatLogMessage(
-        "Handshake Response: ${requestJson}"
+        "Handshake Response: ${serverConfig}"
       ));
 
       saltNameMap.forEach((name, idx) {
