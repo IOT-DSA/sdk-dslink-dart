@@ -70,6 +70,12 @@ class HttpClientLink extends ClientLink {
       }
     }
 
+    if (formats == null &&
+      const String.fromEnvironment("dsa.codec.formats") != null) {
+      var formatString = const String.fromEnvironment("dsa.codec.formats");
+      formats = formatString.split(",");
+    }
+
     if (formats != null) {
       this.formats = formats;
     }
@@ -121,7 +127,7 @@ class HttpClientLink extends ClientLink {
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
         'isResponder': responder != null,
-        'formats':formats,
+        'formats': formats,
         'version': DSA_VERSION
       };
 

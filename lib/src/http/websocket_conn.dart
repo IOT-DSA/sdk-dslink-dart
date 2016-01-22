@@ -136,6 +136,9 @@ class WebSocketConnection extends Connection {
       if (throughputEnabled) {
         dataIn += data.length;
       }
+
+      data = null;
+
       bool needAck = false;
       if (m["responses"] is List && (m["responses"] as List).length > 0) {
         needAck = true;
@@ -152,6 +155,7 @@ class WebSocketConnection extends Connection {
       if (m["ack"] is int) {
         ack(m["ack"]);
       }
+
       if (needAck) {
         Object msgId = m["msg"];
         if (msgId != null) {
@@ -173,12 +177,15 @@ class WebSocketConnection extends Connection {
         close();
         return;
       }
+
       if (throughputEnabled) {
         dataIn += data.length;
       }
+
       if (m["salt"] is String && clientLink != null) {
         clientLink.updateSalt(m["salt"]);
       }
+
       bool needAck = false;
       if (m["responses"] is List && (m["responses"] as List).length > 0) {
         needAck = true;
@@ -199,6 +206,7 @@ class WebSocketConnection extends Connection {
           }
         }
       }
+
       if (m["requests"] is List && (m["requests"] as List).length > 0) {
         needAck = true;
         // send requests to responder channel
@@ -311,8 +319,13 @@ class WebSocketConnection extends Connection {
     socket.add(encoded);
   }
 
+  bool printDisconnectedMessage = true;
+
   void _onDone() {
-    logger.info(formatLogMessage("Disconnected"));
+    if (printDisconnectedMessage) {
+      logger.info(formatLogMessage("Disconnected"));
+    }
+
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
