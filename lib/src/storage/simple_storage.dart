@@ -71,7 +71,7 @@ class SimpleStorageManager implements IStorageManager {
   }
 
   Map<String, SimpleValueStorageBucket> values =
-  new Map<String, SimpleValueStorageBucket>();
+    new Map<String, SimpleValueStorageBucket>();
 
   IValueStorageBucket getOrCreateValueStorageBucket(String category) {
     if (values.containsKey(category)) {
@@ -190,7 +190,6 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
 
   void destroy() {
     file.delete().catchError(_ignoreError);
-    ;
   }
 
   List<ValueUpdate> _cachedValue;
@@ -282,7 +281,7 @@ class SimpleValueStorage extends IValueStorage {
   bool _pendingSet = false;
   Object _pendingValue;
   Object _setValue;
-  
+
   /// set the value, if previous setting is not finished, it will be set later
   void setValue(Object value) {
     _pendingValue = value;
