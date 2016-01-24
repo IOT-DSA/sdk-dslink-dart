@@ -3,8 +3,8 @@ library dslink.browser_client;
 
 import "dart:async";
 import "dart:html";
-import "dart:convert";
 import "dart:typed_data";
+
 import "common.dart";
 import "utils.dart";
 import "requester.dart";
@@ -100,7 +100,9 @@ Future<PrivateKey> getPrivateKey({DataStorage storage}) async {
 
   String keyPath = "dsa_key:${window.location.pathname}";
   String keyLockPath = "dsa_key_lock:${window.location.pathname}";
-  String randomToken = "${new DateTime.now().millisecondsSinceEpoch} ${DSRandom.instance.nextUint16()} ${DSRandom.instance.nextUint16()}";
+  String randomToken = "${new DateTime.now().millisecondsSinceEpoch}"
+    " ${DSRandom.instance.nextUint16()}"
+    " ${DSRandom.instance.nextUint16()}";
 
   bool hasKeyPath = false;
 
