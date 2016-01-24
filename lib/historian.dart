@@ -560,18 +560,28 @@ class DatabaseNode extends SimpleNode {
   @override
   onCreated() async {
     config = configs[r"$$db_config"];
-    try {
-      database = await historian.getDatabase(config);
-      while (onDatabaseReady.isNotEmpty) {
-        onDatabaseReady.removeAt(0)();
+    while (removed != true) {
+      try {
+        database = await historian.getDatabase(config);
+        while (onDatabaseReady.isNotEmpty) {
+          onDatabaseReady.removeAt(0)();
+        }
+        break;
+      } catch (e, stack) {
+        logger.severe(
+          "Failed to connect to database for ${path}",
+          e,
+          stack
+        );
+        await new Future.delayed(const Duration(seconds: 5));
       }
-    } catch (e, stack) {
-      logger.severe(
-        "Failed to connect to database for ${path}",
-        e,
-        stack
-      );
-      remove();
+    }
+
+    if (removed == true) {
+      try {
+        await database.close();
+      } catch (e) {}
+      return;
     }
 
     link.addNode("${path}/createWatchGroup", {
