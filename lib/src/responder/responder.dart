@@ -142,6 +142,7 @@ class Responder extends ConnectionHandler {
     if (error != null) {
       m['error'] = error.serialize();
     }
+    _responses.remove(rid);
     addToSendList(m);
   }
 
