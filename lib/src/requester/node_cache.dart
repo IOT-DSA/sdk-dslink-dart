@@ -3,7 +3,10 @@ part of dslink.requester;
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
-  Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
+  Map<String, RemoteNode> _nodes =
+    new LeakProofMap<String, RemoteNode>.create(
+      "remote node cache"
+    );
 
   RemoteNodeCache() {}
 

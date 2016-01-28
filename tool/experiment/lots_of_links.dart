@@ -6,12 +6,12 @@ int workers = 20; // Number of Workers
 main() async {
   WorkerPool pool = createWorkerPool(workers, linkWorker); // Create a Worker Pool
   await pool.init(); // Initialize the Worker Pool
-  await pool.divide("spawn", 1000); // Divide 1000 calls to "spawn" over all the workers, which is 50 links per worker.
+  await pool.divide("spawn", 100); // Divide 1000 calls to "spawn" over all the workers, which is 50 links per worker.
 }
 
 linkWorker(Worker worker) async {
   spawnLink(int i) async {
-    updateLogLevel("OFF");
+    updateLogLevel("FINE");
     LinkProvider link = new LinkProvider([], "Worker-${i}-", defaultNodes: { // Create a Link Provider
       "string": { // Just a value so that things aren't empty.
         r"$name": "String Value",

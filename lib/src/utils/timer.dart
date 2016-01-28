@@ -61,9 +61,9 @@ class DsTimer {
   static LinkedList<TimerFunctions> _pendingTimer =
       new LinkedList<TimerFunctions>();
   static Map<int, TimerFunctions> _pendingTimerMap =
-      new Map<int, TimerFunctions>();
+      new LeakProofList<int, TimerFunctions>.create("pending timers");
   static Map<Function, TimerFunctions> _functionsMap =
-      new Map<Function, TimerFunctions>();
+      new LeakProofMap<Function, TimerFunctions>.create("timer functions");
 
   static TimerFunctions _getTimerFunctions(int time50) {
     TimerFunctions tf = _pendingTimerMap[time50];
@@ -128,7 +128,7 @@ class DsTimer {
         existTf.remove(callback);
       }
     }
-    
+
     if (desiredTime50 <= _lastTimeRun) {
       callLater(callback);
       return;

@@ -10,6 +10,8 @@ import "dart:math";
 import "package:logging/logging.dart";
 import "package:msgpack/msgpack.dart";
 
+import "package:collection/collection.dart" as Collection;
+
 part "src/utils/base64.dart";
 part "src/utils/timer.dart";
 part "src/utils/stream_controller.dart";
@@ -17,6 +19,7 @@ part "src/utils/codec.dart";
 part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
+part "src/utils/collection.dart";
 
 typedef ExecutableFunction();
 typedef T Producer<T>();
