@@ -21,6 +21,9 @@ class HttpClientLink extends ClientLink {
   Requester requester;
   Responder responder;
 
+  @override
+  String logName;
+
   ECDH _nonce;
 
   ECDH get nonce => _nonce;
