@@ -1,8 +1,17 @@
 part of dslink.common;
 
 abstract class ConnectionProcessor {
-  static const int ACK_WAIT_COUNT = 64;
-  static const int DEFAULT_CACHE_SIZE = 1024;
+  static const int ACK_WAIT_COUNT =
+    const int.fromEnvironment(
+      "dsa.responder.ack.wait_count",
+      defaultValue: 64
+    );
+
+  static const int DEFAULT_CACHE_SIZE =
+    const int.fromEnvironment(
+      "dsa.responder.value.cache_size",
+      defaultValue: 1024
+    );
 
   void startSendingData(int waitingAckId, int currentTime);
   void ackReceived(int receiveAckId, int startTime, int currentTime);

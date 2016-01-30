@@ -62,6 +62,7 @@ class LeakProofList<T> extends Collection.DelegatingList<T> {
     );
   }
 
+  @override
   void add(T val) {
     super.add(val);
     if (length % limit == 0) {
