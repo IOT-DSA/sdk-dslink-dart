@@ -25,28 +25,38 @@ import "../../../utils.dart";
 part "isolate.dart";
 
 /// hard code the EC curve data here, so the compiler don"t have to register all curves
-ECDomainParameters _secp256r1 = () {
+ECDomainParameters __secp256r1;
+ECDomainParameters get _secp256r1 {
+  if (__secp256r1 != null) {
+    return __secp256r1;
+  }
+
   BigInteger q = new BigInteger(
-      "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
+    "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
   BigInteger a = new BigInteger(
-      "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
+    "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
   BigInteger b = new BigInteger(
-      "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
+    "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
   BigInteger g = new BigInteger(
-      "046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
-      16);
+    "046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
+    16);
   BigInteger n = new BigInteger(
-      "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
+    "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
   BigInteger h = new BigInteger("1", 16);
   BigInteger seed =
-      new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
+  new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
   var seedBytes = seed.toByteArray();
 
   var curve = new fp.ECCurve(q, a, b);
-
   return new ECDomainParametersImpl(
-      "secp256r1", curve, curve.decodePoint(g.toByteArray()), n, h, seedBytes);
-}();
+    "secp256r1",
+    curve,
+    curve.decodePoint(g.toByteArray()),
+    n,
+    h,
+    seedBytes
+  );
+}
 
 class DartCryptoProvider implements CryptoProvider {
   static final DartCryptoProvider INSTANCE = new DartCryptoProvider();
@@ -130,7 +140,6 @@ class DartCryptoProvider implements CryptoProvider {
     ECPoint Q = _secp256r1.curve.decodePoint(bytes);
     return new PublicKeyImpl(new ECPublicKey(Q, _secp256r1));
   }
-
 
   String base64_sha256(Uint8List bytes) {
     SHA256Digest sha256 = new SHA256Digest();
