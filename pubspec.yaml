@@ -5,10 +5,10 @@ homepage: "http://iot-dsa.org"
 dependencies:
   args: ">=0.12.0 <0.14.0"
   bignum: ">=0.0.5 <0.1.0"
+  cipher: ">=0.7.1 <1.0.0"
   logging: ">=0.9.0 <0.13.0"
   crypto: "^0.9.0"
   msgpack: "^0.3.0"
-  pointycastle: "^0.10.0-dev"
 authors:
   - Kenneth Endfinger <k.endfinger@dglogik.com>
   - Rick Zhou <z.zhou@dglogik.com>

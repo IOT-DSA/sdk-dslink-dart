@@ -8,14 +8,16 @@ import "dart:math" as Math;
 import "dart:isolate";
 
 import "package:bignum/bignum.dart";
-import "package:pointycastle/pointycastle.dart" hide PublicKey, PrivateKey;
-import "package:pointycastle/digests/sha256.dart";
-import "package:pointycastle/key_generators/ec_key_generator.dart";
-import "package:pointycastle/random/block_ctr_random.dart";
-import "package:pointycastle/block/aes_fast.dart";
+import "package:cipher/cipher.dart" hide PublicKey, PrivateKey;
+import "package:cipher/digests/sha256.dart";
+import "package:cipher/key_generators/ec_key_generator.dart";
+import "package:cipher/params/key_generators/ec_key_generator_parameters.dart";
+import "package:cipher/random/secure_random_base.dart";
+import "package:cipher/random/block_ctr_random.dart";
+import "package:cipher/block/aes_fast.dart";
 
-import "package:pointycastle/ecc/ecc_base.dart";
-import "package:pointycastle/ecc/ecc_fp.dart" as fp;
+import "package:cipher/ecc/ecc_base.dart";
+import "package:cipher/ecc/ecc_fp.dart" as fp;
 
 import "../pk.dart";
 import "../../../utils.dart";
@@ -230,7 +232,7 @@ class PrivateKeyImpl implements PrivateKey {
 }
 
 /// random number generator
-class DSRandomImpl implements SecureRandom, DSRandom {
+class DSRandomImpl extends SecureRandomBase implements DSRandom {
   bool get needsEntropy => true;
 
   BlockCtrRandom _delegate;
@@ -299,29 +301,8 @@ class DSRandomImpl implements SecureRandom, DSRandom {
     }
   }
 
-  @override
   int nextUint8() {
     return _delegate.nextUint8();
-  }
-
-  @override
-  int nextUint16() {
-    return _delegate.nextUint16();
-  }
-
-  @override
-  BigInteger nextBigInteger(int bitLength) {
-    return _delegate.nextBigInteger(bitLength);
-  }
-
-  @override
-  Uint8List nextBytes(int count) {
-    return _delegate.nextBytes(count);
-  }
-
-  @override
-  int nextUint32() {
-    return _delegate.nextUint32();
   }
 }
 
