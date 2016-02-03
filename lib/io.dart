@@ -59,15 +59,23 @@ class HttpHelper {
 
   static const bool enableStandardWebSocket =
     const bool.fromEnvironment("calzone.build", defaultValue: false) ||
-      const bool.fromEnvironment("websocket.standard", defaultValue: false);
+      const bool.fromEnvironment("websocket.standard", defaultValue: true);
 
   /// Custom WebSocket Connection logic.
   static Future<WebSocket> connectToWebSocket(
-      String url, {Iterable<String> protocols, Map<String, dynamic> headers, HttpClient httpClient}) async {
+      String url, {
+      Iterable<String> protocols,
+      Map<String, dynamic> headers,
+      HttpClient httpClient
+    }) async {
     Uri uri = Uri.parse(url);
 
-    if (enableStandardWebSocket) {
-      return await WebSocket.connect(url, protocols: protocols, headers: headers);
+    if (enableStandardWebSocket && uri.scheme != "wss") {
+      return await WebSocket.connect(
+        url,
+        protocols: protocols,
+        headers: headers
+      );
     }
 
     if (uri.scheme != "ws" && uri.scheme != "wss") {

@@ -82,6 +82,9 @@ class LinkProvider {
   /// Default Log Level.
   String defaultLogLevel = "INFO";
 
+  /// Log Tag
+  String logTag;
+
   /// Save Private Key?
   bool savePrivateKey = false;
 
@@ -483,13 +486,7 @@ class LinkProvider {
     loadNodesFile();
 
     void doRun() {
-      link = new HttpClientLink(brokerUrl, prefix, privateKey,
-          isRequester: isRequester,
-          isResponder: isResponder,
-          nodeProvider: provider,
-          overrideRequester:overrideRequester,
-          overrideResponder:overrideResponder,
-          home: home, token:token, linkData:linkData);
+      link = createHttpLink();
       _ready = true;
 
       if (_connectOnReady) {
@@ -503,17 +500,35 @@ class LinkProvider {
         await discovery.init();
         try {
           var broker = await chooseBroker(discovery.discover());
-          print("Discovered Broker at ${broker}");
+          logger.info("Discovered Broker at ${broker}");
           brokerUrl = broker;
           doRun();
-        } catch (e) {
-          print("Failed to discover a broker.");
+        } catch (e, stack) {
+          logger.severe("Failed to discover a broker.", e, stack);
           exit(1);
         }
       });
     } else {
       doRun();
     }
+  }
+
+  HttpClientLink createHttpLink() {
+    var client = new HttpClientLink(
+      brokerUrl,
+      prefix,
+      privateKey,
+      isRequester: isRequester,
+      isResponder: isResponder,
+      nodeProvider: provider,
+      overrideRequester: overrideRequester,
+      overrideResponder: overrideResponder,
+      home: home,
+      token: token,
+      linkData: linkData
+    );
+    client.logName = logTag;
+    return client;
   }
 
   void loadNodesFile() {

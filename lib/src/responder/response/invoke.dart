@@ -1,6 +1,7 @@
 part of dslink.responder;
 
 typedef void OnInvokeClosed(InvokeResponse response);
+typedef void OnInvokeSend(InvokeResponse response, Map m);
 
 /// return true if params are valid
 typedef bool OnReqParams(Map m);
@@ -18,6 +19,7 @@ class InvokeResponse extends Response {
   final LocalNode parentNode;
   final LocalNode node;
   final String name;
+
   InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid);
 
@@ -76,8 +78,18 @@ class InvokeResponse extends Response {
       if (update.columns != null) {
         outColumns = TableColumn.serializeColumns(update.columns);
       }
-      responder.updateResponse(this, update.updates,
-          streamStatus: update.status, columns: outColumns, meta:update.meta);
+
+      responder.updateResponse(
+        this,
+        update.updates,
+        streamStatus: update.status,
+        columns: outColumns,
+        meta: update.meta, handleMap: (m) {
+        if (onSendUpdate != null) {
+          onSendUpdate(this, m);
+        }
+      });
+
       if (_sentStreamStatus == StreamStatus.closed) {
         _close();
         break;
@@ -94,7 +106,9 @@ class InvokeResponse extends Response {
     if (!pendingData.isEmpty) {
       pendingData.last.status = StreamStatus.closed;
     } else {
-      pendingData.add(new _InvokeResponseUpdate(StreamStatus.closed, null, null, null));
+      pendingData.add(
+        new _InvokeResponseUpdate(StreamStatus.closed, null, null, null)
+      );
       prepareSending();
     }
   }
@@ -102,6 +116,8 @@ class InvokeResponse extends Response {
   DSError _err;
 
   OnInvokeClosed onClose;
+  OnInvokeSend onSendUpdate;
+
   void _close() {
     if (onClose != null) {
       onClose(this);

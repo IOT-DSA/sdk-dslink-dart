@@ -166,11 +166,13 @@ class LiveTable {
       close(true);
     };
 
-    resp.updateStream(getCurrentState(), columns: columns.map((x) {
-      return x.getData();
-    }).toList(), streamStatus: StreamStatus.open, meta: {
-      "mode": "append"
-    });
+    if (autoStartSend) {
+      resp.updateStream(getCurrentState(), columns: columns.map((x) {
+        return x.getData();
+      }).toList(), streamStatus: StreamStatus.open, meta: {
+        "mode": "refresh"
+      });
+    }
   }
 
   void close([bool isFromRequester = false]) {
@@ -193,6 +195,8 @@ class LiveTable {
 
   InvokeResponse get response => _resp;
   InvokeResponse _resp;
+
+  bool autoStartSend = true;
 }
 
 class LiveTableRow {

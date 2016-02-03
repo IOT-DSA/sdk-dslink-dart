@@ -29,6 +29,8 @@ class WebSocketConnection extends Connection {
 
   final WebSocket socket;
 
+  bool _onDoneHandled = false;
+
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket,
       {this.clientLink, bool enableTimeout: false, bool enableAck: true, DsCodec useCodec}) {
@@ -322,6 +324,12 @@ class WebSocketConnection extends Connection {
   bool printDisconnectedMessage = true;
 
   void _onDone() {
+    if (_onDoneHandled) {
+      return;
+    }
+
+    _onDoneHandled = true;
+
     if (printDisconnectedMessage) {
       logger.info(formatLogMessage("Disconnected"));
     }
