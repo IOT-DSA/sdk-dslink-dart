@@ -202,7 +202,6 @@ class RespSubscribeController {
   );
   LeakProofQueue<ValueUpdate> waitingValues;
 
-  //; = new ListQueue<ValueUpdate>();
   ValueUpdate lastValue;
 
   int _qosLevel = -1;
@@ -275,9 +274,8 @@ class RespSubscribeController {
           if (_storage != null) {
             _storage.setValue(waitingValues, lastValue);
           }
-          waitingValues
-            ..clear()
-            ..add(lastValue);
+          _resetWaitingValues();
+          waitingValues.add(lastValue);
         }
       } else {
         lastValue = val;
@@ -298,9 +296,8 @@ class RespSubscribeController {
         if (_storage != null) {
           _storage.setValue(waitingValues, lastValue);
         }
-        waitingValues
-          ..clear()
-          ..add(lastValue);
+        _resetWaitingValues();
+        waitingValues.add(lastValue);
       }
     }
     // TODO, don't allow this to be called from same controller more often than 100ms
@@ -388,17 +385,24 @@ class RespSubscribeController {
       }
       lastValues = values..addAll(lastValues);
       if (waitingValues != null) {
-        waitingValues.clear();
+        _resetWaitingValues();
         waitingValues.addAll(lastValues);
       }
     } else {
       lastValues.clear();
       if (waitingValues != null) {
-        waitingValues.clear();
+        _resetWaitingValues();
         waitingValues.add(values.last);
       }
     }
     lastValue = values.last;
+  }
+
+  void _resetWaitingValues() {
+    waitingValues.clear();
+    waitingValues = new LeakProofQueue<ValueUpdate>.create(
+      "ResponseSubscribeController waitingValues"
+    );
   }
 
   void destroy() {
