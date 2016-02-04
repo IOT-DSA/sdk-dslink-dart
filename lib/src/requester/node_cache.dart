@@ -8,13 +8,8 @@ class RemoteNodeCache {
       "remote node cache"
     );
 
-  final dynamic cleanerTimeInterval;
-  final Function isDanglingNode;
-
   RemoteNodeCache({
-    bool enableAutoNodeCleaner: true,
-    this.isDanglingNode: _clearNodeIfRefZero,
-    this.cleanerTimeInterval
+    bool enableAutoNodeCleaner: true
   }) {
     if (enableAutoNodeCleaner) {
       startNodeCleaner();
@@ -26,10 +21,8 @@ class RemoteNodeCache {
       return;
     }
 
-    _cleanerTimer = Scheduler.every(
-      cleanerTimeInterval == null ? Interval.FIVE_SECONDS : cleanerTimeInterval,
-      () {
-      clearDanglingNodes(isDanglingNode);
+    _cleanerTimer = Scheduler.every(Interval.FOUR_SECONDS, () {
+      clearDanglingNodes();
     });
   }
 
