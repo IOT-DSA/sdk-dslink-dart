@@ -8,9 +8,14 @@ class RemoteNodeCache {
       "remote node cache"
     );
 
+  final dynamic cleanerTimeInterval;
   final Function isDanglingNode;
 
-  RemoteNodeCache({bool enableAutoNodeCleaner: true, this.isDanglingNode: _clearNodeIfRefZero}) {
+  RemoteNodeCache({
+    bool enableAutoNodeCleaner: true,
+    this.isDanglingNode: _clearNodeIfRefZero,
+    this.cleanerTimeInterval
+  }) {
     if (enableAutoNodeCleaner) {
       startNodeCleaner();
     }
@@ -21,7 +26,9 @@ class RemoteNodeCache {
       return;
     }
 
-    _cleanerTimer = Scheduler.every(Interval.FIVE_SECONDS, () {
+    _cleanerTimer = Scheduler.every(
+      cleanerTimeInterval == null ? Interval.FIVE_SECONDS : cleanerTimeInterval,
+      () {
       clearDanglingNodes(isDanglingNode);
     });
   }
@@ -113,7 +120,14 @@ class RemoteNode extends Node {
   final String remotePath;
 
   bool listed = false;
-  String name;
+  String _name;
+  String get name {
+    if (_name == null) {
+      _getRawName();
+    }
+    return _name;
+  }
+
   ListController _listController;
   ReqSubscribeController _subscribeController;
 
@@ -128,15 +142,13 @@ class RemoteNode extends Node {
     _referenceCount--;
   }
 
-  RemoteNode(this.remotePath) {
-    _getRawName();
-  }
+  RemoteNode(this.remotePath);
 
   void _getRawName() {
     if (remotePath == '/') {
-      name = '/';
+      _name = '/';
     } else {
-      name = remotePath
+      _name = remotePath
         .split('/')
         .last;
     }

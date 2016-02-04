@@ -1,6 +1,6 @@
 @TestOn("vm")
-@Timeout(const Duration(seconds: 30))
-library dslink.test.vm.links.simple;
+@Timeout(const Duration(seconds: 60))
+library dslink.test.vm.links.large;
 
 import "dart:async";
 
@@ -92,5 +92,57 @@ largeLinksTest() {
     sub.cancel();
 
     expect(received, equals(sent));
+  });
+
+  test("are able to send large numbers of value updates to multiple requesters", () async {
+    LinkProvider host = await createLink("DataHost", nodes: {
+      "number": {
+        r"$type": "number",
+        "?value": 0
+      }
+    });
+
+    await gap();
+
+    var sent = [];
+    var receives = [];
+    var subs = [];
+
+    for (var x = 1; x <= 5; x++) {
+      var client = await createLink(
+        "DataClient${x}",
+        isRequester: true,
+        isResponder: false
+      );
+      var requester = await client.onRequesterReady;
+      await gap();
+      var received = [];
+      subs.add(requester.subscribe("/downstream/DataHost/number", (ValueUpdate update) {
+        if (update.value == 0) {
+          return;
+        }
+        received.add(update.value);
+      }, 1));
+      receives.add(received);
+    }
+
+    for (var x = 1; x <= 3; x++) {
+      await gap();
+    }
+
+    for (var i = 1; i <= 5000; i++) {
+      host.val("/number", i);
+      sent.add(i);
+      await new Future.delayed(const Duration(milliseconds: 1));
+    }
+
+    await gap();
+
+    for (var e in receives) {
+      expect(e, equals(sent));
+    }
+
+    receives.clear();
+    sent.clear();
   });
 }
