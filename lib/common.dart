@@ -81,7 +81,7 @@ class ConnectionAckGroup {
   int ackId;
   int startTime;
   int expectedAckTime;
-  LeakProofQueue<ConnectionProcessor> processors;
+  LeakProofList<ConnectionProcessor> processors;
 
   ConnectionAckGroup(this.ackId, this.startTime, this.processors);
 
