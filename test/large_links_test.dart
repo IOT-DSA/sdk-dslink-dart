@@ -130,7 +130,7 @@ largeLinksTest() {
       await gap();
     }
 
-    for (var i = 1; i <= 5000; i++) {
+    for (var i = 1; i <= 8000; i++) {
       host.val("/number", i);
       sent.add(i);
       await new Future.delayed(const Duration(milliseconds: 1));
