@@ -306,8 +306,6 @@ class ReqSubscribeController {
         updateQos();
       }
     }
-
-    node.decreaseRefCount();
   }
 
   bool updateQos() {
@@ -336,5 +334,6 @@ class ReqSubscribeController {
   void _destroy() {
     callbacks.clear();
     node._subscribeController = null;
+    node.decreaseRefCount();
   }
 }

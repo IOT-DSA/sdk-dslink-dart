@@ -165,6 +165,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     if (defName == 'node') {
       return;
     }
+
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
       _profileLoader = new ListDefListener(node.profile, requester, _onProfileUpdate);
@@ -225,10 +226,13 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     if (!waitToSend) {
       return;
     }
-    request = requester._sendRequest(
-              {'method': 'list', 'path': node.remotePath}, this);
+    request = requester._sendRequest({
+      'method': 'list',
+      'path': node.remotePath
+    }, this);
     waitToSend = false;
   }
+
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
   }
 
