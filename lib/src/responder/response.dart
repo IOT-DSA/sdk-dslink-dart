@@ -3,6 +3,7 @@ part of dslink.responder;
 class Response implements ConnectionProcessor {
   final Responder responder;
   final int rid;
+
   String _sentStreamStatus = StreamStatus.initialize;
 
   Response(this.responder, this.rid);

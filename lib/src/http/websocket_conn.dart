@@ -10,19 +10,12 @@ import "package:logging/logging.dart";
 
 class WebSocketConnection extends Connection {
   PassiveChannel _responderChannel;
-
   ConnectionChannel get responderChannel => _responderChannel;
-
   PassiveChannel _requesterChannel;
-
   ConnectionChannel get requesterChannel => _requesterChannel;
-
   Completer<ConnectionChannel> onRequestReadyCompleter = new Completer<ConnectionChannel>();
-
   Future<ConnectionChannel> get onRequesterReady => onRequestReadyCompleter.future;
-
   Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
-
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   final ClientLink clientLink;
@@ -244,7 +237,7 @@ class WebSocketConnection extends Connection {
     } else {
       m = {};
     }
-    List pendingAck = [];
+    LeakProofQueue pendingAck = new LeakProofQueue.create("pending ack");
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {

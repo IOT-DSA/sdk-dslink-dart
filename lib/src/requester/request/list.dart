@@ -167,8 +167,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     }
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
-      _profileLoader =
-      new ListDefListener(node.profile, requester, _onProfileUpdate);
+      _profileLoader = new ListDefListener(node.profile, requester, _onProfileUpdate);
     }
   }
 
@@ -217,7 +216,10 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       waitToSend = true;
       requester.addProcessor(this);
     }
+
+    node._ref();
   }
+
   bool waitToSend = false;
   void startSendingData(int currentTime, int waitingAckId) {
     if (!waitToSend) {
@@ -229,7 +231,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   }
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
   }
-  
+
   void _onListen(callback(RequesterListUpdate update)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
@@ -265,5 +267,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
     _controller.close();
     node._listController = null;
+
+    node._deref();
   }
 }

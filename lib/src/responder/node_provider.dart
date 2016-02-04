@@ -33,7 +33,9 @@ abstract class LocalNode extends Node {
   LocalNode(this.path);
 
   /// Subscription Callbacks
-  Map<Function, int> callbacks = new Map<Function, int>();
+  LeakProofMap<Function, int> callbacks = new LeakProofMap<Function, int>.create(
+    "LocalNode subscribe callbacks"
+  );
 
   /// Subscribes the given [callback] to this node.
   RespSubscribeListener subscribe(callback(ValueUpdate), [int qos = 0]) {

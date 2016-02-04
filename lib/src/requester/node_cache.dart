@@ -8,7 +8,32 @@ class RemoteNodeCache {
       "remote node cache"
     );
 
-  RemoteNodeCache() {}
+  RemoteNodeCache({bool enableAutoNodeCleaner: true}) {
+    if (enableAutoNodeCleaner) {
+      startNodeCleaner();
+    }
+  }
+
+  void startNodeCleaner() {
+    if (_cleanerTimer != null) {
+      return;
+    }
+
+    _cleanerTimer = Scheduler.every(Interval.FIVE_SECONDS, () {
+      clearDanglingNodes();
+    });
+  }
+
+  void stopNodeCleaner() {
+    if (_cleanerTimer == null) {
+      return;
+    }
+
+    _cleanerTimer.cancel();
+    _cleanerTimer = null;
+  }
+
+  Timer _cleanerTimer;
 
   RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
@@ -22,6 +47,25 @@ class RemoteNodeCache {
   }
 
   Iterable<String> get cachedNodePaths => _nodes.keys;
+
+  void clearDanglingNodes([bool handler(RemoteNode node) = _clearNodeIfRefZero]) {
+    List<String> toRemove = [];
+    for (String key in _nodes.keys) {
+      RemoteNode node = _nodes[key];
+      if (handler(node)) {
+        toRemove.add(key);
+      }
+    }
+
+    for (String key in toRemove) {
+      logger.fine("Clearing dangling remote node at ${key}");
+      clearCachedNode(key);
+    }
+  }
+
+  static bool _clearNodeIfRefZero(RemoteNode node) {
+    return node.referenceCount == 0;
+  }
 
   bool isNodeCached(String path) {
     return _nodes.containsKey(path);
@@ -65,10 +109,22 @@ class RemoteNodeCache {
 
 class RemoteNode extends Node {
   final String remotePath;
+
   bool listed = false;
   String name;
   ListController _listController;
   ReqSubscribeController _subscribeController;
+
+  int get referenceCount => _referenceCount;
+  int _referenceCount = 0;
+
+  void _ref() {
+    _referenceCount++;
+  }
+
+  void _deref() {
+    _referenceCount--;
+  }
 
   RemoteNode(this.remotePath) {
     _getRawName();

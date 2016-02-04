@@ -2,6 +2,7 @@ part of dslink.responder;
 
 class ListResponse extends Response {
   final LocalNode node;
+
   StreamSubscription _nodeChangeListener;
   int _permission;
 

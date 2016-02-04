@@ -3,7 +3,7 @@ part of dslink.utils;
 class TimerFunctions extends LinkedListEntry {
   /// for better performance, use a low accuracy timer, ts50 is the floor of ts/50
   final int ts50;
-  List<Function> _functions = new LeakProofList<Function>.create(
+  List<Function> _functions = new LeakProofQueue<Function>.create(
     "timer functions holder"
   );
 

@@ -23,7 +23,9 @@ class InvokeResponse extends Response {
   InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid);
 
-  List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
+  LeakProofList<_InvokeResponseUpdate> pendingData = new LeakProofList<_InvokeResponseUpdate>.create(
+    "invoke pending data"
+  );
 
   bool _hasSentColumns = false;
 

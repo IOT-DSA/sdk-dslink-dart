@@ -24,6 +24,7 @@ class Responder extends ConnectionHandler {
           -1,
           node.qos
         );
+
         if (values.isNotEmpty) {
           controller.resetCache(values);
         }

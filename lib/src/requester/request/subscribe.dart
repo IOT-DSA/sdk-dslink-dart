@@ -262,6 +262,8 @@ class ReqSubscribeController {
 
   ReqSubscribeController(this.node, this.requester) {
     sid = requester._subscription.getNextSid();
+
+    node._ref();
   }
 
   void listen(callback(ValueUpdate update), int qos) {
@@ -304,6 +306,8 @@ class ReqSubscribeController {
         updateQos();
       }
     }
+
+    node._deref();
   }
 
   bool updateQos() {

@@ -193,7 +193,7 @@ class WebSocketConnection extends Connection {
       m = {};
     }
 
-    List pendingAck = [];
+    LeakProofQueue pendingAck = new LeakProofQueue.create("pending ack");
 
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
