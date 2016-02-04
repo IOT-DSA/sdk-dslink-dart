@@ -5,7 +5,9 @@ class Response implements ConnectionProcessor {
   final int rid;
 
   String _sentStreamStatus = StreamStatus.initialize;
-
+  
+  String get sentStreamStatus => _sentStreamStatus;
+  
   Response(this.responder, this.rid);
 
   /// close the request from responder side and also notify the requester
