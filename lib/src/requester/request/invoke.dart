@@ -100,7 +100,7 @@ class InvokeController implements RequestUpdater {
       'params': params
     };
 
-    node._ref();
+    node.increaseRefCount();
 
     if (maxPermission != Permission.CONFIG) {
       reqMap['permit'] = Permission.names[maxPermission];
@@ -123,7 +123,7 @@ class InvokeController implements RequestUpdater {
       _request.close();
     }
 
-    node._deref();
+    node.decreaseRefCount();
   }
 
   void onUpdate(String streamStatus, List updates, List columns, Map meta,

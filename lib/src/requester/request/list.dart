@@ -217,7 +217,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       requester.addProcessor(this);
     }
 
-    node._ref();
+    node.increaseRefCount();
   }
 
   bool waitToSend = false;
@@ -268,6 +268,6 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     _controller.close();
     node._listController = null;
 
-    node._deref();
+    node.decreaseRefCount();
   }
 }

@@ -127,11 +127,11 @@ class RemoteNode extends Node {
   int get referenceCount => _referenceCount;
   int _referenceCount = 0;
 
-  void _ref() {
+  void increaseRefCount() {
     _referenceCount++;
   }
 
-  void _deref() {
+  void decreaseRefCount() {
     _referenceCount--;
   }
 
