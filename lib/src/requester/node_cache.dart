@@ -50,11 +50,11 @@ class RemoteNodeCache {
 
   Iterable<String> get cachedNodePaths => _nodes.keys;
 
-  void clearDanglingNodes([bool handler(RemoteNode node) = _clearNodeIfRefZero]) {
+  void clearDanglingNodes() {
     List<String> toRemove = [];
     for (String key in _nodes.keys) {
       RemoteNode node = _nodes[key];
-      if (handler(node)) {
+      if (node.referenceCount == 0) {
         toRemove.add(key);
       }
     }
@@ -63,10 +63,6 @@ class RemoteNodeCache {
       logger.fine("Clearing dangling remote node at ${key}");
       clearCachedNode(key);
     }
-  }
-
-  static bool _clearNodeIfRefZero(RemoteNode node) {
-    return node.referenceCount == 0;
   }
 
   bool isNodeCached(String path) {

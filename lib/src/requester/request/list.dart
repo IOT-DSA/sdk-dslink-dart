@@ -42,6 +42,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   ListController(this.node, this.requester) {
     _controller = new BroadcastStreamController<RequesterListUpdate>(
         onStartListen, _onAllCancel, _onListen);
+
+    node.increaseRefCount();
   }
 
   bool get initialized {
@@ -217,8 +219,6 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       waitToSend = true;
       requester.addProcessor(this);
     }
-
-    node.increaseRefCount();
   }
 
   bool waitToSend = false;
