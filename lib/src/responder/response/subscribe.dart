@@ -337,9 +337,6 @@ class RespSubscribeController {
     }
     bool valueRemoved = false;
     if (!waitingValues.isEmpty && waitingValues.first.waitingAck != ackId) {
-      var msg = '${waitingValues.first.value} ${waitingValues.first.waitingAck}';
-      logger.warning('invalid ack ${msg}');
-
       ValueUpdate matchUpdate;
       for (ValueUpdate update in waitingValues) {
         if (update.waitingAck == ackId) {
