@@ -13,7 +13,9 @@ class RequesterUpdate {
 }
 
 class Requester extends ConnectionHandler {
-  Map<int, Request> _requests = new Map<int, Request>();
+  Map<int, Request> _requests = new LeakProofMap<int, Request>.create(
+    "requester requests"
+  );
 
   /// caching of nodes
   final RemoteNodeCache nodeCache;

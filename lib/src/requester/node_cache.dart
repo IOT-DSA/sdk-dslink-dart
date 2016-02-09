@@ -3,9 +3,39 @@ part of dslink.requester;
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
-  Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
+  Map<String, RemoteNode> _nodes =
+    new LeakProofMap<String, RemoteNode>.create(
+      "remote node cache"
+    );
 
-  RemoteNodeCache() {}
+  RemoteNodeCache({
+    bool enableAutoNodeCleaner: true
+  }) {
+    if (enableAutoNodeCleaner) {
+      startNodeCleaner();
+    }
+  }
+
+  void startNodeCleaner() {
+    if (_cleanerTimer != null) {
+      return;
+    }
+
+    _cleanerTimer = Scheduler.every(Interval.FOUR_SECONDS, () {
+      clearDanglingNodes();
+    });
+  }
+
+  void stopNodeCleaner() {
+    if (_cleanerTimer == null) {
+      return;
+    }
+
+    _cleanerTimer.cancel();
+    _cleanerTimer = null;
+  }
+
+  Timer _cleanerTimer;
 
   RemoteNode getRemoteNode(String path) {
     if (!_nodes.containsKey(path)) {
@@ -19,6 +49,21 @@ class RemoteNodeCache {
   }
 
   Iterable<String> get cachedNodePaths => _nodes.keys;
+
+  void clearDanglingNodes() {
+    List<String> toRemove = [];
+    for (String key in _nodes.keys) {
+      RemoteNode node = _nodes[key];
+      if (node.referenceCount == 0) {
+        toRemove.add(key);
+      }
+    }
+
+    for (String key in toRemove) {
+      logger.fine("Clearing dangling remote node at ${key}");
+      clearCachedNode(key);
+    }
+  }
 
   bool isNodeCached(String path) {
     return _nodes.containsKey(path);
@@ -62,20 +107,37 @@ class RemoteNodeCache {
 
 class RemoteNode extends Node {
   final String remotePath;
+
   bool listed = false;
-  String name;
+  String _name;
+  String get name {
+    if (_name == null) {
+      _getRawName();
+    }
+    return _name;
+  }
+
   ListController _listController;
   ReqSubscribeController _subscribeController;
 
-  RemoteNode(this.remotePath) {
-    _getRawName();
+  int get referenceCount => _referenceCount;
+  int _referenceCount = 0;
+
+  void increaseRefCount() {
+    _referenceCount++;
   }
+
+  void decreaseRefCount() {
+    _referenceCount--;
+  }
+
+  RemoteNode(this.remotePath);
 
   void _getRawName() {
     if (remotePath == '/') {
-      name = '/';
+      _name = '/';
     } else {
-      name = remotePath
+      _name = remotePath
         .split('/')
         .last;
     }

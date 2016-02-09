@@ -90,7 +90,7 @@ class InvokeController implements RequestUpdater {
   String lastStatus = StreamStatus.initialize;
 
   InvokeController(this.node, this.requester, Map params,
-      [int maxPermission = Permission.CONFIG, void fetchRawReq(Request)]) {
+      [int maxPermission = Permission.CONFIG, void fetchRawReq(Request request)]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
@@ -99,6 +99,9 @@ class InvokeController implements RequestUpdater {
       'path': node.remotePath,
       'params': params
     };
+
+    node.increaseRefCount();
+
     if (maxPermission != Permission.CONFIG) {
       reqMap['permit'] = Permission.names[maxPermission];
     }
@@ -108,7 +111,7 @@ class InvokeController implements RequestUpdater {
 //    } else {
 
     _request = requester._sendRequest(reqMap, this);
-    
+
     if (fetchRawReq != null) {
       fetchRawReq(_request);
     }
@@ -119,6 +122,8 @@ class InvokeController implements RequestUpdater {
     if (_request != null && _request.streamStatus != StreamStatus.closed) {
       _request.close();
     }
+
+    node.decreaseRefCount();
   }
 
   void onUpdate(String streamStatus, List updates, List columns, Map meta,

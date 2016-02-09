@@ -2,7 +2,6 @@
 library dslink.common;
 
 import "dart:async";
-import "dart:collection";
 
 import "requester.dart";
 import "responder.dart";
@@ -40,8 +39,10 @@ abstract class Connection {
 
   DsCodec codec = DsCodec.defaultCodec;
 
-  ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<
-      ConnectionAckGroup>();
+  LeakProofQueue<ConnectionAckGroup> pendingAcks =
+    new LeakProofQueue<ConnectionAckGroup>.create(
+    "pending acks"
+  );
 
   void ack(int ackId) {
     ConnectionAckGroup findAckGroup;
@@ -80,7 +81,7 @@ class ConnectionAckGroup {
   int ackId;
   int startTime;
   int expectedAckTime;
-  List<ConnectionProcessor> processors;
+  LeakProofList<ConnectionProcessor> processors;
 
   ConnectionAckGroup(this.ackId, this.startTime, this.processors);
 

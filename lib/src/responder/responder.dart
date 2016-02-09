@@ -24,6 +24,7 @@ class Responder extends ConnectionHandler {
           -1,
           node.qos
         );
+
         if (values.isNotEmpty) {
           controller.resetCache(values);
         }
@@ -38,7 +39,10 @@ class Responder extends ConnectionHandler {
       groups = [reqId]..addAll(vals);
     }
   }
-  final Map<int, Response> _responses = new Map<int, Response>();
+
+  final Map<int, Response> _responses =
+    new LeakProofMap<int, Response>.create("responder responses");
+
   SubscribeResponse _subscription;
 
   /// caching of nodes
@@ -179,7 +183,7 @@ class Responder extends ConnectionHandler {
       if (response._sentStreamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
         if (_traceCallbacks != null) {
-           traceResponseRemoved(response);
+          traceResponseRemoved(response);
         }
       }
     }
@@ -504,7 +508,10 @@ class Responder extends ConnectionHandler {
       _traceCallback(response.getTraceData());
     });
 
-    if (_traceCallbacks == null) _traceCallbacks = new List<ResponseTraceCallback>();
+    if (_traceCallbacks == null)
+      _traceCallbacks = new LeakProofList<ResponseTraceCallback>.create(
+        "responder trace callbacks"
+      );
 
     _traceCallbacks.add(_traceCallback);
   }

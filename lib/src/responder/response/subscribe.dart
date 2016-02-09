@@ -17,10 +17,14 @@ class RespSubscribeListener {
 class SubscribeResponse extends Response {
   SubscribeResponse(Responder responder, int rid) : super(responder, rid);
 
-  final Map<String, RespSubscribeController> subscriptions =
-    new Map<String, RespSubscribeController>();
-  final Map<int, RespSubscribeController> subsriptionids =
-    new Map<int, RespSubscribeController>();
+  final LeakProofMap<String, RespSubscribeController> subscriptions =
+    new LeakProofMap<String, RespSubscribeController>.create(
+      "SubscribeResponse subscriptions"
+    );
+  final LeakProofMap<int, RespSubscribeController> subsriptionids =
+    new LeakProofMap<int, RespSubscribeController>.create(
+      "SubscribeResponse ids"
+    );
 
   final LinkedHashSet<RespSubscribeController> changed =
     new LinkedHashSet<RespSubscribeController>();
@@ -179,6 +183,7 @@ class SubscribeResponse extends Response {
 class RespSubscribeController {
   final LocalNode node;
   final SubscribeResponse response;
+
   RespSubscribeListener _listener;
   int sid;
 
@@ -192,10 +197,11 @@ class RespSubscribeController {
     }
   }
 
-  List<ValueUpdate> lastValues = new List<ValueUpdate>();
-  ListQueue<ValueUpdate> waitingValues;
+  LeakProofList<ValueUpdate> lastValues = new LeakProofList<ValueUpdate>.create(
+    "ResponseSubscribeController lastValues"
+  );
+  LeakProofQueue<ValueUpdate> waitingValues;
 
-  //; = new ListQueue<ValueUpdate>();
   ValueUpdate lastValue;
 
   int _qosLevel = -1;
@@ -208,7 +214,9 @@ class RespSubscribeController {
 
     _qosLevel = v;
     if (waitingValues == null && _qosLevel > 0) {
-      waitingValues = new ListQueue<ValueUpdate>();
+      waitingValues = new LeakProofQueue<ValueUpdate>.create(
+        "ResponseSubscribeController waitingValues"
+      );
     }
     caching = (v & 1) == 1;
     persist = (v & 2) == 2;
@@ -266,9 +274,8 @@ class RespSubscribeController {
           if (_storage != null) {
             _storage.setValue(waitingValues, lastValue);
           }
-          waitingValues
-            ..clear()
-            ..add(lastValue);
+          _resetWaitingValues();
+          waitingValues.add(lastValue);
         }
       } else {
         lastValue = val;
@@ -289,9 +296,8 @@ class RespSubscribeController {
         if (_storage != null) {
           _storage.setValue(waitingValues, lastValue);
         }
-        waitingValues
-          ..clear()
-          ..add(lastValue);
+        _resetWaitingValues();
+        waitingValues.add(lastValue);
       }
     }
     // TODO, don't allow this to be called from same controller more often than 100ms
@@ -376,17 +382,24 @@ class RespSubscribeController {
       }
       lastValues = values..addAll(lastValues);
       if (waitingValues != null) {
-        waitingValues.clear();
+        _resetWaitingValues();
         waitingValues.addAll(lastValues);
       }
     } else {
       lastValues.clear();
       if (waitingValues != null) {
-        waitingValues.clear();
+        _resetWaitingValues();
         waitingValues.add(values.last);
       }
     }
     lastValue = values.last;
+  }
+
+  void _resetWaitingValues() {
+    waitingValues.clear();
+    waitingValues = new LeakProofQueue<ValueUpdate>.create(
+      "ResponseSubscribeController waitingValues"
+    );
   }
 
   void destroy() {
