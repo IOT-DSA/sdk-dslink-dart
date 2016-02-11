@@ -71,6 +71,7 @@ class LinkProvider {
 
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
+      (provider as SimpleNodeProvider).setPersistFunction(save);
     }
 
     if (loadNodes && provider is SerializableNodeProvider) {
@@ -131,7 +132,10 @@ class LinkProvider {
     }
 
     await dataStore.store("dsa_nodes",
-        DsJson.encode((provider as SerializableNodeProvider).save()));
+      DsJson.encode(
+        (provider as SerializableNodeProvider).save()
+      )
+    );
   }
 
   /// Remote Path of Responder

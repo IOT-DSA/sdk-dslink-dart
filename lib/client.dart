@@ -120,25 +120,25 @@ class LinkProvider {
       this.args,
       this.prefix,
       {
-      this.isRequester: false,
-      this.command: "link",
-      this.isResponder: true,
-      this.defaultNodes,
-      Map nodes,
-      this.profiles,
-      this.provider,
-      this.enableHttp: true,
-      this.encodePrettyJson: false,
-      bool autoInitialize: true,
-      this.strictOptions: false,
-      this.exitOnFailure: true,
-      this.loadNodesJson: true,
-      this.defaultLogLevel: "INFO",
-      this.savePrivateKey: true,
-      this.overrideRequester,
-      this.overrideResponder,
-      NodeProvider nodeProvider, // For Backwards Compatibility
-      this.linkData
+        this.isRequester: false,
+        this.command: "link",
+        this.isResponder: true,
+        this.defaultNodes,
+        Map nodes,
+        this.profiles,
+        this.provider,
+        this.enableHttp: true,
+        this.encodePrettyJson: false,
+        bool autoInitialize: true,
+        this.strictOptions: false,
+        this.exitOnFailure: true,
+        this.loadNodesJson: true,
+        this.defaultLogLevel: "INFO",
+        this.savePrivateKey: true,
+        this.overrideRequester,
+        this.overrideResponder,
+        NodeProvider nodeProvider, // For Backwards Compatibility
+        this.linkData
       }) {
     exitOnFailure = !(const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false));
 
@@ -155,7 +155,9 @@ class LinkProvider {
     }
   }
 
-  String _basePath = ".";
+  String get basePath => _basePath;
+
+  String _basePath = Directory.current.path;
   String _watchFile;
   String _logFile;
 
@@ -481,6 +483,7 @@ class LinkProvider {
 
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);
+      (provider as SimpleNodeProvider).setPersistFunction(saveAsync);
     }
 
     loadNodesFile();
@@ -634,9 +637,11 @@ class LinkProvider {
         return;
       }
 
-      _nodesFile.writeAsStringSync(DsJson.encode(
+      _nodesFile.writeAsStringSync(
+        DsJson.encode(
           (provider as SerializableNodeProvider).save(),
-          pretty: encodePrettyJson));
+          pretty: encodePrettyJson)
+      );
     }
   }
 
@@ -647,12 +652,30 @@ class LinkProvider {
         return;
       }
 
-      var encoded = DsJson.encode((provider as SerializableNodeProvider).save(),
-          pretty: encodePrettyJson);
+      var count = 0;
+      while (_isAsyncSave) {
+        await new Future.delayed(const Duration(milliseconds: 5));
+        count++;
+
+        if (count == 100) {
+          break;
+        }
+      }
+
+      var encoded = DsJson.encode(
+        (provider as SerializableNodeProvider).save(),
+        pretty: encodePrettyJson
+      );
+
+      _isAsyncSave = true;
 
       await _nodesFile.writeAsString(encoded);
+
+      _isAsyncSave = false;
     }
   }
+
+  bool _isAsyncSave = false;
 
   /// Gets the node at the specified path.
   LocalNode getNode(String path) {

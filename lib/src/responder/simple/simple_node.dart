@@ -250,6 +250,8 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// This is by default always the first instance of [SimpleNodeProvider].
   static SimpleNodeProvider instance;
 
+  ExecutableFunction _persist;
+
   /// All the nodes in this node provider.
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
 
@@ -305,6 +307,32 @@ class SimpleNodeProvider extends NodeProviderImpl
   @override
   void addProfile(String name, SimpleNodeFactory factory) {
     _profiles[name] = factory;
+  }
+
+  /// Sets the function that persists the nodes.
+  void setPersistFunction(ExecutableFunction doPersist) {
+    _persist = doPersist;
+  }
+
+  /// Persist the nodes in this provider.
+  /// If you are not using a LinkProvider, then call [setPersistFunction] to set
+  /// the function that is called to persist.
+  void persist([bool now = false]) {
+    if (now) {
+      if (_persist == null) {
+        return;
+      }
+
+      _persist();
+    } else {
+      new Future.delayed(const Duration(seconds: 5), () {
+        if (_persist == null) {
+          return;
+        }
+
+        _persist();
+      });
+    }
   }
 
   /// Creates a node at [path].
@@ -566,7 +594,9 @@ class SimpleNode extends LocalNodeImpl {
     }
 
     children.forEach((str, Node node) {
-      if (node is SimpleNode && node.serializable == true) rslt[str] = node.save();
+      if (node is SimpleNode && node.serializable == true) {
+        rslt[str] = node.save();
+      }
     });
 
     return rslt;
