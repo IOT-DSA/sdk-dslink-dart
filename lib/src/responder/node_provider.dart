@@ -178,10 +178,6 @@ abstract class LocalNode extends Node {
 
       configs[name] = value;
 
-      if (provider is SerializableNodeProvider) {
-        (provider as SerializableNodeProvider).persist();
-      }
-
       return null;
     }
   }
@@ -195,10 +191,6 @@ abstract class LocalNode extends Node {
         name = "\$${name}";
       }
       configs.remove(name);
-
-      if (provider is SerializableNodeProvider) {
-        (provider as SerializableNodeProvider).persist();
-      }
 
       return null;
     }

@@ -64,6 +64,10 @@ abstract class LocalNodeImpl extends LocalNode {
     if (!attributes.containsKey(name) || attributes[name] != value) {
       attributes[name] = value;
       updateList(name);
+
+      if (provider is SerializableNodeProvider) {
+        (provider as SerializableNodeProvider).persist();
+      }
     }
     return response..close();
   }
@@ -73,6 +77,10 @@ abstract class LocalNodeImpl extends LocalNode {
     if (attributes.containsKey(name)) {
       attributes.remove(name);
       updateList(name);
+
+      if (provider is SerializableNodeProvider) {
+        (provider as SerializableNodeProvider).persist();
+      }
     }
     return response..close();
   }
@@ -80,7 +88,8 @@ abstract class LocalNodeImpl extends LocalNode {
   Response setConfig(String name, Object value, Responder responder,
       Response response) {
     var config = Configs.getConfig(name, profile);
-    return response..close(config.setConfig(value, this, responder));
+    response.close(config.setConfig(value, this, responder));
+    return response;
   }
 
   Response removeConfig(String name, Responder responder, Response response) {
