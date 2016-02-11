@@ -230,6 +230,9 @@ abstract class SerializableNodeProvider {
 
   /// Save the node provider to a map.
   Map save();
+
+  /// Persist the node provider.
+  void persist([bool now = false]);
 }
 
 /// Interface for node providers that are mutable.
