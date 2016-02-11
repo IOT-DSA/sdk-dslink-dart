@@ -284,13 +284,12 @@ class SimpleNodeProvider extends NodeProviderImpl
       return node;
     }
 
-    return createNode(path);
-//    if (addToTree) {
-//      return createNode(path);
-//    } else {
-//      node = new SimpleNode(path, this);
-//      return node;
-//    }
+    if (addToTree) {
+      return createNode(path);
+    } else {
+      node = new SimpleNode(path, this);
+      return node;
+    }
   }
 
   void registerResolver(SimpleNodeFactory factory) {
