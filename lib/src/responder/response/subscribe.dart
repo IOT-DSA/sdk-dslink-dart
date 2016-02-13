@@ -220,7 +220,7 @@ class RespSubscribeController {
     if (val == _caching) return;
     _caching = val;
     if (!_caching) {
-      lastValues.clear();
+      lastValues.length = 0;
     }
   }
 
@@ -261,7 +261,7 @@ class RespSubscribeController {
         for (ValueUpdate update in lastValues) {
           lastValue.mergeAdd(update);
         }
-        lastValues.clear();
+        lastValues.length = 0;
         if (_qosLevel > 0) {
           if (_storage != null) {
             _storage.setValue(waitingValues, lastValue);
@@ -313,7 +313,7 @@ class RespSubscribeController {
           update.waitingAck = waitingAckId;
         }
       }
-      lastValues.clear();
+      lastValues.length = 0;
     } else {
       if (lastValue.count > 1 || lastValue.status != null) {
         Map m = lastValue.toMap();
@@ -380,7 +380,7 @@ class RespSubscribeController {
         waitingValues.addAll(lastValues);
       }
     } else {
-      lastValues.clear();
+      lastValues.length = 0;
       if (waitingValues != null) {
         waitingValues.clear();
         waitingValues.add(values.last);
