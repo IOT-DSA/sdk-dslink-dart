@@ -125,7 +125,7 @@ class LiveTable {
   }
 
   void clear() {
-    rows.clear();
+    rows.length = 0;
     if (_resp != null) {
       _resp.updateStream([], meta: {
         "mode": "refresh"

@@ -347,7 +347,7 @@ class GetHistoryNode extends SimpleNode {
 
         if (buffer.isNotEmpty) {
           yield buffer;
-          buffer.clear();
+          buffer.length = 0;
         }
       }
     } catch (e) {
