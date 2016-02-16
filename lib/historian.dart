@@ -464,7 +464,7 @@ class AddWatchPathNode extends SimpleNode {
     var node = await link.requester.getRemoteNode(wp);
     link.addNode(targetPath, {
       r"$name": wp,
-      r"$value_path": wp,
+      r"$path": wp,
       r"$is": "watchPath",
       r"$type": node.configs[r"$type"]
     });
@@ -620,10 +620,14 @@ class WatchPathNode extends SimpleNode {
 
   @override
   onCreated() async {
-    String rp = configs[r"$value_path"];
+    String rp = configs[r"$path"];
+
+    if (rp == null) {
+      rp = configs[r"$value_path"];
+    }
 
     if (configs[r"$publish"] == true) {
-      isPublishOnly = configs[r"$publish"];
+      isPublishOnly = true;
     }
 
     valuePath = rp;
@@ -958,7 +962,7 @@ class PublishValueAction extends SimpleNode {
         r"$is": "watchPath",
         r"$publish": true,
         r"$type": "dynamic",
-        r"$value_path": inputPath
+        r"$path": inputPath
       });
       link.save();
     } else {
