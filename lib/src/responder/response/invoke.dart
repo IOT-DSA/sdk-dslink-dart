@@ -95,7 +95,7 @@ class InvokeResponse extends Response {
         break;
       }
     }
-    pendingData.clear();
+    pendingData.length = 0;
   }
 
   /// close the request from responder side and also notify the requester
