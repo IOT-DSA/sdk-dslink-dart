@@ -756,12 +756,15 @@ class WatchPathNode extends SimpleNode {
     List<ValueEntry> entries = buffer.map(asValueEntry).toList();
 
     if (entries.isNotEmpty) {
-      if (!isStartDateFilled) {
-        link.updateValue("${path}/startDate", entries.first.timestamp);
-      }
+      try {
+        if (!isStartDateFilled) {
+          link.updateValue("${path}/startDate", entries.first.timestamp);
+        }
 
-      link.updateValue("${path}/lwv", entries.last.value);
-      link.updateValue("${path}/endDate", entries.last.timestamp);
+        link.updateValue("${path}/lwv", entries.last.value);
+        link.updateValue("${path}/endDate", entries.last.timestamp);
+      } catch (e) {
+      }
     }
     buffer.clear();
     await group.storeValues(entries);
