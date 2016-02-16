@@ -108,7 +108,7 @@ class SubscribeResponse extends Response {
     if (receiveAckId == _lastWaitingAckId) {
       _waitingAckCount = 0;
     } else {
-      _waitingAckCount --;
+      _waitingAckCount--;
     }
     subscriptions.forEach((String path, RespSubscribeController controller) {
       if (controller._qosLevel > 0) {

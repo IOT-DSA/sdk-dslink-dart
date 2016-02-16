@@ -148,7 +148,7 @@ class ListResponse extends Response {
     if (receiveAckId == _lastWatingAckId) {
       _waitingAckCount = 0;
     } else {
-      _waitingAckCount --;
+      _waitingAckCount--;
     }
 
     if (_sendingAfterAck) {

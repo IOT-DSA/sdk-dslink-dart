@@ -92,8 +92,8 @@ abstract class ConnectionHandler {
     return new ProcessorResult(rslt, processors);
   }
 
-  void clearProcessors(){
-    _processors.clear();
+  void clearProcessors() {
+    _processors.length = 0;
     _pendingSend = false;
   }
 }

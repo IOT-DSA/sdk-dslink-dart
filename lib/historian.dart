@@ -614,12 +614,18 @@ class DatabaseNode extends SimpleNode {
 class WatchPathNode extends SimpleNode {
   String valuePath;
   WatchGroupNode group;
+  bool isPublishOnly = false;
 
   WatchPathNode(String path) : super(path);
 
   @override
   onCreated() async {
     String rp = configs[r"$value_path"];
+
+    if (configs[r"$publish"] == true) {
+      isPublishOnly = configs[r"$publish"];
+    }
+
     valuePath = rp;
     group = link[new Path(path).parentPath];
 
@@ -723,15 +729,21 @@ class WatchPathNode extends SimpleNode {
   ReqSubscribeListener valueSub;
 
   sub() {
-    if (valueSub != null) {
-      valueSub.cancel();
-      valueSub = null;
-    }
+    if (!isPublishOnly) {
+      if (valueSub != null) {
+        valueSub.cancel();
+        valueSub = null;
+      }
 
-    valueSub = link.requester.subscribe(valuePath, (ValueUpdate update) {
-      updateValue(update);
-      buffer.add(update);
-    });
+      valueSub = link.requester.subscribe(valuePath, (ValueUpdate update) {
+        doUpdate(update);
+      });
+    }
+  }
+
+  void doUpdate(ValueUpdate update) {
+    updateValue(update);
+    buffer.add(update);
   }
 
   ValueEntry asValueEntry(ValueUpdate update) {
@@ -775,6 +787,7 @@ class WatchPathNode extends SimpleNode {
     out.remove("startDate");
     out.remove("endDate");
     out.remove("getHistory");
+    out.remove("publish");
 
     while (onSaveCallbacks.isNotEmpty) {
       onSaveCallbacks.removeAt(0)(out);
@@ -818,6 +831,22 @@ class WatchGroupNode extends SimpleNode {
         {
           "name": "Path",
           "type": "string"
+        }
+      ]
+    });
+
+    link.addNode("${path}/publish", {
+      r"$name": "Publish",
+      r"$invokable": "write",
+      r"$is": "publishValue",
+      r"$params": [
+        {
+          "name": "Path",
+          "type": "string"
+        },
+        {
+          "name": "Value",
+          "type": "dynamic"
         }
       ]
     });
@@ -900,6 +929,43 @@ TimeRange parseTimeRange(String input) {
 
 HistorianAdapter historian;
 
+class PublishValueAction extends SimpleNode {
+  PublishValueAction(String path) : super(path);
+
+  @override
+  onInvoke(Map<String, dynamic> params) {
+    var inputPath = params["Path"];
+    dynamic val = params["Value"];
+
+    if (inputPath is! String) {
+      throw "Path not provided.";
+    }
+
+    Path p = new Path(path);
+    String tp = p
+      .parent
+      .child(NodeNamer.createName(inputPath))
+      .path;
+    SimpleNode node = link[tp];
+
+    WatchPathNode pn;
+    if (node is! WatchPathNode) {
+      pn = link.addNode(tp, {
+        r"$name": inputPath,
+        r"$is": "watchPath",
+        r"$publish": true,
+        r"$type": "dynamic",
+        r"$value_path": inputPath
+      });
+      link.save();
+    } else {
+      pn = node;
+    }
+
+    pn.doUpdate(new ValueUpdate(val));
+  }
+}
+
 historianMain(List<String> args, String name, HistorianAdapter adapter) async {
   historian = adapter;
   link = new LinkProvider(
@@ -934,7 +1000,8 @@ historianMain(List<String> args, String name, HistorianAdapter adapter) async {
         link.save();
       }),
       "purgePath": (String path) => new PurgePathNode(path),
-      "purgeGroup": (String path) => new PurgeGroupNode(path)
+      "purgeGroup": (String path) => new PurgeGroupNode(path),
+      "publishValue": (String path) => new PublishValueAction(path)
     },
     encodePrettyJson: true
   );

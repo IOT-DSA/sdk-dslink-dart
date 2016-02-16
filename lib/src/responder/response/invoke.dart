@@ -32,7 +32,7 @@ class InvokeResponse extends Response {
       {List columns, String streamStatus: StreamStatus.open,
         Map meta, bool autoSendColumns: true}) {
     if (meta != null && meta['mode'] == 'refresh') {
-      pendingData.clear();
+      pendingData.length = 0;
     }
 
     if (!_hasSentColumns) {
