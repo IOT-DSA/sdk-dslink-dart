@@ -854,6 +854,10 @@ class WatchGroupNode extends SimpleNode {
         {
           "name": "Value",
           "type": "dynamic"
+        },
+        {
+          "name": "Timestamp",
+          "type": "string"
         }
       ]
     });
@@ -943,6 +947,11 @@ class PublishValueAction extends SimpleNode {
   onInvoke(Map<String, dynamic> params) {
     var inputPath = params["Path"];
     dynamic val = params["Value"];
+    String ts = params["Timestamp"];
+
+    if (ts == null) {
+      ts = ValueUpdate.getTs();
+    }
 
     if (inputPath is! String) {
       throw "Path not provided.";
@@ -969,7 +978,7 @@ class PublishValueAction extends SimpleNode {
       pn = node;
     }
 
-    pn.doUpdate(new ValueUpdate(val));
+    pn.doUpdate(new ValueUpdate(val, ts: ts));
   }
 }
 
