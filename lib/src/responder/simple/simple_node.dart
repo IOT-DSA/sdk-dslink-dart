@@ -293,6 +293,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       return createNode(path);
     } else {
       node = new SimpleNode(path, this);
+      nodes[path] = node;
       return node;
     }
   }
@@ -430,10 +431,12 @@ class SimpleNodeProvider extends NodeProviderImpl
     nodes[path] = node;
 
     node.onCreated();
-    pnode.children[p.name] = node;
-    pnode.onChildAdded(p.name, node);
 
-    pnode.updateList(p.name);
+    if (pnode != null) {
+      pnode.children[p.name] = node;
+      pnode.onChildAdded(p.name, node);
+      pnode.updateList(p.name);
+    }
 
     if (registerChildren) {
       for (SimpleNode c in node.children.values) {
@@ -447,6 +450,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (path == '/' || !path.startsWith('/')) return null;
 
     Path p = new Path(path);
+    SimpleNode oldNode = getNode(path);
     SimpleNode pnode = getNode(p.parentPath);
 
     SimpleNode node;
@@ -462,6 +466,11 @@ class SimpleNodeProvider extends NodeProviderImpl
       } else {
         node = getOrCreateNode(path);
       }
+    }
+
+    if (oldNode != null) {
+      logger.fine("Found old node for ${path}: Copying subscriptions.");
+      node.callbacks.addAll(oldNode.callbacks);
     }
 
     nodes[path] = node;
