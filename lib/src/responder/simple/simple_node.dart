@@ -294,6 +294,7 @@ class SimpleNodeProvider extends NodeProviderImpl
           if (parent != null && !parent.children.containsKey(po.name)) {
             parent.addChild(po.name, node);
             parent.listChangeController.add(po.name);
+            node.listChangeController.add(r"$is");
           }
         }
       }
