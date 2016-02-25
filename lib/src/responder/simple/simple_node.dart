@@ -263,7 +263,10 @@ class SimpleNodeProvider extends NodeProviderImpl
   @override
   LocalNode getNode(String path) {
     if (nodes.containsKey(path)) {
-      return nodes[path];
+      SimpleNode node = nodes[path];
+      if (node._stub == false) {
+        return node;
+      }
     }
 
     if (_resolverFactories.isNotEmpty) {
@@ -297,6 +300,10 @@ class SimpleNodeProvider extends NodeProviderImpl
             node.listChangeController.add(r"$is");
           }
         }
+
+        if (node is SimpleNode && node._stub == true) {
+          node._stub = false;
+        }
       }
 
       return node;
@@ -306,6 +313,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       return createNode(path);
     } else {
       node = new SimpleNode(path, this);
+      node._stub = true;
       nodes[path] = node;
       return node;
     }
@@ -356,12 +364,21 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// If a node already exists at this path, an exception is thrown.
   SimpleNode createNode(String path) {
     Path p = new Path(path);
+    LocalNode existing = nodes[path];
 
-    if (nodes.containsKey(path)) {
-      throw new Exception("Node at ${path} already exists.");
+    if (existing != null) {
+      if (existing is SimpleNode) {
+        if (existing._stub != true) {
+          throw new Exception("Node at ${path} already exists.");
+        } else {
+          existing._stub = false;
+        }
+      } else {
+        throw new Exception("Node at ${path} already exists.");
+      }
     }
 
-    SimpleNode node = new SimpleNode(path, this);
+    SimpleNode node = existing == null ? new SimpleNode(path, this) : existing;
     nodes[path] = node;
     node.onCreated();
     SimpleNode pnode;
@@ -556,6 +573,9 @@ class SimpleNodeProvider extends NodeProviderImpl
 /// A flexible node implementation that should fit most use cases.
 class SimpleNode extends LocalNodeImpl {
   final SimpleNodeProvider provider;
+
+  bool _stub = false;
+
   SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path),
     provider = nodeprovider == null ? SimpleNodeProvider.instance : nodeprovider;
 

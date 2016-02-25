@@ -265,6 +265,33 @@ class LinkProvider {
       });
     }
 
+    if (const bool.fromEnvironment("dslink.debugger.console", defaultValue: false)) {
+      readStdinLines().listen((String cmd) {
+        if (cmd == "list-stored-nodes") {
+          if (provider is SimpleNodeProvider) {
+            SimpleNodeProvider prov = provider;
+            print(prov.nodes.keys.join("\n"));
+          } else {
+            print("Not a SimpleNodeProvider.");
+          }
+        } else if (cmd == "list-stub-nodes") {
+          if (provider is SimpleNodeProvider) {
+            SimpleNodeProvider prov = provider;
+            for (var node in prov.nodes.values) {
+              Path p = new Path(node.path);
+              if (prov.nodes[p.parentPath] == null) {
+                print(node.path);
+              } else if (!prov.nodes[p.parentPath].children.containsKey(p.name)) {
+                print(node.path);
+              }
+            }
+          } else {
+            print("Not a SimpleNodeProvider.");
+          }
+        }
+      });
+    }
+
     if (const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false)) {
       var runtimeConfig = Zone.current["dslink.runtime.config"];
 
