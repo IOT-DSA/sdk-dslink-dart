@@ -286,6 +286,18 @@ class SimpleNodeProvider extends NodeProviderImpl
     LocalNode node = getNode(path);
 
     if (node != null) {
+      if (addToTree) {
+        Path po = new Path(path);
+        if (!po.isRoot) {
+          LocalNode parent = getNode(po.parentPath);
+
+          if (parent != null && !parent.children.containsKey(po.name)) {
+            parent.addChild(po.name, node);
+            parent.listChangeController.add(po.name);
+          }
+        }
+      }
+
       return node;
     }
 
