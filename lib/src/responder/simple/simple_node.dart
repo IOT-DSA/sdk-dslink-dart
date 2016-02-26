@@ -262,9 +262,13 @@ class SimpleNodeProvider extends NodeProviderImpl
 
   @override
   LocalNode getNode(String path) {
+    return _getNode(path);
+  }
+
+  LocalNode _getNode(String path, {bool allowStubs: false}) {
     if (nodes.containsKey(path)) {
       SimpleNode node = nodes[path];
-      if (node._stub == false) {
+      if (allowStubs || node._stub == false) {
         return node;
       }
     }
@@ -300,10 +304,10 @@ class SimpleNodeProvider extends NodeProviderImpl
             node.listChangeController.add(r"$is");
           }
         }
+      }
 
-        if (node is SimpleNode && node._stub == true) {
-          node._stub = false;
-        }
+      if (node is SimpleNode && node._stub == true) {
+        node._stub = false;
       }
 
       return node;
@@ -312,8 +316,8 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (addToTree) {
       return createNode(path);
     } else {
-      node = new SimpleNode(path, this);
-      node._stub = true;
+      node = new SimpleNode(path, this)
+        .._stub = true;
       nodes[path] = node;
       return node;
     }
@@ -480,7 +484,8 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (path == '/' || !path.startsWith('/')) return null;
 
     Path p = new Path(path);
-    SimpleNode oldNode = getNode(path);
+    SimpleNode oldNode = _getNode(path, allowStubs: true);
+
     SimpleNode pnode = getNode(p.parentPath);
 
     SimpleNode node;
@@ -509,9 +514,15 @@ class SimpleNodeProvider extends NodeProviderImpl
     node.onCreated();
 
     if (pnode != null) {
-      pnode.children[p.name] = node;
+      pnode.addChild(p.name, node);
       pnode.onChildAdded(p.name, node);
       pnode.updateList(p.name);
+    }
+
+    node.updateList(r"$is");
+
+    if (oldNode != null) {
+      oldNode.updateList(r"$is");
     }
 
     return node;
