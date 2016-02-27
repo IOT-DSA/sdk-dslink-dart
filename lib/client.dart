@@ -140,7 +140,7 @@ class LinkProvider {
         NodeProvider nodeProvider, // For Backwards Compatibility
         this.linkData
       }) {
-    exitOnFailure = !(const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false));
+    exitOnFailure = Zone.current["dslink.runtime.config"] is! Map;
 
     if (nodeProvider != null) {
       provider = nodeProvider;
@@ -292,7 +292,7 @@ class LinkProvider {
       });
     }
 
-    if (const bool.fromEnvironment("dslink.runtime.manager", defaultValue: false)) {
+    {
       var runtimeConfig = Zone.current["dslink.runtime.config"];
 
       if (runtimeConfig != null) {
