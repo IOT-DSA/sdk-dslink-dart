@@ -4,10 +4,13 @@ library dslink.worker;
 import "dart:async";
 import "dart:isolate";
 
-import "package:dslink/utils.dart" show generateBasicId;
+import "package:dslink/utils.dart" show generateBasicId,
+  ExecutableFunction,
+  Taker;
+
+export "package:dslink/utils.dart" show Taker;
 
 typedef void WorkerFunction(Worker worker);
-typedef Producer(input);
 
 WorkerSocket createWorker(WorkerFunction function,
     {Map<String, dynamic> metadata}) {
@@ -82,7 +85,7 @@ WorkerPool createWorkerPool(int count, WorkerFunction function,
 
 class WorkerPool {
   final List<WorkerSocket> sockets;
-  Map<String, Producer> _methods = {};
+  Map<String, Taker> _methods = {};
 
   WorkerPool(this.sockets) {
     resync();
@@ -160,7 +163,7 @@ class WorkerPool {
     sockets.forEach(handler);
   }
 
-  void addMethod(String name, Producer handler) {
+  void addMethod(String name, Taker handler) {
     _methods[name] = handler;
   }
 
@@ -189,7 +192,9 @@ class WorkerPool {
     return collect != null ? await collect(outs) : outs;
   }
 
-  Future<WorkerSession> createSession() => getAvailableWorker().createSession();
+  Future<WorkerSession> createSession([dynamic initialMessage]) {
+    return getAvailableWorker().createSession(initialMessage);
+  }
 
   StreamController<WorkerSession> _sessionController =
       new StreamController<WorkerSession>.broadcast();
@@ -258,7 +263,7 @@ class Worker {
     }
     return sock;
   }
-  Future<WorkerSocket> init({Map<String, Producer> methods}) async =>
+  Future<WorkerSocket> init({Map<String, Taker> methods}) async =>
       await createSocket().init(methods: methods);
 
   dynamic get(String key) => metadata[key];
@@ -362,7 +367,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       }
     } else if (type == "session.created") {
       var id = msg["s"];
-      _remoteSessions[id] = new _WorkerSession(this, id, false);
+      _remoteSessions[id] = new _WorkerSession(this, id, false, msg["n"]);
       _sendPort.send({"t": "session.ready", "s": id});
       _sessionController.add(_remoteSessions[id]);
     } else if (type == "session.ready") {
@@ -412,7 +417,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     }
   }
 
-  Future<WorkerSocket> init({Map<String, Producer> methods}) {
+  Future<WorkerSocket> init({Map<String, Taker> methods}) {
     if (methods != null) {
       for (var key in methods.keys) {
         addMethod(key, methods[key]);
@@ -421,8 +426,8 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     return waitFor().then((_) => this);
   }
 
-  void addMethod(String name, Producer producer) {
-    _requestHandlers[name] = producer;
+  void addMethod(String name, Taker Taker) {
+    _requestHandlers[name] = Taker;
   }
 
   WorkerSocket _master;
@@ -506,7 +511,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   }
 
   Map<int, Completer> _responseHandlers = {};
-  Map<String, Producer> _requestHandlers = {};
+  Map<String, Taker> _requestHandlers = {};
 
   Completer _readyCompleter = new Completer();
 
@@ -555,10 +560,10 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     });
   }
 
-  Future<WorkerSession> createSession() async {
+  Future<WorkerSession> createSession([initial]) async {
     var s = generateBasicId(length: 25);
-    var session = new _WorkerSession(this, s, true);
-    _sendPort.send({"t": "session.created", "s": s});
+    var session = new _WorkerSession(this, s, true, initial);
+    _sendPort.send({"t": "session.created", "s": s, "n": initial});
     await ((_sessionReady[s] = new Completer.sync()).future);
     _ourSessions[s] = session;
     return session;
@@ -601,6 +606,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 }
 
 abstract class WorkerSession {
+  dynamic get initialMessage;
   String get id;
   void send(data);
   Future close();
@@ -615,9 +621,10 @@ class _WorkerSession extends WorkerSession {
   final WorkerSocket _socket;
 
   Completer _doneCompleter = new Completer.sync();
-  StreamController _messages = new StreamController.broadcast();
+  StreamController _messages = new StreamController();
+  Stream _messageBroadcast;
 
-  _WorkerSession(this._socket, this.id, this.creator);
+  _WorkerSession(this._socket, this.id, this.creator, this._initialMessage);
 
   @override
   Future close() {
@@ -637,14 +644,71 @@ class _WorkerSession extends WorkerSession {
   Future get done => _doneCompleter.future;
 
   @override
-  Stream get messages => _messages.stream;
+  Stream get messages {
+    if (_messageBroadcast == null) {
+      _messageBroadcast = _messages.stream.asBroadcastStream();
+    }
+
+    return _messageBroadcast;
+  }
 
   @override
   void send(data) {
-    _socket._sendPort
-        .send({"t": "session.data", "s": id, "d": data});
+    _socket._sendPort.send({"t": "session.data", "s": id, "d": data});
   }
 
   @override
   bool get isClosed => _doneCompleter.isCompleted;
+
+  dynamic _initialMessage;
+  dynamic get initialMessage => _initialMessage;
+}
+
+class WorkerBuilder {
+  final Map<String, Taker> hosts;
+  final Map<String, Taker> slaves;
+
+  WorkerBuilder._(this.hosts, this.slaves);
+
+  factory WorkerBuilder() {
+    return new WorkerBuilder._({}, {});
+  }
+
+  WorkerBuilder host(String name, function) {
+    if (function is ExecutableFunction) {
+      function = (_) => function();
+    }
+
+    hosts[name] = function;
+    return this;
+  }
+
+  WorkerBuilder slave(String name, Taker function) {
+    slaves[name] = function;
+    return this;
+  }
+
+  WorkerBuilder global(String name, Taker function) {
+    hosts[name] = function;
+    slaves[name] = function;
+    return this;
+  }
+
+  Future<WorkerSocket> spawn([WorkerFunction function]) async {
+    if (function == null) {
+      function = defaultWorkerFunction;
+    }
+
+    var meta = {
+      "methods": slaves
+    };
+
+    return await createWorker(function, metadata: meta).init(methods: hosts);
+  }
+
+  static defaultWorkerFunction(Worker worker) async {
+    var methods = worker.get("methods");
+
+    return await worker.init(methods: methods);
+  }
 }
