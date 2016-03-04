@@ -1,0 +1,25 @@
+{
+  "exclude": [
+    "(packages/)",
+    "(tool/)"
+  ],
+  "linters": {
+    "chmod": {
+      "type": "chmod"
+    },
+    "spelling": {
+      "type": "spelling"
+    },
+    "dart": {
+      "type": "script-and-regex",
+      "script-and-regex.script": "bash tool/arc/lint.sh",
+      "script-and-regex.regex": "/^(?P<severity>.+) !!(?P<file>.+)!! !!(?P<name>.+)!! (?P<line>.+):(?P<char>[0-9]+) !!(?P<message>.+)!!$/m",
+      "include": [
+        "(\\.dart$)"
+      ]
+    },
+    "merge-conflict": {
+      "type": "merge-conflict"
+    }
+  }
+}
