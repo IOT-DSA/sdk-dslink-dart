@@ -25,7 +25,9 @@ class Node {
   
   /// same as attributes for local node
   /// but different on remote node
-  Map<String, Object> get overideAttributes => attributes;
+  Object getOverideAttributes(String attr) {
+    return attributes[attr];
+  }
   
   Node();
 
