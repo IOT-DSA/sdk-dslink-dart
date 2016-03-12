@@ -298,7 +298,9 @@ class Responder extends ConnectionHandler {
       parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
 
       doInvoke([LocalNode overriden]) {
-        LocalNode node = overriden == null ? nodeProvider.getNode(path.path) : overriden;
+        LocalNode node = overriden == null ?
+          nodeProvider.getNode(path.path) :
+          overriden;
         if (node == null) {
           if (overriden == null) {
             node = parentNode.getChild(path.name);
@@ -326,9 +328,15 @@ class Responder extends ConnectionHandler {
         }
 
         if (node.getInvokePermission() <= permission) {
-          node.invoke(m['params'], this,
-              addResponse(new InvokeResponse(this, rid, parentNode, node, path.name)), parentNode,
-              permission);
+          node.invoke(
+            m['params'],
+            this,
+            addResponse(
+              new InvokeResponse(this, rid, parentNode, node, path.name)
+            ),
+            parentNode,
+            permission
+          );
         } else {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }

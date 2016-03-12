@@ -290,7 +290,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   ///
   /// When [addToTree] is false, the node will not be inserted into the node provider.
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
-    LocalNode node = getNode(path);
+    LocalNode node = _getNode(path, allowStubs: true);
 
     if (node != null) {
       if (addToTree) {
@@ -304,10 +304,10 @@ class SimpleNodeProvider extends NodeProviderImpl
             node.listChangeController.add(r"$is");
           }
         }
-      }
 
-      if (node is SimpleNode && node._stub == true) {
-        node._stub = false;
+        if (node is SimpleNode) {
+          node._stub = false;
+        }
       }
 
       return node;
@@ -331,7 +331,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       return false;
     }
 
-    if (node._stub == true) {
+    if (node.isStubNode == true) {
       return false;
     }
 
@@ -502,7 +502,6 @@ class SimpleNodeProvider extends NodeProviderImpl
     SimpleNode oldNode = _getNode(path, allowStubs: true);
 
     SimpleNode pnode = getNode(p.parentPath);
-
     SimpleNode node;
 
     if (pnode != null) {
@@ -593,6 +592,28 @@ class SimpleNodeProvider extends NodeProviderImpl
   Responder createResponder(String dsId, String sessionId) {
     return new Responder(this, dsId);
   }
+
+  @override
+  String toString({bool showInstances: false}) {
+    var buff = new StringBuffer();
+
+    void doNode(LocalNode node, [int depth = 0]) {
+      Path p = new Path(node.path);
+      buff.write("${'  ' * depth}- ${p.name}");
+
+      if (showInstances) {
+        buff.write(": ${node}");
+      }
+
+      buff.writeln();
+      for (var child in node.children.values) {
+        doNode(child, depth + 1);
+      }
+    }
+
+    doNode(root);
+    return buff.toString().trim();
+  }
 }
 
 /// A Simple Node Implementation
@@ -601,6 +622,11 @@ class SimpleNode extends LocalNodeImpl {
   final SimpleNodeProvider provider;
 
   bool _stub = false;
+
+  /// Is this node a stub node?
+  /// Stub nodes are nodes which are stored in the tree, but are not actually
+  /// part of their parent.
+  bool get isStubNode => _stub;
 
   SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path),
     provider = nodeprovider == null ? SimpleNodeProvider.instance : nodeprovider;
@@ -639,11 +665,6 @@ class SimpleNode extends LocalNodeImpl {
       } else if (value is Map) {
         String childPath = '$childPathPre$key';
         provider.addNode(childPath, value);
-        // Node node = provider.getNode('$childPathPre$key');
-        // children[key] = node;
-        // if (node is LocalNodeImpl) {
-        //   node.load(value, provider);
-        // }
       }
     });
     _loaded = true;
@@ -1140,25 +1161,31 @@ class SimpleNode extends LocalNodeImpl {
   }
 }
 
+/// A hidden node.
 class SimpleHiddenNode extends SimpleNode {
   SimpleHiddenNode(String path, SimpleNodeProvider provider) : super(path, provider) {
     configs[r'$hidden'] = true;
   }
 
+  @override
   Map getSimpleMap() {
     Map rslt = {r'$hidden':true};
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }
+
     if (configs.containsKey(r'$type')) {
       rslt[r'$type'] = configs[r'$type'];
     }
+
     if (configs.containsKey(r'$name')) {
       rslt[r'$name'] = configs[r'$name'];
     }
+
     if (configs.containsKey(r'$invokable')) {
       rslt[r'$invokable'] = configs[r'$invokable'];
     }
+
     if (configs.containsKey(r'$writable')) {
       rslt[r'$writable'] = configs[r'$writable'];
     }
