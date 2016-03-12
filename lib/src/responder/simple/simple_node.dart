@@ -323,6 +323,21 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
   }
 
+  /// Checks if this provider has the node at [path].
+  bool hasNode(String path) {
+    SimpleNode node = nodes[path];
+
+    if (node == null) {
+      return false;
+    }
+
+    if (node._stub == true) {
+      return false;
+    }
+
+    return true;
+  }
+
   void registerResolver(SimpleNodeFactory factory) {
     if (!_resolverFactories.contains(factory)) {
       _resolverFactories.add(factory);
