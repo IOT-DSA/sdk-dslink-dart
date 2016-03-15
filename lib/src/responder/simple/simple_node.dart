@@ -289,7 +289,8 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// If it does not exist, create a new node and return it.
   ///
   /// When [addToTree] is false, the node will not be inserted into the node provider.
-  LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
+  /// When [init] is false, onCreated() is not called.
+  LocalNode getOrCreateNode(String path, [bool addToTree = true, bool init = true]) {
     LocalNode node = _getNode(path, allowStubs: true);
 
     if (node != null) {
@@ -314,7 +315,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
 
     if (addToTree) {
-      return createNode(path);
+      return createNode(path, init);
     } else {
       node = new SimpleNode(path, this)
         .._stub = true;
@@ -381,7 +382,8 @@ class SimpleNodeProvider extends NodeProviderImpl
 
   /// Creates a node at [path].
   /// If a node already exists at this path, an exception is thrown.
-  SimpleNode createNode(String path) {
+  /// If [init] is false, onCreated() is not called.
+  SimpleNode createNode(String path, [bool init = true]) {
     Path p = new Path(path);
     LocalNode existing = nodes[path];
 
@@ -399,7 +401,11 @@ class SimpleNodeProvider extends NodeProviderImpl
 
     SimpleNode node = existing == null ? new SimpleNode(path, this) : existing;
     nodes[path] = node;
-    node.onCreated();
+
+    if (init) {
+      node.onCreated();
+    }
+
     SimpleNode pnode;
 
     if (p.parentPath != "") {
@@ -513,7 +519,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       if (_profiles.containsKey(profile)) {
         node = _profiles[profile](path);
       } else {
-        node = getOrCreateNode(path);
+        node = getOrCreateNode(path, true, false);
       }
     }
 
@@ -524,7 +530,6 @@ class SimpleNodeProvider extends NodeProviderImpl
 
     nodes[path] = node;
     node.load(m);
-
     node.onCreated();
 
     if (pnode != null) {
