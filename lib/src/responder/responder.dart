@@ -327,9 +327,15 @@ class Responder extends ConnectionHandler {
           permission = maxPermit;
         }
 
+        Map params = m["params"];
+
+        if (params == null) {
+          params = {};
+        }
+
         if (node.getInvokePermission() <= permission) {
           node.invoke(
-            m['params'],
+            params,
             this,
             addResponse(
               new InvokeResponse(this, rid, parentNode, node, path.name)
