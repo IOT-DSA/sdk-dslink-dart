@@ -34,7 +34,7 @@ class Responder extends ConnectionHandler {
   /// list of permission group
   List<String> groups = [];
   void updateGroups(List<String> vals) {
-    groups = [reqId]..addAll(vals);
+    groups = [reqId]..addAll(vals.where((str)=>str != ''));
   }
   final Map<int, Response> _responses = new Map<int, Response>();
   SubscribeResponse _subscription;
