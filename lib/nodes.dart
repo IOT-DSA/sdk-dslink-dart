@@ -246,7 +246,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
   }
 
   @override
-  LocalNode getOrCreateNode(String path, [bool addToTree = true]) => getNode(path);
+  LocalNode getOrCreateNode(String path, [bool addToTree = true, bool init = true]) => getNode(path);
 }
 
 /// A Simple Node which delegates all basic methods to given functions.
