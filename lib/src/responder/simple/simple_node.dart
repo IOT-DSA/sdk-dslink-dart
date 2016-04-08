@@ -526,7 +526,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (oldNode != null) {
       logger.fine("Found old node for ${path}: Copying subscriptions.");
 
-      for (Function func in oldNode.callbacks) {
+      for (Function func in oldNode.callbacks.keys) {
         node.subscribe(func, oldNode.callbacks[func]);
       }
     }
