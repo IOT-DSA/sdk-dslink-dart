@@ -9,7 +9,13 @@ abstract class LocalNode extends Node {
   BroadcastStreamController<String> get listChangeController {
     if (_listChangeController == null) {
       _listChangeController = new BroadcastStreamController<String>(
-          onStartListListen, onAllListCancel, null, true);
+        () {
+          _hasListListener = true;
+          onStartListListen();
+        }, () {
+          _hasListListener = false;
+          onAllListCancel();
+        }, null, true);
     }
     return _listChangeController;
   }
@@ -23,6 +29,8 @@ abstract class LocalNode extends Node {
 
   /// Callback for when all lists are canceled.
   void onAllListCancel() {}
+
+  bool _hasListListener = false;
 
   /// Node Provider
   NodeProvider get provider;

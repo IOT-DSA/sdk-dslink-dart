@@ -529,6 +529,16 @@ class SimpleNodeProvider extends NodeProviderImpl
       for (Function func in oldNode.callbacks.keys) {
         node.subscribe(func, oldNode.callbacks[func]);
       }
+
+      if (node is SimpleNode) {
+        try {
+          node._listChangeController = oldNode._listChangeController;
+        } catch (e) {}
+
+        if (node._hasListListener) {
+          node.onStartListListen();
+        }
+      }
     }
 
     nodes[path] = node;
