@@ -195,7 +195,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   List<ValueUpdate> _cachedValue;
 
   Future<ISubscriptionNodeStorage> load() async {
-    String str = await file.readAsString();
+    String str = file.readAsStringSync();
     List<String> strs = str.split("\n");
     if (strs.length == 1 && str.startsWith(" ")) {
       // where there is space, it's qos 2
@@ -245,27 +245,20 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
     dir.delete(recursive: true).catchError(_ignoreError);
   }
 
-  Future<Map> load() {
+  Future<Map> load() async{
     Map rslt = {};
-    List<Future<ISubscriptionNodeStorage>> loading = [];
     for (FileSystemEntity entity in dir.listSync()) {
       String name = UriComponentDecoder.decode(entity.path.substring(
           entity.path.lastIndexOf(Platform.pathSeparator) + 1));
       File f = new File(entity.path);
-      Future future = f.readAsString().then((String str) {
-        try {
-          rslt[name] = DsJson.decode(str);
-        } catch (err) {
-          logger.fine(err);
-        }
-      });
-      loading.add(future);
+      String str = f.readAsStringSync();
+      try {
+        rslt[name] = DsJson.decode(str);
+      } catch (err) {
+        logger.fine(err);
+      }
     }
-    Completer<Map> completer = new Completer<Map>();
-    Future.wait(loading).then((obj) {
-      completer.complete(rslt);
-    });
-    return completer.future;
+    return rslt;
   }
 }
 
