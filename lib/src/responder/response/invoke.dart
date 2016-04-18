@@ -4,7 +4,7 @@ typedef void OnInvokeClosed(InvokeResponse response);
 typedef void OnInvokeSend(InvokeResponse response, Map m);
 
 /// return true if params are valid
-typedef bool OnReqParams(Map m);
+typedef bool OnReqParams(InvokeResponse resp, Map m);
 
 class _InvokeResponseUpdate {
   String status;
@@ -58,7 +58,7 @@ class InvokeResponse extends Response {
   /// new parameter from the requester
   void updateReqParams(Map m) {
     if (onReqParams != null) {
-      onReqParams(m);
+      onReqParams(this, m);
     }
   }
 
