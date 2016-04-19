@@ -1,5 +1,9 @@
 {
   "phabricator.uri" : "https://p.dev.dglogik.com",
-  "repository.callsign": "DDS"
+  "repository.callsign": "DDS",
+  "unit.engine": "DartUnitTestEngine",
+  "load": [
+    ".arc/libdglogik"
+  ]
 }
 
