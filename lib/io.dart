@@ -171,9 +171,14 @@ class HttpHelper {
   }
 
   static Future<WebSocket> upgradeToWebSocket(HttpRequest request, [
-    protocolSelector(List<String> protocols)
+    protocolSelector(List<String> protocols),
+    bool useStandardWebSocket
   ]) {
-    if (enableStandardWebSocket) {
+    if (useStandardWebSocket == null) {
+      useStandardWebSocket = enableStandardWebSocket;
+    }
+
+    if (useStandardWebSocket) {
       return WebSocketTransformer.upgrade(request, protocolSelector: protocolSelector);
     }
 
