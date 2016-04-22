@@ -21,7 +21,7 @@ class HttpClientLink extends ClientLink {
   Requester requester;
   Responder responder;
 
-  bool useStandardWebSocket;
+  bool useStandardWebSocket = true;
 
   @override
   String logName;
@@ -133,7 +133,8 @@ class HttpClientLink extends ClientLink {
         'isRequester': requester != null,
         'isResponder': responder != null,
         'formats': formats,
-        'version': DSA_VERSION
+        'version': DSA_VERSION,
+        'enableWebSocketCompression': true
       };
 
       if (linkData != null) {
