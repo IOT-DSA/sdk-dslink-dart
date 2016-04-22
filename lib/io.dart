@@ -66,11 +66,16 @@ class HttpHelper {
       String url, {
       Iterable<String> protocols,
       Map<String, dynamic> headers,
-      HttpClient httpClient
+      HttpClient httpClient,
+      bool useStandardWebSocket
     }) async {
     Uri uri = Uri.parse(url);
 
-    if (enableStandardWebSocket && uri.scheme != "wss") {
+    if (useStandardWebSocket == null) {
+      useStandardWebSocket = enableStandardWebSocket;
+    }
+
+    if (useStandardWebSocket && uri.scheme != "wss") {
       return await WebSocket.connect(
         url,
         protocols: protocols,

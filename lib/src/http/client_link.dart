@@ -21,6 +21,8 @@ class HttpClientLink extends ClientLink {
   Requester requester;
   Responder responder;
 
+  bool useStandardWebSocket;
+
   @override
   String logName;
 
@@ -202,7 +204,10 @@ class HttpClientLink extends ClientLink {
       if (tokenHash != null) {
         wsUrl = '$wsUrl$tokenHash';
       }
-      var socket = await HttpHelper.connectToWebSocket(wsUrl);
+      var socket = await HttpHelper.connectToWebSocket(
+        wsUrl,
+        useStandardWebSocket: useStandardWebSocket
+      );
       _wsConnection = new WebSocketConnection(socket,
           clientLink: this,
           enableTimeout: true,
