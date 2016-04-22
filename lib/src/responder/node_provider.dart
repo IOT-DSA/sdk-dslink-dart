@@ -20,6 +20,10 @@ abstract class LocalNode extends Node {
     return _listChangeController;
   }
 
+  void overrideListChangeController(BroadcastStreamController<String> controller) {
+    _listChangeController = controller;
+  }
+
   /// List Stream.
   /// See [listChangeController].
   Stream<String> get listStream => listChangeController.stream;
