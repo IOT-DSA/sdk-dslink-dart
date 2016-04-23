@@ -93,7 +93,8 @@ class BrowserECDHLink extends ClientLink {
         'isRequester': requester != null,
         'isResponder': responder != null,
         'formats': formats,
-        'version': DSA_VERSION
+        'version': DSA_VERSION,
+        'enableWebSocketCompression': true
       };
       HttpRequest request = await HttpRequest.request(connUrl,
           method: 'POST',
