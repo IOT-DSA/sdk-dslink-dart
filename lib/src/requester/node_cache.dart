@@ -67,6 +67,26 @@ class RemoteNode extends Node {
   ListController _listController;
   ReqSubscribeController _subscribeController;
 
+  ReqSubscribeController get subscribeController {
+    return _subscribeController;
+  }
+
+  bool get hasValueUpdate {
+    if (_subscribeController == null) {
+      return false;
+    }
+
+    return _subscribeController._lastUpdate != null;
+  }
+
+  ValueUpdate get lastValueUpdate {
+    if (hasValueUpdate) {
+      return _subscribeController._lastUpdate;
+    } else {
+      return null;
+    }
+  }
+
   RemoteNode(this.remotePath) {
     _getRawName();
   }
