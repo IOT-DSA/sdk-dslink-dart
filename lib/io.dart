@@ -75,7 +75,7 @@ class HttpHelper {
       useStandardWebSocket = enableStandardWebSocket;
     }
 
-    if (useStandardWebSocket && uri.scheme != "wss") {
+    if (useStandardWebSocket == true && uri.scheme != "wss") {
       return await WebSocket.connect(
         url,
         protocols: protocols,

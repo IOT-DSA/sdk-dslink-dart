@@ -1,6 +1,6 @@
 @TestOn("vm")
 @Timeout(const Duration(seconds: 60))
-library dslink.test.vm.links.simple;
+library dslink.test.vm.links.large;
 
 import "dart:async";
 
