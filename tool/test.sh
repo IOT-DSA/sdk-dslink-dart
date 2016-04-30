@@ -7,6 +7,5 @@ then
   ARGS="test/ -p vm -j 6"
 fi
 
-# This is broken. Investigate later.
-# pub run test ${ARGS}
-dart test/all.dart
+pub run test ${ARGS}
+
