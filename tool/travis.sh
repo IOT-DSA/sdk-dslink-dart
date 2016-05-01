@@ -4,7 +4,7 @@ set -e
 ./tool/analyze.sh
 ./tool/test.sh
 
-if [ "${TRAVIS_DART_VERSION}" == "dev" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ]
+if [ "${TRAVIS_DART_VERSION}" == "dev" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] && [ "${TRAVIS_BRANCH}" == "master" ] && [ "${TRAVIS_UPLOAD_DOCS}" == "true" ]
 then
   if [ ! -d ${HOME}/.ssh ]
   then
