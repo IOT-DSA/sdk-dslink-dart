@@ -7,8 +7,8 @@ class UriComponentDecoder {
   static const int _PLUS = 0x2B;
 
   static String decode(String text) {
-    List codes = new List();
-    List bytes = new List();
+    List<int> codes = new List<int>();
+    List<int> bytes = new List<int>();
     int len = text.length;
     for (int i = 0; i < len; i++) {
       var codeUnit = text.codeUnitAt(i);
@@ -26,7 +26,10 @@ class UriComponentDecoder {
         }
       } else {
         if (!bytes.isEmpty) {
-          codes.addAll(const Utf8Decoder(allowMalformed: true).convert(bytes).codeUnits);
+          codes.addAll(
+            const Utf8Decoder(allowMalformed: true)
+              .convert(bytes)
+              .codeUnits);
           bytes.clear();
         }
         if (codeUnit == _PLUS) {
@@ -38,7 +41,9 @@ class UriComponentDecoder {
     }
 
     if (!bytes.isEmpty) {
-      codes.addAll(const Utf8Decoder().convert(bytes).codeUnits);
+      codes.addAll(const Utf8Decoder()
+        .convert(bytes)
+        .codeUnits);
       bytes.clear();
     }
     return new String.fromCharCodes(codes);
@@ -50,7 +55,8 @@ class UriComponentDecoder {
       int charCode = s.codeUnitAt(pos + i);
       if (0x30 <= charCode && charCode <= 0x39) {
         byte = byte * 16 + charCode - 0x30;
-      } else if ((charCode>=0x41 && charCode <= 0x46) || (charCode>=0x61 && charCode <= 0x66)){
+      } else if ((charCode >= 0x41 && charCode <= 0x46) ||
+        (charCode >= 0x61 && charCode <= 0x66)) {
         // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
         charCode |= 0x20;
         byte = byte * 16 + charCode - 0x57;

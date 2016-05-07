@@ -1,6 +1,6 @@
 part of dslink.utils;
 
-class TimerFunctions extends LinkedListEntry {
+class TimerFunctions extends LinkedListEntry<TimerFunctions> {
   /// for better performance, use a low accuracy timer, ts50 is the floor of ts/50
   final int ts50;
   List<Function> _functions = new List<Function>();
@@ -128,7 +128,7 @@ class DsTimer {
         existTf.remove(callback);
       }
     }
-    
+
     if (desiredTime50 <= _lastTimeRun) {
       callLater(callback);
       return;

@@ -22,9 +22,9 @@ class DSLinkJSON {
     j.version = map["version"];
     j.description = map["description"];
     j.main = map["main"];
-    j.engines = map["engines"];
-    j.configs = map["configs"];
-    j.getDependencies = map["getDependencies"];
+    j.engines = map["engines"] as Map<String, dynamic>;
+    j.configs = map["configs"] as Map<String, Map<String, dynamic>>;
+    j.getDependencies = map["getDependencies"] as List<String>;
     return j;
   }
 

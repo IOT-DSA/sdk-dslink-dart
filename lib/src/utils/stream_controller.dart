@@ -138,14 +138,15 @@ class CachedStreamWrapper<T> implements Stream<T> {
 
   Future<bool> every(bool test(T element)) => _stream.every(test);
 
-  Stream expand(Iterable convert(T value)) => _stream.expand(convert);
+  Stream/*<S>*/ expand/*<S>*/(Iterable/*<S>*/ convert(T value)) => _stream.expand(convert);
 
   Future<T> get first => _stream.first;
 
   Future firstWhere(bool test(T element), {Object defaultValue()}) =>
       _stream.firstWhere(test, defaultValue: defaultValue);
 
-  Future fold(initialValue, combine(previous, T element)) =>
+  Future/*<S>*/ fold/*<S>*/(var/*=S*/ initialValue,
+    /*=S*/ combine(var/*=S*/ previous, T element)) =>
       _stream.fold(initialValue, combine);
 
   Future forEach(void action(T element)) => _stream.forEach(action);
@@ -175,7 +176,7 @@ class CachedStreamWrapper<T> implements Stream<T> {
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  Stream map(convert(T event)) => _stream.map(convert);
+  Stream/*<S>*/ map/*<S>*/(/*=S*/ convert(T event)) => _stream.map(convert);
 
   Future pipe(StreamConsumer<T> streamConsumer) => _stream.pipe(streamConsumer);
 
@@ -200,7 +201,8 @@ class CachedStreamWrapper<T> implements Stream<T> {
 
   Future<Set<T>> toSet() => _stream.toSet();
 
-  Stream transform(StreamTransformer<T, dynamic> streamTransformer) =>
+  Stream/*<S>*/ transform/*<S>*/(
+    StreamTransformer<T, dynamic/*=S*/ > streamTransformer) =>
       _stream.transform(streamTransformer);
 
   Stream<T> where(bool test(T event)) => _stream.where(test);

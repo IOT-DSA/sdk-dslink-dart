@@ -1,5 +1,8 @@
 part of dslink.utils;
 
+typedef Object _Encoder(Object input);
+typedef Object _Reviver(String key, Object input);
+
 class BinaryData {
   /// used when only partial data is received
   /// don"t merge them before it's finished
@@ -22,7 +25,7 @@ abstract class DsCodec {
     "msgpack": DsMsgPackCodecImpl.instance
   };
 
-  static final DsCodec defaultCodec = DsJson.instance as DsCodec;
+  static final DsCodec defaultCodec = DsJson.instance;
 
   static void register(String name, DsCodec codec) {
     if (name != null && codec != null) {
@@ -57,7 +60,7 @@ abstract class DsCodec {
 }
 
 abstract class DsJson {
-  static DsJson instance = new DsJsonCodecImpl();
+  static DsJsonCodecImpl instance = new DsJsonCodecImpl();
 
   static String encode(Object val, {bool pretty: false}) {
     return instance.encodeJson(val, pretty: pretty);
@@ -127,8 +130,8 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
     return result;
   }
 
-  Function _reviver;
-  Function _encoder;
+  _Reviver _reviver;
+  _Encoder _encoder;
 
   Object encodeFrame(Object val) {
     if (_encoder == null) {

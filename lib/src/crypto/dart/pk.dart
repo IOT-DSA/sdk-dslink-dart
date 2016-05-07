@@ -111,7 +111,8 @@ class DartCryptoProvider implements CryptoProvider {
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, random);
     gen.init(params);
-    var pair = gen.generateKeyPair();
+    var pair = gen.generateKeyPair()
+      as AsymmetricKeyPair<ECPublicKey, ECPrivateKey>;
 
     PublicKeyImpl publicKeyRemoteImpl;
 
