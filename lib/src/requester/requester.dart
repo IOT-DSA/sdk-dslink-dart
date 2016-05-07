@@ -26,6 +26,14 @@ class Requester extends ConnectionHandler {
     _requests[0] = _subscription;
   }
 
+  int get subscriptionCount {
+    return _subscription.subscriptions.length;
+  }
+
+  int get openRequestCount {
+    return _requests.length;
+  }
+
   void onData(List list) {
     for (Object resp in list) {
       if (resp is Map) {
