@@ -36,7 +36,17 @@ class Responder extends ConnectionHandler {
   void updateGroups(List<String> vals) {
     groups = [reqId]..addAll(vals.where((str)=>str != ''));
   }
+
   final Map<int, Response> _responses = new Map<int, Response>();
+
+  int get openResponseCount {
+    return _responses.length;
+  }
+
+  int get subscriptionCount {
+    return _subscription.subscriptions.length;
+  }
+
   SubscribeResponse _subscription;
 
   /// caching of nodes
