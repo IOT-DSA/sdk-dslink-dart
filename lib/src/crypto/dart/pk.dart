@@ -66,7 +66,7 @@ class DartCryptoProvider implements CryptoProvider {
   ECPublicKey _cachedPublic;
   int _cachedTime = -1;
 
-  Future<ECDH> assign(PublicKeyImpl publicKeyRemote, ECDH old) async {
+  Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async {
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
         return ECDHIsolate._sendRequest(
@@ -90,11 +90,20 @@ class DartCryptoProvider implements CryptoProvider {
       _cachedPublic = pair.publicKey;
       _cachedTime = ts;
     }
-    var Q2 = publicKeyRemote.ecPublicKey.Q * _cachedPrivate.d;
+
+    PublicKeyImpl publicKeyRemoteImpl;
+
+    if (publicKeyRemote is! PublicKeyImpl) {
+      throw "Not a PublicKeyImpl: ${publicKeyRemoteImpl}";
+    } else {
+      publicKeyRemoteImpl = publicKeyRemote;
+    }
+
+    var Q2 = publicKeyRemoteImpl.ecPublicKey.Q * _cachedPrivate.d;
     return new ECDHImpl(_cachedPrivate, _cachedPublic, Q2);
   }
 
-  Future<ECDH> getSecret(PublicKeyImpl publicKeyRemote) async {
+  Future<ECDH> getSecret(PublicKey publicKeyRemote) async {
     if (ECDHIsolate.running) {
       return ECDHIsolate._sendRequest(publicKeyRemote, "");
     }
@@ -104,7 +113,15 @@ class DartCryptoProvider implements CryptoProvider {
     gen.init(params);
     var pair = gen.generateKeyPair();
 
-    var Q2 = publicKeyRemote.ecPublicKey.Q * pair.privateKey.d;
+    PublicKeyImpl publicKeyRemoteImpl;
+
+    if (publicKeyRemote is! PublicKeyImpl) {
+      throw "Not a PublicKeyImpl: ${publicKeyRemoteImpl}";
+    } else {
+      publicKeyRemoteImpl = publicKeyRemote;
+    }
+
+    var Q2 = publicKeyRemoteImpl.ecPublicKey.Q * pair.privateKey.d;
     return new ECDHImpl(pair.privateKey, pair.publicKey, Q2);
   }
 
@@ -200,7 +217,7 @@ class PublicKeyImpl extends PublicKey {
   String qHash64;
 
   PublicKeyImpl(this.ecPublicKey) {
-    List bytes = ecPublicKey.Q.getEncoded(false);
+    List<int> bytes = ecPublicKey.Q.getEncoded(false);
     qBase64 = Base64.encode(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     qHash64 = Base64.encode(sha256.process(bytes));
@@ -275,16 +292,20 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
       r.nextInt(256),
       r.nextInt(256)
     ]);
-    final params = new ParametersWithIV(key, iv);
+    final params = new ParametersWithIV<CipherParameters>(key, iv);
     _delegate.seed(params);
   }
 
   void seed(CipherParameters params) {
-    _delegate.seed(params);
+    if (params is ParametersWithIV<CipherParameters>) {
+      _delegate.seed(params);
+    } else {
+      throw "${params} is not a ParametersWithIV implementation.";
+    }
   }
 
   void addEntropy(String str) {
-    List utf = const Utf8Encoder().convert(str);
+    List<int> utf = const Utf8Encoder().convert(str);
     int length2 = (utf.length).ceil() * 16;
     if (length2 > utf.length) {
       utf = utf.toList();
@@ -292,6 +313,7 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
         utf.add(0);
       }
     }
+
     final bytes = new Uint8List.fromList(utf);
 
     final out = new Uint8List(16);
@@ -317,7 +339,7 @@ String bytes2hex(List<int> bytes) {
 /// BigInteger.toByteArray contains negative values, so we need a different version
 /// this version also remove the byte for sign, so it's not able to serialize negative number
 Uint8List bigintToUint8List(BigInteger input) {
-  List rslt = input.toByteArray();
+  List<int> rslt = input.toByteArray();
   if (rslt.length > 32 && rslt[0] == 0){
     rslt = rslt.sublist(1);
   }

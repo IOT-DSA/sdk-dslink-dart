@@ -229,11 +229,11 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   }
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
   }
-  
+
   void _onListen(callback(RequesterListUpdate update)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
-        List changes = [];
+        var changes = <String>[];
         changes
           ..addAll(node.configs.keys)
           ..addAll(node.attributes.keys)

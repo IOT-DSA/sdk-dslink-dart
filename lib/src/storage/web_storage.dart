@@ -25,7 +25,7 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
   }
 
   Future<List<ISubscriptionNodeStorage>> load() async {
-    List<ISubscriptionNodeStorage> rslt = [];
+    List<ISubscriptionNodeStorage> rslt = <ISubscriptionNodeStorage>[];
     for (String key in window.localStorage.keys) {
       if (key.startsWith(prefix)) {
         String path = key.substring(prefix.length);
@@ -37,7 +37,7 @@ class WebResponderStorage extends ISubscriptionResponderStorage {
         }
       }
     }
-    return new Future.value(rslt);
+    return new Future<List<ISubscriptionNodeStorage>>.value(rslt);
   }
 
   void destroyValue(String path) {

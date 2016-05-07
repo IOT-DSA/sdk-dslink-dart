@@ -27,6 +27,8 @@ expectNodeValue(from, String path, dynamic value) {
   }
 }
 
-SimpleNodeProvider createSimpleNodeProvider({Map nodes, Map profiles}) {
+SimpleNodeProvider createSimpleNodeProvider({
+  Map<String, dynamic> nodes,
+  Map<String, NodeFactory> profiles}) {
   return new SimpleNodeProvider(nodes, profiles);
 }

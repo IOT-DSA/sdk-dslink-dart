@@ -120,7 +120,7 @@ class DsaJsonNode extends SimpleNode {
   static Map buildNodeMap(input) {
     Map create(value) {
       if (value is Map) {
-        var m = {
+        var m = <String, dynamic>{
           r"$is": "json"
         };
 

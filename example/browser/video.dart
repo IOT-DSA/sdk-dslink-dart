@@ -35,7 +35,7 @@ main() async {
     return h;
   }
 
-  window.onHashChange.listen((HashChangeEvent event) {
+  window.onHashChange.listen((event) {
     setup(getHash());
   });
 

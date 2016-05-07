@@ -105,7 +105,9 @@ class HttpClientLink extends ClientLink {
   int _connDelay = 1;
 
   connect() async {
-    if (_closed) return;
+    if (_closed) {
+      return;
+    }
 
     lockCryptoProvider();
     DsTimer.timerCancel(initWebsocket);
@@ -149,7 +151,7 @@ class HttpClientLink extends ClientLink {
 
       request.add(toUTF8(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
-      List<int> merged = await response.fold([], foldList);
+      List<int> merged = await response.fold(<int>[], foldList);
       String rslt = const Utf8Decoder().convert(merged);
       Map serverConfig = DsJson.decode(rslt);
 

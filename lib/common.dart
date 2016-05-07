@@ -153,7 +153,7 @@ abstract class ClientLink extends BaseLink {
     return msg;
   }
 
-  void connect();
+  connect();
 }
 
 abstract class ServerLinkManager {

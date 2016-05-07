@@ -144,9 +144,14 @@ class RemoteNode extends Node {
   }
 
   Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester,
-    [int maxPermission = Permission.CONFIG, void fetchRawReq(Request request)]) {
+    [int maxPermission = Permission.CONFIG, RequestConsumer fetchRawReq]) {
     return new InvokeController(
-      this, requester, params, maxPermission, fetchRawReq)._stream;
+      this,
+      requester,
+      params,
+      maxPermission,
+      fetchRawReq
+    )._stream;
   }
 
   /// used by list api to update simple data for children

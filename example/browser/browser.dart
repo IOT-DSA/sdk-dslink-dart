@@ -202,7 +202,7 @@ main() async {
     await $.save();
   });
 
-  $.onValueChange("/Page_Gradient").listen((ValueUpdate update) async {
+  $.onValueChange("/Page_Gradient").listen((ValueUpdate update) {
     if (update.value == "none") {
       return;
     }

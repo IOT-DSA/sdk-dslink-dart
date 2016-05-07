@@ -10,11 +10,16 @@ import "dart:math";
 import "package:crypto/crypto.dart";
 
 /// Read raw text from stdin.
-Stream<String> readStdinText() => stdin.transform(const Utf8Decoder());
+Stream<String> readStdinText() {
+  return const Utf8Decoder().bind(stdin);
+}
 
 /// Read each line from stdin.
-Stream<String> readStdinLines() =>
-    readStdinText().transform(const LineSplitter());
+Stream<String> readStdinLines() {
+  var stream = readStdinText();
+
+  return const LineSplitter().bind(stream);
+}
 
 /// Helpers for working with HTTP
 class HttpHelper {
@@ -25,7 +30,11 @@ class HttpHelper {
   /// [method] is the HTTP method.
   /// [url] is the URL to make the request to.
   /// [headers] specifies additional headers to set.
-  static Future<HttpClientRequest> createRequest(String method, String url, {Map<String, String> headers}) async {
+  static Future<HttpClientRequest> createRequest(
+    String method,
+    String url, {
+      Map<String, String> headers
+    }) async {
     var request = await client.openUrl(method, Uri.parse(url));
     if (headers != null) {
       headers.forEach(request.headers.set);
@@ -101,16 +110,18 @@ class HttpHelper {
     }
 
     uri = new Uri(
-        scheme: uri.scheme == "wss" ? "https" : "http",
-        userInfo: uri.userInfo,
-        host: uri.host,
-        port: port,
-        path: uri.path,
-        query: uri.query
+      scheme: uri.scheme == "wss" ? "https" : "http",
+      userInfo: uri.userInfo,
+      host: uri.host,
+      port: port,
+      path: uri.path,
+      query: uri.query
     );
 
-    HttpClient _client = httpClient == null ? (new HttpClient()
-        ..badCertificateCallback = (a, b, c) => true) : httpClient;
+    HttpClient _client = httpClient == null ? (
+      new HttpClient()
+        ..badCertificateCallback = (a, b, c) => true
+    ) : httpClient;
 
     return _client.openUrl("GET", uri).then((HttpClientRequest request) {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
@@ -165,8 +176,13 @@ class HttpHelper {
         }
       }
       var protocol = response.headers.value('Sec-WebSocket-Protocol');
-      return response.detachSocket()
-        .then((socket) => new WebSocket.fromUpgradedSocket(socket, protocol: protocol, serverSide: false));
+      return response.detachSocket().then((socket) {
+        return new WebSocket.fromUpgradedSocket(
+          socket,
+          protocol: protocol,
+          serverSide: false
+        );
+      });
     });
   }
 
@@ -179,7 +195,10 @@ class HttpHelper {
     }
 
     if (useStandardWebSocket) {
-      return WebSocketTransformer.upgrade(request, protocolSelector: protocolSelector);
+      return WebSocketTransformer.upgrade(
+        request,
+        protocolSelector: protocolSelector
+      );
     }
 
     var response = request.response;
@@ -192,7 +211,7 @@ class HttpHelper {
         new WebSocketException("Invalid WebSocket upgrade request"));
     }
 
-    Future upgrade(String protocol) {
+    Future<WebSocket> upgrade(String protocol) {
       // Send the upgrade response.
       response
         ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
@@ -218,21 +237,31 @@ class HttpHelper {
       // consisting of multiple protocols. To unify all of them, first join
       // the lists with ', ' and then tokenize.
       protocols = HttpHelper.tokenizeFieldValue(protocols.join(', '));
-      return new Future(() => protocolSelector(protocols))
-        .then((protocol) {
+      var future = new Future(() => protocolSelector(protocols)).then((String protocol) {
         if (protocols.indexOf(protocol) < 0) {
           throw new WebSocketException(
             "Selected protocol is not in the list of available protocols");
         }
         return protocol;
-      })
-        .catchError((error) {
+      }).catchError((error) {
         response
           ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
           ..close();
         throw error;
-      })
-        .then(upgrade);
+        return null;
+      }).then((result) async {
+        if (result is String) {
+          return await upgrade(result);
+        }
+      });
+
+      return future.then((result) {
+        if (result is WebSocket) {
+          return result;
+        } else {
+          return null;
+        }
+      });
     } else {
       return upgrade(null);
     }

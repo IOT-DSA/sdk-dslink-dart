@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 class RespSubscribeListener {
-  Function callback;
+  ValueUpdateCallback callback;
   LocalNode node;
 
   RespSubscribeListener(this.node, this.callback);

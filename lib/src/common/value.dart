@@ -1,5 +1,7 @@
 part of dslink.common;
 
+typedef T ValueUpdateCallback<T>(ValueUpdate update);
+
 /// Represents an update to a value subscription.
 class ValueUpdate {
   /// DSA formatted timezone.

@@ -12,8 +12,10 @@ export "package:dslink/utils.dart" show Taker;
 
 typedef void WorkerFunction(Worker worker);
 
-WorkerSocket createWorker(WorkerFunction function,
-    {Map<String, dynamic> metadata}) {
+WorkerSocket createWorker(
+  WorkerFunction function, {
+    Map<String, dynamic> metadata
+  }) {
   var receiver = new ReceivePort();
   var socket = new WorkerSocket.master(receiver);
   Isolate.spawn(function, new Worker(receiver.sendPort, metadata)).then((x) {
@@ -34,8 +36,19 @@ WorkerSocket createFakeWorker(WorkerFunction function,
   return socket;
 }
 
-Worker buildWorkerForScript(Map data) {
-  return new Worker(data["port"], data["metadata"]);
+Worker buildWorkerForScript(Map<String, dynamic> data) {
+  SendPort port;
+  Map<String, dynamic> metadata;
+
+  if (data["port"] is SendPort) {
+    port = data["port"];
+  }
+
+  if (data["metadata"] is Map<String, dynamic>) {
+    metadata = data["metadata"] as Map<String, dynamic>;
+  }
+
+  return new Worker(port, metadata);
 }
 
 WorkerSocket createWorkerScript(script,
@@ -62,7 +75,7 @@ WorkerSocket createWorkerScript(script,
 
 WorkerPool createWorkerScriptPool(int count, Uri uri,
     {Map<String, dynamic> metadata}) {
-  var workers = [];
+  var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
     workers.add(createWorkerScript(uri,
       metadata: {
@@ -75,10 +88,12 @@ WorkerPool createWorkerScriptPool(int count, Uri uri,
 
 WorkerPool createWorkerPool(int count, WorkerFunction function,
     {Map<String, dynamic> metadata}) {
-  var workers = [];
+  var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
-    workers.add(createWorker(function,
-        metadata: {"workerId": i}..addAll(metadata == null ? {} : metadata)));
+    workers.add(
+      createWorker(function, metadata: {
+        "workerId": i
+      }..addAll(metadata == null ? {} : metadata)));
   }
   return new WorkerPool(workers);
 }
@@ -181,7 +196,7 @@ class WorkerPool {
       };
     }
 
-    var futures = [];
+    var futures = <Future>[];
     for (var i = 1; i <= count; i++) {
       var input = next();
       futures.add(getAvailableWorker().callMethod(name, input));
@@ -263,6 +278,7 @@ class Worker {
     }
     return sock;
   }
+
   Future<WorkerSocket> init({Map<String, Taker> methods}) async =>
       await createSocket().init(methods: methods);
 
@@ -707,7 +723,11 @@ class WorkerBuilder {
   }
 
   static defaultWorkerFunction(Worker worker) async {
-    var methods = worker.get("methods");
+    Map<String, WorkerMethod> methods;
+
+    if (worker.get("methods") is Map<String, WorkerMethod>) {
+      methods = worker.get("methods") as Map<String, WorkerMethod>;
+    }
 
     return await worker.init(methods: methods);
   }

@@ -12,14 +12,21 @@ abstract class LocalNodeImpl extends LocalNode {
     configs.forEach((key, val) {
       rslt[key] = val;
     });
+
     attributes.forEach((key, val) {
       rslt[key] = val;
     });
+
     children.forEach((key, val) {
       if (withChildren) {
-        rslt[key] = val.serialize(true);
+        if (val is LocalNodeImpl) {
+          rslt[key] = val.serialize(true);
+        } else {
+          rslt[key] = val.getSimpleMap();
+        }
       }
     });
+
     return rslt;
   }
 
@@ -39,6 +46,7 @@ abstract class LocalNodeImpl extends LocalNode {
     } else {
       childPathPre = '$path/';
     }
+
     m.forEach((String key, value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;
@@ -97,8 +105,11 @@ abstract class LocalNodeImpl extends LocalNode {
     return response..close(config.removeConfig(this, responder));
   }
 
-  Response setValue(Object value, Responder responder, Response response,
-      [int maxPermission = Permission.CONFIG]) {
+  Response setValue(
+    Object value,
+    Responder responder,
+    Response response,
+    [int maxPermission = Permission.CONFIG]) {
     updateValue(value);
     // TODO: check value type
     return response..close();

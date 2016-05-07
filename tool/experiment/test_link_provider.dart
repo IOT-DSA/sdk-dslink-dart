@@ -1,9 +1,8 @@
 import "package:dslink/dslink.dart";
-import "package:dslink/utils.dart" show BinaryData, ByteDataUtil, DsTimer;
+import "package:dslink/utils.dart" show ByteDataUtil, DsTimer;
 
+import "dart:async";
 import "dart:math" as Math;
-import 'dart:typed_data';
-import 'dart:async';
 
 LinkProvider link;
 int lastNum;
@@ -56,7 +55,8 @@ class RemoveSelfAction extends SimpleNode {
   RemoveSelfAction(String path) : super(path);
 
   Object onInvoke(Map params) {
-    List p = path.split('/')..removeLast();
+    List p = path.split('/')
+      ..removeLast();
     String parentPath = p.join('/');
     link.removeNode(parentPath);
     link.save();
@@ -83,7 +83,7 @@ class RngNode extends SimpleNode {
 }
 
 main(List<String> args) {
-  Map defaultNodes = {
+  var defaultNodes = <String, dynamic>{
     'defs': { 'profile':{
       'addNodeAction': {
         r'$params': {
@@ -105,10 +105,10 @@ main(List<String> args) {
         r'$result': 'stream'
       }}
     },
-    'add': {r'$is': 'addNodeAction',r'$invokable': 'write',}
+    'add': {r'$is': 'addNodeAction', r'$invokable': 'write',}
   };
 
-  Map profiles = {
+  var profiles = <String, NodeFactory>{
     'addNodeAction': (String path) {
       return new AddNodeAction(path);
     },
@@ -121,10 +121,10 @@ main(List<String> args) {
   };
 
   link = new LinkProvider(
-      ['-b', 'localhost:8080/conn', '--log', 'finest'], 'rick-resp-',
-      defaultNodes: defaultNodes,
-      profiles: profiles /*, home:'dgSuper'*/,
-      linkData: {'a': 1});
+    ['-b', 'localhost:8080/conn', '--log', 'finest'], 'rick-resp-',
+    defaultNodes: defaultNodes,
+    profiles: profiles /*, home:'dgSuper'*/,
+    linkData: {'a': 1});
   if (link.link == null) {
     // initialization failed
     return;
@@ -135,8 +135,10 @@ main(List<String> args) {
   lastNum = addNode.configs[r'$lastNum'];
 
   var node = link.provider.getOrCreateNode('/testpoint');
-  node.load({r'$type': 'number', "?value": 1});
-  int tt = 0;
+  node.load({
+    r'$type': 'number',
+    "?value": 1
+  });
 
   link.connect();
 }

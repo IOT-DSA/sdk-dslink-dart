@@ -1,6 +1,5 @@
 part of dslink.responder;
 
-typedef SimpleNode _NodeFactory(String path);
 typedef LocalNode NodeFactory(String path);
 typedef SimpleNode SimpleNodeFactory(String path);
 
@@ -226,7 +225,7 @@ class LiveTableRow {
 /// Interface for node providers that are serializable.
 abstract class SerializableNodeProvider {
   /// Initialize the node provider.
-  void init([Map m, Map profiles]);
+  void init([Map<String, dynamic> m, Map<String, NodeFactory> profiles]);
 
   /// Save the node provider to a map.
   Map save();
@@ -350,7 +349,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   @override
-  void addProfile(String name, SimpleNodeFactory factory) {
+  void addProfile(String name, NodeFactory factory) {
     _profiles[name] = factory;
   }
 
@@ -424,7 +423,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// Creates a [SimpleNodeProvider].
   /// If [m] and optionally [profiles] is specified,
   /// the provider is initialized with these values.
-  SimpleNodeProvider([Map m, Map<String, SimpleNodeFactory> profiles]) {
+  SimpleNodeProvider([Map<String, dynamic> m, Map<String, NodeFactory> profiles]) {
     // by default, the first SimpleNodeProvider is the static instance
     if (instance == null) {
        instance = this;
@@ -450,7 +449,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   SimpleHiddenNode sys;
 
   @override
-  void init([Map m, Map<String, SimpleNodeFactory> profiles]) {
+  void init([Map<String, dynamic> m, Map<String, NodeFactory> profiles]) {
     if (profiles != null) {
       if (profiles.isNotEmpty) {
         _profiles.addAll(profiles);
@@ -464,7 +463,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
   }
 
-  Map<String, _NodeFactory> get profileMap => _profiles;
+  Map<String, NodeFactory> get profileMap => _profiles;
 
   @override
   Map save() {
@@ -526,7 +525,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     if (oldNode != null) {
       logger.fine("Found old node for ${path}: Copying subscriptions.");
 
-      for (Function func in oldNode.callbacks.keys) {
+      for (ValueUpdateCallback func in oldNode.callbacks.keys) {
         node.subscribe(func, oldNode.callbacks[func]);
       }
 
@@ -601,7 +600,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     nodes.remove(path);
   }
 
-  Map<String, _NodeFactory> _profiles = new Map<String, _NodeFactory>();
+  Map<String, NodeFactory> _profiles = new Map<String, NodeFactory>();
 
   /// Permissions
   IPermissionManager permissions = new DummyPermissionManager();
@@ -646,8 +645,9 @@ class SimpleNode extends LocalNodeImpl {
   /// part of their parent.
   bool get isStubNode => _stub;
 
-  SimpleNode(String path, [SimpleNodeProvider nodeprovider]) : super(path),
-    provider = nodeprovider == null ? SimpleNodeProvider.instance : nodeprovider;
+  SimpleNode(String path, [SimpleNodeProvider nodeprovider]) :
+    provider = nodeprovider == null ? SimpleNodeProvider.instance : nodeprovider,
+      super(path);
 
   /// Marks a node as being removed.
   bool removed = false;
@@ -714,8 +714,11 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Handles the invoke method from the internals of the responder.
   /// Use [onInvoke] to handle when a node is invoked.
-  InvokeResponse invoke(Map params, Responder responder,
-      InvokeResponse response, LocalNode parentNode,
+  InvokeResponse invoke(
+    Map<String, dynamic> params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode,
       [int maxPermission = Permission.CONFIG]) {
     Object rslt;
     try {
@@ -960,7 +963,7 @@ class SimpleNode extends LocalNodeImpl {
   /// - [Iterable]
   /// - [Map]
   /// - [Table]
-  dynamic onInvoke(Map params) {
+  dynamic onInvoke(Map<String, dynamic> params) {
     return null;
   }
 
@@ -999,13 +1002,13 @@ class SimpleNode extends LocalNodeImpl {
   void onChildAdded(String name, Node node) {}
 
   @override
-  RespSubscribeListener subscribe(callback(ValueUpdate update), [int qos = 0]) {
+  RespSubscribeListener subscribe(ValueUpdateCallback callback, [int qos = 0]) {
     onSubscribe();
     return super.subscribe(callback, qos);
   }
 
   @override
-  void unsubscribe(callback(ValueUpdate update)) {
+  void unsubscribe(ValueUpdateCallback callback) {
     onUnsubscribe();
     super.unsubscribe(callback);
   }
@@ -1186,8 +1189,11 @@ class SimpleHiddenNode extends SimpleNode {
   }
 
   @override
-  Map getSimpleMap() {
-    Map rslt = {r'$hidden':true};
+  Map<String, dynamic> getSimpleMap() {
+    var rslt = <String, dynamic>{
+      r'$hidden': true
+    };
+
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }

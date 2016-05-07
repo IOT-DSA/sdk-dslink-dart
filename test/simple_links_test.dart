@@ -37,19 +37,32 @@ simpleLinksTests() {
     await server.stop();
   });
 
-  Future<LinkProvider> createLink(String name, {
-    List<String> args, bool isRequester: false,
-    bool isResponder: true, Map nodes, Map profiles}) async {
+  Future<LinkProvider> createLink(
+    String name, {
+      List<String> args,
+      bool isRequester: false,
+      bool isResponder: true,
+      Map<String, dynamic> nodes,
+      Map<String, Function> profiles
+    }) async {
+    var margs = <String>[
+      "--broker=http://127.0.0.1:${port}/conn"
+    ];
+
+    if (args != null)  {
+      margs.addAll(args);
+    }
+
     var link = new LinkProvider(
-        ["--broker=http://127.0.0.1:${port}/conn"]..addAll(((args == null ? [] : args) as List<String>).toList()),
-        name,
-        isRequester: isRequester,
-        isResponder: isResponder,
-        defaultNodes: nodes,
-        profiles: profiles,
-        autoInitialize: false,
-        loadNodesJson: false,
-        savePrivateKey: false
+      margs,
+      name,
+      isRequester: isRequester,
+      isResponder: isResponder,
+      defaultNodes: nodes,
+      profiles: profiles,
+      autoInitialize: false,
+      loadNodesJson: false,
+      savePrivateKey: false
     );
 
     _links.add(link);

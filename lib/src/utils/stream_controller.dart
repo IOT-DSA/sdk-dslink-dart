@@ -8,8 +8,12 @@ class BroadcastStreamController<T> implements StreamController<T> {
   Function _onStartListen;
   Function _onAllCancel;
 
-  BroadcastStreamController(
-      [void onStartListen(), void onAllCancel(), void onListen(callback(T)), bool sync = false]) {
+  BroadcastStreamController([
+    void onStartListen(),
+    void onAllCancel(),
+    void onListen(callback(T value)),
+    bool sync = false
+  ]) {
     _controller = new StreamController<T>(sync: sync);
     _stream = new CachedStreamWrapper(
         _controller.stream
@@ -97,22 +101,6 @@ class BroadcastStreamController<T> implements StreamController<T> {
   void set onResume(void onResumeHandler()) {
     throw('BroadcastStreamController.onResume not implemented');
   }
-
-//  ControllerCancelCallback get onCancel {
-//    throw('BroadcastStreamController.onCancel not implemented');
-//  }
-//
-//  ControllerCallback get onListen {
-//    throw('BroadcastStreamController.onListen not implemented');
-//  }
-//
-//  ControllerCallback get onPause {
-//    throw('BroadcastStreamController.onPause not implemented');
-//  }
-//
-//  ControllerCallback get onResume {
-//    throw('BroadcastStreamController.onResume not implemented');
-//  }
 
   ControllerCancelCallback get onCancel => null;
   ControllerCallback get onListen => null;

@@ -34,8 +34,8 @@ export "package:dslink/src/crypto/pk.dart" show PrivateKey;
 /// DSLink Provider for the Browser
 class LinkProvider {
   BrowserECDHLink link;
-  Map defaultNodes;
-  Map profiles;
+  Map<String, dynamic> defaultNodes;
+  Map<String, NodeFactory> profiles;
   bool loadNodes;
   NodeProvider provider;
   DataStorage dataStore;
@@ -78,8 +78,11 @@ class LinkProvider {
       if (!(await dataStore.has("dsa_nodes"))) {
         (provider as SerializableNodeProvider).init(defaultNodes);
       } else {
-        (provider as SerializableNodeProvider)
-            .init(DsJson.decode(await dataStore.get("dsa_nodes")));
+        var decoded = DsJson.decode(await dataStore.get("dsa_nodes"));
+
+        if (decoded is Map<String, dynamic>) {
+          (provider as SerializableNodeProvider).init(decoded);
+        }
       }
     } else {
       (provider as SerializableNodeProvider).init(defaultNodes);

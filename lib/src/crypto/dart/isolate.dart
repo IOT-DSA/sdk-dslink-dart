@@ -5,7 +5,7 @@ ECPublicKey _cachedPublic;
 int _cachedTime = -1;
 String cachedPrivateStr;
 
-List generate(List publicKeyRemote, String oldPriKeyStr) {
+List<dynamic> generate(List<int> publicKeyRemote, String oldPriKeyStr) {
   ECPoint publicPointRemote = _secp256r1.curve.decodePoint(publicKeyRemote);
   ECPrivateKey privateKey;
   ECPublicKey publicKey;
@@ -45,7 +45,7 @@ void _processECDH(SendPort initialReplyTo) {
   initialReplyTo.send(response.sendPort);
   response.listen((msg) {
     if (msg is List && msg.length == 2) {
-      initialReplyTo.send(generate(msg[0], msg[1]));
+      initialReplyTo.send(generate(msg[0] as List<int>, msg[1].toString()));
     }
   });
 }
@@ -67,9 +67,9 @@ class ECDHIsolate {
       _isolatePort = message;
     } else if (message is List) {
       if (_waitingReq != null && message.length == 3) {
-        var d1 = new BigInteger.fromBytes(1, message[0]);
-        var Q1 = _secp256r1.curve.decodePoint(message[1]);
-        var Q2 = _secp256r1.curve.decodePoint(message[2]);
+        var d1 = new BigInteger.fromBytes(1, message[0] as List<int>);
+        var Q1 = _secp256r1.curve.decodePoint(message[1] as List<int>);
+        var Q2 = _secp256r1.curve.decodePoint(message[2] as List<int>);
         var ecdh = new ECDHImpl(
             new ECPrivateKey(d1, _secp256r1), new ECPublicKey(Q1, _secp256r1),
             Q2);

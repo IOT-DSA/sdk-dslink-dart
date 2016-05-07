@@ -25,7 +25,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
         return _rows;
       }
       for (Object obj in updates) {
-        List row;
+        List<dynamic> row;
         if (obj is List) {
           if (obj.length < colLen) {
             row = obj.toList();
@@ -46,7 +46,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
           row = [];
           if (columns == null) {
             Map map = obj;
-            List<String> keys = map.keys.toList();
+            List<String> keys = map.keys.map((k) => k.toString()).toList();
             columns = keys.map((x) => new TableColumn(x, "dynamic")).toList();
           }
 
@@ -81,6 +81,7 @@ class InvokeController implements RequestUpdater {
 
   final RemoteNode node;
   final Requester requester;
+
   StreamController<RequesterInvokeUpdate> _controller;
   Stream<RequesterInvokeUpdate> _stream;
   Request _request;
@@ -90,15 +91,16 @@ class InvokeController implements RequestUpdater {
   String lastStatus = StreamStatus.initialize;
 
   InvokeController(this.node, this.requester, Map params,
-      [int maxPermission = Permission.CONFIG, void fetchRawReq(Request)]) {
+      [int maxPermission = Permission.CONFIG, RequestConsumer fetchRawReq]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
-    Map reqMap = {
+    var reqMap = <String, dynamic>{
       'method': 'invoke',
       'path': node.remotePath,
       'params': params
     };
+
     if (maxPermission != Permission.CONFIG) {
       reqMap['permit'] = Permission.names[maxPermission];
     }
@@ -108,7 +110,7 @@ class InvokeController implements RequestUpdater {
 //    } else {
 
     _request = requester._sendRequest(reqMap, this);
-    
+
     if (fetchRawReq != null) {
       fetchRawReq(_request);
     }

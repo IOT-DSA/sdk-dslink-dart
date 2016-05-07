@@ -1,5 +1,7 @@
 part of dslink.requester;
 
+typedef T RequestConsumer<T>(Request request);
+
 abstract class RequestUpdater {
   void onUpdate(String status, List updates, List columns, Map meta, DSError error);
   void onDisconnect();
@@ -70,10 +72,10 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request sendRequest(Map m, RequestUpdater updater) =>
+  Request sendRequest(Map<String, dynamic> m, RequestUpdater updater) =>
     _sendRequest(m, updater);
 
-  Request _sendRequest(Map m, RequestUpdater updater) {
+  Request _sendRequest(Map<String, dynamic> m, RequestUpdater updater) {
     m['rid'] = getNextRid();
     Request req;
     if (updater != null) {
@@ -162,7 +164,7 @@ class Requester extends ConnectionHandler {
   }
 
   Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const {},
-      int maxPermission = Permission.CONFIG, void fetchRawReq(Request)]) {
+      int maxPermission = Permission.CONFIG, RequestConsumer fetchRawReq]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);
   }

@@ -63,13 +63,13 @@ abstract class DsJson {
     return instance.encodeJson(val, pretty: pretty);
   }
 
-  static Object decode(String str) {
+  static dynamic decode(String str) {
     return instance.decodeJson(str);
   }
 
   String encodeJson(Object val, {bool pretty: false});
 
-  Object decodeJson(String str);
+  dynamic decodeJson(String str);
 }
 
 class DsJsonCodecImpl extends DsCodec implements DsJson {
@@ -82,11 +82,11 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   JsonDecoder decoder = new JsonDecoder();
   JsonEncoder _prettyEncoder;
 
-  Object decodeJson(String str) {
+  dynamic decodeJson(String str) {
     return decoder.convert(str);
   }
 
-  String encodeJson(Object val, {bool pretty: false}) {
+  String encodeJson(val, {bool pretty: false}) {
     JsonEncoder e = encoder;
     if (pretty) {
       if (_prettyEncoder == null) {

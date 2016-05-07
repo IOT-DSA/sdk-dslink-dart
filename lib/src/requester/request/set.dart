@@ -10,10 +10,16 @@ class SetController implements RequestUpdater {
 
   SetController(this.requester, this.path, this.value,
       [int maxPermission = Permission.CONFIG]) {
-    Map reqMap = {'method': 'set', 'path': path, 'value': value};
+    var reqMap = <String, dynamic>{
+      'method': 'set',
+      'path': path,
+      'value': value
+    };
+
     if (maxPermission != Permission.CONFIG) {
       reqMap['permit'] = Permission.names[maxPermission];
     }
+
     _request = requester._sendRequest(reqMap, this);
   }
 

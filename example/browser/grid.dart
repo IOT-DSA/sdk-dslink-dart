@@ -6,9 +6,11 @@ LinkProvider link;
 Requester r;
 
 main() async {
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://localhost:8080/conn");
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
+    "broker_url", "http://localhost:8080/conn");
 
-  link = new LinkProvider(brokerUrl, "HtmlGrid-", isRequester: true, isResponder: false);
+  link = new LinkProvider(
+    brokerUrl, "HtmlGrid-", isRequester: true, isResponder: false);
   await link.connect();
 
   r = link.requester;
@@ -20,7 +22,8 @@ main() async {
       "Type": "array"
     }).firstWhere((x) => x.streamStatus == StreamStatus.closed);
 
-    var generateList = (i) => new List<bool>.generate(15, (x) => false);
+    var generateList = (int i) =>
+    new List<bool>.generate(15, (x) => false);
     var list = new List<List<bool>>.generate(15, generateList);
     await r.set("/data/grid", list);
   }
@@ -30,7 +33,7 @@ main() async {
 
     var isNew = _grid == null;
 
-    loadGrid(update.value);
+    loadGrid(update.value as List<List<bool>>);
 
     if (isNew) {
       resizeGrid(15, 15);
@@ -42,10 +45,10 @@ main() async {
   });
 }
 
-List<List<bool>> _grid = [];
+List<List<bool>> _grid = <List<bool>>[];
 
 resizeGrid(int width, int height) {
-  List<List<bool>> grid = deepCopy(_grid);
+  List<List<bool>> grid = deepCopy(_grid) as List<List<bool>>;
 
   print(grid);
 
@@ -68,7 +71,7 @@ resizeGrid(int width, int height) {
   r.set("/data/grid", _grid);
 }
 
-deepCopy(input) {
+dynamic deepCopy(input) {
   if (input is List) {
     return input.map(deepCopy).toList();
   }

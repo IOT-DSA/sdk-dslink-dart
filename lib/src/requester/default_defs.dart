@@ -74,7 +74,7 @@ class DefaultDefNodes {
   };
 
   static final Map<String, Node> nameMap = () {
-    Map rslt = new Map<String, Node>();
+    var rslt = new Map<String, Node>();
     _defaultDefs.forEach((String k, Map m) {
       String path = '/defs/profile/$k';
       RemoteDefNode node = new RemoteDefNode(path);
@@ -92,9 +92,11 @@ class DefaultDefNodes {
   }();
 
   static final Map<String, Node> pathMap = () {
-    Map rslt = new Map<String, Node>();
+    var rslt = new Map<String, Node>();
     nameMap.forEach((k, node) {
-      rslt[node.remotePath] = node;
+      if (node is RemoteNode) {
+        rslt[node.remotePath] = node;
+      }
     });
     return rslt;
   }();

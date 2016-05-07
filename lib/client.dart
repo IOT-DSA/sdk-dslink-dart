@@ -59,10 +59,10 @@ class LinkProvider {
   bool isResponder = true;
 
   /// Default Nodes
-  Map defaultNodes;
+  Map<String, dynamic> defaultNodes;
 
   /// Profiles
-  Map profiles;
+  Map<String, Function> profiles;
 
   /// Enable HTTP Fallback?
   bool enableHttp = true;
@@ -124,7 +124,7 @@ class LinkProvider {
         this.command: "link",
         this.isResponder: true,
         this.defaultNodes,
-        Map nodes,
+        Map<String, dynamic> nodes,
         this.profiles,
         this.provider,
         this.enableHttp: true,
@@ -163,6 +163,10 @@ class LinkProvider {
 
   bool _configured = false;
 
+  String _logLevelToName(Level level) {
+    return level.name.toLowerCase();
+  }
+
   /// Configure the link.
   /// If [argp] is provided for argument parsing, it is used.
   /// This includes:
@@ -192,10 +196,13 @@ class LinkProvider {
     argp.addOption("base-path", help: "Base Path for DSLink");
     argp.addOption("watch-file", help: "Watch File for DSLink", hide: true);
     argp.addOption("log-file", help: "Log File for DSLink");
+
+    List<String> logLevelNames = Level.LEVELS.map(_logLevelToName).toList();
+    logLevelNames.addAll(["auto", "debug"]);
+
     argp.addOption("log",
         abbr: "l",
-        allowed: Level.LEVELS.map((it) => it.name.toLowerCase()).toList()
-          ..addAll(["auto", "debug"]),
+        allowed: logLevelNames,
         help: "Log Level",
         defaultsTo: "AUTO");
     argp.addFlag("help",
@@ -567,7 +574,7 @@ class LinkProvider {
       _nodesFile = getConfig("nodes") == null
         ? new File("${_basePath}/nodes.json")
         : new File.fromUri(Uri.parse(getConfig("nodes")));
-      Map loadedNodesData;
+      Map<String, dynamic> loadedNodesData;
 
       if (loadNodesJson) {
         _nodesFile = getConfig("nodes") == null
@@ -575,7 +582,11 @@ class LinkProvider {
           : new File.fromUri(Uri.parse(getConfig("nodes")));
         try {
           String nodesStr = _nodesFile.readAsStringSync();
-          loadedNodesData = DsJson.decode(nodesStr);
+          var json = DsJson.decode(nodesStr);
+
+          if (json is Map<String, dynamic>) {
+            loadedNodesData = json;
+          }
         } catch (err) {}
       }
 

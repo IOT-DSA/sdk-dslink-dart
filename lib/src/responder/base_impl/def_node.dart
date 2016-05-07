@@ -18,17 +18,28 @@ class DefinitionNode extends LocalNodeImpl {
     _invokeCallback = callback;
   }
 
-  InvokeResponse invoke(Map params, Responder responder,
-      InvokeResponse response, LocalNode parentNode,
-      [int maxPermission = Permission.CONFIG]) {
+  @override
+  InvokeResponse invoke(
+    Map<String, dynamic> params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode,
+    [int maxPermission = Permission.CONFIG]) {
     if (_invokeCallback == null) {
       return response..close(DSError.NOT_IMPLEMENTED);
     }
+
+    String parentPath = parentNode is LocalNode ? parentNode.path : null;
+
     int permission = responder.nodeProvider.permissions.getPermission(
-        parentNode.path, responder);
+      parentPath,
+      responder
+    );
+
     if (maxPermission < permission) {
       permission = maxPermission;
     }
+
     if (getInvokePermission() <= permission) {
       _invokeCallback(params, responder, response, parentNode);
       return response;

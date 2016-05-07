@@ -157,7 +157,7 @@ class Responder extends ConnectionHandler {
   void updateResponse(Response response, List updates,
       {
         String streamStatus,
-        List<TableColumn> columns,
+        List<dynamic> columns,
         Map meta,
         void handleMap(Map m)}) {
     if (_responses[response.rid] == response) {
@@ -335,7 +335,11 @@ class Responder extends ConnectionHandler {
           permission = maxPermit;
         }
 
-        Map params = m["params"];
+        Map<String, dynamic> params;
+
+        if (m["params"] is Map<String, dynamic>) {
+          params = m["params"] as Map<String, dynamic>;
+        }
 
         if (params == null) {
           params = {};

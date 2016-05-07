@@ -88,8 +88,11 @@ class _ListingNode {
         if (listener == null) {
           listener = node.listStream.listen(onList);
         }
-        node.children.forEach((String name, LocalNode node) {
-          checkChild(name, node, n);
+
+        node.children.forEach((String name, Node node) {
+          if (node is LocalNode) {
+            checkChild(name, node, n);
+          }
         });
       }
     }
@@ -168,7 +171,7 @@ class QueryCommandList extends BrokerQueryCommand {
   QueryCommandList(Object path, BrokerQueryManager manager) : super(manager) {
     if (path is String) {
       rawpath = path.split('/');
-    } else if (path is List) {
+    } else if (path is List<String>) {
       rawpath = path;
     }
   }

@@ -74,7 +74,7 @@ class InvokeResponse extends Response {
     }
 
     for (_InvokeResponseUpdate update in pendingData) {
-      List outColumns;
+      List<Map<String, dynamic>> outColumns;
       if (update.columns != null) {
         outColumns = TableColumn.serializeColumns(update.columns);
       }

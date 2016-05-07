@@ -45,16 +45,16 @@ abstract class LocalNode extends Node {
   LocalNode(this.path);
 
   /// Subscription Callbacks
-  Map<Function, int> callbacks = new Map<Function, int>();
+  Map<ValueUpdateCallback, int> callbacks = new Map<ValueUpdateCallback, int>();
 
   /// Subscribes the given [callback] to this node.
-  RespSubscribeListener subscribe(callback(ValueUpdate), [int qos = 0]) {
+  RespSubscribeListener subscribe(callback(ValueUpdate update), [int qos = 0]) {
     callbacks[callback] = qos;
     return new RespSubscribeListener(this, callback);
   }
 
   /// Unsubscribe the given [callback] from this node.
-  void unsubscribe(callback(ValueUpdate update)) {
+  void unsubscribe(ValueUpdateCallback callback) {
     if (callbacks.containsKey(callback)) {
       callbacks.remove(callback);
     }
@@ -133,8 +133,10 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode,
-      [int maxPermission = Permission.CONFIG]) {
+    Map<String, dynamic> params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode, [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
@@ -228,6 +230,9 @@ abstract class LocalNode extends Node {
     } else if (value is Node) {
       addChild(name, value);
     }
+  }
+
+  void load(Map<String, dynamic> map) {
   }
 }
 

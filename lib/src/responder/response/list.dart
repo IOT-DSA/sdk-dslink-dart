@@ -86,10 +86,12 @@ class ListResponse extends Response {
           updateConfigs.add(update);
         }
       });
+
       node.attributes.forEach((name, value) {
         updateAttributes.add([name, value]);
       });
-      node.children.forEach((name, LocalNode value) {
+
+      node.children.forEach((name, Node value) {
         updateChildren.add([name, value.getSimpleMap()]);
       });
 

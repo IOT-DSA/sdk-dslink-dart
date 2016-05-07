@@ -36,7 +36,7 @@ class NodeCryptoProvider implements CryptoProvider {
   PrivateKey _cachedPrivate;
   int _cachedTime = -1;
 
-  Future<ECDH> assign(PublicKeyImpl publicKeyRemote, ECDH old) async {
+  Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async {
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
 
     /// reuse same ECDH server pair for up to 1 minute
@@ -52,7 +52,7 @@ class NodeCryptoProvider implements CryptoProvider {
     return _cachedPrivate.getSecret(publicKeyRemote.qBase64);
   }
 
-  Future<ECDH> getSecret(PublicKeyImpl publicKeyRemote) async {
+  Future<ECDH> getSecret(PublicKey publicKeyRemote) async {
     return generateSync().getSecret(publicKeyRemote.qBase64);
   }
 
@@ -139,7 +139,9 @@ class PrivateKeyImpl implements PrivateKey {
     var point = _curve["Point"].callMethod("fromEncoded", ["prime256v1", buf]);
     var secret = _privateKey.callMethod("getSharedSecret", [point]);
 
-    return new Future.value(new ECDHImpl(_toObj(secret), publicKey, this));
+    return new Future<ECDH>.value(
+      new ECDHImpl(_toObj(secret), publicKey, this)
+    );
   }
 }
 

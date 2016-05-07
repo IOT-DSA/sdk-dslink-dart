@@ -6,17 +6,21 @@ import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
   TestNode onlyNode;
-  TestNodeProvider(){
+
+  TestNodeProvider() {
     onlyNode = new TestNode('/', this);
   }
+
   LocalNode getNode(String path) {
     return onlyNode;
   }
 
   IPermissionManager permissions = new DummyPermissionManager();
+
   Responder createResponder(String dsId, String sessionId) {
     return new Responder(this, dsId);
   }
+
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     return onlyNode;
   }
@@ -24,6 +28,7 @@ class TestNodeProvider extends NodeProvider {
 
 class TestNode extends LocalNodeImpl {
   NodeProvider provider;
+
   TestNode(String path, this.provider) : super(path) {
     new Timer.periodic(const Duration(seconds: 5), updateTime);
     configs[r'$is'] = 'node';
@@ -39,14 +44,20 @@ class TestNode extends LocalNodeImpl {
   bool get exists => true;
 
   @override
-  InvokeResponse invoke(Map params, Responder responder, InvokeResponse response, LocalNode parentNode, [int maxPermission = Permission.CONFIG]) {
-    response.updateStream([[1, 2]], streamStatus: StreamStatus.closed, columns: [{
-        'name': 'v1',
-        'type': 'number'
-      }, {
-        'name': 'v2',
-        'type': 'number'
-      }]);
+  InvokeResponse invoke(Map params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode,
+    [int maxPermission = Permission.CONFIG]) {
+    response.updateStream(
+      [[1, 2]], streamStatus: StreamStatus.closed, columns: [{
+      'name': 'v1',
+      'type': 'number'
+    }, {
+      'name': 'v2',
+      'type': 'number'
+    }
+    ]);
     return response;
   }
 }

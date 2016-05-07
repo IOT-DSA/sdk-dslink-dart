@@ -145,7 +145,7 @@ typedef Future ResolveNodeHandler(CallbackNode node);
 class ResolvingNodeProvider extends SimpleNodeProvider {
   ResolveNodeHandler handler;
 
-  ResolvingNodeProvider([Map defaultNodes, Map profiles]) :
+  ResolvingNodeProvider([Map<String, dynamic> defaultNodes, Map<String, NodeFactory> profiles]) :
         super(defaultNodes, profiles);
 
   @override
@@ -275,14 +275,14 @@ class CallbackNode extends SimpleNode implements WaitForMe {
       LoadChildCallback onLoadChild,
       SimpleCallback onSubscribe,
       SimpleCallback onUnsubscribe})
-      : super(path, provider),
-        onChildAddedCallback = onChildAdded,
+      : onChildAddedCallback = onChildAdded,
         onChildRemovedCallback = onChildRemoved,
         onCreatedCallback = onCreated,
         onRemovingCallback = onRemoving,
         onLoadChildCallback = onLoadChild,
         onSubscribeCallback = onSubscribe,
-        onUnsubscribeCallback = onUnsubscribe;
+        onUnsubscribeCallback = onUnsubscribe,
+        super(path, provider);
 
   @override
   onInvoke(Map<String, dynamic> params) {

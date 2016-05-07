@@ -1,7 +1,7 @@
 part of dslink.requester;
 
 class ReqSubscribeListener implements StreamSubscription {
-  Function callback;
+  ValueUpdateCallback callback;
   Requester requester;
   String path;
 

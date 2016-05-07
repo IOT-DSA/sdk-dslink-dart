@@ -25,10 +25,15 @@ class WebSocketConnection extends Connection {
   Function onConnect;
 
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, this.clientLink, {this.onConnect, bool enableAck:false, DsCodec useCodec}) {
+  WebSocketConnection(this.socket, this.clientLink, {
+    this.onConnect,
+    bool enableAck: false,
+    DsCodec useCodec
+  }) {
     if (useCodec != null) {
       codec = useCodec;
     }
+
     if (!enableAck) {
       nextMsgId = -1;
     }
@@ -193,7 +198,7 @@ class WebSocketConnection extends Connection {
       m = {};
     }
 
-    List pendingAck = [];
+    var pendingAck = <ConnectionProcessor>[];
 
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
@@ -232,9 +237,9 @@ class WebSocketConnection extends Connection {
 
 
       logger.fine("send: $m");
-      Object encoded = codec.encodeFrame(m);
-      if (encoded is List) {
-        encoded = ByteDataUtil.list2Uint8List(encoded);
+      var encoded = codec.encodeFrame(m);
+      if (encoded is List<int>) {
+        encoded = ByteDataUtil.list2Uint8List(encoded as List<int>);
       }
       socket.send(encoded);
       _dataSent = true;

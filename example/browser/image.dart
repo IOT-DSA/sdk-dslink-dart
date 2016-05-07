@@ -16,7 +16,7 @@ main() async {
 
   await link.connect();
   requester = await link.onRequesterReady;
-  window.onHashChange.listen((HashChangeEvent event) {
+  window.onHashChange.listen((event) {
     setup(window.location.hash.substring(1));
   });
 

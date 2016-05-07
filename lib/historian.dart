@@ -7,7 +7,7 @@ import "package:dslink/dslink.dart";
 import "package:dslink/nodes.dart";
 import "package:dslink/utils.dart";
 
-const Map<dynamic, int> INTERVAL_TYPES = const {
+const Map<List<String>, int> _INTERVAL_TYPES = const {
   const ["ms", "millis", "millisecond", "milliseconds"]: 1,
   const ["s", "second", "seconds"]: 1000,
   const ["m", "min", "minute", "minutes"]: 60000,
@@ -18,21 +18,28 @@ const Map<dynamic, int> INTERVAL_TYPES = const {
   const ["year", "years", "y"]: 31536000000
 };
 
+List<String> __INTERVAL_ALL_TYPES;
+
+List<String> get _INTERVAL_ALL_TYPES {
+  if (__INTERVAL_ALL_TYPES == null) {
+    __INTERVAL_ALL_TYPES = _INTERVAL_TYPES
+      .keys
+      .expand((key) => key)
+      .toList();
+    __INTERVAL_ALL_TYPES.sort();
+  }
+  return __INTERVAL_ALL_TYPES;
+}
+
+final RegExp _INTERVAL_REGEX = new RegExp(
+  "^(\\d*?.?\\d*?)(${_INTERVAL_ALL_TYPES.join('|')})\$");
+
 class HistorySummary {
   final ValuePair first;
   final ValuePair last;
 
   HistorySummary(this.first, this.last);
 }
-
-final List<String> INTERVAL_ALL_TYPES = INTERVAL_TYPES
-  .keys
-  .expand((key) => key)
-  .toList()
-  ..sort();
-
-final RegExp INTERVAL_REGEX = new RegExp(
-  "^(\\d*?.?\\d*?)(${INTERVAL_ALL_TYPES.join('|')})\$");
 
 int parseInterval(String input) {
   if (input == null) {
@@ -50,15 +57,15 @@ int parseInterval(String input) {
     return 0;
   }
 
-  if (!INTERVAL_REGEX.hasMatch(input)) {
+  if (!_INTERVAL_REGEX.hasMatch(input)) {
     throw new FormatException("Bad Interval Syntax: ${input}");
   }
 
-  var match = INTERVAL_REGEX.firstMatch(input);
+  var match = _INTERVAL_REGEX.firstMatch(input);
   var multiplier = num.parse(match[1]);
   var typeName = match[2];
-  var typeKey = INTERVAL_TYPES.keys.firstWhere((x) => x.contains(typeName));
-  var type = INTERVAL_TYPES[typeKey];
+  var typeKey = _INTERVAL_TYPES.keys.firstWhere((x) => x.contains(typeName));
+  var type = _INTERVAL_TYPES[typeKey];
   return (multiplier * type).round();
 }
 
@@ -558,48 +565,50 @@ class DatabaseNode extends SimpleNode {
   DatabaseNode(String path) : super(path);
 
   @override
-  onCreated() async {
-    config = configs[r"$$db_config"];
-    while (removed != true) {
-      try {
-        database = await historian.getDatabase(config);
-        while (onDatabaseReady.isNotEmpty) {
-          onDatabaseReady.removeAt(0)();
+  void onCreated() {
+    new Future(() async {
+      config = configs[r"$$db_config"];
+      while (removed != true) {
+        try {
+          database = await historian.getDatabase(config);
+          while (onDatabaseReady.isNotEmpty) {
+            onDatabaseReady.removeAt(0)();
+          }
+          break;
+        } catch (e, stack) {
+          logger.severe(
+            "Failed to connect to database for ${path}",
+            e,
+            stack
+          );
+          await new Future.delayed(const Duration(seconds: 5));
         }
-        break;
-      } catch (e, stack) {
-        logger.severe(
-          "Failed to connect to database for ${path}",
-          e,
-          stack
-        );
-        await new Future.delayed(const Duration(seconds: 5));
       }
-    }
 
-    if (removed == true) {
-      try {
-        await database.close();
-      } catch (e) {}
-      return;
-    }
+      if (removed == true) {
+        try {
+          await database.close();
+        } catch (e) {}
+        return;
+      }
 
-    link.addNode("${path}/createWatchGroup", {
-      r"$name": "Add Watch Group",
-      r"$is": "createWatchGroup",
-      r"$invokable": "write",
-      r"$params": [
-        {
-          "name": "Name",
-          "type": "string"
-        }
-      ]
-    });
+      link.addNode("${path}/createWatchGroup", {
+        r"$name": "Add Watch Group",
+        r"$is": "createWatchGroup",
+        r"$invokable": "write",
+        r"$params": [
+          {
+            "name": "Name",
+            "type": "string"
+          }
+        ]
+      });
 
-    link.addNode("${path}/delete", {
-      r"$name": "Delete",
-      r"$invokable": "write",
-      r"$is": "delete"
+      link.addNode("${path}/delete", {
+        r"$name": "Delete",
+        r"$invokable": "write",
+        r"$is": "delete"
+      });
     });
   }
 
@@ -881,7 +890,7 @@ class WatchGroupNode extends SimpleNode {
       r"$is": "purgeGroup"
     });
 
-    return new Future(() async {
+    new Future(() async {
       if (db.database == null) {
         Completer c = new Completer();
         db.onDatabaseReady.add(c.complete);
@@ -993,14 +1002,13 @@ historianMain(List<String> args, String name, HistorianAdapter adapter) async {
       "addDatabase": {
         r"$name": "Add Database",
         r"$invokable": "write",
-        r"$params": [
+        r"$params": <Map<String, dynamic>>[
           {
             "name": "Name",
             "type": "string",
             "placeholder": "HistoryData"
           }
-        ]
-          ..addAll(adapter.getCreateDatabaseParameters()),
+        ]..addAll(adapter.getCreateDatabaseParameters()),
         r"$is": "addDatabase"
       }
     },

@@ -30,7 +30,7 @@ Logger _logger;
 
 bool _DEBUG_MODE;
 
-List foldList(List a, List b) {
+List<int> foldList(List<int> a, List<int> b) {
   return a..addAll(b);
 }
 

@@ -121,7 +121,7 @@ class WebSocketConnection extends Connection {
     Map m;
     if (data is List<int>) {
       try {
-        m = codec.decodeBinaryFrame(data);
+        m = codec.decodeBinaryFrame(data as List<int>);
         if (logger.isLoggable(Level.FINEST)) {
           logger.finest(formatLogMessage("receive: ${m}"));
         }
@@ -244,7 +244,7 @@ class WebSocketConnection extends Connection {
     } else {
       m = {};
     }
-    List pendingAck = [];
+    var pendingAck = <ConnectionProcessor>[];
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
@@ -337,18 +337,23 @@ class WebSocketConnection extends Connection {
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
     }
+
     if (!_requesterChannel.onDisconnectController.isCompleted) {
       _requesterChannel.onDisconnectController.complete(_requesterChannel);
     }
+
     if (!_responderChannel.onReceiveController.isClosed) {
       _responderChannel.onReceiveController.close();
     }
+
     if (!_responderChannel.onDisconnectController.isCompleted) {
       _responderChannel.onDisconnectController.complete(_responderChannel);
     }
+
     if (!_onDisconnectedCompleter.isCompleted) {
       _onDisconnectedCompleter.complete(false);
     }
+
     if (pingTimer != null) {
       pingTimer.cancel();
     }

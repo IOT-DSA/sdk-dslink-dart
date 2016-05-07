@@ -11,9 +11,11 @@ class Node {
         nameOrPath = names.removeLast();
       }
     }
+
     if (nameOrPath.contains('%')) {
       nameOrPath = UriComponentDecoder.decode(nameOrPath);
     }
+
     return nameOrPath;
   }
 
@@ -22,13 +24,13 @@ class Node {
 
   /// Node Attributes
   Map<String, Object> attributes = {};
-  
+
   /// same as attributes for local node
   /// but different on remote node
   Object getOverideAttributes(String attr) {
     return attributes[attr];
   }
-  
+
   Node();
 
   /// Get an Attribute
@@ -143,8 +145,8 @@ class Node {
   }
 
   /// Gets a map for the data that will be listed in the parent node's children property.
-  Map getSimpleMap() {
-    Map rslt = {};
+  Map<String, dynamic> getSimpleMap() {
+    var rslt = <String, dynamic>{};
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }
@@ -160,6 +162,7 @@ class Node {
     if (configs.containsKey(r'$writable')) {
       rslt[r'$writable'] = configs[r'$writable'];
     }
+
     // TODO(rick): add permission of current requester
     return rslt;
   }

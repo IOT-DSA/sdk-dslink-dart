@@ -25,6 +25,10 @@ class BrokerDiscoveryClient {
 
         var data = UTF8.decode(packet.data);
         _onMessage(packet, data);
+      } else if (event == RawSocketEvent.CLOSED) {
+        if (!_brokerController.isClosed) {
+          _brokerController.close();
+        }
       }
     });
 
@@ -46,10 +50,11 @@ class BrokerDiscoveryClient {
 
   Stream<String> discover({Duration timeout: const Duration(seconds: 5)}) {
     _send("DISCOVER", "239.255.255.230", 1900);
-    return _brokerController.stream
-        .timeout(timeout, onTimeout: (EventSink sink) {
-      sink.close();
+    Stream<String> stream = _brokerController.stream;
+    new Future.delayed(timeout, () {
+      close();
     });
+    return stream;
   }
 
   void _send(String content, String address, int port) {
