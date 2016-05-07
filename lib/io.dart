@@ -123,7 +123,7 @@ class HttpHelper {
         ..badCertificateCallback = (a, b, c) => true
     ) : httpClient;
 
-    return _client.openUrl("GET", uri).then((HttpClientRequest request) {
+    return _client.openUrl("GET", uri).then((HttpClientRequest request) async {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
@@ -145,9 +145,11 @@ class HttpHelper {
       }
       return request.close();
     }).then((response) {
+      return response;
+    }).then((HttpClientResponse response) {
       void error(String message) {
         // Flush data.
-        response.detachSocket().then((socket) {
+        response.detachSocket().then((Socket socket) {
           socket.destroy();
         });
         throw new WebSocketException(message);
@@ -237,7 +239,7 @@ class HttpHelper {
       // consisting of multiple protocols. To unify all of them, first join
       // the lists with ', ' and then tokenize.
       protocols = HttpHelper.tokenizeFieldValue(protocols.join(', '));
-      var future = new Future(() => protocolSelector(protocols)).then((String protocol) {
+      return new Future(() => protocolSelector(protocols)).then((String protocol) {
         if (protocols.indexOf(protocol) < 0) {
           throw new WebSocketException(
             "Selected protocol is not in the list of available protocols");
@@ -249,18 +251,13 @@ class HttpHelper {
           ..close();
         throw error;
         return null;
-      }).then((result) async {
+      }).then((result) {
         if (result is String) {
-          return await upgrade(result);
+          return upgrade(result);
         }
-      });
-
-      return future.then((result) {
-        if (result is WebSocket) {
-          return result;
-        } else {
-          return null;
-        }
+        return null;
+      }).then((WebSocket socket) {
+        return socket;
       });
     } else {
       return upgrade(null);
