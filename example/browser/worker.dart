@@ -6,7 +6,7 @@ main() async {
 }
 
 transformStringWorker(Worker worker) async {
-  WorkerSocket socket = await worker.init(methods: {
+  await worker.init(methods: {
     "transform": (String input) => input.toLowerCase()
   });
 }

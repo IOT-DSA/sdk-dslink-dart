@@ -2,12 +2,7 @@
 @Timeout(const Duration(seconds: 10))
 library dslink.test.vm.nodes.simple;
 
-import "dart:async";
-
-import "package:dsbroker/broker.dart";
-import "package:dslink/server.dart";
 import "package:dslink/dslink.dart";
-import "package:dslink/io.dart";
 import "package:test/test.dart";
 
 import "common.dart";

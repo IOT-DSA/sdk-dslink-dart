@@ -1,7 +1,5 @@
 library dslink.test.workers;
 
-import "dart:async";
-
 import "package:test/test.dart";
 import "package:dslink/worker.dart";
 

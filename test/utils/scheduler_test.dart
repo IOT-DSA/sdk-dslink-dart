@@ -3,7 +3,7 @@ library dslink.test.common.scheduler;
 import "dart:async";
 
 import "package:test/test.dart";
-import "package:dslink/utils.dart" show Scheduler, Interval;
+import "package:dslink/utils.dart";
 
 void main() {
   group("Scheduler", schedulerTests);
