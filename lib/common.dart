@@ -163,6 +163,8 @@ abstract class ServerLinkManager {
   /// return true if link is added
   bool addLink(ServerLink link);
 
+  void onLinkDisconnected(ServerLink link);
+  
   void removeLink(ServerLink link, String id);
 
   ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ""});
