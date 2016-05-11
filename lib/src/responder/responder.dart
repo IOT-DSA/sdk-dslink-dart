@@ -93,7 +93,11 @@ class Responder extends ConnectionHandler {
     }
   }
 
+  bool disabled = false;
   void onData(List list) {
+    if (disabled){
+      return;
+    }
     for (Object resp in list) {
       if (resp is Map) {
         _onReceiveRequest(resp);
