@@ -172,7 +172,7 @@ abstract class ServerLinkManager {
   Requester getRequester(String dsId);
 
   Responder getResponder(String dsId, NodeProvider nodeProvider,
-      [String sessionId = ""]);
+      [String sessionId = "", bool trusted = false]);
 
   void updateLinkData(String dsId, Map m);
 }
