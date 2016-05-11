@@ -94,6 +94,20 @@ class ListResponse extends Response {
               updateConfigs.add(update);
             }
           } else {
+            if (_permission != Permission.CONFIG) {
+              if (name == r'$writable') {
+                if (_permission < Permission.WRITE) {
+                  return;
+                }
+              }
+              if (name == r'$invokable') {
+                int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+                if (invokePermission > _permission) {
+                  updateConfigs.add([r'$invokable', 'never']);
+                  return;
+                }
+              } 
+            }
             updateConfigs.add(update);
           }
         });
@@ -101,7 +115,14 @@ class ListResponse extends Response {
           updateAttributes.add([name, value]);
         });
         node.children.forEach((name, Node value) {
-          updateChildren.add([name, value.getSimpleMap()]);
+          Map simpleMap = value.getSimpleMap();
+          if (_permission != Permission.CONFIG) {
+            int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+            if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+              simpleMap[r'$invokable'] = 'never';
+            }
+          }
+          updateChildren.add([name, simpleMap]);
         });
       }
       if (updateIs == null) {
@@ -111,6 +132,20 @@ class ListResponse extends Response {
       for (String change in changes) {
         Object update;
         if (change.startsWith(r'$')) {
+          if (_permission != Permission.CONFIG) {
+            if (change == r'$writable') {
+              if (_permission < Permission.WRITE) {
+                continue;
+              }
+            }
+            if (change == r'$invokable') {
+              int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              if (invokePermission > _permission) {
+                updateConfigs.add([r'$invokable', 'never']);
+                continue;
+              }
+            } 
+          }
           if (node.configs.containsKey(change)) {
             update = [change, node.configs[change]];
           } else {
@@ -128,7 +163,14 @@ class ListResponse extends Response {
           updateAttributes.add(update);
         } else {
           if (node.children.containsKey(change)) {
-            update = [change, node.children[change].getSimpleMap()];
+            Map simpleMap = node.children[change].getSimpleMap();
+             if (_permission != Permission.CONFIG) {
+               int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+               if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+                 simpleMap[r'$invokable'] = 'never';
+               }
+             }
+            update = [change, simpleMap ];
           } else {
             update = {'name': change, 'change': 'remove'};
           }
