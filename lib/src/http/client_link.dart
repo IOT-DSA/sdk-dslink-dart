@@ -102,7 +102,7 @@ class HttpClientLink extends ClientLink {
     }
   }
 
-  int _connDelay = 1;
+  int _connDelay = 0;
 
   connect() async {
     if (_closed) {
@@ -188,15 +188,17 @@ class HttpClientLink extends ClientLink {
       }
 
       initWebsocket(false);
-      _connDelay = 1;
-      _wsDelay = 1;
+      _connDelay = 0;
+      _wsDelay = 0;
     } catch (err) {
-      DsTimer.timerOnceAfter(connect, _connDelay * 1000);
-      if (_connDelay < 60) _connDelay++;
+      DsTimer.timerOnceAfter(connect, (
+        _connDelay == 0 ? 20 : _connDelay * 500
+      ));
+      if (_connDelay < 30) _connDelay++;
     }
   }
 
-  int _wsDelay = 1;
+  int _wsDelay = 0;
 
   initWebsocket([bool reconnect = true]) async {
     if (_closed) return;
@@ -207,15 +209,19 @@ class HttpClientLink extends ClientLink {
       if (tokenHash != null) {
         wsUrl = '$wsUrl$tokenHash';
       }
+
       var socket = await HttpHelper.connectToWebSocket(
         wsUrl,
         useStandardWebSocket: useStandardWebSocket
       );
-      _wsConnection = new WebSocketConnection(socket,
+
+      _wsConnection = new WebSocketConnection(
+          socket,
           clientLink: this,
           enableTimeout: true,
           enableAck: enableAck,
-          useCodec: DsCodec.getCodec(format));
+          useCodec: DsCodec.getCodec(format)
+      );
 
       logger.info(formatLogMessage("Connected"));
       if (!_onConnectedCompleter.isCompleted) {
@@ -234,6 +240,7 @@ class HttpClientLink extends ClientLink {
           }
         });
       }
+
       _wsConnection.onDisconnected.then((connection) {
         initWebsocket();
       });
@@ -247,10 +254,13 @@ class HttpClientLink extends ClientLink {
           error.message.contains('not upgraded to websocket') // error from dart
               || error.message.contains('(401)') // error from nodejs
       )) {
-        DsTimer.timerOnceAfter(connect, _connDelay * 1000);
+        DsTimer.timerOnceAfter(connect, 20);
       } else if (reconnect) {
-        DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
-        if (_wsDelay < 60) _wsDelay++;
+        DsTimer.timerOnceAfter(
+          initWebsocket,
+          _wsDelay == 0 ? 20 : _wsDelay * 500
+        );
+        if (_wsDelay < 30) _wsDelay++;
       }
     }
   }
