@@ -61,7 +61,7 @@ class Responder extends ConnectionHandler {
     _subscription = new SubscribeResponse(this, 0);
     _responses[0] = _subscription;
     // TODO: load reqId
-    if (reqId != null && reqId.length < 43) {
+    if (reqId != null) {
       groups = [reqId];
     }
   }
