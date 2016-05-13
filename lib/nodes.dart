@@ -411,25 +411,23 @@ class NodeNamer {
       String char = input[i];
 
       if (char == "%" && (i + 1 < input.length)) {
-        String hexA = input[i + 1];
+        String hexA = input[i + 1].toUpperCase();
         if ((cu(hexA) >= cu("0") && cu(hexA) <= cu("9")) ||
-            (cu(hexA) >= cu("a") && cu(hexA) <= cu("f")) ||
             (cu(hexA) >= cu("A") && cu(hexA) <= cu("F"))
           ) {
           if (i + 2 < input.length) {
-            String hexB = input[i + 2];
+            String hexB = input[i + 2].toUpperCase();
             if ((cu(hexB) > cu("0") && cu(hexB) <= cu("9")) ||
-                (cu(hexB) >= cu("a") && cu(hexB) <= cu("f")) ||
                 (cu(hexB) >= cu("A") && cu(hexB) <= cu("F"))
             ) {
               i += 2;
               out.write("%");
-              out.write(hexA.toUpperCase());
-              out.write(hexB.toUpperCase());
+              out.write(hexA);
+              out.write(hexB);
               continue;
             } else {
               ++i;
-              out.write("%${hexA}".toUpperCase());
+              out.write("%${hexA}");
               continue;
             }
           }
@@ -458,7 +456,6 @@ class NodeNamer {
       if (char == "%") {
         String hexA = input[i + 1];
         if ((cu(hexA) >= cu("0") && cu(hexA) <= cu("9")) ||
-            (cu(hexA) >= cu("a") && cu(hexA) <= cu("f")) ||
             (cu(hexA) >= cu("A") && cu(hexA) <= cu("F"))
         ) {
           String s = hexA;
@@ -466,7 +463,6 @@ class NodeNamer {
           if (i + 2 < input.length) {
             String hexB = input[i + 2];
             if ((cu(hexB) > cu("0") && cu(hexB) <= cu("9")) ||
-                (cu(hexB) >= cu("a") && cu(hexB) <= cu("f")) ||
                 (cu(hexB) >= cu("A") && cu(hexB) <= cu("F"))
             ) {
               ++i;
