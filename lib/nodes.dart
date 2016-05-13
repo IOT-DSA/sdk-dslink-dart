@@ -424,12 +424,12 @@ class NodeNamer {
             ) {
               i += 2;
               out.write("%");
-              out.write(hexA);
-              out.write(hexB);
+              out.write(hexA.toUpperCase());
+              out.write(hexB.toUpperCase());
               continue;
             } else {
               ++i;
-              out.write("%${hexA}");
+              out.write("%${hexA}".toUpperCase());
               continue;
             }
           }
@@ -439,7 +439,7 @@ class NodeNamer {
       for (String bannedChar in BANNED_CHARS) {
         if (char == bannedChar) {
           var e = char.codeUnitAt(0).toRadixString(16);
-          out.write("%${e}");
+          out.write("%${e}".toUpperCase());
           continue mainLoop;
         }
       }
