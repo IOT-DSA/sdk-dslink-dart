@@ -33,8 +33,13 @@ class Responder extends ConnectionHandler {
 
   /// list of permission group
   List<String> groups = [];
-  void updateGroups(List<String> vals) {
-    groups = [reqId]..addAll(vals.where((str)=>str != ''));
+  void updateGroups(List<String> vals, [bool ignoreId = false]) {
+    if (ignoreId) {
+      groups = vals.where((str)=>str != '').toList();
+    } else {
+      groups = [reqId]..addAll(vals.where((str)=>str != ''));
+    }
+   
   }
 
   final Map<int, Response> _responses = new Map<int, Response>();
@@ -88,7 +93,11 @@ class Responder extends ConnectionHandler {
     }
   }
 
+  bool disabled = false;
   void onData(List list) {
+    if (disabled){
+      return;
+    }
     for (Object resp in list) {
       if (resp is Map) {
         _onReceiveRequest(resp);

@@ -25,8 +25,13 @@ class ListResponse extends Response {
       return;
     }
 
-    if (_permission < Permission.CONFIG && key.startsWith(r'$$')) {
-      return;
+    if (key.startsWith(r'$$')) {
+      if (_permission < Permission.CONFIG) {
+        return;
+      }
+      if (key.startsWith(r'$$$')) {
+        return;
+      }
     }
 
     if (changes.isEmpty) {
@@ -75,26 +80,51 @@ class ListResponse extends Response {
     // TODO: handle permission and permission change
     if (initialResponse || changes.contains(r'$is')) {
       initialResponse = false;
-      node.configs.forEach((name, value) {
-        Object update = [name, value];
-        if (name == r'$is') {
-          updateIs = update;
-        } else if (name == r'$base') {
-          updateBase = update;
-        } else if (_permission == Permission.CONFIG ||
-            !name.startsWith(r'$$')) {
-          updateConfigs.add(update);
-        }
-      });
-
-      node.attributes.forEach((name, value) {
-        updateAttributes.add([name, value]);
-      });
-
-      node.children.forEach((name, Node value) {
-        updateChildren.add([name, value.getSimpleMap()]);
-      });
-
+      if (_permission == Permission.NONE) {
+        return;
+      } else {
+        node.configs.forEach((name, value) {
+          Object update = [name, value];
+          if (name == r'$is') {
+            updateIs = update;
+          } else if (name == r'$base') {
+            updateBase = update;
+          } else if (name.startsWith(r'$$')) {
+            if (_permission == Permission.CONFIG && !name.startsWith(r'$$$')) {
+              updateConfigs.add(update);
+            }
+          } else {
+            if (_permission != Permission.CONFIG) {
+              if (name == r'$writable') {
+                if (_permission < Permission.WRITE) {
+                  return;
+                }
+              }
+              if (name == r'$invokable') {
+                int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+                if (invokePermission > _permission) {
+                  updateConfigs.add([r'$invokable', 'never']);
+                  return;
+                }
+              } 
+            }
+            updateConfigs.add(update);
+          }
+        });
+        node.attributes.forEach((name, value) {
+          updateAttributes.add([name, value]);
+        });
+        node.children.forEach((name, Node value) {
+          Map simpleMap = value.getSimpleMap();
+          if (_permission != Permission.CONFIG) {
+            int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+            if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+              simpleMap[r'$invokable'] = 'never';
+            }
+          }
+          updateChildren.add([name, simpleMap]);
+        });
+      }
       if (updateIs == null) {
         updateIs = [r'$is', 'node'];
       }
@@ -102,6 +132,20 @@ class ListResponse extends Response {
       for (String change in changes) {
         Object update;
         if (change.startsWith(r'$')) {
+          if (_permission != Permission.CONFIG) {
+            if (change == r'$writable') {
+              if (_permission < Permission.WRITE) {
+                continue;
+              }
+            }
+            if (change == r'$invokable') {
+              int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              if (invokePermission > _permission) {
+                updateConfigs.add([r'$invokable', 'never']);
+                continue;
+              }
+            } 
+          }
           if (node.configs.containsKey(change)) {
             update = [change, node.configs[change]];
           } else {
@@ -119,7 +163,14 @@ class ListResponse extends Response {
           updateAttributes.add(update);
         } else {
           if (node.children.containsKey(change)) {
-            update = [change, node.children[change].getSimpleMap()];
+            Map simpleMap = node.children[change].getSimpleMap();
+             if (_permission != Permission.CONFIG) {
+               int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+               if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+                 simpleMap[r'$invokable'] = 'never';
+               }
+             }
+            update = [change, simpleMap ];
           } else {
             update = {'name': change, 'change': 'remove'};
           }
