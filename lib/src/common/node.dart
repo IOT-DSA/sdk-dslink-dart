@@ -171,11 +171,18 @@ class Node {
 /// Utility class for node and config/attribute paths.
 class Path {
   /// Regular Expression for invalid characters in paths.
-  static final RegExp invalidChar = new RegExp(r'[\\\?\*|"<>]');
+  static final RegExp invalidChar = new RegExp(r'[\\\?\*|"<>:]');
 
   /// Regular Expression for invalid characters in names.
-  static final RegExp invalidNameChar = new RegExp(r'[\/\\\?\*|"<>]');
+  static final RegExp invalidNameChar = new RegExp(r'[\/\\\?\*|"<>:]');
 
+  static String escapeName(String str) {
+    if (str.contains(invalidNameChar)) {
+      return Uri.encodeComponent(str);
+    }
+    return str;
+  }
+  
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);

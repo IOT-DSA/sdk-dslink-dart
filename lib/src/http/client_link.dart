@@ -66,7 +66,7 @@ class HttpClientLink extends ClientLink {
       Responder overrideResponder, this.home, this.token, this.linkData, List formats
       })
       : privateKey = privateKey,
-        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}' {
+        dsId = '${Path.escapeName(dsIdPrefix)}${privateKey.publicKey.qHash64}' {
     if (isRequester) {
       if (overrideRequester != null) {
         requester = overrideRequester;
@@ -119,7 +119,7 @@ class HttpClientLink extends ClientLink {
       return true;
     };
 
-    String connUrl = '$_conn?dsId=$dsId';
+    String connUrl = '$_conn?dsId=${Uri.encodeComponent(dsId)}';
     if (home != null) {
       connUrl = '$connUrl&home=$home';
     }
@@ -176,7 +176,7 @@ class HttpClientLink extends ClientLink {
       remotePath = serverConfig['path'];
 
       if (serverConfig['wsUri'] is String) {
-        _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=$dsId'
+        _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=${Uri.encodeComponent(dsId)}'
             .replaceFirst('http', 'ws');
         if (home != null) {
           _wsUpdateUri = '$_wsUpdateUri&home=$home';
