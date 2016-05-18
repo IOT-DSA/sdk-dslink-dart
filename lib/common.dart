@@ -2,7 +2,9 @@
 library dslink.common;
 
 import "dart:async";
+import "dart:convert";
 import "dart:collection";
+import "dart:typed_data";
 
 import "requester.dart";
 import "responder.dart";
@@ -17,6 +19,7 @@ part "src/common/connection_channel.dart";
 part "src/common/connection_handler.dart";
 part "src/common/permission.dart";
 part "src/common/default_defs.dart";
+part "src/common/protocol.dart";
 
 abstract class Connection {
   ConnectionChannel get requesterChannel;
@@ -164,7 +167,7 @@ abstract class ServerLinkManager {
   bool addLink(ServerLink link);
 
   void onLinkDisconnected(ServerLink link);
-  
+
   void removeLink(ServerLink link, String id);
 
   ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ""});

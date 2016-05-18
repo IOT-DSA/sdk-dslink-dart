@@ -24,7 +24,7 @@ typedef Taker<T>(T value);
 typedef TwoTaker<A, B>(A a, B b);
 
 /// The DSA Version
-const String DSA_VERSION = "1.1.2";
+const String DSA_VERSION = "2.0.0";
 
 Logger _logger;
 
