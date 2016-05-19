@@ -165,12 +165,12 @@ class DSProtocolParser {
       return pkt;
     }
 
-    var side = (type & 0x80) == 0 ?
+    var side = (type & 0x80) == 0x80 ?
       DSPacketSide.request :
       DSPacketSide.response;
     var method = type & 0x70;
-    var isClustered = (type & 0x08) != 0;
-    var isPartial = (type & 0x04) != 0;
+    var isClustered = (type & 0x08) == 0x08;
+    var isPartial = (type & 0x04) == 0x04;
     var specialBits = type & 0x03;
 
     var rid = _readUint32(data, offset);
