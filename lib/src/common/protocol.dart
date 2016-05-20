@@ -139,6 +139,16 @@ class DSPacketMethod {
 
 abstract class DSPacket {
   void writeTo(DSPacketWriter writer);
+
+  Uint8List write([DSPacketWriter writer]) {
+    if (writer == null) {
+      writer = new DSPacketWriter();
+    }
+
+    writeTo(writer);
+
+    return writer.done();
+  }
 }
 
 class DSAckPacket extends DSPacket {
@@ -532,7 +542,7 @@ class DSPacketReader {
       pkt.ackId = _readUint32(data, offset);
       offset += 4;
       return pkt;
-    } else if (type == 0xFF) {
+    } else if (type == 0xFF) { // ack
       var pkt = new DSAckPacket();
       pkt.ackId = _readUint32(data, offset);
       offset += 4;
@@ -610,7 +620,6 @@ class DSPacketReader {
 
       if (status > 127) {
         pkt.payload = new Uint8List(0);
-        pkt.payload = data.buffer.asUint8List(offset);
       } else {
         pkt.payload = data.buffer.asUint8List(offset);
       }
