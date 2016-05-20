@@ -1,5 +1,71 @@
 part of dslink.common;
 
+typedef DSNewPacketHandler(DSPacketStore store);
+typedef DSPacketDeliveryHandler(DSPacketStore store, DSNormalPacket packet);
+typedef DSAckPacketHandler(DSAckPacket packet);
+typedef DSMsgPacketHandler(DSMsgPacket packet);
+
+class DSPacketQueueMode {
+  static const DSPacketQueueMode store = const DSPacketQueueMode("store");
+  static const DSPacketQueueMode deliver = const DSPacketQueueMode("deliver");
+
+  final String name;
+
+  const DSPacketQueueMode(this.name);
+}
+
+class DSPacketStore {
+  final int rid;
+  final List<DSNormalPacket> packets;
+
+  DSPacketDeliveryHandler handler;
+
+  DSPacketStore(this.rid) : packets = <DSNormalPacket>[];
+
+  void deliver(DSNormalPacket packet) {
+    if (handler != null) {
+      handler(this, packet);
+    }
+  }
+
+  void store(DSNormalPacket packet) {
+    packets.add(packet);
+  }
+}
+
+class DSPacketQueue {
+  final DSNewPacketHandler newPacketHandler;
+  final DSAckPacketHandler ackPacketHandler;
+  final DSMsgPacketHandler msgPacketHandler;
+  final DSPacketQueueMode mode;
+  final Map<int, DSPacketStore> _queue = <int ,DSPacketStore>{};
+
+  DSPacketQueue(
+    this.mode,
+    this.newPacketHandler,
+    this.ackPacketHandler,
+    this.msgPacketHandler);
+
+  void handle(DSPacket packet) {
+    if (packet is DSNormalPacket) {
+      DSPacketStore store = _queue[packet.rid];
+      if (store == null) {
+        store = new DSPacketStore(packet.rid);
+        _queue[packet.rid] = store;
+
+        newPacketHandler(store);
+      }
+
+      if (mode == DSPacketQueueMode.deliver) {
+        store.deliver(packet);
+      } else {
+        store.deliver(packet);
+        store.store(packet);
+      }
+    }
+  }
+}
+
 class DSPacketSide {
   static const DSPacketSide request = const DSPacketSide("request");
   static const DSPacketSide response = const DSPacketSide("response");
@@ -135,7 +201,10 @@ class DSProtocolParser {
       } else {
         bytes.add(b);
       }
+      offsetB++;
     }
+
+    offset += offsetB;
 
     return const Utf8Decoder().convert(bytes);
   }
