@@ -137,14 +137,67 @@ class DSPacketMethod {
   }
 }
 
-abstract class DSPacket {}
-
-class DSMsgPacket extends DSPacket {
-  int ackId;
+abstract class DSPacket {
+  void writeTo(DSPacketWriter writer);
 }
 
 class DSAckPacket extends DSPacket {
   int ackId;
+
+  @override
+  void writeTo(DSPacketWriter writer) {
+    writer.writeUint8(0xFE);
+    writer.writeUint32(ackId);
+  }
+}
+
+class DSMsgPacket extends DSPacket {
+  int ackId;
+
+  @override
+  void writeTo(DSPacketWriter writer) {
+    writer.writeUint8(0xFF);
+    writer.writeUint32(ackId);
+  }
+}
+
+int _write3BitNumber(int input, int start, int number) {
+  var bitFlagA = 1 << start;
+  var bitFlagB = 1 << start - 1;
+  var bitFlagC = 1 << start - 2;
+
+  var out = input;
+
+  if ((number & (1 << 0)) != 0) {
+    out |= bitFlagA;
+  }
+
+  if ((number & (1 << 1)) != 0) {
+    out |= bitFlagB;
+  }
+
+  if ((number & (1 << 2)) != 0) {
+    out |= bitFlagC;
+  }
+
+  return out;
+}
+
+int _write2BitNumber(int input, int start, int number) {
+  var bitFlagA = 1 << start;
+  var bitFlagB = 1 << start - 1;
+
+  var out = input;
+
+  if ((number & (1 << 0)) != 0) {
+    out |= bitFlagA;
+  }
+
+  if ((number & (1 << 1)) != 0) {
+    out |= bitFlagB;
+  }
+
+  return out;
 }
 
 class DSNormalPacket extends DSPacket {
@@ -158,18 +211,231 @@ class DSNormalPacket extends DSPacket {
   int clusterId;
   int totalSize;
   Uint8List payload;
+
+  @override
+  void writeTo(DSPacketWriter writer) {
+    var type = 0;
+
+    if (side == DSPacketSide.response) {
+      type |= 0x80;
+    }
+
+    type = _write3BitNumber(type, 6, method.id);
+
+    if (isClustered) {
+      type |= 0x08;
+    }
+
+    if (isPartial) {
+      type |= 0x04;
+    }
+
+    type = handleTypeByte(type);
+
+    writer.writeUint8(type);
+    writer.writeUint32(rid);
+    if (isPartial) {
+      writer.writeUint32(totalSize);
+    }
+
+    writer.writeUint32(updateId);
+    if (isClustered) {
+      writer.writeUint32(clusterId);
+    }
+  }
+
+  int handleTypeByte(int input) {
+    return input;
+  }
 }
 
 class DSRequestPacket extends DSNormalPacket {
-  int qos;
+  int qos = 0;
   String path;
+
+  @override
+  int handleTypeByte(int input) {
+    input = _write2BitNumber(input, 1, qos);
+    return input;
+  }
+
+  @override
+  void writeTo(DSPacketWriter writer) {
+    super.writeTo(writer);
+    writer.writeUint16(path.length);
+    writer.writeString(path);
+
+    if (payload != null) {
+      writer.writeUint8List(payload);
+    }
+  }
 }
 
 class DSResponsePacket extends DSNormalPacket {
-  int status;
+  int status = 0;
+
+  @override
+  int handleTypeByte(int input) {
+    input = _write3BitNumber(input, 1, status);
+    return input;
+  }
+
+  @override
+  void writeTo(DSPacketWriter writer) {
+    super.writeTo(writer);
+
+    writer.writeUint8(status);
+
+    if (payload != null && status <= 127) {
+      writer.writeUint8List(payload);
+    }
+  }
 }
 
-class DSProtocolParser {
+class DSPacketWriter {
+  static const int defaultBufferSize = const int.fromEnvironment(
+    "dsa.protocol.writer.defaultBufferSize",
+    defaultValue: 128
+  );
+
+  final int bufferSize;
+
+  List<Uint8List> _buffers = <Uint8List>[];
+  Uint8List _buffer;
+  int _len = 0;
+  int _offset = 0;
+  int _totalLength = 0;
+
+  DSPacketWriter({this.bufferSize: defaultBufferSize});
+
+  void _checkBuffer() {
+    if (_buffer == null) {
+      _buffer = new Uint8List(bufferSize);
+    }
+  }
+
+  void writeUint8(int byte) {
+    if (_buffer == null) {
+      _buffer = new Uint8List(bufferSize);
+    }
+
+    if (_buffer.lengthInBytes == _len) {
+      _buffers.add(_buffer);
+      _buffer = new Uint8List(bufferSize);
+      _len = 0;
+      _offset = 0;
+    }
+
+    _buffer[_offset] = byte;
+    _offset++;
+    _len++;
+    _totalLength++;
+  }
+
+  void writeUint16(int value) {
+    _checkBuffer();
+
+    if ((_buffer.lengthInBytes - _len) < 2) {
+      writeUint8((value >> 8) & 0xff);
+      writeUint8(value & 0xff);
+    } else {
+      _buffer[_offset++] = (value >> 8) & 0xff;
+      _buffer[_offset++] = value & 0xff;
+      _len += 2;
+      _totalLength += 2;
+    }
+  }
+
+  void writeUint32(int value) {
+    _checkBuffer();
+
+    if ((_buffer.lengthInBytes - _len) < 4) {
+      writeUint8((value >> 24) & 0xff);
+      writeUint8((value >> 16) & 0xff);
+      writeUint8((value >> 8) & 0xff);
+      writeUint8(value & 0xff);
+    } else {
+      _buffer[_offset++] = (value >> 24) & 0xff;
+      _buffer[_offset++] = (value >> 16) & 0xff;
+      _buffer[_offset++] = (value >> 8) & 0xff;
+      _buffer[_offset++] = value & 0xff;
+      _len += 4;
+      _totalLength += 4;
+    }
+  }
+
+  void writeString(String input) {
+    Uint8List data;
+
+    var encoded = const Utf8Encoder().convert(input);
+    if (encoded is Uint8List) {
+      data = encoded;
+    } else {
+      data = new Uint8List.fromList(encoded);
+    }
+
+    writeUint8List(data);
+  }
+
+  void writeUint8List(Uint8List data) {
+    _checkBuffer();
+
+    var dataSize = data.lengthInBytes;
+    var bufferSpace = _buffer.lengthInBytes - _len;
+
+    if (bufferSpace < dataSize) {
+      int i;
+      for (i = 0; i < bufferSpace; i++) {
+        _buffer[_offset++] = data[i];
+      }
+
+      _len += bufferSpace;
+      _totalLength += bufferSpace;
+
+      while(i < dataSize) {
+        writeUint8(data[i++]);
+      }
+    } else {
+      for (var i = 0; i < dataSize; i++) {
+        _buffer[_offset++] = data[i];
+      }
+
+      _len += dataSize;
+      _totalLength += dataSize;
+    }
+  }
+
+  Uint8List done() {
+    var out = new Uint8List(_totalLength);
+    var off = 0;
+
+    var bufferCount = _buffers.length;
+    for (var i = 0; i < bufferCount; i++) {
+      Uint8List buff = _buffers[i];
+
+      for (var x = 0; x < buff.lengthInBytes; x++) {
+        out[off] = buff[x];
+        off++;
+      }
+    }
+
+    if (_buffer != null) {
+      for (var i = 0; i < _len; i++) {
+        out[off] = _buffer[i];
+      }
+    }
+
+    _buffers.length = 0;
+    _buffer = null;
+    _len = 0;
+    _totalLength = 0;
+    _offset = 0;
+
+    return out;
+  }
+}
+
+class DSPacketReader {
   int _readUint32(Uint8List data, int offset) {
     var num = 0;
     for (var i = 0; i < 4; i++) {
@@ -209,7 +475,45 @@ class DSProtocolParser {
     return const Utf8Decoder().convert(bytes);
   }
 
-  DSPacket parse(List<int> input) {
+  int _read2BitNumber(int input, int start) {
+    var bitFlagA = 1 << start;
+    var bitFlagB = 1 << start - 1;
+
+    var number = 0;
+
+    if ((input & bitFlagA) == bitFlagA) {
+      number += 2;
+    }
+
+    if ((input & bitFlagB) == bitFlagB) {
+      number += 1;
+    }
+
+    return number;
+  }
+
+  int _read3BitNumber(int input, int start) {
+    var bitFlagA = 1 << start;
+    var bitFlagB = 1 << start - 1;
+    var bitFlagC = 1 << start - 2;
+
+    var number = 0;
+    if ((input & bitFlagA) == bitFlagA) {
+      number += 4;
+    }
+
+    if ((input & bitFlagB) == bitFlagB) {
+      number += 2;
+    }
+
+    if ((input & bitFlagC) == bitFlagC) {
+      number += 1;
+    }
+
+    return number;
+  }
+
+  DSPacket read(List<int> input) {
     int offset = 0;
 
     Uint8List data;
@@ -237,10 +541,10 @@ class DSProtocolParser {
     var side = (type & 0x80) == 0x80 ?
       DSPacketSide.request :
       DSPacketSide.response;
-    var method = type & 0x70;
+    var method = _read2BitNumber(type, 6);
     var isClustered = (type & 0x08) == 0x08;
     var isPartial = (type & 0x04) == 0x04;
-    var specialBits = type & 0x03;
+    var specialBits = _read3BitNumber(type, 2);
 
     var rid = _readUint32(data, offset);
     offset += 4;
