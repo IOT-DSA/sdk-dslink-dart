@@ -223,11 +223,11 @@ class DSNormalPacket extends DSPacket {
     type = _write3BitNumber(type, 6, method.id);
 
     if (isClustered) {
-      type |= 0x08;
+      type |= (1 << 3);
     }
 
     if (isPartial) {
-      type |= 0x04;
+      type |= (1 << 2);
     }
 
     type = handleTypeByte(type);
@@ -422,6 +422,7 @@ class DSPacketWriter {
     if (_buffer != null) {
       for (var i = 0; i < _len; i++) {
         out[off] = _buffer[i];
+        off++;
       }
     }
 
@@ -482,11 +483,11 @@ class DSPacketReader {
     var number = 0;
 
     if ((input & bitFlagA) == bitFlagA) {
-      number += 2;
+      number += 1;
     }
 
     if ((input & bitFlagB) == bitFlagB) {
-      number += 1;
+      number += 2;
     }
 
     return number;
@@ -499,7 +500,7 @@ class DSPacketReader {
 
     var number = 0;
     if ((input & bitFlagA) == bitFlagA) {
-      number += 4;
+      number += 1;
     }
 
     if ((input & bitFlagB) == bitFlagB) {
@@ -507,7 +508,7 @@ class DSPacketReader {
     }
 
     if ((input & bitFlagC) == bitFlagC) {
-      number += 1;
+      number += 4;
     }
 
     return number;
@@ -538,13 +539,15 @@ class DSPacketReader {
       return pkt;
     }
 
-    var side = (type & 0x80) == 0x80 ?
+    var side = (type & 0x80) == 0 ?
       DSPacketSide.request :
       DSPacketSide.response;
-    var method = _read2BitNumber(type, 6);
-    var isClustered = (type & 0x08) == 0x08;
-    var isPartial = (type & 0x04) == 0x04;
-    var specialBits = _read3BitNumber(type, 2);
+
+    var method = _read3BitNumber(type, 6);
+
+    var isClustered = (type & (1 << 3)) != 0;
+    var isPartial = (type & (1 << 2)) != 0;
+    var specialBits = _read2BitNumber(type, 1);
 
     var rid = _readUint32(data, offset);
     offset += 4;
