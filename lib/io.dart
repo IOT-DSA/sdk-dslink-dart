@@ -9,6 +9,11 @@ import "dart:math";
 
 import "package:crypto/crypto.dart";
 
+const bool _tcpNoDelay = const bool.fromEnvironment(
+  "dsa.io.tcpNoDelay",
+  defaultValue: true
+);
+
 /// Read raw text from stdin.
 Stream<String> readStdinText() {
   return const Utf8Decoder().bind(stdin);
@@ -179,6 +184,7 @@ class HttpHelper {
       }
       var protocol = response.headers.value('Sec-WebSocket-Protocol');
       return response.detachSocket().then((socket) {
+        socket.setOption(SocketOption.TCP_NODELAY, _tcpNoDelay);
         return new WebSocket.fromUpgradedSocket(
           socket,
           protocol: protocol,
@@ -229,8 +235,11 @@ class HttpHelper {
       }
       response.headers.contentLength = 0;
       return response.detachSocket()
-        .then((socket) => new WebSocket.fromUpgradedSocket(
-        socket, protocol: protocol, serverSide: true));
+        .then((socket) {
+        socket.setOption(SocketOption.TCP_NODELAY, _tcpNoDelay);
+        return new WebSocket.fromUpgradedSocket(
+          socket, protocol: protocol, serverSide: true);
+      });
     }
 
     var protocols = request.headers['Sec-WebSocket-Protocol'];
