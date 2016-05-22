@@ -2,12 +2,16 @@ part of dslink.responder;
 
 class Response implements ConnectionProcessor {
   final Responder responder;
+  final DSPacketMethod method;
   final int rid;
+
   String _sentStreamStatus = StreamStatus.initialize;
-  
+
+  int updateId = 0;
+
   String get sentStreamStatus => _sentStreamStatus;
-  
-  Response(this.responder, this.rid);
+
+  Response(this.method, this.responder, this.rid);
 
   /// close the request from responder side and also notify the requester
   void close([DSError err = null]) {
@@ -32,7 +36,6 @@ class Response implements ConnectionProcessor {
   }
 
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    // TODO: implement ackReceived
   }
 
   /// for the broker trace action

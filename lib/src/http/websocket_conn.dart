@@ -7,6 +7,7 @@ import "../../common.dart";
 import "../../utils.dart";
 
 import "package:logging/logging.dart";
+import "dart:typed_data";
 
 class WebSocketConnection extends Connection {
   PassiveChannel _responderChannel;
@@ -236,36 +237,32 @@ class WebSocketConnection extends Connection {
   void _send() {
     _sending = false;
     bool needSend = false;
-    Map m;
-    if (_serverCommand != null) {
-      m = _serverCommand;
-      _serverCommand = null;
-      needSend = true;
-    } else {
-      m = {};
-    }
+
+    DSPacketWriter writer = new DSPacketWriter();
+
+//    if (_serverCommand != null) {
+//      m = _serverCommand;
+//      _serverCommand = null;
+//      needSend = true;
+//    } else {
+//      m = {};
+//    }
     var pendingAck = <ConnectionProcessor>[];
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
-        m["responses"] = rslt.messages;
         needSend = true;
-        if (throughputEnabled) {
-          for (Map resp in rslt.messages) {
-            if (resp["updates"] is List) {
-              int len = resp["updates"].length;
-              if (len > 0) {
-                messageOut += len;
-              } else {
-                messageOut += 1;
-              }
-            } else {
-              messageOut += 1;
-            }
+
+        for (DSPacket resp in rslt.messages) {
+          resp.writeTo(writer);
+
+          if (throughputEnabled) {
+            messageOut += 1;
           }
         }
       }
+
       if (rslt.processors.length > 0) {
         pendingAck.addAll(rslt.processors);
       }
@@ -273,12 +270,16 @@ class WebSocketConnection extends Connection {
     rslt = _requesterChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
-        m["requests"] = rslt.messages;
         needSend = true;
         if (throughputEnabled) {
           messageOut += rslt.messages.length;
         }
+
+        for (DSPacket pkt in rslt.messages) {
+          pkt.writeTo(writer);
+        }
       }
+
       if (rslt.processors.length > 0) {
         pendingAck.addAll(rslt.processors);
       }
@@ -289,36 +290,22 @@ class WebSocketConnection extends Connection {
         if (pendingAck.length > 0) {
           pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m["msg"] = nextMsgId;
+        var pkt = new DSMsgPacket();
+        pkt.ackId = nextMsgId;
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
           nextMsgId = 1;
         }
       }
-      addData(m);
+      addData(writer.done());
       _dataSent = true;
       frameOut++;
     }
   }
 
-  void addData(Map m) {
-    Object encoded = codec.encodeFrame(m);
-
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest(formatLogMessage("send: $m"));
-    }
-
-    if (throughputEnabled) {
-      if (encoded is String) {
-        dataOut += encoded.length;
-      } else if (encoded is List<int>) {
-        dataOut += encoded.length;
-      } else {
-        logger.warning(formatLogMessage("invalid data frame"));
-      }
-    }
-    socket.add(encoded);
+  void addData(Uint8List data) {
+    socket.add(data);
   }
 
   bool printDisconnectedMessage = true;

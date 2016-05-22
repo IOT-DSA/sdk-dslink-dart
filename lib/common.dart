@@ -6,6 +6,8 @@ import "dart:convert";
 import "dart:collection";
 import "dart:typed_data";
 
+import "package:msgpack/msgpack.dart";
+
 import "requester.dart";
 import "responder.dart";
 
@@ -73,7 +75,7 @@ abstract class Connection {
 /// generate message right before sending to get the latest update
 /// return messages and the processors that need ack callback
 class ProcessorResult {
-  List<Map> messages;
+  List<DSPacket> messages;
   List<ConnectionProcessor> processors;
 
   ProcessorResult(this.messages, this.processors);

@@ -48,12 +48,12 @@ abstract class ConnectionHandler {
     }
   }
 
-  void onData(List m);
+  void onData(List<DSPacket> packets);
 
-  List<Map> _toSendList = <Map>[];
+  List<DSPacket> _toSendList = <DSPacket>[];
 
-  void addToSendList(Map m) {
-    _toSendList.add(m);
+  void addToSendList(DSPacket packet) {
+    _toSendList.add(packet);
     if (!_pendingSend) {
       if (_conn != null) {
         _conn.sendWhenReady(this);
@@ -87,7 +87,7 @@ abstract class ConnectionHandler {
     for (ConnectionProcessor proc in processors) {
       proc.startSendingData(currentTime, waitingAckId);
     }
-    List<Map> rslt = _toSendList;
+    List<DSPacket> rslt = _toSendList;
     _toSendList = [];
     return new ProcessorResult(rslt, processors);
   }

@@ -137,6 +137,50 @@ class DSPacketMethod {
   }
 }
 
+class DSPacketResponseMode {
+  final String name;
+  final int id;
+
+  static const DSPacketResponseMode initialize = const DSPacketResponseMode(
+    "initialize",
+    0
+  );
+
+  static const DSPacketResponseMode open = const DSPacketResponseMode(
+    "",
+    1
+  );
+
+  static const DSPacketResponseMode closed = const DSPacketResponseMode(
+    "invoke",
+    3
+  );
+
+  const DSPacketResponseMode(this.name, this.id);
+
+  static DSPacketResponseMode decode(int id) {
+    if (id == 0) {
+      return DSPacketResponseMode.initialize;
+    } else if (id == 1) {
+      return DSPacketResponseMode.open;
+    } else if (id == 3) {
+      return DSPacketResponseMode.closed;
+    }
+    return null;
+  }
+
+  static DSPacketResponseMode encode(String streamStatus) {
+    if (streamStatus == "initialize") {
+      return DSPacketResponseMode.initialize;
+    } else if (streamStatus == "open") {
+      return DSPacketResponseMode.open;
+    } else if (streamStatus == "closed") {
+      return DSPacketResponseMode.closed;
+    }
+    return null;
+  }
+}
+
 abstract class DSPacket {
   void writeTo(DSPacketWriter writer);
 
@@ -216,7 +260,6 @@ class DSNormalPacket extends DSPacket {
   DSPacketMethod method;
   DSPacketSide side;
   int rid;
-  int size;
   int updateId;
   int clusterId;
   int totalSize;
@@ -244,10 +287,22 @@ class DSNormalPacket extends DSPacket {
 
     writer.writeUint8(type);
     writer.writeUint32(rid);
-    if (isPartial) {
-      writer.writeUint32(totalSize);
+
+    if (totalSize == null) {
+      totalSize = 13;
+
+      if (isClustered) {
+        totalSize += 4;
+      }
+
+      if (payload != null) {
+        totalSize += payload.lengthInBytes;
+      }
+
+      totalSize += calculateAddedSize();
     }
 
+    writer.writeUint32(totalSize);
     writer.writeUint32(updateId);
     if (isClustered) {
       writer.writeUint32(clusterId);
@@ -257,6 +312,28 @@ class DSNormalPacket extends DSPacket {
   int handleTypeByte(int input) {
     return input;
   }
+
+  int calculateAddedSize() {
+    return 0;
+  }
+
+  dynamic readPayloadPackage() {
+    if (_decodedPayload != null) {
+      return _decodedPayload;
+    }
+
+    if (payload == null) {
+      return null;
+    }
+
+    if (payload.lengthInBytes == 0) {
+      return null;
+    }
+
+    return _decodedPayload = unpack(payload);
+  }
+
+  dynamic _decodedPayload;
 }
 
 class DSRequestPacket extends DSNormalPacket {
@@ -279,14 +356,33 @@ class DSRequestPacket extends DSNormalPacket {
       writer.writeUint8List(payload);
     }
   }
+
+  @override
+  int calculateAddedSize() {
+    return 2 + path.length;
+  }
+
+  DSResponsePacket buildResponse() {
+    var pkt = new DSResponsePacket();
+    pkt.rid = rid;
+    pkt.clusterId = clusterId;
+    pkt.isClustered = isClustered;
+    pkt.method = method;
+    return pkt;
+  }
+
+  void setPayload(input) {
+    payload = pack(input);
+  }
 }
 
 class DSResponsePacket extends DSNormalPacket {
   int status = 0;
+  DSPacketResponseMode mode = DSPacketResponseMode.initialize;
 
   @override
   int handleTypeByte(int input) {
-    input = _write3BitNumber(input, 1, status);
+    input = _write3BitNumber(input, 1, mode.id);
     return input;
   }
 
@@ -299,6 +395,15 @@ class DSResponsePacket extends DSNormalPacket {
     if (payload != null && status <= 127) {
       writer.writeUint8List(payload);
     }
+  }
+
+  @override
+  int calculateAddedSize() {
+    return 1;
+  }
+
+  void setPayload(input) {
+    payload = pack(input);
   }
 }
 
@@ -524,8 +629,9 @@ class DSPacketReader {
     return number;
   }
 
-  DSPacket read(List<int> input) {
+  List<DSPacket> read(List<int> input, [List<DSPacket> outs]) {
     int offset = 0;
+    int totalSize = 0;
 
     Uint8List data;
 
@@ -535,100 +641,117 @@ class DSPacketReader {
       data = new Uint8List.fromList(input);
     }
 
+    if (outs == null) {
+      outs = <DSPacket>[];
+    }
+
     var type = data[offset++];
 
     if (type == 0xFE) { // msg
       var pkt = new DSMsgPacket();
       pkt.ackId = _readUint32(data, offset);
       offset += 4;
-      return pkt;
+      outs.add(pkt);
+      totalSize = 5;
     } else if (type == 0xFF) { // ack
       var pkt = new DSAckPacket();
       pkt.ackId = _readUint32(data, offset);
       offset += 4;
-      return pkt;
-    }
-
-    var side = (type & 0x80) == 0 ?
+      outs.add(pkt);
+      totalSize = 5;
+    } else {
+      var side = (type & 0x80) == 0 ?
       DSPacketSide.request :
       DSPacketSide.response;
 
-    var method = _read3BitNumber(type, 6);
+      var method = _read3BitNumber(type, 6);
 
-    var isClustered = (type & (1 << 3)) != 0;
-    var isPartial = (type & (1 << 2)) != 0;
-    var specialBits = _read2BitNumber(type, 1);
+      var isClustered = (type & (1 << 3)) != 0;
+      var isPartial = (type & (1 << 2)) != 0;
+      var specialBits = _read2BitNumber(type, 1);
 
-    var rid = _readUint32(data, offset);
-    offset += 4;
+      var rid = _readUint32(data, offset);
+      offset += 4;
 
-    int clusterId;
-    int totalSize;
+      int clusterId;
+      int updateId;
 
-    if (isPartial) { // Handle Partials
       totalSize = _readUint32(data, offset);
       offset += 4;
-    }
 
-    var updateId = _readUint32(data, offset);
-    offset += 4;
-
-    if (isClustered) {
-      clusterId = _readUint32(data, offset);
+      updateId = _readUint32(data, offset);
       offset += 4;
-    }
 
-    void _populate(DSNormalPacket pkt) {
-      pkt.rid = rid;
-      pkt.clusterId = clusterId;
-      pkt.isClustered = isClustered;
-      pkt.isPartial = isPartial;
-      pkt.totalSize = totalSize;
-      pkt.updateId = updateId;
-      pkt.method = DSPacketMethod.decode(method);
-    }
-
-    if (side == DSPacketSide.request) {
-      var pkt = new DSRequestPacket();
-      _populate(pkt);
-
-      var pathLength = _readUint16(data, offset);
-      offset += 2;
-
-      String path;
-
-      if (pathLength == 0xFFFF) {
-        path = _readNullTerminatedString(data, offset);
-        offset += path.codeUnits.length + 1;
-      } else {
-        path = _readString(data, offset, pathLength);
-        offset += pathLength;
+      if (isClustered) {
+        clusterId = _readUint32(data, offset);
+        offset += 4;
       }
 
-      pkt.path = path;
-      pkt.qos = specialBits;
-      pkt.payload = data.buffer.asUint8List(offset);
-      return pkt;
-    } else if (side == DSPacketSide.response) {
-      var pkt = new DSResponsePacket();
-      _populate(pkt);
-
-      var status = data[offset];
-      offset++;
-
-      pkt.status = status;
-
-      if (status > 127) {
-        pkt.payload = new Uint8List(0);
-      } else {
-        pkt.payload = data.buffer.asUint8List(offset);
+      void _populate(DSNormalPacket pkt) {
+        pkt.rid = rid;
+        pkt.clusterId = clusterId;
+        pkt.isClustered = isClustered;
+        pkt.isPartial = isPartial;
+        pkt.totalSize = totalSize;
+        pkt.updateId = updateId;
+        pkt.method = DSPacketMethod.decode(method);
       }
 
-      return pkt;
-    } else {
-      var pkt = new DSNormalPacket();
-      _populate(pkt);
-      return pkt;
+      if (side == DSPacketSide.request) {
+        var pkt = new DSRequestPacket();
+        _populate(pkt);
+
+        var pathLength = _readUint16(data, offset);
+        offset += 2;
+
+        String path;
+
+        if (pathLength == 0xFFFF) {
+          path = _readNullTerminatedString(data, offset);
+          offset += path.codeUnits.length + 1;
+        } else {
+          path = _readString(data, offset, pathLength);
+          offset += pathLength;
+        }
+
+        pkt.path = path;
+        pkt.qos = specialBits;
+        pkt.totalSize = totalSize;
+        pkt.payload = data.buffer.asUint8List(offset, totalSize - offset);
+        outs.add(pkt);
+      } else if (side == DSPacketSide.response) {
+        var pkt = new DSResponsePacket();
+        _populate(pkt);
+        pkt.mode = DSPacketResponseMode.decode(specialBits);
+
+        var status = data[offset];
+        offset++;
+
+        pkt.status = status;
+
+        var payloadSize = totalSize - offset;
+
+        if (status > 127) {
+          pkt.payload = new Uint8List(0);
+        } else {
+          pkt.payload = data.buffer.asUint8List(offset, payloadSize);
+        }
+
+        outs.add(pkt);
+      } else {
+        var pkt = new DSNormalPacket();
+        _populate(pkt);
+        outs.add(pkt);
+      }
     }
+
+    var payloadSize = totalSize - offset;
+
+    if (data.lengthInBytes > offset + payloadSize) {
+      var remainingSize = data.lengthInBytes - (offset + payloadSize);
+      read(data.buffer.asUint8List(offset + payloadSize, remainingSize), outs);
+    }
+
+    return outs;
   }
 }

@@ -9,7 +9,7 @@ class ReqSubscribeListener implements StreamSubscription {
 
   Future cancel() {
     if (callback != null) {
-      requester.unsubscribe(path, callback);
+//      requester.unsubscribe(path, callback);
       callback = null;
     }
     return null;
@@ -74,7 +74,9 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
   final Map<int, ReqSubscribeController> subscriptionIds =
     new Map<int, ReqSubscribeController>();
 
-  SubscribeRequest(Requester requester, int rid)
+  final String path;
+
+  SubscribeRequest(Requester requester, int rid, this.path)
       : super(requester, rid, new SubscribeController(), null) {
     (updater as SubscribeController).request = this;
   }
@@ -95,55 +97,24 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
   }
 
   @override
-  void _update(Map m) {
-    List updates = m['updates'];
-    if (updates is List) {
-      for (Object update in updates) {
-        String path;
-        int sid = -1;
-        Object value;
-        String ts;
-        Map meta;
-        if (update is Map) {
-          if (update['ts'] is String) {
-            path = update['path'];
-            ts = update['ts'];
-            if (update['path'] is String) {
-              path = update['path'];
-            } else if (update['sid'] is int) {
-              sid = update['sid'];
-            } else {
-              continue; // invalid response
-            }
-          }
-          value = update['value'];
-          meta = update;
-        } else if (update is List && update.length > 2) {
-          if (update[0] is String) {
-            path = update[0];
-          } else if (update[0] is int) {
-            sid = update[0];
-          } else {
-            continue; // invalid response
-          }
-          value = update[1];
-          ts = update[2];
-        } else {
-          continue; // invalid response
-        }
+  void _update(DSResponsePacket pkt) {
+    var update = pkt.readPayloadPackage();
+    String ts = update["ts"];
+    var value = update["value"];
+    var meta = update["meta"];
+    int sid = pkt.rid;
 
-        ReqSubscribeController controller;
-        if (path != null) {
-          controller = subscriptions[path];
-        } else if (sid > -1) {
-          controller = subscriptionIds[sid];
-        }
+    ReqSubscribeController controller;
 
-        if (controller != null) {
-          var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
-          controller.addValue(valueUpdate);
-        }
-      }
+    if (path != null) {
+      controller = subscriptions[path];
+    } else if (sid > -1) {
+      controller = subscriptionIds[sid];
+    }
+
+    if (controller != null) {
+      var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
+      controller.addValue(valueUpdate);
     }
   }
 
@@ -197,9 +168,12 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
         toAdd.add(m);
       }
     }
+
     if (!toAdd.isEmpty) {
-      requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
+      //var pkt = new DSRequestPacket();
+      //requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
     }
+
     if (!toRemove.isEmpty) {
       List removeSids = [];
       toRemove.forEach((int sid, ReqSubscribeController sub) {
@@ -210,8 +184,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
           sub._destroy();
         }
       });
-      requester._sendRequest(
-          {'method': 'unsubscribe', 'sids': removeSids}, null);
+      /*requester._sendRequest(
+          {'method': 'unsubscribe', 'sids': removeSids}, null);*/
       toRemove.clear();
     }
   }
@@ -261,7 +235,7 @@ class ReqSubscribeController {
   int sid;
 
   ReqSubscribeController(this.node, this.requester) {
-    sid = requester._subscription.getNextSid();
+    sid = requester.getNextRid();
   }
 
   void listen(callback(ValueUpdate update), int qos) {
@@ -291,7 +265,7 @@ class ReqSubscribeController {
     }
 
     if (qosChanged) {
-      requester._subscription.addSubscription(this, currentQos);
+//      requester._subscription.addSubscription(this, currentQos);
     }
   }
 
@@ -299,7 +273,7 @@ class ReqSubscribeController {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
-        requester._subscription.removeSubscription(this);
+//        requester._subscription.removeSubscription(this);
       } else if (cacheLevel == currentQos && currentQos > 1) {
         updateQos();
       }

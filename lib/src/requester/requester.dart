@@ -20,33 +20,28 @@ class Requester extends ConnectionHandler {
   /// caching of nodes
   final RemoteNodeCache nodeCache;
 
-  SubscribeRequest _subscription;
-
   Requester([RemoteNodeCache cache])
-      : nodeCache = cache != null ? cache : new RemoteNodeCache() {
-    _subscription = new SubscribeRequest(this, 0);
-    _requests[0] = _subscription;
-  }
+      : nodeCache = cache != null ? cache : new RemoteNodeCache();
 
-  int get subscriptionCount {
-    return _subscription.subscriptions.length;
-  }
+  int get subscriptionCount => _requests.values
+    .where((x) => x is SubscribeRequest)
+    .length;
 
   int get openRequestCount {
     return _requests.length;
   }
 
-  void onData(List list) {
-    for (Object resp in list) {
-      if (resp is Map) {
-        _onReceiveUpdate(resp);
+  void onData(List<DSPacket> list) {
+    for (DSPacket pkt in list) {
+      if (pkt is DSResponsePacket) {
+        _onReceiveUpdate(pkt);
       }
     }
   }
 
-  void _onReceiveUpdate(Map m) {
-    if (m['rid'] is int && _requests.containsKey(m['rid'])) {
-      _requests[m['rid']]._update(m);
+  void _onReceiveUpdate(DSResponsePacket pkt) {
+    if (pkt.rid is int && _requests.containsKey(pkt.rid)) {
+      _requests[pkt.rid]._update(pkt);
     }
   }
 
@@ -72,17 +67,17 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request sendRequest(Map<String, dynamic> m, RequestUpdater updater) =>
-    _sendRequest(m, updater);
+  Request sendRequest(DSRequestPacket pkt, RequestUpdater updater) =>
+    _sendRequest(pkt, updater);
 
-  Request _sendRequest(Map<String, dynamic> m, RequestUpdater updater) {
-    m['rid'] = getNextRid();
+  Request _sendRequest(DSRequestPacket pkt, RequestUpdater updater) {
+    pkt.rid = getNextRid();
     Request req;
     if (updater != null) {
-      req = new Request(this, lastRid, updater, m);
+      req = new Request(this, lastRid, updater, pkt);
       _requests[lastRid] = req;
     }
-    addToSendList(m);
+    addToSendList(pkt);
     return req;
   }
 
@@ -153,11 +148,6 @@ class Requester extends ConnectionHandler {
     return c.future;
   }
 
-  void unsubscribe(String path, callback(ValueUpdate update)) {
-    RemoteNode node = nodeCache.getRemoteNode(path);
-    node._unsubscribe(this, callback);
-  }
-
   Stream<RequesterListUpdate> list(String path) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     return node._list(this);
@@ -182,7 +172,10 @@ class Requester extends ConnectionHandler {
   void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
       if (request.streamStatus != StreamStatus.closed) {
-        addToSendList({'method': 'close', 'rid': request.rid});
+        var pkt = new DSRequestPacket();
+        pkt.method = DSPacketMethod.close;
+        pkt.rid = request.rid;
+        addToSendList(pkt);
       }
       _requests.remove(request.rid);
       request._close();
@@ -196,7 +189,6 @@ class Requester extends ConnectionHandler {
     _connected = false;
 
     var newRequests = new Map<int, Request>();
-    newRequests[0] = _subscription;
     _requests.forEach((n, req) {
       if (req.rid <= lastRid && req.updater is! ListController) {
         req._close(DSError.DISCONNECTED);

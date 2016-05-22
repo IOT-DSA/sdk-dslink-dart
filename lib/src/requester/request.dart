@@ -4,50 +4,71 @@ part of dslink.requester;
 class Request {
   final Requester requester;
   final int rid;
-  final Map data;
+  final DSRequestPacket packet;
 
   /// raw request callback
   final RequestUpdater updater;
   bool _isClosed = false;
   bool get isClosed => _isClosed;
 
-  Request(this.requester, this.rid, this.updater, this.data);
+  int _updateId = 0;
+
+  Request(this.requester, this.rid, this.updater, this.packet);
 
   String streamStatus = StreamStatus.initialize;
 
   /// resend the data if previous sending failed
   void resend() {
-    requester.addToSendList(data);
-  }
-  
-  void addReqParams(Map m) {
-    requester.addToSendList({'rid':rid, 'params':m});
+    requester.addToSendList(packet);
   }
 
-  void _update(Map m) {
-    if (m["stream"] is String) {
-      streamStatus = m["stream"];
+  void addReqParams(Map m) {
+    var pkt = new DSRequestPacket();
+    pkt.rid = rid;
+    pkt.updateId = _updateId++;
+    pkt.setPayload({
+      "params": m
+    });
+    requester.addToSendList(pkt);
+  }
+
+  void _update(DSResponsePacket pkt) {
+    if (pkt.mode != null) {
+      streamStatus = pkt.mode.name;
     }
+
+    Map m = pkt.readPayloadPackage();
+
     List updates;
     List columns;
+
     Map meta;
-    if (m["updates"] is List) {
-      updates = m["updates"];
+    if (m["rows"] is List) {
+      updates = m["rows"];
     }
+
     if (m["columns"] is List) {
       columns = m["columns"];
     }
-    if (m["meta"] is Map) {
-      meta = m["meta"];
+
+    if (m["mode"] is String) {
+      meta = {
+        "mode": m["mode"]
+      };
     }
+
     // remove the request from global Map
     if (streamStatus == StreamStatus.closed) {
       requester._requests.remove(rid);
     }
+
     DSError error;
-    if (m.containsKey("error") && m["error"] is Map) {
-      error = new DSError.fromMap(m["error"]);
-      requester._errorController.add(error);
+
+    if (pkt.method == DSPacketMethod.close) {
+      if (m.containsKey("error") && m["error"] is Map) {
+        error = new DSError.fromMap(m["error"]);
+        requester._errorController.add(error);
+      }
     }
 
     updater.onUpdate(streamStatus, updates, columns, meta, error);

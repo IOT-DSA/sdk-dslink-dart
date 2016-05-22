@@ -6,7 +6,7 @@ class ListResponse extends Response {
   int _permission;
 
   ListResponse(Responder responder, int rid, this.node)
-      : super(responder, rid) {
+      : super(DSPacketMethod.list, responder, rid) {
     _permission =
         responder.nodeProvider.permissions.getPermission(node.path, responder);
     _nodeChangeListener = node.listStream.listen(changed);
@@ -106,7 +106,7 @@ class ListResponse extends Response {
                   updateConfigs.add([r'$invokable', 'never']);
                   return;
                 }
-              } 
+              }
             }
             updateConfigs.add(update);
           }
@@ -144,7 +144,7 @@ class ListResponse extends Response {
                 updateConfigs.add([r'$invokable', 'never']);
                 continue;
               }
-            } 
+            }
           }
           if (node.configs.containsKey(change)) {
             update = [change, node.configs[change]];

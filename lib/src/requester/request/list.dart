@@ -67,8 +67,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
 
-  void onUpdate(String streamStatus, List updates, List columns, Map meta,
-      DSError error) {
+  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
     bool reseted = false;
     // TODO implement error handling
     if (updates != null) {
@@ -219,12 +218,17 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     }
   }
   bool waitToSend = false;
+
   void startSendingData(int currentTime, int waitingAckId) {
     if (!waitToSend) {
       return;
     }
-    request = requester._sendRequest(
-              {'method': 'list', 'path': node.remotePath}, this);
+
+    var pkt = new DSRequestPacket();
+    pkt.method = DSPacketMethod.list;
+    pkt.path = node.remotePath;
+
+    request = requester._sendRequest(pkt, this);
     waitToSend = false;
   }
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
