@@ -203,6 +203,9 @@ class DSAckPacket extends DSPacket {
     writer.writeUint8(0xFE);
     writer.writeUint32(ackId);
   }
+
+  @override
+  String toString() => "Ack(${ackId})";
 }
 
 class DSMsgPacket extends DSPacket {
@@ -213,6 +216,9 @@ class DSMsgPacket extends DSPacket {
     writer.writeUint8(0xFF);
     writer.writeUint32(ackId);
   }
+
+  @override
+  String toString() => "Msg(${ackId})";
 }
 
 int _write3BitNumber(int input, int start, int number) {
@@ -675,13 +681,13 @@ class DSPacketReader {
 
     var type = data[offset++];
 
-    if (type == 0xFE) { // msg
+    if (type == 0xFF) { // msg
       var pkt = new DSMsgPacket();
       pkt.ackId = _readUint32(data, offset);
       offset += 4;
       outs.add(pkt);
       totalSize = 5;
-    } else if (type == 0xFF) { // ack
+    } else if (type == 0xFE) { // ack
       var pkt = new DSAckPacket();
       pkt.ackId = _readUint32(data, offset);
       offset += 4;

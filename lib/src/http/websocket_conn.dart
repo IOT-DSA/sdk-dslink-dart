@@ -132,7 +132,7 @@ class WebSocketConnection extends Connection {
 
       for (DSPacket pkt in packets) {
         if (logger.isLoggable(Level.FINEST)) {
-          logger.finest("Receive: ${pkt}");
+          logger.finest(formatLogMessage("Receive: ${pkt}"));
         }
 
         if (pkt is DSResponsePacket) {
@@ -141,7 +141,7 @@ class WebSocketConnection extends Connection {
           _responderChannel.onReceiveController.add(pkt);
         } else if (pkt is DSMsgPacket) {
           var id = pkt.ackId;
-          if (id != null && packets.length > 1) {
+          if (id != null) {
             addConnCommand("ack", id);
           }
         } else if (pkt is DSAckPacket) {
@@ -159,6 +159,7 @@ class WebSocketConnection extends Connection {
     _sending = false;
     bool needSend = false;
 
+    var pkts = <DSPacket>[];
     DSPacketWriter writer = new DSPacketWriter();
 
     if (_serverCommand != null && _serverCommand["ack"] is int) {
@@ -166,9 +167,12 @@ class WebSocketConnection extends Connection {
       pkt.ackId = _serverCommand["ack"];
       _serverCommand = null;
       if (logger.isLoggable(Level.FINEST)) {
-        logger.finest("Send: ${pkt}");
+        logger.finest(formatLogMessage("Send: ${pkt}"));
       }
       pkt.writeTo(writer);
+      addData(writer.done());
+      requireSend();
+      return;
     }
 
     var pendingAck = <ConnectionProcessor>[];
@@ -179,11 +183,7 @@ class WebSocketConnection extends Connection {
         needSend = true;
 
         for (DSPacket resp in rslt.messages) {
-          if (logger.isLoggable(Level.FINEST)) {
-            logger.finest("Send: ${resp}");
-          }
-
-          resp.writeTo(writer);
+          pkts.add(resp);
 
           if (throughputEnabled) {
             messageOut += 1;
@@ -204,11 +204,7 @@ class WebSocketConnection extends Connection {
         }
 
         for (DSPacket pkt in rslt.messages) {
-          if (logger.isLoggable(Level.FINEST)) {
-            logger.finest("Send: ${pkt}");
-          }
-
-          pkt.writeTo(writer);
+          pkts.add(pkt);
         }
       }
 
@@ -224,12 +220,22 @@ class WebSocketConnection extends Connection {
         }
         var pkt = new DSMsgPacket();
         pkt.ackId = nextMsgId;
+        pkts.insert(0, pkt);
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
           nextMsgId = 1;
         }
       }
+
+      for (var pkt in pkts) {
+        if (logger.isLoggable(Level.FINEST)) {
+          logger.finest(formatLogMessage("Send: ${pkt}"));
+        }
+
+        pkt.writeTo(writer);
+      }
+
       addData(writer.done());
       _dataSent = true;
       frameOut++;
