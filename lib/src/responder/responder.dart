@@ -212,7 +212,7 @@ class Responder extends ConnectionHandler {
       if (response._sentStreamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
         if (_traceCallbacks != null) {
-           traceResponseRemoved(response);
+          traceResponseRemoved(response);
         }
       }
     }

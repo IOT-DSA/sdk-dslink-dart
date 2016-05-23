@@ -141,7 +141,7 @@ class RespSubscribeController {
   }
 
   List<ValueUpdate> lastValues = new List<ValueUpdate>();
-  ListQueue<ValueUpdate> waitingValues;
+  ListQueue<ValueUpdate> waitingValues = new ListQueue<ValueUpdate>();
 
   //; = new ListQueue<ValueUpdate>();
   ValueUpdate lastValue;
@@ -191,6 +191,7 @@ class RespSubscribeController {
   RespSubscribeController(this.response, this.node, this._permitted,
       int qos) {
     this.qosLevel = qos;
+
     _listener = node.subscribe(addValue, _qosLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
       addValue(node.lastValueUpdate);
