@@ -269,10 +269,14 @@ class DSNormalPacket extends DSPacket {
   int updateId = 0;
   int clusterId;
   int totalSize;
-  Uint8List payload;
+  Uint8List payloadData;
 
   @override
   void writeTo(DSPacketWriter writer) {
+    if (payloadData == null && _decodedPayload != null) {
+      payloadData = pack(_decodedPayload);
+    }
+
     var type = 0;
 
     if (side == DSPacketSide.response) {
@@ -301,14 +305,15 @@ class DSNormalPacket extends DSPacket {
         totalSize += 4;
       }
 
-      if (payload != null) {
-        totalSize += payload.lengthInBytes;
+      if (payloadData != null) {
+        totalSize += payloadData.lengthInBytes;
       }
 
       totalSize += calculateAddedSize();
     }
 
     writer.writeUint32(totalSize);
+
     writer.writeUint32(updateId);
     if (isClustered) {
       writer.writeUint32(clusterId);
@@ -328,15 +333,15 @@ class DSNormalPacket extends DSPacket {
       return _decodedPayload;
     }
 
-    if (payload == null) {
+    if (payloadData == null) {
       return null;
     }
 
-    if (payload.lengthInBytes == 0) {
+    if (payloadData.lengthInBytes == 0) {
       return null;
     }
 
-    return _decodedPayload = unpack(payload);
+    return _decodedPayload = unpack(payloadData);
   }
 
   dynamic _decodedPayload;
@@ -348,12 +353,12 @@ class DSNormalPacket extends DSPacket {
       "Method: ${method.name}",
       "Total Size: ${totalSize}",
       "RID: ${rid}",
-      "Payload: ${(payload != null && payload.lengthInBytes > 0) ? readPayloadPackage() : 'none'}"
+      "Payload: ${(payloadData != null && payloadData.lengthInBytes > 0) ? readPayloadPackage() : 'none'}"
     ].join(", ") + ")";
   }
 
   void setPayload(input) {
-    payload = pack(input);
+    _decodedPayload = input;
   }
 }
 
@@ -382,8 +387,8 @@ class DSRequestPacket extends DSNormalPacket {
       writer.writeString(path);
     }
 
-    if (payload != null) {
-      writer.writeUint8List(payload);
+    if (payloadData != null) {
+      writer.writeUint8List(payloadData);
     }
   }
 
@@ -426,8 +431,8 @@ class DSResponsePacket extends DSNormalPacket {
 
     writer.writeUint8(status);
 
-    if (payload != null && status <= 127) {
-      writer.writeUint8List(payload);
+    if (payloadData != null && status <= 127) {
+      writer.writeUint8List(payloadData);
     }
   }
 
@@ -437,7 +442,7 @@ class DSResponsePacket extends DSNormalPacket {
   }
 }
 
-class DSPacketWriter {
+class DSPacketWriter implements PackBuffer {
   static const int defaultBufferSize = const int.fromEnvironment(
     "dsa.protocol.writer.defaultBufferSize",
     defaultValue: 2048
@@ -528,6 +533,7 @@ class DSPacketWriter {
     _checkBuffer();
 
     var dataSize = data.lengthInBytes;
+
     var bufferSpace = _buffer.lengthInBytes - _len;
 
     if (bufferSpace < dataSize) {
@@ -757,7 +763,7 @@ class DSPacketReader {
         var payloadSize = totalSize - offset;
 
         if (payloadSize > 0) {
-          pkt.payload = data.buffer.asUint8List(realOffset + offset, payloadSize);
+          pkt.payloadData = data.buffer.asUint8List(realOffset + offset, payloadSize);
         }
 
         outs.add(pkt);
@@ -774,9 +780,9 @@ class DSPacketReader {
         var payloadSize = totalSize - offset;
 
         if (status > 127) {
-          pkt.payload = new Uint8List(0);
+          pkt.payloadData = new Uint8List(0);
         } else {
-          pkt.payload = data.buffer.asUint8List(realOffset + offset, payloadSize);
+          pkt.payloadData = data.buffer.asUint8List(realOffset + offset, payloadSize);
         }
 
         outs.add(pkt);

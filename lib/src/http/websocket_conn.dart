@@ -238,6 +238,7 @@ class WebSocketConnection extends Connection {
       }
 
       addData(_writer.done());
+
       _dataSent = true;
       frameOut++;
     }
