@@ -78,16 +78,23 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
   @override
   void onNewPacket(DSResponsePacket pkt) {
-    List<Map> updates = pkt.readPayloadPackage();
-    for (var m in updates) {
-      String ts = m["ts"];
-      var value = m["value"];
-      var meta = m["meta"];
+    var payload = pkt.readPayloadPackage();
 
-      if (controller != null) {
-        var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
-        controller.addValue(valueUpdate);
-      }
+    if (payload is List) {
+      payload.forEach(_onValueUpdate);
+    } else if (payload is Map) {
+      _onValueUpdate(payload);
+    }
+  }
+
+  void _onValueUpdate(Map m) {
+    String ts = m["ts"];
+    var value = m["value"];
+    var meta = m["meta"];
+
+    if (controller != null) {
+      var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
+      controller.addValue(valueUpdate);
     }
   }
 

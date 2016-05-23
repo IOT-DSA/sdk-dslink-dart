@@ -440,7 +440,7 @@ class DSResponsePacket extends DSNormalPacket {
 class DSPacketWriter {
   static const int defaultBufferSize = const int.fromEnvironment(
     "dsa.protocol.writer.defaultBufferSize",
-    defaultValue: 128
+    defaultValue: 2048
   );
 
   final int bufferSize;
@@ -450,6 +450,8 @@ class DSPacketWriter {
   int _len = 0;
   int _offset = 0;
   int _totalLength = 0;
+
+  int get currentLength => _totalLength;
 
   DSPacketWriter({this.bufferSize: defaultBufferSize});
 
@@ -577,7 +579,6 @@ class DSPacketWriter {
   Uint8List done() {
     Uint8List out = read();
     _buffers.length = 0;
-    _buffer = null;
     _len = 0;
     _totalLength = 0;
     _offset = 0;
@@ -791,7 +792,10 @@ class DSPacketReader {
 
     if (data.lengthInBytes > offset + payloadSize) {
       var remainingSize = data.lengthInBytes - (offset + payloadSize);
-      var remain = data.buffer.asUint8List(realOffset + offset + payloadSize, remainingSize);
+      var remain = data.buffer.asUint8List(
+        realOffset + offset + payloadSize,
+        remainingSize
+      );
       read(remain, outs, offset + realOffset + payloadSize);
     }
 

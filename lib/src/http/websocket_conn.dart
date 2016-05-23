@@ -155,12 +155,13 @@ class WebSocketConnection extends Connection {
   int nextMsgId = 1;
   bool _sending = false;
 
+  DSPacketWriter _writer = new DSPacketWriter();
+
   void _send() {
     _sending = false;
     bool needSend = false;
 
     var pkts = <DSPacket>[];
-    DSPacketWriter writer = new DSPacketWriter();
 
     if (_serverCommand != null && _serverCommand["ack"] is int) {
       var pkt = new DSAckPacket();
@@ -169,8 +170,8 @@ class WebSocketConnection extends Connection {
       if (logger.isLoggable(Level.FINEST)) {
         logger.finest(formatLogMessage("Send: ${pkt}"));
       }
-      pkt.writeTo(writer);
-      addData(writer.done());
+      pkt.writeTo(_writer);
+      addData(_writer.done());
       requireSend();
       return;
     }
@@ -233,10 +234,10 @@ class WebSocketConnection extends Connection {
           logger.finest(formatLogMessage("Send: ${pkt}"));
         }
 
-        pkt.writeTo(writer);
+        pkt.writeTo(_writer);
       }
 
-      addData(writer.done());
+      addData(_writer.done());
       _dataSent = true;
       frameOut++;
     }

@@ -7,7 +7,15 @@ class Response implements ConnectionProcessor {
 
   String _sentStreamStatus = StreamStatus.initialize;
 
-  int updateId = 0;
+  int _updateId = 0;
+
+  int getUpdateId() {
+    _updateId++;
+    if (_updateId >= 0x7FFFFFFF) {
+      _updateId = 0;
+    }
+    return _updateId;
+  }
 
   String get sentStreamStatus => _sentStreamStatus;
 

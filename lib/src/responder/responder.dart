@@ -168,38 +168,42 @@ class Responder extends ConnectionHandler {
       var pkt = new DSResponsePacket();
       pkt.method = response.method;
       pkt.rid = response.rid;
-      pkt.updateId = response.updateId++;
+      pkt.updateId = response.getUpdateId();
 
       if (streamStatus != null && streamStatus != response._sentStreamStatus) {
         response._sentStreamStatus = streamStatus;
         pkt.mode = DSPacketResponseMode.encode(streamStatus);
       }
 
-      var m = {};
-
-      if (columns != null) {
-        m['columns'] = columns;
-      }
-
-      if (updates != null) {
-        m['rows'] = updates;
-      }
-
-      if (meta != null) {
-        if (meta['mode'] is String) {
-          m['mode'] = meta['mode'];
-        }
-      }
-
-      if (handleMap != null) {
-        handleMap(m);
-      }
-
       if (response.method == DSPacketMethod.list) {
-        pkt.setPayload(m['rows']);
+        pkt.setPayload(updates);
       } else if (response.method == DSPacketMethod.subscribe) {
-        pkt.setPayload(m['rows']);
+        if (updates.length == 1) {
+          pkt.setPayload(updates[0]);
+        } else {
+          pkt.setPayload(updates);
+        }
       } else {
+        var m = {};
+
+        if (columns != null) {
+          m['columns'] = columns;
+        }
+
+        if (updates != null) {
+          m['rows'] = updates;
+        }
+
+        if (meta != null) {
+          if (meta['mode'] is String) {
+            m['mode'] = meta['mode'];
+          }
+        }
+
+        if (handleMap != null) {
+          handleMap(m);
+        }
+
         pkt.setPayload(m);
       }
 

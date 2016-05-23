@@ -48,7 +48,7 @@ abstract class ConnectionHandler {
     }
   }
 
-  void onData(DSPacket packets);
+  void onData(DSPacket packet);
 
   List<DSPacket> _toSendList = <DSPacket>[];
 
