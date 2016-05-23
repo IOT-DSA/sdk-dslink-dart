@@ -1,9 +1,9 @@
 part of dslink.common;
 
 class PassiveChannel implements ConnectionChannel {
-  final StreamController<List> onReceiveController =
-      new StreamController<List>();
-  Stream<List> get onReceive => onReceiveController.stream;
+  final StreamController<DSPacket> onReceiveController =
+      new StreamController<DSPacket>();
+  Stream<DSPacket> get onReceive => onReceiveController.stream;
 
   List<Function> _processors = [];
 

@@ -137,12 +137,6 @@ class RemoteNode extends Node {
     _subscribeController.listen(callback, qos);
   }
 
-  void _unsubscribe(Requester requester, callback(ValueUpdate update)) {
-    if (_subscribeController != null) {
-      _subscribeController.unlisten(callback);
-    }
-  }
-
   Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester,
     [int maxPermission = Permission.CONFIG, RequestConsumer fetchRawReq]) {
     return new InvokeController(

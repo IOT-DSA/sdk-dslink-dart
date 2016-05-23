@@ -260,7 +260,7 @@ class DSNormalPacket extends DSPacket {
   DSPacketMethod method;
   DSPacketSide side;
   int rid;
-  int updateId;
+  int updateId = 0;
   int clusterId;
   int totalSize;
   Uint8List payload;
@@ -334,6 +334,15 @@ class DSNormalPacket extends DSPacket {
   }
 
   dynamic _decodedPayload;
+
+  @override
+  String toString() {
+    return "(" + [
+      "Side: ${side.name}",
+      "Method: ${method.name}",
+      "Total Size: ${totalSize}"
+    ].join(", ") + ")";
+  }
 }
 
 class DSRequestPacket extends DSNormalPacket {
@@ -520,7 +529,7 @@ class DSPacketWriter {
     }
   }
 
-  Uint8List done() {
+  Uint8List read() {
     var out = new Uint8List(_totalLength);
     var off = 0;
 
@@ -541,12 +550,16 @@ class DSPacketWriter {
       }
     }
 
+    return out;
+  }
+
+  Uint8List done() {
+    Uint8List out = read();
     _buffers.length = 0;
     _buffer = null;
     _len = 0;
     _totalLength = 0;
     _offset = 0;
-
     return out;
   }
 }
@@ -629,7 +642,7 @@ class DSPacketReader {
     return number;
   }
 
-  List<DSPacket> read(List<int> input, [List<DSPacket> outs]) {
+  List<DSPacket> read(List<int> input, [List<DSPacket> outs, int realOffset = 0]) {
     int offset = 0;
     int totalSize = 0;
 
@@ -657,12 +670,12 @@ class DSPacketReader {
       var pkt = new DSAckPacket();
       pkt.ackId = _readUint32(data, offset);
       offset += 4;
-      outs.add(pkt);
       totalSize = 5;
+      outs.add(pkt);
     } else {
       var side = (type & 0x80) == 0 ?
-      DSPacketSide.request :
-      DSPacketSide.response;
+        DSPacketSide.request :
+        DSPacketSide.response;
 
       var method = _read3BitNumber(type, 6);
 
@@ -688,6 +701,7 @@ class DSPacketReader {
       }
 
       void _populate(DSNormalPacket pkt) {
+        pkt.side = side;
         pkt.rid = rid;
         pkt.clusterId = clusterId;
         pkt.isClustered = isClustered;
@@ -718,6 +732,7 @@ class DSPacketReader {
         pkt.qos = specialBits;
         pkt.totalSize = totalSize;
         pkt.payload = data.buffer.asUint8List(offset, totalSize - offset);
+
         outs.add(pkt);
       } else if (side == DSPacketSide.response) {
         var pkt = new DSResponsePacket();
@@ -749,7 +764,8 @@ class DSPacketReader {
 
     if (data.lengthInBytes > offset + payloadSize) {
       var remainingSize = data.lengthInBytes - (offset + payloadSize);
-      read(data.buffer.asUint8List(offset + payloadSize, remainingSize), outs);
+      var remain = data.buffer.asUint8List(realOffset + offset + payloadSize, remainingSize);
+      read(remain, outs, offset + realOffset + payloadSize);
     }
 
     return outs;

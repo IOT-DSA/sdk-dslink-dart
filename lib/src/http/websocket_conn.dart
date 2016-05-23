@@ -6,7 +6,6 @@ import "dart:io";
 import "../../common.dart";
 import "../../utils.dart";
 
-import "package:logging/logging.dart";
 import "dart:typed_data";
 
 class WebSocketConnection extends Connection {
@@ -103,12 +102,15 @@ class WebSocketConnection extends Connection {
     if (_serverCommand == null) {
       _serverCommand = {};
     }
+
     if (key != null) {
       _serverCommand[key] = value;
     }
 
     requireSend();
   }
+
+  DSPacketReader _reader = new DSPacketReader();
 
   void onData(dynamic data) {
     frameIn++;
@@ -119,112 +121,22 @@ class WebSocketConnection extends Connection {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
     _dataReceiveCount = 0;
-    Map m;
+
     if (data is List<int>) {
-      try {
-        m = codec.decodeBinaryFrame(data as List<int>);
-        if (logger.isLoggable(Level.FINEST)) {
-          logger.finest(formatLogMessage("receive: ${m}"));
-        }
-      } catch (err, stack) {
-        logger.fine(
-          formatLogMessage("Failed to decode binary data in WebSocket Connection"),
-          err,
-          stack
-        );
-        close();
-        return;
-      }
+      List<DSPacket> packets = _reader.read(data);
 
-      if (throughputEnabled) {
-        dataIn += data.length;
-      }
-
-      data = null;
-
-      bool needAck = false;
-      if (m["responses"] is List && (m["responses"] as List).length > 0) {
-        needAck = true;
-        // send responses to requester channel
-        _requesterChannel.onReceiveController.add(m["responses"]);
-      }
-
-      if (m["requests"] is List && (m["requests"] as List).length > 0) {
-        needAck = true;
-        // send requests to responder channel
-        _responderChannel.onReceiveController.add(m["requests"]);
-      }
-
-      if (m["ack"] is int) {
-        ack(m["ack"]);
-      }
-
-      if (needAck) {
-        Object msgId = m["msg"];
-        if (msgId != null) {
-          addConnCommand("ack", msgId);
-        }
-      }
-    } else if (data is String) {
-      try {
-        m = codec.decodeStringFrame(data);
-        if (logger.isLoggable(Level.FINEST)) {
-          logger.finest(formatLogMessage("receive: ${m}"));
-        }
-      } catch (err, stack) {
-        logger.severe(
-          formatLogMessage("Failed to decode string data from WebSocket Connection"),
-          err,
-          stack
-        );
-        close();
-        return;
-      }
-
-      if (throughputEnabled) {
-        dataIn += data.length;
-      }
-
-      if (m["salt"] is String && clientLink != null) {
-        clientLink.updateSalt(m["salt"]);
-      }
-
-      bool needAck = false;
-      if (m["responses"] is List && (m["responses"] as List).length > 0) {
-        needAck = true;
-        // send responses to requester channel
-        _requesterChannel.onReceiveController.add(m["responses"]);
-        if (throughputEnabled) {
-          for (Map resp in m["responses"]) {
-            if (resp["updates"] is List) {
-              int len = resp["updates"].length;
-              if (len > 0) {
-                messageIn += len;
-              } else {
-                messageIn += 1;
-              }
-            } else {
-              messageIn += 1;
-            }
+      for (DSPacket pkt in packets) {
+        if (pkt is DSRequestPacket) {
+          _requesterChannel.onReceiveController.add(pkt);
+        } else if (pkt is DSResponsePacket) {
+          _responderChannel.onReceiveController.add(pkt);
+        } else if (pkt is DSMsgPacket) {
+          var id = pkt.ackId;
+          if (id != null && packets.length > 1) {
+            addConnCommand("ack", id);
           }
-        }
-      }
-
-      if (m["requests"] is List && (m["requests"] as List).length > 0) {
-        needAck = true;
-        // send requests to responder channel
-        _responderChannel.onReceiveController.add(m["requests"]);
-        if (throughputEnabled) {
-          messageIn += m["requests"].length;
-        }
-      }
-      if (m["ack"] is int) {
-        ack(m["ack"]);
-      }
-      if (needAck) {
-        Object msgId = m["msg"];
-        if (msgId != null) {
-          addConnCommand("ack", msgId);
+        } else if (pkt is DSAckPacket) {
+          ack(pkt.ackId);
         }
       }
     }
@@ -240,13 +152,13 @@ class WebSocketConnection extends Connection {
 
     DSPacketWriter writer = new DSPacketWriter();
 
-//    if (_serverCommand != null) {
-//      m = _serverCommand;
-//      _serverCommand = null;
-//      needSend = true;
-//    } else {
-//      m = {};
-//    }
+    if (_serverCommand != null && _serverCommand["ack"] is int) {
+      var pkt = new DSAckPacket();
+      pkt.ackId = _serverCommand["ack"];
+      _serverCommand = null;
+      pkt.writeTo(writer);
+    }
+
     var pendingAck = <ConnectionProcessor>[];
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);

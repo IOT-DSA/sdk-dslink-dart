@@ -95,26 +95,24 @@ class InvokeController implements RequestUpdater {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
-    var reqMap = <String, dynamic>{
-      'method': 'invoke',
-      'path': node.remotePath,
-      'params': params
+    var pkt = new DSRequestPacket();
+    pkt.method = DSPacketMethod.invoke;
+    pkt.path = node.remotePath;
+
+    var m = {
+      "params": params
     };
 
     if (maxPermission != Permission.CONFIG) {
-      reqMap['permit'] = Permission.names[maxPermission];
+      m['permit'] = Permission.names[maxPermission];
     }
-// TODO: update node before invoke to load columns
-//    if(!node.isUpdated()) {
-//      node._list().listen(_onNodeUpdate)
-//    } else {
 
-    _request = requester._sendRequest(reqMap, this);
+    pkt.setPayload(m);
+    _request = requester._sendRequest(pkt, this);
 
     if (fetchRawReq != null) {
       fetchRawReq(_request);
     }
-//    }
   }
 
   void _onUnsubscribe(obj) {

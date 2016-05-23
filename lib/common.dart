@@ -103,7 +103,7 @@ abstract class ConnectionChannel {
   void sendWhenReady(ConnectionHandler handler);
 
   /// receive data from method stream
-  Stream<List> get onReceive;
+  Stream<DSPacket> get onReceive;
 
   /// whether the connection is ready to send and receive data
   bool get isReady;

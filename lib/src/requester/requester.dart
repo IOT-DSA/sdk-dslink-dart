@@ -31,11 +31,9 @@ class Requester extends ConnectionHandler {
     return _requests.length;
   }
 
-  void onData(List<DSPacket> list) {
-    for (DSPacket pkt in list) {
-      if (pkt is DSResponsePacket) {
-        _onReceiveUpdate(pkt);
-      }
+  void onData(DSPacket pkt) {
+    if (pkt is DSResponsePacket) {
+      _onReceiveUpdate(pkt);
     }
   }
 
@@ -72,6 +70,7 @@ class Requester extends ConnectionHandler {
 
   Request _sendRequest(DSRequestPacket pkt, RequestUpdater updater) {
     pkt.rid = getNextRid();
+
     Request req;
     if (updater != null) {
       req = new Request(this, lastRid, updater, pkt);

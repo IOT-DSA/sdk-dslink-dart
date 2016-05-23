@@ -236,6 +236,7 @@ class ReqSubscribeController {
 
   ReqSubscribeController(this.node, this.requester) {
     sid = requester.getNextRid();
+    _sub = new SubscribeRequest(requester, sid, node.remotePath);
   }
 
   void listen(callback(ValueUpdate update), int qos) {
@@ -265,15 +266,17 @@ class ReqSubscribeController {
     }
 
     if (qosChanged) {
-//      requester._subscription.addSubscription(this, currentQos);
+      _sub.addSubscription(this, currentQos);
     }
   }
+
+  SubscribeRequest _sub;
 
   void unlisten(callback(ValueUpdate update)) {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
-//        requester._subscription.removeSubscription(this);
+        _sub.removeSubscription(this);
       } else if (cacheLevel == currentQos && currentQos > 1) {
         updateQos();
       }

@@ -94,15 +94,13 @@ class Responder extends ConnectionHandler {
 
   bool disabled = false;
 
-  void onData(List<DSPacket> list) {
+  void onData(DSPacket pkt) {
     if (disabled){
       return;
     }
 
-    for (DSPacket pkt in list) {
-      if (pkt is DSRequestPacket) {
-        _onReceiveRequest(pkt);
-      }
+    if (pkt is DSRequestPacket) {
+      _onReceiveRequest(pkt);
     }
   }
 

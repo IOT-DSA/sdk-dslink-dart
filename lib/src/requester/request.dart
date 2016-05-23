@@ -37,24 +37,28 @@ class Request {
       streamStatus = pkt.mode.name;
     }
 
-    Map m = pkt.readPayloadPackage();
+    var m = pkt.readPayloadPackage();
 
     List updates;
     List columns;
-
     Map meta;
-    if (m["rows"] is List) {
-      updates = m["rows"];
-    }
 
-    if (m["columns"] is List) {
-      columns = m["columns"];
-    }
+    if (pkt.method == DSPacketMethod.list) {
+      updates = m;
+    } else if (m is Map) {
+      if (m["rows"] is List) {
+        updates = m["rows"];
+      }
 
-    if (m["mode"] is String) {
-      meta = {
-        "mode": m["mode"]
-      };
+      if (m["columns"] is List) {
+        columns = m["columns"];
+      }
+
+      if (m["mode"] is String) {
+        meta = {
+          "mode": m["mode"]
+        };
+      }
     }
 
     // remove the request from global Map
