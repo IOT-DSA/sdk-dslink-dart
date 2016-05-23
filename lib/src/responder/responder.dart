@@ -18,15 +18,15 @@ class Responder extends ConnectionHandler {
       for (ISubscriptionNodeStorage node in nodes) {
         var values = node.getLoadedValues();
         LocalNode localnode = nodeProvider.getOrCreateNode(node.path, false);
-        RespSubscribeController controller = _subscription.add(
-          node.path,
-          localnode,
-          -1,
-          node.qos
-        );
-        if (values.isNotEmpty) {
-          controller.resetCache(values);
-        }
+//        RespSubscribeController controller = _subscription.add(
+//          node.path,
+//          localnode,
+//          -1,
+//          node.qos
+//        );
+//        if (values.isNotEmpty) {
+//          controller.resetCache(values);
+//        }
       }
     }
   }
@@ -46,19 +46,15 @@ class Responder extends ConnectionHandler {
   int get openResponseCount {
     return _responses.length;
   }
-
-  int get subscriptionCount {
-    return _subscription.subscriptions.length;
-  }
-
-  SubscribeResponse _subscription;
+//
+//  int get subscriptionCount {
+//    return _subscription.subscriptions.length;
+//  }
 
   /// caching of nodes
   final NodeProvider nodeProvider;
 
   Responder(this.nodeProvider, [this.reqId]) {
-    _subscription = new SubscribeResponse(this, 0);
-    _responses[0] = _subscription;
     // TODO: load reqId
     if (reqId != null) {
       groups = [reqId];
@@ -107,17 +103,16 @@ class Responder extends ConnectionHandler {
   void _onReceiveRequest(DSRequestPacket pkt) {
     DSPacketMethod method = pkt.method;
 
-    if (pkt.method is int) {
+    if (pkt.method is DSPacketMethod) {
       if (method == null) {
         updateInvoke(pkt);
         return;
       } else {
         if (_responses.containsKey(pkt.rid)) {
-          if (method == 'close') {
+          if (method == DSPacketMethod.close) {
             close(pkt);
+            return;
           }
-          // when rid is invalid, nothing needs to be sent back
-          return;
         }
 
         switch (method) {
@@ -174,6 +169,7 @@ class Responder extends ConnectionHandler {
       pkt.method = response.method;
       pkt.rid = response.rid;
       pkt.updateId = response.updateId++;
+
       if (streamStatus != null && streamStatus != response._sentStreamStatus) {
         response._sentStreamStatus = streamStatus;
         pkt.mode = DSPacketResponseMode.encode(streamStatus);
@@ -199,7 +195,13 @@ class Responder extends ConnectionHandler {
         handleMap(m);
       }
 
-      pkt.setPayload(m);
+      if (response.method == DSPacketMethod.list) {
+        pkt.setPayload(m['rows']);
+      } else if (response.method == DSPacketMethod.subscribe) {
+        pkt.setPayload(m['rows']);
+      } else {
+        pkt.setPayload(m);
+      }
 
       addToSendList(pkt);
       if (response._sentStreamStatus == StreamStatus.closed) {
@@ -239,8 +241,8 @@ class Responder extends ConnectionHandler {
 
     if (path != null && path.isAbsolute) {
       _getNode(path, (LocalNode node) {
-        _subscription.add(path.path, node, pkt.rid, qos);
-        closeResponse(pkt.rid);
+        var r = _responses[pkt.rid] = new SubscribeResponse(this, pkt.rid);
+        r.add(path.path, node, pkt.rid, qos);
       }, (e, stack) {
         var error = new DSError(
           "nodeError",
@@ -515,7 +517,7 @@ class Responder extends ConnectionHandler {
       resp._close();
     });
     _responses.clear();
-    _responses[0] = _subscription;
+//    _responses[0] = _subscription;
   }
 
   void onReconnected() {
@@ -525,7 +527,7 @@ class Responder extends ConnectionHandler {
   List<ResponseTraceCallback> _traceCallbacks;
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
-    _subscription.addTraceCallback(_traceCallback);
+//    _subscription.addTraceCallback(_traceCallback);
     _responses.forEach((int rid, Response response){
       _traceCallback(response.getTraceData());
     });

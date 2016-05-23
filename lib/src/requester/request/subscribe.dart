@@ -50,36 +50,19 @@ class SubscribeController implements RequestUpdater {
 
   void onUpdate(String status, List updates, List columns, Map meta,
       DSError error) {
-    // do nothing
   }
 }
 
 class SubscribeRequest extends Request implements ConnectionProcessor {
-  int lastSid = 0;
-
-  int getNextSid() {
-    do {
-      if (lastSid < 0x7FFFFFFF) {
-        ++lastSid;
-      } else {
-        lastSid = 1;
-      }
-    } while (subscriptionIds.containsKey(lastSid));
-    return lastSid;
-  }
-
-  final Map<String, ReqSubscribeController> subscriptions =
-    new Map<String, ReqSubscribeController>();
-
-  final Map<int, ReqSubscribeController> subscriptionIds =
-    new Map<int, ReqSubscribeController>();
-
   final String path;
+  int _qos = 0;
 
   SubscribeRequest(Requester requester, int rid, this.path)
       : super(requester, rid, new SubscribeController(), null) {
     (updater as SubscribeController).request = this;
   }
+
+  ReqSubscribeController controller;
 
   @override
   void resend() {
@@ -88,60 +71,34 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
   @override
   void _close([DSError error]) {
-    if (subscriptions.isNotEmpty) {
-      _changedPaths.addAll(subscriptions.keys);
-    }
     _waitingAckCount = 0;
     _lastWatingAckId = -1;
     _sendingAfterAck = false;
   }
 
   @override
-  void _update(DSResponsePacket pkt) {
-    var update = pkt.readPayloadPackage();
-    String ts = update["ts"];
-    var value = update["value"];
-    var meta = update["meta"];
-    int sid = pkt.rid;
+  void onNewPacket(DSResponsePacket pkt) {
+    List<Map> updates = pkt.readPayloadPackage();
+    for (var m in updates) {
+      String ts = m["ts"];
+      var value = m["value"];
+      var meta = m["meta"];
 
-    ReqSubscribeController controller;
-
-    if (path != null) {
-      controller = subscriptions[path];
-    } else if (sid > -1) {
-      controller = subscriptionIds[sid];
-    }
-
-    if (controller != null) {
-      var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
-      controller.addValue(valueUpdate);
+      if (controller != null) {
+        var valueUpdate = new ValueUpdate(value, ts: ts, meta: meta);
+        controller.addValue(valueUpdate);
+      }
     }
   }
 
-  HashSet<String> _changedPaths = new HashSet<String>();
-
-  void addSubscription(ReqSubscribeController controller, int level) {
-    String path = controller.node.remotePath;
-    subscriptions[path] = controller;
-    subscriptionIds[controller.sid] = controller;
+  void setController(ReqSubscribeController controller) {
+    this.controller = controller;
     prepareSending();
-    _changedPaths.add(path);
   }
 
-  void removeSubscription(ReqSubscribeController controller) {
-    String path = controller.node.remotePath;
-    if (subscriptions.containsKey(path)) {
-      toRemove[subscriptions[path].sid] = subscriptions[path];
-      prepareSending();
-    } else if (subscriptionIds.containsKey(controller.sid)) {
-      logger.severe(
-          'unexpected remoteSubscription in the requester, sid: ${controller
-              .sid}');
-    }
+  void removeSubscription() {
+    close();
   }
-
-  Map<int, ReqSubscribeController> toRemove =
-    new Map<int, ReqSubscribeController>();
 
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
@@ -154,40 +111,17 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
     if (requester.connection == null) {
       return;
     }
-    List toAdd = [];
 
-    HashSet<String> processingPaths = _changedPaths;
-    _changedPaths = new HashSet<String>();
-    for (String path in processingPaths) {
-      if (subscriptions.containsKey(path)) {
-        ReqSubscribeController sub = subscriptions[path];
-        Map m = {'path': path, 'sid': sub.sid};
-        if (sub.currentQos > 0) {
-          m['qos'] = sub.currentQos;
-        }
-        toAdd.add(m);
-      }
-    }
+    var pkt = new DSRequestPacket();
+    pkt.method = DSPacketMethod.subscribe;
+    pkt.path = path;
+    pkt.qos = _qos;
+    requester._sendRequest(pkt, updater, this);
+  }
 
-    if (!toAdd.isEmpty) {
-      //var pkt = new DSRequestPacket();
-      //requester._sendRequest({'method': 'subscribe', 'paths': toAdd}, null);
-    }
-
-    if (!toRemove.isEmpty) {
-      List removeSids = [];
-      toRemove.forEach((int sid, ReqSubscribeController sub) {
-        if (sub.callbacks.isEmpty) {
-          removeSids.add(sid);
-          subscriptions.remove(sub.node.remotePath);
-          subscriptionIds.remove(sub.sid);
-          sub._destroy();
-        }
-      });
-      /*requester._sendRequest(
-          {'method': 'unsubscribe', 'sids': removeSids}, null);*/
-      toRemove.clear();
-    }
+  void updateQos(int qos) {
+    _qos = qos;
+    removeSubscription();
   }
 
   bool _pendingSending = false;
@@ -266,7 +200,8 @@ class ReqSubscribeController {
     }
 
     if (qosChanged) {
-      _sub.addSubscription(this, currentQos);
+      _sub.updateQos(qos);
+      _sub.setController(this);
     }
   }
 
@@ -276,7 +211,7 @@ class ReqSubscribeController {
     if (callbacks.containsKey(callback)) {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
-        _sub.removeSubscription(this);
+        _sub.removeSubscription();
       } else if (cacheLevel == currentQos && currentQos > 1) {
         updateQos();
       }

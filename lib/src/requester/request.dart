@@ -32,7 +32,7 @@ class Request {
     requester.addToSendList(pkt);
   }
 
-  void _update(DSResponsePacket pkt) {
+  void onNewPacket(DSResponsePacket pkt) {
     if (pkt.mode != null) {
       streamStatus = pkt.mode.name;
     }
@@ -43,7 +43,7 @@ class Request {
     List columns;
     Map meta;
 
-    if (pkt.method == DSPacketMethod.list) {
+    if (pkt.method == DSPacketMethod.list || pkt.method == DSPacketMethod.subscribe) {
       updates = m;
     } else if (m is Map) {
       if (m["rows"] is List) {
@@ -69,7 +69,7 @@ class Request {
     DSError error;
 
     if (pkt.method == DSPacketMethod.close) {
-      if (m.containsKey("error") && m["error"] is Map) {
+      if (m is Map && m.containsKey("error") && m["error"] is Map) {
         error = new DSError.fromMap(m["error"]);
         requester._errorController.add(error);
       }

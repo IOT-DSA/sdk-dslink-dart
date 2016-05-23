@@ -39,7 +39,7 @@ class Requester extends ConnectionHandler {
 
   void _onReceiveUpdate(DSResponsePacket pkt) {
     if (pkt.rid is int && _requests.containsKey(pkt.rid)) {
-      _requests[pkt.rid]._update(pkt);
+      _requests[pkt.rid].onNewPacket(pkt);
     }
   }
 
@@ -68,13 +68,13 @@ class Requester extends ConnectionHandler {
   Request sendRequest(DSRequestPacket pkt, RequestUpdater updater) =>
     _sendRequest(pkt, updater);
 
-  Request _sendRequest(DSRequestPacket pkt, RequestUpdater updater) {
-    pkt.rid = getNextRid();
+  Request _sendRequest(DSRequestPacket pkt, RequestUpdater updater, [Request r]) {
+    pkt.rid = r != null ? r.rid : getNextRid();
 
     Request req;
     if (updater != null) {
-      req = new Request(this, lastRid, updater, pkt);
-      _requests[lastRid] = req;
+      req = r != null ? r : new Request(this, pkt.rid, updater, pkt);
+      _requests[pkt.rid] = req;
     }
     addToSendList(pkt);
     return req;

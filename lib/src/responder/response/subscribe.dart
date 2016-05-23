@@ -19,7 +19,7 @@ class SubscribeResponse extends Response {
 
   final Map<String, RespSubscribeController> subscriptions =
     new Map<String, RespSubscribeController>();
-  final Map<int, RespSubscribeController> subsriptionids =
+  final Map<int, RespSubscribeController> subscriptionIds =
     new Map<int, RespSubscribeController>();
 
   final LinkedHashSet<RespSubscribeController> changed =
@@ -31,11 +31,11 @@ class SubscribeResponse extends Response {
       controller = subscriptions[path];
       if (controller.sid != sid) {
         if (controller.sid >= 0) {
-          subsriptionids.remove(controller.sid);
+          subscriptionIds.remove(controller.sid);
         }
         controller.sid = sid;
         if (sid >= 0) {
-          subsriptionids[sid] = controller;
+          subscriptionIds[sid] = controller;
         }
       }
       controller.qosLevel = qos;
@@ -50,7 +50,7 @@ class SubscribeResponse extends Response {
       subscriptions[path] = controller;
 
       if (sid >= 0) {
-        subsriptionids[sid] = controller;
+        subscriptionIds[sid] = controller;
       }
 
       if (responder._traceCallbacks != null) {
@@ -64,10 +64,10 @@ class SubscribeResponse extends Response {
   }
 
   void remove(int sid) {
-    if (subsriptionids[sid] != null) {
-      RespSubscribeController controller = subsriptionids[sid];
-      subsriptionids[sid].destroy();
-      subsriptionids.remove(sid);
+    if (subscriptionIds[sid] != null) {
+      RespSubscribeController controller = subscriptionIds[sid];
+      subscriptionIds[sid].destroy();
+      subscriptionIds.remove(sid);
       subscriptions.remove(controller.node.path);
       if (responder._traceCallbacks != null) {
         ResponseTrace update = new ResponseTrace(
@@ -161,7 +161,7 @@ class SubscribeResponse extends Response {
       }
     }
 
-    subsriptionids.clear();
+    subscriptionIds.clear();
     _waitingAckCount = 0;
     _lastWaitingAckId = -1;
     _sendingAfterAck = false;
@@ -305,7 +305,7 @@ class RespSubscribeController {
     List rslts = new List();
     if (_caching && _isCacheValid) {
       for (ValueUpdate lastValue in lastValues) {
-        rslts.add([sid, lastValue.value, lastValue.ts]);
+        rslts.add(lastValue.toMap());
       }
 
       if (_qosLevel > 0) {
@@ -315,13 +315,8 @@ class RespSubscribeController {
       }
       lastValues.length = 0;
     } else {
-      if (lastValue.count > 1 || lastValue.status != null) {
-        Map m = lastValue.toMap();
-        m['sid'] = sid;
-        rslts.add(m);
-      } else {
-        rslts.add([sid, lastValue.value, lastValue.ts]);
-      }
+      Map m = lastValue.toMap();
+      rslts.add(m);
       if (_qosLevel > 0) {
         lastValue.waitingAck = waitingAckId;
       }

@@ -147,12 +147,12 @@ class DSPacketResponseMode {
   );
 
   static const DSPacketResponseMode open = const DSPacketResponseMode(
-    "",
+    "open",
     1
   );
 
   static const DSPacketResponseMode closed = const DSPacketResponseMode(
-    "invoke",
+    "closed",
     3
   );
 
@@ -340,14 +340,24 @@ class DSNormalPacket extends DSPacket {
     return "(" + [
       "Side: ${side.name}",
       "Method: ${method.name}",
-      "Total Size: ${totalSize}"
+      "Total Size: ${totalSize}",
+      "RID: ${rid}",
+      "Payload: ${(payload != null && payload.lengthInBytes > 0) ? readPayloadPackage() : 'none'}"
     ].join(", ") + ")";
+  }
+
+  void setPayload(input) {
+    payload = pack(input);
   }
 }
 
 class DSRequestPacket extends DSNormalPacket {
   int qos = 0;
   String path;
+
+  DSRequestPacket() {
+    side = DSPacketSide.request;
+  }
 
   @override
   int handleTypeByte(int input) {
@@ -358,8 +368,13 @@ class DSRequestPacket extends DSNormalPacket {
   @override
   void writeTo(DSPacketWriter writer) {
     super.writeTo(writer);
-    writer.writeUint16(path.length);
-    writer.writeString(path);
+
+    var pathLength = path == null ? 0 : path.length;
+
+    writer.writeUint16(pathLength);
+    if (path != null) {
+      writer.writeString(path);
+    }
 
     if (payload != null) {
       writer.writeUint8List(payload);
@@ -368,7 +383,11 @@ class DSRequestPacket extends DSNormalPacket {
 
   @override
   int calculateAddedSize() {
-    return 2 + path.length;
+    var total = 2;
+    if (path != null) {
+      total += path.length;
+    }
+    return total;
   }
 
   DSResponsePacket buildResponse() {
@@ -379,19 +398,19 @@ class DSRequestPacket extends DSNormalPacket {
     pkt.method = method;
     return pkt;
   }
-
-  void setPayload(input) {
-    payload = pack(input);
-  }
 }
 
 class DSResponsePacket extends DSNormalPacket {
   int status = 0;
   DSPacketResponseMode mode = DSPacketResponseMode.initialize;
 
+  DSResponsePacket() {
+    side = DSPacketSide.response;
+  }
+
   @override
   int handleTypeByte(int input) {
-    input = _write3BitNumber(input, 1, mode.id);
+    input = _write2BitNumber(input, 1, mode.id);
     return input;
   }
 
@@ -409,10 +428,6 @@ class DSResponsePacket extends DSNormalPacket {
   @override
   int calculateAddedSize() {
     return 1;
-  }
-
-  void setPayload(input) {
-    payload = pack(input);
   }
 }
 
@@ -673,9 +688,9 @@ class DSPacketReader {
       totalSize = 5;
       outs.add(pkt);
     } else {
-      var side = (type & 0x80) == 0 ?
-        DSPacketSide.request :
-        DSPacketSide.response;
+      var side = (type & (1 << 7)) != 0 ?
+        DSPacketSide.response :
+        DSPacketSide.request;
 
       var method = _read3BitNumber(type, 6);
 
@@ -731,7 +746,12 @@ class DSPacketReader {
         pkt.path = path;
         pkt.qos = specialBits;
         pkt.totalSize = totalSize;
-        pkt.payload = data.buffer.asUint8List(offset, totalSize - offset);
+
+        var payloadSize = totalSize - offset;
+
+        if (payloadSize > 0) {
+          pkt.payload = data.buffer.asUint8List(realOffset + offset, payloadSize);
+        }
 
         outs.add(pkt);
       } else if (side == DSPacketSide.response) {
@@ -749,11 +769,12 @@ class DSPacketReader {
         if (status > 127) {
           pkt.payload = new Uint8List(0);
         } else {
-          pkt.payload = data.buffer.asUint8List(offset, payloadSize);
+          pkt.payload = data.buffer.asUint8List(realOffset + offset, payloadSize);
         }
 
         outs.add(pkt);
       } else {
+        throw "Fail.";
         var pkt = new DSNormalPacket();
         _populate(pkt);
         outs.add(pkt);

@@ -7,6 +7,7 @@ import "../../common.dart";
 import "../../utils.dart";
 
 import "dart:typed_data";
+import 'package:logging/logging.dart';
 
 class WebSocketConnection extends Connection {
   PassiveChannel _responderChannel;
@@ -39,8 +40,8 @@ class WebSocketConnection extends Connection {
     }
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
+    socket.add(<int>[]);
     socket.listen(onData, onDone: _onDone);
-    socket.add(codec.blankData);
     if (!enableAck) {
       nextMsgId = -1;
     }
@@ -123,12 +124,20 @@ class WebSocketConnection extends Connection {
     _dataReceiveCount = 0;
 
     if (data is List<int>) {
+      if (data.length == 0) {
+        return;
+      }
+
       List<DSPacket> packets = _reader.read(data);
 
       for (DSPacket pkt in packets) {
-        if (pkt is DSRequestPacket) {
+        if (logger.isLoggable(Level.FINEST)) {
+          logger.finest("Receive: ${pkt}");
+        }
+
+        if (pkt is DSResponsePacket) {
           _requesterChannel.onReceiveController.add(pkt);
-        } else if (pkt is DSResponsePacket) {
+        } else if (pkt is DSRequestPacket) {
           _responderChannel.onReceiveController.add(pkt);
         } else if (pkt is DSMsgPacket) {
           var id = pkt.ackId;
@@ -156,6 +165,9 @@ class WebSocketConnection extends Connection {
       var pkt = new DSAckPacket();
       pkt.ackId = _serverCommand["ack"];
       _serverCommand = null;
+      if (logger.isLoggable(Level.FINEST)) {
+        logger.finest("Send: ${pkt}");
+      }
       pkt.writeTo(writer);
     }
 
@@ -167,6 +179,10 @@ class WebSocketConnection extends Connection {
         needSend = true;
 
         for (DSPacket resp in rslt.messages) {
+          if (logger.isLoggable(Level.FINEST)) {
+            logger.finest("Send: ${resp}");
+          }
+
           resp.writeTo(writer);
 
           if (throughputEnabled) {
@@ -188,6 +204,10 @@ class WebSocketConnection extends Connection {
         }
 
         for (DSPacket pkt in rslt.messages) {
+          if (logger.isLoggable(Level.FINEST)) {
+            logger.finest("Send: ${pkt}");
+          }
+
           pkt.writeTo(writer);
         }
       }
