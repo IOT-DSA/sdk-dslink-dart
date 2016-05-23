@@ -15,72 +15,47 @@ class RespSubscribeListener {
 }
 
 class SubscribeResponse extends Response {
-  SubscribeResponse(Responder responder, int rid) : super(DSPacketMethod.subscribe, responder, rid);
+  final String path;
+  final LocalNode node;
+  final int qos;
 
-  final Map<String, RespSubscribeController> subscriptions =
-    new Map<String, RespSubscribeController>();
-  final Map<int, RespSubscribeController> subscriptionIds =
-    new Map<int, RespSubscribeController>();
+  RespSubscribeController _controller;
 
-  final LinkedHashSet<RespSubscribeController> changed =
-    new LinkedHashSet<RespSubscribeController>();
+  SubscribeResponse(Responder responder, int rid, this.path, this.node, this.qos) :
+      super(DSPacketMethod.subscribe, responder, rid) {
+    int permission = responder.nodeProvider.permissions
+      .getPermission(node.path, responder);
 
-  RespSubscribeController add(String path, LocalNode node, int sid, int qos) {
-    RespSubscribeController controller;
-    if (subscriptions[path] != null) {
-      controller = subscriptions[path];
-      if (controller.sid != sid) {
-        if (controller.sid >= 0) {
-          subscriptionIds.remove(controller.sid);
-        }
-        controller.sid = sid;
-        if (sid >= 0) {
-          subscriptionIds[sid] = controller;
-        }
-      }
-      controller.qosLevel = qos;
-      if (sid > -1 && controller.lastValue != null) {
-        subscriptionChanged(controller);
-      }
-    } else {
-      int permission = responder.nodeProvider.permissions
-          .getPermission(node.path, responder);
-      controller = new RespSubscribeController(
-          this, node, sid, permission >= Permission.READ, qos);
-      subscriptions[path] = controller;
+    _controller = new RespSubscribeController(
+      this,
+      node,
+      permission >= Permission.READ,
+      qos
+    );
 
-      if (sid >= 0) {
-        subscriptionIds[sid] = controller;
-      }
-
-      if (responder._traceCallbacks != null) {
-        ResponseTrace update = new ResponseTrace(path, 'subscribe', 0, '+');
-        for (ResponseTraceCallback callback in responder._traceCallbacks) {
-          callback(update);
-        }
+    if (responder._traceCallbacks != null) {
+      ResponseTrace update = new ResponseTrace(path, 'subscribe', 0, '+');
+      for (ResponseTraceCallback callback in responder._traceCallbacks) {
+        callback(update);
       }
     }
-    return controller;
   }
 
-  void remove(int sid) {
-    if (subscriptionIds[sid] != null) {
-      RespSubscribeController controller = subscriptionIds[sid];
-      subscriptionIds[sid].destroy();
-      subscriptionIds.remove(sid);
-      subscriptions.remove(controller.node.path);
-      if (responder._traceCallbacks != null) {
-        ResponseTrace update = new ResponseTrace(
-            controller.node.path, 'subscribe', 0, '-');
-        for (ResponseTraceCallback callback in responder._traceCallbacks) {
-          callback(update);
-        }
+  void remove() {
+    _controller.destroy();
+
+    if (responder._traceCallbacks != null) {
+      ResponseTrace update = new ResponseTrace(
+        _controller.node.path, 'subscribe', 0, '-');
+      for (ResponseTraceCallback callback in responder._traceCallbacks) {
+        callback(update);
       }
     }
+
+    close();
   }
 
   void subscriptionChanged(RespSubscribeController controller) {
-    changed.add(controller);
     prepareSending();
   }
 
@@ -94,11 +69,8 @@ class SubscribeResponse extends Response {
     }
 
     List updates = new List();
-    for (RespSubscribeController controller in changed) {
-      updates.addAll(controller.process(waitingAckId));
-    }
+    updates.addAll(_controller.process(waitingAckId));
     responder.updateResponse(this, updates);
-    changed.clear();
   }
 
   int _waitingAckCount = 0;
@@ -110,11 +82,9 @@ class SubscribeResponse extends Response {
     } else {
       _waitingAckCount--;
     }
-    subscriptions.forEach((String path, RespSubscribeController controller) {
-      if (controller._qosLevel > 0) {
-        controller.onAck(receiveAckId);
-      }
-    });
+
+    _controller.onAck(receiveAckId);
+
     if (_sendingAfterAck) {
       _sendingAfterAck = false;
       prepareSending();
@@ -142,37 +112,16 @@ class SubscribeResponse extends Response {
   }
 
   void _close() {
-    List pendingControllers;
-    subscriptions.forEach((path, RespSubscribeController controller) {
-      if (controller._qosLevel == 0) {
-        controller.destroy();
-      } else {
-        controller.sid = -1;
-        if (pendingControllers == null) {
-          pendingControllers = new List();
-        }
-        pendingControllers.add(controller);
-      }
-    });
-    subscriptions.clear();
-    if (pendingControllers != null) {
-      for (RespSubscribeController controller in pendingControllers) {
-        subscriptions[controller.node.path] = controller;
-      }
-    }
-
-    subscriptionIds.clear();
+    _controller.destroy();
     _waitingAckCount = 0;
     _lastWaitingAckId = -1;
     _sendingAfterAck = false;
   }
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
-    subscriptions.forEach((path, controller) {
-      ResponseTrace update = new ResponseTrace(
-          controller.node.path, 'subscribe', 0, '+');
-      _traceCallback(update);
-    });
+    ResponseTrace update = new ResponseTrace(
+      _controller.node.path, 'subscribe', 0, '+');
+    _traceCallback(update);
   }
 }
 
@@ -180,7 +129,6 @@ class RespSubscribeController {
   final LocalNode node;
   final SubscribeResponse response;
   RespSubscribeListener _listener;
-  int sid;
 
   bool _permitted = true;
 
@@ -240,7 +188,7 @@ class RespSubscribeController {
     }
   }
 
-  RespSubscribeController(this.response, this.node, this.sid, this._permitted,
+  RespSubscribeController(this.response, this.node, this._permitted,
       int qos) {
     this.qosLevel = qos;
     _listener = node.subscribe(addValue, _qosLevel);
@@ -296,7 +244,7 @@ class RespSubscribeController {
     }
     // TODO, don't allow this to be called from same controller more often than 100ms
     // the first response can happen ASAP, but
-    if (_permitted && sid > -1) {
+    if (_permitted) {
       response.subscriptionChanged(this);
     }
   }

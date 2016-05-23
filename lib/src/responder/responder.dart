@@ -14,21 +14,22 @@ class Responder extends ConnectionHandler {
       storage.destroy();
     }
     storage = s;
-    if (storage != null && nodes != null) {
-      for (ISubscriptionNodeStorage node in nodes) {
-        var values = node.getLoadedValues();
-        LocalNode localnode = nodeProvider.getOrCreateNode(node.path, false);
+//    if (storage != null && nodes != null) {
+//      for (ISubscriptionNodeStorage node in nodes) {
+//        var values = node.getLoadedValues();
+//        LocalNode localnode = nodeProvider.getOrCreateNode(node.path, false);
 //        RespSubscribeController controller = _subscription.add(
 //          node.path,
 //          localnode,
 //          -1,
 //          node.qos
 //        );
+//
 //        if (values.isNotEmpty) {
 //          controller.resetCache(values);
 //        }
-      }
-    }
+//      }
+//    }
   }
 
   /// list of permission group
@@ -126,10 +127,10 @@ class Responder extends ConnectionHandler {
             invoke(pkt);
             return;
           case DSPacketMethod.set:
-            //set(pkt);
+            set(pkt);
             return;
           case DSPacketMethod.remove:
-            //remove(pkt);
+            remove(pkt);
             return;
         }
       }
@@ -245,8 +246,13 @@ class Responder extends ConnectionHandler {
 
     if (path != null && path.isAbsolute) {
       _getNode(path, (LocalNode node) {
-        var r = _responses[pkt.rid] = new SubscribeResponse(this, pkt.rid);
-        r.add(path.path, node, pkt.rid, qos);
+        _responses[pkt.rid] = new SubscribeResponse(
+          this,
+          pkt.rid,
+          path.path,
+          node,
+          qos
+        );
       }, (e, stack) {
         var error = new DSError(
           "nodeError",
@@ -505,7 +511,7 @@ class Responder extends ConnectionHandler {
         Response resp = _responses.remove(rid);
 
         if (resp is SubscribeResponse) {
-          resp.remove(rid);
+          resp.remove();
         }
 
         if (_traceCallbacks != null) {
