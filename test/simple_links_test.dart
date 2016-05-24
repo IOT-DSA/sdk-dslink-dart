@@ -1,5 +1,5 @@
 @TestOn("vm")
-@Timeout(const Duration(seconds: 60))
+@Timeout(const Duration(seconds: 30))
 library dslink.test.vm.links.simple;
 
 import "dart:async";
@@ -93,6 +93,7 @@ simpleLinksTests() {
     var message = await requester.getRemoteNode("/downstream/DataHost/message");
     expect(message.getConfig(r"$type"), equals("string"));
     await expectNodeValue(requester, "/downstream/DataHost/message", "Hello World");
+    await gap();
     host.val("/message", "Goodbye World");
     await gap();
     await expectNodeValue(requester, "/downstream/DataHost/message", "Goodbye World");

@@ -11,7 +11,7 @@ Future<ValueUpdate> firstValueUpdate(Requester requester, String path) async {
 }
 
 Future gap() async {
-  await new Future.delayed(const Duration(milliseconds: 300));
+  await new Future.delayed(const Duration(milliseconds: 50));
 }
 
 expectNodeValue(from, String path, dynamic value) {

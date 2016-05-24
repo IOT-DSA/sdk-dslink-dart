@@ -220,6 +220,7 @@ class ReqSubscribeController {
       int cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
         _sub.removeSubscription();
+        _destroy();
       } else if (cacheLevel == currentQos && currentQos > 1) {
         updateQos();
       }
