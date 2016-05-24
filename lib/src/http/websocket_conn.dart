@@ -197,6 +197,7 @@ class WebSocketConnection extends Connection {
       }
     }
     rslt = _requesterChannel.getSendingData(ts, nextMsgId);
+
     if (rslt != null) {
       if (rslt.messages.length > 0) {
         needSend = true;
@@ -229,15 +230,24 @@ class WebSocketConnection extends Connection {
         }
       }
 
+      bool needsWrite = true;
+
       for (var pkt in pkts) {
         if (logger.isLoggable(Level.FINEST)) {
           logger.finest(formatLogMessage("Send: ${pkt}"));
         }
 
         pkt.writeTo(_writer);
+
+        if (_writer.currentLength > 150000) { // 150KB frame limit
+          addData(_writer.done());
+          needsWrite = false;
+        }
       }
 
-      addData(_writer.done());
+      if (needsWrite) {
+        addData(_writer.done());
+      }
 
       _dataSent = true;
       frameOut++;

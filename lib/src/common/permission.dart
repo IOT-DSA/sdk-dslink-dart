@@ -77,6 +77,7 @@ class PermissionList {
     if (_FORCE_CONFIG) {
       return Permission.CONFIG;
     }
+
     if (idMatchs.containsKey(responder.reqId)) {
       return idMatchs[responder.reqId];
     }
