@@ -34,7 +34,13 @@ class SubscribeResponse extends Response {
     );
 
     if (responder._traceCallbacks != null) {
-      ResponseTrace update = new ResponseTrace(path, 'subscribe', 0, '+');
+      ResponseTrace update = new ResponseTrace(
+        path,
+        'subscribe',
+        rid,
+        '+'
+      );
+
       for (ResponseTraceCallback callback in responder._traceCallbacks) {
         callback(update);
       }
@@ -46,7 +52,12 @@ class SubscribeResponse extends Response {
 
     if (responder._traceCallbacks != null) {
       ResponseTrace update = new ResponseTrace(
-        _controller.node.path, 'subscribe', 0, '-');
+        _controller.node.path,
+        'subscribe',
+        rid,
+        '-'
+      );
+
       for (ResponseTraceCallback callback in responder._traceCallbacks) {
         callback(update);
       }
@@ -118,10 +129,14 @@ class SubscribeResponse extends Response {
     _sendingAfterAck = false;
   }
 
-  void addTraceCallback(ResponseTraceCallback _traceCallback) {
-    ResponseTrace update = new ResponseTrace(
-      _controller.node.path, 'subscribe', 0, '+');
-    _traceCallback(update);
+  @override
+  ResponseTrace getTraceData([String change = '+']) {
+    return new ResponseTrace(
+      _controller.node.path,
+      'subscribe',
+      rid,
+      '+'
+    );
   }
 }
 

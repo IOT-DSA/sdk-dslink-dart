@@ -326,13 +326,14 @@ class Responder extends ConnectionHandler {
             return;
           }
         }
+
+        var pl = pkt.readPayloadPackage();
+
         int permission = nodeProvider.permissions.getPermission(path.path, this);
-        int maxPermit = Permission.NEVER; // TODO: Figure out how to copy permit for packets.
+        int maxPermit = Permission.parse(pl['permit']);
         if (maxPermit < permission) {
           permission = maxPermit;
         }
-
-        var pl = pkt.readPayloadPackage();
 
         Map<String, dynamic> params = pl["params"];
 
@@ -538,20 +539,19 @@ class Responder extends ConnectionHandler {
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     _responses.forEach((int rid, Response response) {
-      if (response is SubscribeResponse) {
-        response.addTraceCallback(_traceCallback);
-      }
-
       _traceCallback(response.getTraceData());
     });
 
-    if (_traceCallbacks == null) _traceCallbacks = new List<ResponseTraceCallback>();
+    if (_traceCallbacks == null) {
+      _traceCallbacks = new List<ResponseTraceCallback>();
+    }
 
     _traceCallbacks.add(_traceCallback);
   }
 
   void removeTraceCallback(ResponseTraceCallback _traceCallback) {
     _traceCallbacks.remove(_traceCallback);
+
     if (_traceCallbacks.isEmpty) {
       _traceCallbacks = null;
     }
