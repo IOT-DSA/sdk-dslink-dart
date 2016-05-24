@@ -14,6 +14,7 @@ class Responder extends ConnectionHandler {
       storage.destroy();
     }
     storage = s;
+// TODO: Figure out how to make this work with the new protocol.
 //    if (storage != null && nodes != null) {
 //      for (ISubscriptionNodeStorage node in nodes) {
 //        var values = node.getLoadedValues();
@@ -47,10 +48,10 @@ class Responder extends ConnectionHandler {
   int get openResponseCount {
     return _responses.length;
   }
-//
-//  int get subscriptionCount {
-//    return _subscription.subscriptions.length;
-//  }
+
+  int get subscriptionCount {
+    return _responses.values.where((x) => x is SubscribeResponse).length;
+  }
 
   /// caching of nodes
   final NodeProvider nodeProvider;
@@ -527,7 +528,6 @@ class Responder extends ConnectionHandler {
       resp._close();
     });
     _responses.clear();
-//    _responses[0] = _subscription;
   }
 
   void onReconnected() {
@@ -537,8 +537,11 @@ class Responder extends ConnectionHandler {
   List<ResponseTraceCallback> _traceCallbacks;
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
-//    _subscription.addTraceCallback(_traceCallback);
-    _responses.forEach((int rid, Response response){
+    _responses.forEach((int rid, Response response) {
+      if (response is SubscribeResponse) {
+        response.addTraceCallback(_traceCallback);
+      }
+
       _traceCallback(response.getTraceData());
     });
 
