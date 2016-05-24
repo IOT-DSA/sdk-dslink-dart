@@ -242,15 +242,16 @@ class WebSocketConnection extends Connection {
         if (_writer.currentLength > 150000) { // 150KB frame limit
           addData(_writer.done());
           needsWrite = false;
+          frameOut++;
         }
       }
 
       if (needsWrite) {
         addData(_writer.done());
+        frameOut++;
       }
 
       _dataSent = true;
-      frameOut++;
     }
   }
 
