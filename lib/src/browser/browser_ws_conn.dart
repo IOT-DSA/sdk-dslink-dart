@@ -105,76 +105,38 @@ class WebSocketConnection extends Connection {
     requireSend();
   }
 
+  DSPacketReader _reader = new DSPacketReader();
+  DSPacketWriter _writer = new DSPacketWriter();
+
   void _onData(MessageEvent e) {
-    logger.fine("onData:");
     _dataReceiveCount = 0;
-    Map m;
+
     if (e.data is ByteBuffer) {
       try {
         Uint8List bytes = (e.data as ByteBuffer).asUint8List();
 
-        m = codec.decodeBinaryFrame(bytes);
-        logger.fine("$m");
+        List<DSPacket> packets = _reader.read(bytes);
 
-        if (m["salt"] is String) {
-          clientLink.updateSalt(m["salt"]);
-        }
-        bool needAck = false;
-        if (m["responses"] is List && (m["responses"] as List).length > 0) {
-          needAck = true;
-          // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m["responses"]);
-        }
+        for (DSPacket pkt in packets) {
+          if (logger.isLoggable(Level.FINEST)) {
+            logger.finest("Receive: ${pkt}");
+          }
 
-        if (m["requests"] is List && (m["requests"] as List).length > 0) {
-          needAck = true;
-          // send requests to responder channel
-          _responderChannel.onReceiveController.add(m["requests"]);
-        }
-        if (m["ack"] is int) {
-          ack(m["ack"]);
-        }
-        if (needAck) {
-          Object msgId = m["msg"];
-          if (msgId != null) {
-            addConnCommand("ack", msgId);
+          if (pkt is DSResponsePacket) {
+            _requesterChannel.onReceiveController.add(pkt);
+          } else if (pkt is DSRequestPacket) {
+            _responderChannel.onReceiveController.add(pkt);
+          } else if (pkt is DSMsgPacket) {
+            var id = pkt.ackId;
+            if (id != null) {
+              addConnCommand("ack", id);
+            }
+          } else if (pkt is DSAckPacket) {
+            ack(pkt.ackId);
           }
         }
-      } catch (err, stack) {
-        logger.severe("error in onData", err, stack);
-        close();
-        return;
-      }
-    } else if (e.data is String) {
-      try {
-        m = codec.decodeStringFrame(e.data);
-        logger.fine("$m");
-
-        bool needAck = false;
-        if (m["responses"] is List && (m["responses"] as List).length > 0) {
-          needAck = true;
-          // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m["responses"]);
-        }
-
-        if (m["requests"] is List && (m["requests"] as List).length > 0) {
-          needAck = true;
-          // send requests to responder channel
-          _responderChannel.onReceiveController.add(m["requests"]);
-        }
-        if (m["ack"] is int) {
-          ack(m["ack"]);
-        }
-        if (needAck) {
-          Object msgId = m["msg"];
-          if (msgId != null) {
-            addConnCommand("ack", msgId);
-          }
-        }
-      } catch (err) {
-        logger.severe(err);
-        close();
-        return;
+      } catch (e, stack) {
+        logger.warning("Failed to handle frame", e, stack);
       }
     }
   }
@@ -182,41 +144,57 @@ class WebSocketConnection extends Connection {
   int nextMsgId = 1;
 
   bool _sending = false;
+
   void _send() {
-    _sending = false;
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }
-    logger.fine("browser sending");
+
+    _sending = false;
     bool needSend = false;
-    Map m;
-    if (_msgCommand != null) {
-      m = _msgCommand;
-      needSend = true;
+
+    var pkts = <DSPacket>[];
+
+    if (_msgCommand != null && _msgCommand["ack"] is int) {
+      var pkt = new DSAckPacket();
+      pkt.ackId = _msgCommand["ack"];
       _msgCommand = null;
-    } else {
-      m = {};
+      if (logger.isLoggable(Level.FINEST)) {
+        logger.finest("Send: ${pkt}");
+      }
+      pkt.writeTo(_writer);
+      addData(_writer.done());
+      requireSend();
+      return;
     }
 
     var pendingAck = <ConnectionProcessor>[];
-
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
     ProcessorResult rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.length > 0) {
-        m["responses"] = rslt.messages;
         needSend = true;
+
+        for (DSPacket resp in rslt.messages) {
+          pkts.add(resp);
+        }
       }
+
       if (rslt.processors.length > 0) {
         pendingAck.addAll(rslt.processors);
       }
     }
     rslt = _requesterChannel.getSendingData(ts, nextMsgId);
+
     if (rslt != null) {
       if (rslt.messages.length > 0) {
-        m["requests"] = rslt.messages;
         needSend = true;
+
+        for (DSPacket pkt in rslt.messages) {
+          pkts.add(pkt);
+        }
       }
+
       if (rslt.processors.length > 0) {
         pendingAck.addAll(rslt.processors);
       }
@@ -227,7 +205,9 @@ class WebSocketConnection extends Connection {
         if (pendingAck.length > 0) {
           pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m["msg"] = nextMsgId;
+        var pkt = new DSMsgPacket();
+        pkt.ackId = nextMsgId;
+        pkts.insert(0, pkt);
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
@@ -235,15 +215,31 @@ class WebSocketConnection extends Connection {
         }
       }
 
+      bool needsWrite = true;
 
-      logger.fine("send: $m");
-      var encoded = codec.encodeFrame(m);
-      if (encoded is List<int>) {
-        encoded = ByteDataUtil.list2Uint8List(encoded as List<int>);
+      for (var pkt in pkts) {
+        if (logger.isLoggable(Level.FINEST)) {
+          logger.finest("Send: ${pkt}");
+        }
+
+        pkt.writeTo(_writer);
+
+        if (_writer.currentLength > 150000) { // 150KB frame limit
+          addData(_writer.done());
+          needsWrite = false;
+        }
       }
-      socket.send(encoded);
+
+      if (needsWrite) {
+        addData(_writer.done());
+      }
+
       _dataSent = true;
     }
+  }
+
+  void addData(Uint8List data) {
+    socket.sendByteBuffer(data.buffer);
   }
 
   bool _authError = false;
