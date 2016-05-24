@@ -346,15 +346,24 @@ class DSNormalPacket extends DSPacket {
 
   dynamic _decodedPayload;
 
-  @override
-  String toString() {
-    return "(" + [
+  List<String> describe() {
+    var pl = readPayloadPackage();
+
+    if (pl == null) {
+      pl = "none";
+    }
+
+    return [
       "Side: ${side.name}",
       "Method: ${method.name}",
-      "Total Size: ${totalSize}",
       "RID: ${rid}",
-      "Payload: ${(payloadData != null && payloadData.lengthInBytes > 0) ? readPayloadPackage() : 'none'}"
-    ].join(", ") + ")";
+      "Payload: ${pl}"
+    ];
+  }
+
+  @override
+  String toString() {
+    return "(" + describe().join(", ") + ")";
   }
 
   void setPayload(input) {
@@ -409,6 +418,14 @@ class DSRequestPacket extends DSNormalPacket {
     pkt.method = method;
     return pkt;
   }
+
+  @override
+  List<String> describe() {
+    var list = super.describe();
+    list.add("Path: ${path}");
+    list.add("QOS: ${qos}");
+    return list;
+  }
 }
 
 class DSResponsePacket extends DSNormalPacket {
@@ -439,6 +456,14 @@ class DSResponsePacket extends DSNormalPacket {
   @override
   int calculateAddedSize() {
     return 1;
+  }
+
+  @override
+  List<String> describe() {
+    var list = super.describe();
+    list.add("Mode: ${mode.name}");
+    list.add("Status: ${status}");
+    return list;
   }
 }
 

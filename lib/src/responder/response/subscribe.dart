@@ -81,7 +81,7 @@ class SubscribeResponse extends Response {
 
     List updates = new List();
     updates.addAll(_controller.process(waitingAckId));
-    responder.updateResponse(this, updates);
+    responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
 
   int _waitingAckCount = 0;
@@ -108,14 +108,17 @@ class SubscribeResponse extends Response {
     if (_sendingAfterAck) {
       return;
     }
+
     if (_waitingAckCount > ConnectionProcessor.ACK_WAIT_COUNT) {
       _sendingAfterAck = true;
       return;
     }
+
     if (responder.connection == null) {
       // don't pend send, when requester is offline
       return;
     }
+
     if (!_pendingSending) {
       _pendingSending = true;
       responder.addProcessor(this);

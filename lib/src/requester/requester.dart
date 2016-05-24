@@ -88,7 +88,12 @@ class Requester extends ConnectionHandler {
       [int qos = 0]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     node._subscribe(this, callback, qos);
-    return new ReqSubscribeListener(this, path, callback);
+    return new ReqSubscribeListener(
+      this,
+      path,
+      callback,
+      node._subscribeController
+    );
   }
 
   Stream<ValueUpdate> onValueChange(String path, [int qos = 0]) {

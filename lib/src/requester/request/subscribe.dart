@@ -4,12 +4,13 @@ class ReqSubscribeListener implements StreamSubscription {
   ValueUpdateCallback callback;
   Requester requester;
   String path;
+  ReqSubscribeController controller;
 
-  ReqSubscribeListener(this.requester, this.path, this.callback);
+  ReqSubscribeListener(this.requester, this.path, this.callback, this.controller);
 
   Future cancel() {
     if (callback != null) {
-//      requester.unsubscribe(path, callback);
+      controller.unlisten(callback);
       callback = null;
     }
     return null;
