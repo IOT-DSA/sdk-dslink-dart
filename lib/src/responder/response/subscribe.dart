@@ -161,7 +161,6 @@ class RespSubscribeController {
   List<ValueUpdate> lastValues = new List<ValueUpdate>();
   ListQueue<ValueUpdate> waitingValues = new ListQueue<ValueUpdate>();
 
-  //; = new ListQueue<ValueUpdate>();
   ValueUpdate lastValue;
 
   int _qosLevel = -1;

@@ -43,7 +43,8 @@ class Request {
     List columns;
     Map meta;
 
-    if (pkt.method == DSPacketMethod.list || pkt.method == DSPacketMethod.subscribe) {
+    if (pkt.method == DSPacketMethod.list ||
+      pkt.method == DSPacketMethod.subscribe) {
       updates = m;
     } else if (m is Map) {
       if (m["rows"] is List) {
@@ -55,7 +56,7 @@ class Request {
       }
 
       if (m["mode"] is String) {
-        meta = {
+        meta = <String, dynamic>{
           "mode": m["mode"]
         };
       }
@@ -67,6 +68,22 @@ class Request {
     }
 
     DSError error;
+
+    if (pkt.method == DSPacketMethod.invoke) {
+      String modify;
+
+      if (m["pos0"] is int) {
+        modify = "insert ${m['pos0']}";
+      }
+
+      if (m["pos1"] is int) {
+        modify = "replace ${m['pos0']}-${m['pos1']}";
+      }
+
+      if (modify != null) {
+        meta["modify"] = modify;
+      }
+    }
 
     if (pkt.method == DSPacketMethod.close) {
       if (m is Map && m.containsKey("error") && m["error"] is Map) {

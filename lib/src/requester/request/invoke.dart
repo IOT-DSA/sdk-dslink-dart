@@ -121,11 +121,17 @@ class InvokeController implements RequestUpdater {
     }
   }
 
-  void onUpdate(String streamStatus, List updates, List columns, Map meta,
-      DSError error) {
+  @override
+  void onUpdate(
+    String streamStatus,
+    List updates,
+    List columns,
+    Map meta,
+    DSError error) {
     if (meta != null && meta['mode'] is String) {
       mode = meta['mode'];
     }
+
     // TODO: implement error
     if (columns != null) {
       if (_cachedColumns == null || mode == 'refresh') {
@@ -139,13 +145,25 @@ class InvokeController implements RequestUpdater {
 
     if (error != null) {
       streamStatus = StreamStatus.closed;
-      _controller.add(
-          new RequesterInvokeUpdate(
-              null, null, null, streamStatus, error: error, meta: meta));
+
+      _controller.add(new RequesterInvokeUpdate(
+        null,
+        null,
+        null,
+        streamStatus,
+        error: error,
+        meta: meta
+      ));
     } else if (updates != null || meta != null || streamStatus != lastStatus) {
       _controller.add(new RequesterInvokeUpdate(
-          updates, columns, _cachedColumns, streamStatus, meta: meta));
+        updates,
+        columns,
+        _cachedColumns,
+        streamStatus,
+        meta: meta
+      ));
     }
+
     lastStatus = streamStatus;
     if (streamStatus == StreamStatus.closed) {
       _controller.close();

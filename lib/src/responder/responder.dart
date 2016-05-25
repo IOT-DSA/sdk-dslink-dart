@@ -200,6 +200,19 @@ class Responder extends ConnectionHandler {
           if (meta['mode'] is String) {
             m['mode'] = meta['mode'];
           }
+
+          if (meta['modify'] is String) {
+            String mod = meta['modify'].toString();
+
+            if (mod.startsWith('insert ')) {
+              m['pos0'] = int.parse(mod.substring(7).trim());
+            } else if (mod.startsWith('replace ')) {
+              String range = mod.substring(8).trim();
+              List<String> parts = range.split('-');
+              m['pos0'] = int.parse(parts[0]);
+              m['pos1'] = int.parse(parts[1]);
+            }
+          }
         }
 
         if (handleMap != null) {
@@ -210,6 +223,7 @@ class Responder extends ConnectionHandler {
       }
 
       addToSendList(pkt);
+
       if (response._sentStreamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
         if (_traceCallbacks != null) {
@@ -411,7 +425,11 @@ class Responder extends ConnectionHandler {
 
     if (path.isNode) {
       _getNode(path, (LocalNode node) {
-        int permission = nodeProvider.permissions.getPermission(node.path, this);
+        int permission = nodeProvider.permissions.getPermission(
+          node.path,
+          this
+        );
+
         int maxPermit = Permission.parse(m['permit']);
         if (maxPermit < permission) {
           permission = maxPermit;
@@ -456,7 +474,11 @@ class Responder extends ConnectionHandler {
         closeResponse(pkt.rid, error: DSError.PERMISSION_DENIED);
       } else {
         node.setAttribute(
-            path.name, value, this, addResponse(new Response(pkt.method, this, rid)));
+          path.name,
+          value,
+          this,
+          addResponse(new Response(pkt.method, this, rid))
+        );
       }
     } else {
       // shouldn't be possible to reach here
@@ -478,7 +500,11 @@ class Responder extends ConnectionHandler {
 
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
 
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      int permission = nodeProvider.permissions.getPermission(
+        node.path,
+        this
+      );
+
       if (permission < Permission.CONFIG) {
         closeResponse(pkt.rid, error: DSError.PERMISSION_DENIED);
       } else {

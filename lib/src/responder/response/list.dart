@@ -50,7 +50,7 @@ class ListResponse extends Response {
 
     if (waitingAckId != -1) {
       _waitingAckCount++;
-      _lastWatingAckId = waitingAckId;
+      _lastWaitingAckId = waitingAckId;
     }
 
     Object updateIs;
@@ -111,9 +111,11 @@ class ListResponse extends Response {
             updateConfigs.add(update);
           }
         });
+
         node.attributes.forEach((name, value) {
           updateAttributes.add([name, value]);
         });
+
         node.children.forEach((name, Node value) {
           Map simpleMap = value.getSimpleMap();
           if (_permission != Permission.CONFIG) {
@@ -125,6 +127,7 @@ class ListResponse extends Response {
           updateChildren.add([name, simpleMap]);
         });
       }
+
       if (updateIs == null) {
         updateIs = [r'$is', 'node'];
       }
@@ -166,11 +169,12 @@ class ListResponse extends Response {
             Map simpleMap = node.children[change].getSimpleMap();
              if (_permission != Permission.CONFIG) {
                int invokePermission = Permission.parse(simpleMap[r'$invokable']);
-               if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+               if (invokePermission != Permission.NEVER &&
+                 invokePermission > _permission) {
                  simpleMap[r'$invokable'] = 'never';
                }
              }
-            update = [change, simpleMap ];
+            update = [change, simpleMap];
           } else {
             update = {'name': change, 'change': 'remove'};
           }
@@ -185,20 +189,24 @@ class ListResponse extends Response {
     if (updateBase != null) {
       updates.add(updateBase);
     }
+
     if (updateIs != null) {
       updates.add(updateIs);
     }
-    updates..addAll(updateConfigs)..addAll(updateAttributes)..addAll(
-        updateChildren);
+
+    updates
+      ..addAll(updateConfigs)
+      ..addAll(updateAttributes)
+      ..addAll(updateChildren);
 
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
 
   int _waitingAckCount = 0;
-  int _lastWatingAckId = -1;
+  int _lastWaitingAckId = -1;
 
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    if (receiveAckId == _lastWatingAckId) {
+    if (receiveAckId == _lastWaitingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount--;
@@ -216,10 +224,12 @@ class ListResponse extends Response {
     if (_sendingAfterAck) {
       return;
     }
+
     if (_waitingAckCount > ConnectionProcessor.ACK_WAIT_COUNT) {
       _sendingAfterAck = true;
       return;
     }
+
     if (!_pendingSending) {
       _pendingSending = true;
       responder.addProcessor(this);
