@@ -13,7 +13,7 @@ class SetController implements RequestUpdater {
     var pkt = new DSRequestPacket();
     pkt.method = DSPacketMethod.set;
     pkt.path = path;
-    var m = {
+    var m = <String, dynamic>{
       "value": value
     };
 
@@ -22,8 +22,6 @@ class SetController implements RequestUpdater {
     }
 
     pkt.setPayload(m);
-    requester.sendRequest(pkt, this);
-
     _request = requester._sendRequest(pkt, this);
   }
 
