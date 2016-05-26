@@ -10,14 +10,9 @@ class SetController implements RequestUpdater {
 
   SetController(this.requester, this.path, this.value,
       [int maxPermission = Permission.CONFIG]) {
-    var reqMap = <String, dynamic>{
-      'method': 'set',
-      'path': path,
-      'value': value
-    };
-
     var pkt = new DSRequestPacket();
     pkt.method = DSPacketMethod.set;
+    pkt.path = path;
     var m = {
       "value": value
     };
