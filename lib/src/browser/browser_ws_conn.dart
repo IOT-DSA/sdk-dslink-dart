@@ -40,6 +40,14 @@ class WebSocketConnection extends Connection {
     socket.binaryType = "arraybuffer";
     _responderChannel = new PassiveChannel(this);
     _requesterChannel = new PassiveChannel(this);
+
+    _queue = new DSPacketQueue(
+      DSPacketQueueMode.store,
+      handleNewPacketStore,
+      handleAckPacket,
+      handleMsgPacket
+    );
+
     socket.onMessage.listen(_onData, onDone: _onDone);
     socket.onClose.listen(_onDone);
     socket.onOpen.listen(_onOpen);
@@ -107,6 +115,34 @@ class WebSocketConnection extends Connection {
 
   DSPacketReader _reader = new DSPacketReader();
   DSPacketWriter _writer = new DSPacketWriter();
+  DSPacketQueue _queue;
+
+  void handleNewPacketStore(DSPacketStore store) {
+    store.handler = handlePacketDelivery;
+  }
+
+  void handlePacketDelivery(DSPacketStore store, DSNormalPacket _) {
+    if (store.isComplete) {
+      var pkt = store.formNewPacket();
+      if (pkt is DSResponsePacket) {
+        _requesterChannel.onReceiveController.add(pkt);
+      } else if (pkt is DSRequestPacket) {
+        _responderChannel.onReceiveController.add(pkt);
+      }
+      store.drop();
+    }
+  }
+
+  void handleAckPacket(DSAckPacket pkt) {
+    ack(pkt.ackId);
+  }
+
+  void handleMsgPacket(DSMsgPacket pkt) {
+    var id = pkt.ackId;
+    if (id != null) {
+      addConnCommand("ack", id);
+    }
+  }
 
   void _onData(MessageEvent e) {
     _dataReceiveCount = 0;
@@ -117,24 +153,13 @@ class WebSocketConnection extends Connection {
 
         List<DSPacket> packets = _reader.read(bytes);
 
-        for (DSPacket pkt in packets) {
-          if (logger.isLoggable(Level.FINEST)) {
+        if (logger.isLoggable(Level.FINEST)) {
+          for (DSPacket pkt in packets) {
             logger.finest("Receive: ${pkt}");
           }
-
-          if (pkt is DSResponsePacket) {
-            _requesterChannel.onReceiveController.add(pkt);
-          } else if (pkt is DSRequestPacket) {
-            _responderChannel.onReceiveController.add(pkt);
-          } else if (pkt is DSMsgPacket) {
-            var id = pkt.ackId;
-            if (id != null) {
-              addConnCommand("ack", id);
-            }
-          } else if (pkt is DSAckPacket) {
-            ack(pkt.ackId);
-          }
         }
+
+        _queue.handleAll(packets);
       } catch (e, stack) {
         logger.warning("Failed to handle frame", e, stack);
       }
@@ -175,8 +200,12 @@ class WebSocketConnection extends Connection {
       if (rslt.messages.length > 0) {
         needSend = true;
 
-        for (DSPacket resp in rslt.messages) {
-          pkts.add(resp);
+        for (DSPacket pkt in rslt.messages) {
+          if (pkt is DSNormalPacket && pkt.isLargePayload()) {
+            pkts.addAll(pkt.split());
+          } else {
+            pkts.add(pkt);
+          }
         }
       }
 
@@ -191,7 +220,11 @@ class WebSocketConnection extends Connection {
         needSend = true;
 
         for (DSPacket pkt in rslt.messages) {
-          pkts.add(pkt);
+          if (pkt is DSNormalPacket && pkt.isLargePayload()) {
+            pkts.addAll(pkt.split());
+          } else {
+            pkts.add(pkt);
+          }
         }
       }
 
@@ -207,7 +240,10 @@ class WebSocketConnection extends Connection {
         }
         var pkt = new DSMsgPacket();
         pkt.ackId = nextMsgId;
-        pkts.insert(0, pkt);
+
+        // Consider where the msg packet is, adding it last is best
+        // if we hit a frame limit.
+        pkts.add(pkt);
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
