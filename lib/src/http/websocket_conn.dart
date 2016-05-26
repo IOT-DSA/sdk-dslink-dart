@@ -208,8 +208,12 @@ class WebSocketConnection extends Connection {
       if (rslt.messages.length > 0) {
         needSend = true;
 
-        for (DSPacket resp in rslt.messages) {
-          pkts.add(resp);
+        for (DSPacket pkt in rslt.messages) {
+          if (pkt is DSNormalPacket && pkt.isLargePayload()) {
+            pkts.addAll(pkt.split());
+          } else {
+            pkts.add(pkt);
+          }
 
           if (throughputEnabled) {
             messageOut += 1;
@@ -231,7 +235,11 @@ class WebSocketConnection extends Connection {
         }
 
         for (DSPacket pkt in rslt.messages) {
-          pkts.add(pkt);
+          if (pkt is DSNormalPacket && pkt.isLargePayload()) {
+            pkts.addAll(pkt.split());
+          } else {
+            pkts.add(pkt);
+          }
         }
       }
 

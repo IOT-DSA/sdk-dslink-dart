@@ -14,6 +14,31 @@ class DSPacketQueueMode {
   const DSPacketQueueMode(this.name);
 }
 
+class BinaryDataUtils {
+  static List<Uint8List> buildDataChunks(Uint8List data, int chunkSize) {
+    var off = data.offsetInBytes;
+    var size = 0;
+    var out = <Uint8List>[];
+
+    while (true) {
+      var take = data.lengthInBytes - size;
+      if (take > chunkSize) {
+        take = chunkSize;
+      }
+      var view = data.buffer.asUint8List(off, take);
+      out.add(view);
+      off += take;
+      size += take;
+
+      if (size == data.lengthInBytes) {
+        break;
+      }
+    }
+
+    return out;
+  }
+}
+
 class DSPacketStore {
   final DSPacketQueue queue;
   final int rid;
@@ -312,6 +337,12 @@ int _write2BitNumber(int input, int start, int number) {
 }
 
 class DSNormalPacket extends DSPacket {
+  static const int payloadChunkSize =
+    const int.fromEnvironment(
+      "dsa.packet.payload.chunkSize",
+      defaultValue: 10240
+    );
+
   bool isPartial = false;
   bool isClustered = false;
   DSPacketMethod method;
@@ -418,7 +449,44 @@ class DSNormalPacket extends DSPacket {
   }
 
   void setPayload(input) {
+    payloadData = pack(input);
     _decodedPayload = input;
+  }
+
+  bool isLargePayload() {
+    if (payloadData == null || payloadData.lengthInBytes <= payloadChunkSize) {
+      return false;
+    }
+    return true;
+  }
+
+  List<DSNormalPacket> split() {
+    if (!isLargePayload()) {
+      return <DSNormalPacket>[this];
+    }
+
+    var payloads = BinaryDataUtils.buildDataChunks(
+      payloadData,
+      payloadChunkSize
+    );
+
+    var out = <DSNormalPacket>[];
+
+    var len = payloads.length;
+    var len1 = len - 1;
+    for (var i = 0; i < len; i++) {
+      var data = payloads[i];
+      var pkt = clone();
+      pkt.payloadData = data;
+
+      if (i != len1) {
+        pkt.isPartial = true;
+      } else {
+        pkt.isPartial = false;
+      }
+    }
+
+    return out;
   }
 
   void copyTo(DSNormalPacket pkt) {
