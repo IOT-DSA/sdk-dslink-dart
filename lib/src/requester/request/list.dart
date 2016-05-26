@@ -41,7 +41,10 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   ListController(this.node, this.requester) {
     _controller = new BroadcastStreamController<RequesterListUpdate>(
-        onStartListen, _onAllCancel, _onListen);
+      onStartListen,
+      _onAllCancel,
+      _onListen
+    );
   }
 
   bool get initialized {
@@ -53,8 +56,13 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void onDisconnect() {
     disconnectTs = ValueUpdate.getTs();
     node.configs[r'$disconnectedTs'] = disconnectTs;
-    _controller.add(new RequesterListUpdate(
-        node, [r'$disconnectedTs'], request.streamStatus));
+    _controller.add(
+      new RequesterListUpdate(
+        node,
+        [r'$disconnectedTs'],
+        request.streamStatus
+      )
+    );
   }
 
   void onReconnect() {
@@ -164,14 +172,18 @@ class ListController implements RequestUpdater, ConnectionProcessor {
         defPath = '/defs/profile/$defPath';
       }
     }
+
     if (node.profile is RemoteNode &&
         (node.profile as RemoteNode).remotePath == defPath) {
       return;
     }
+
     node.profile = requester.nodeCache.getDefNode(defPath, defName);
+
     if (defName == 'node') {
       return;
     }
+
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
       _profileLoader = new ListDefListener(
@@ -196,7 +208,9 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     _profileLoader.cancel();
     _profileLoader = null;
     changes.addAll(
-        update.changes.where((str) => !_ignoreProfileProps.contains(str)));
+      update.changes
+        .where((str) => !_ignoreProfileProps.contains(str))
+    );
     _ready = true;
     onProfileUpdated();
   }
@@ -206,10 +220,16 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void onProfileUpdated() {
     if (_ready) {
       if (request.streamStatus != StreamStatus.initialize) {
-        _controller.add(new RequesterListUpdate(
-            node, changes.toList(), request.streamStatus));
+        _controller.add(
+          new RequesterListUpdate(
+            node,
+            changes.toList(),
+            request.streamStatus
+          )
+        );
         changes.clear();
       }
+
       if (request.streamStatus == StreamStatus.closed) {
         _controller.close();
       }
@@ -228,6 +248,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       requester.addProcessor(this);
     }
   }
+
   bool waitToSend = false;
 
   void startSendingData(int currentTime, int waitingAckId) {

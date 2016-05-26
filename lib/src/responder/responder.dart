@@ -160,12 +160,14 @@ class Responder extends ConnectionHandler {
     addToSendList(pkt);
   }
 
-  void updateResponse(Response response, List updates,
-      {
-        String streamStatus,
-        List<dynamic> columns,
-        Map meta,
-        void handleMap(Map m)}) {
+  void updateResponse(
+    Response response,
+    List updates, {
+    String streamStatus,
+    List<dynamic> columns,
+    Map meta,
+    void handleMap(Map m)
+  }) {
     if (_responses[response.rid] == response) {
       var pkt = new DSResponsePacket();
       pkt.method = response.method;
@@ -174,8 +176,9 @@ class Responder extends ConnectionHandler {
 
       if (streamStatus != null && streamStatus != response._sentStreamStatus) {
         response._sentStreamStatus = streamStatus;
-        pkt.mode = DSPacketResponseMode.encode(streamStatus);
       }
+
+      pkt.mode = DSPacketResponseMode.encode(response._sentStreamStatus);
 
       if (response.method == DSPacketMethod.list) {
         pkt.setPayload(updates);

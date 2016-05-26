@@ -62,11 +62,10 @@ class ListResponse extends Response {
 
     if (node.disconnected != null) {
       responder.updateResponse(
-          this,
-          [
-            [r'$disconnectedTs', node.disconnected]
-          ],
-          streamStatus: StreamStatus.open);
+        this,
+        [[r'$disconnectedTs', node.disconnected]],
+        streamStatus: StreamStatus.open
+      );
       _disconnectSent = true;
       changes.clear();
       return;
