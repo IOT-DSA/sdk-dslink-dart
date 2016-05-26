@@ -99,8 +99,8 @@ class Request {
   void _close([DSError error]) {
     if (streamStatus != StreamStatus.closed) {
       streamStatus = StreamStatus.closed;
-      updater.onUpdate(StreamStatus.closed, null, null, null, error);
     }
+    updater.onUpdate(StreamStatus.closed, null, null, null, error);
   }
 
   /// close the request from the client side
