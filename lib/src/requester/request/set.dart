@@ -16,11 +16,20 @@ class SetController implements RequestUpdater {
       'value': value
     };
 
+    var pkt = new DSRequestPacket();
+    pkt.method = DSPacketMethod.set;
+    var m = {
+      "value": value
+    };
+
     if (maxPermission != Permission.CONFIG) {
-      reqMap['permit'] = Permission.names[maxPermission];
+      m["permit"] = Permission.names[maxPermission];
     }
 
-    _request = requester._sendRequest(reqMap, this);
+    pkt.setPayload(m);
+    requester.sendRequest(pkt, this);
+
+    _request = requester._sendRequest(pkt, this);
   }
 
   void onUpdate(String status, List updates, List columns, Map meta, DSError error) {

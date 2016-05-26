@@ -242,7 +242,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     request = requester._sendRequest(pkt, this);
     waitToSend = false;
   }
-  
+
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
   }
 
@@ -274,6 +274,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       _profileLoader.cancel();
       _profileLoader = null;
     }
+
     if (request != null) {
       requester.closeRequest(request);
       request = null;

@@ -9,12 +9,10 @@ class RemoveController implements RequestUpdater {
   Request _request;
 
   RemoveController(this.requester, this.path) {
-    var reqMap = <String, dynamic>{
-      'method': 'remove',
-      'path': path
-    };
-
-    _request = requester._sendRequest(reqMap, this);
+    var pkt = new DSRequestPacket();
+    pkt.method = DSPacketMethod.remove;
+    pkt.path = path;
+    _request = requester._sendRequest(pkt, this);
   }
 
   void onUpdate(String status, List updates, List columns, Map meta, DSError error) {
