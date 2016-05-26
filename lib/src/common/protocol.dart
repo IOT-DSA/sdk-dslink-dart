@@ -15,26 +15,39 @@ class DSPacketQueueMode {
 }
 
 class BinaryDataUtils {
-  static List<Uint8List> buildDataChunks(Uint8List data, int chunkSize) {
-    var off = data.offsetInBytes;
-    var size = 0;
-    var out = <Uint8List>[];
+  static List<Uint8List> splitDataChunks(Uint8List data, int chunkSize) {
+    var startOffset = data.offsetInBytes;
+    var d = data.lengthInBytes / chunkSize;
+    var chunkCount = d.ceil();
+    var lastBytes = ((d - d.floor()) * chunkSize).toInt();
+    var out = new List<Uint8List>(chunkCount);
 
-    while (true) {
-      var take = data.lengthInBytes - size;
-      if (take > chunkSize) {
-        take = chunkSize;
-      }
-      var view = data.buffer.asUint8List(off, take);
-      out.add(view);
-      off += take;
-      size += take;
-
-      if (size == data.lengthInBytes) {
-        break;
+    var off = startOffset;
+    for (var i = 1; i <= chunkCount; i++) {
+      if (i == chunkCount) {
+        out[i - 1] = data.buffer.asUint8List(off, lastBytes);
+      } else {
+        out[i - 1] = data.buffer.asUint8List(off, chunkSize);
+        off += chunkSize;
       }
     }
 
+    return out;
+  }
+
+  static Uint8List combineDataChunks(List<Uint8List> chunks) {
+    var len = 0;
+    for (var chunk in chunks) {
+      len += chunk.lengthInBytes;
+    }
+    var out = new Uint8List(len);
+    var i = 0;
+    for (var chunk in chunks) {
+      for (var x = 0; x < chunk.lengthInBytes; x++) {
+        out[i] = chunk[x];
+        i++;
+      }
+    }
     return out;
   }
 }
@@ -465,10 +478,12 @@ class DSNormalPacket extends DSPacket {
       return <DSNormalPacket>[this];
     }
 
-    var payloads = BinaryDataUtils.buildDataChunks(
+    var payloads = BinaryDataUtils.splitDataChunks(
       payloadData,
       payloadChunkSize
     );
+
+    print("Sending ${payloads.length} payloads.");
 
     var out = <DSNormalPacket>[];
 
@@ -484,6 +499,8 @@ class DSNormalPacket extends DSPacket {
       } else {
         pkt.isPartial = false;
       }
+
+      out.add(pkt);
     }
 
     return out;
