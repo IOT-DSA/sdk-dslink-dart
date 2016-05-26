@@ -40,6 +40,14 @@ class WebSocketConnection extends Connection {
     }
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
+
+    _queue = new DSPacketQueue(
+      DSPacketQueueMode.store,
+      handleNewPacketStore,
+      handleAckPacket,
+      handleMsgPacket
+    );
+
     socket.add(<int>[]);
     socket.listen(onData, onDone: _onDone);
     if (!enableAck) {
@@ -112,6 +120,23 @@ class WebSocketConnection extends Connection {
   }
 
   DSPacketReader _reader = new DSPacketReader();
+  DSPacketQueue _queue;
+
+  void handleNewPacketStore(DSPacketStore store) {
+    store.handler = handlePacketDelivery;
+  }
+
+  void handlePacketDelivery(DSPacketStore store, DSNormalPacket _) {
+    if (store.isComplete) {
+      var pkt = store.formNewPacket();
+      if (pkt is DSResponsePacket) {
+        _requesterChannel.onReceiveController.add(pkt);
+      } else if (pkt is DSRequestPacket) {
+        _responderChannel.onReceiveController.add(pkt);
+      }
+      store.drop();
+    }
+  }
 
   void onData(dynamic data) {
     frameIn++;
@@ -130,24 +155,24 @@ class WebSocketConnection extends Connection {
 
       List<DSPacket> packets = _reader.read(data);
 
-      for (DSPacket pkt in packets) {
-        if (logger.isLoggable(Level.FINEST)) {
+      if (logger.isLoggable(Level.FINEST)) {
+        for (DSPacket pkt in packets) {
           logger.finest(formatLogMessage("Receive: ${pkt}"));
         }
-
-        if (pkt is DSResponsePacket) {
-          _requesterChannel.onReceiveController.add(pkt);
-        } else if (pkt is DSRequestPacket) {
-          _responderChannel.onReceiveController.add(pkt);
-        } else if (pkt is DSMsgPacket) {
-          var id = pkt.ackId;
-          if (id != null) {
-            addConnCommand("ack", id);
-          }
-        } else if (pkt is DSAckPacket) {
-          ack(pkt.ackId);
-        }
       }
+
+      _queue.handleAll(packets);
+    }
+  }
+
+  void handleAckPacket(DSAckPacket pkt) {
+    ack(pkt.ackId);
+  }
+
+  void handleMsgPacket(DSMsgPacket pkt) {
+    var id = pkt.ackId;
+    if (id != null) {
+      addConnCommand("ack", id);
     }
   }
 

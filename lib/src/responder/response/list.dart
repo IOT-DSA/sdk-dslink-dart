@@ -10,6 +10,7 @@ class ListResponse extends Response {
     _permission =
         responder.nodeProvider.permissions.getPermission(node.path, responder);
     _nodeChangeListener = node.listStream.listen(changed);
+
     if (node.listReady) {
       prepareSending();
     } else if (node.disconnected != null) {

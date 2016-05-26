@@ -67,7 +67,13 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
 
-  void onUpdate(String streamStatus, List updates, List columns, Map meta, DSError error) {
+  @override
+  void onUpdate(
+    String streamStatus,
+    List updates,
+    List columns,
+    Map meta,
+    DSError error) {
     bool reseted = false;
     // TODO implement error handling
     if (updates != null) {
@@ -133,9 +139,11 @@ class ListController implements RequestUpdater, ConnectionProcessor {
           }
         }
       }
+
       if (request.streamStatus != StreamStatus.initialize) {
         node.listed = true;
       }
+
       if (_pendingRemoveDef) {
         _checkRemoveDef();
       }
@@ -166,8 +174,11 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     }
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
-      _profileLoader =
-      new ListDefListener(node.profile, requester, _onProfileUpdate);
+      _profileLoader = new ListDefListener(
+        node.profile,
+        requester,
+        _onProfileUpdate
+      );
     }
   }
 
@@ -231,6 +242,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     request = requester._sendRequest(pkt, this);
     waitToSend = false;
   }
+  
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
   }
 

@@ -15,12 +15,16 @@ class DSPacketQueueMode {
 }
 
 class DSPacketStore {
+  final DSPacketQueue queue;
   final int rid;
   final List<DSNormalPacket> packets;
 
   DSPacketDeliveryHandler handler;
 
-  DSPacketStore(this.rid) : packets = <DSNormalPacket>[];
+  DSPacketStore(this.queue, this.rid) : packets = <DSNormalPacket>[];
+
+  bool _isComplete = false;
+  bool get isComplete => _isComplete;
 
   void deliver(DSNormalPacket packet) {
     if (handler != null) {
@@ -30,6 +34,43 @@ class DSPacketStore {
 
   void store(DSNormalPacket packet) {
     packets.add(packet);
+
+    if (!packet.isPartial) {
+      _isComplete = true;
+    }
+  }
+
+  Uint8List readAllPayload() {
+    if (packets.length == 1) {
+      return packets[0].payloadData;
+    }
+
+    var buff = new DSPacketWriter();
+    for (DSNormalPacket pkt in packets) {
+      if (pkt.payloadData != null) {
+        buff.writeUint8List(pkt.payloadData);
+      }
+    }
+
+    if (buff._totalLength == 0) {
+      return null;
+    }
+
+    return buff.done();
+  }
+
+  DSNormalPacket formNewPacket() {
+    if (packets.length == 1) {
+      return packets[0];
+    }
+
+    var pkt = packets[0].clone();
+    pkt.payloadData = readAllPayload();
+    return pkt;
+  }
+
+  void drop() {
+    queue._queue.remove(rid);
   }
 }
 
@@ -50,7 +91,7 @@ class DSPacketQueue {
     if (packet is DSNormalPacket) {
       DSPacketStore store = _queue[packet.rid];
       if (store == null) {
-        store = new DSPacketStore(packet.rid);
+        store = new DSPacketStore(this, packet.rid);
         _queue[packet.rid] = store;
 
         newPacketHandler(store);
@@ -59,9 +100,19 @@ class DSPacketQueue {
       if (mode == DSPacketQueueMode.deliver) {
         store.deliver(packet);
       } else {
-        store.deliver(packet);
         store.store(packet);
+        store.deliver(packet);
       }
+    } else if (packet is DSMsgPacket && msgPacketHandler != null) {
+      msgPacketHandler(packet);
+    } else if (packet is DSAckPacket && ackPacketHandler != null) {
+      ackPacketHandler(packet);
+    }
+  }
+
+  void handleAll(Iterable<DSPacket> pkts) {
+    for (DSPacket pkt in pkts) {
+      handle(pkt);
     }
   }
 }
@@ -369,6 +420,26 @@ class DSNormalPacket extends DSPacket {
   void setPayload(input) {
     _decodedPayload = input;
   }
+
+  void copyTo(DSNormalPacket pkt) {
+    pkt
+      ..payloadData = payloadData
+      ..isPartial = isPartial
+      ..isClustered = isClustered
+      ..method = method
+      ..totalSize = totalSize
+      ..side = side
+      ..clusterId = clusterId
+      ..updateId = updateId
+      .._decodedPayload = _decodedPayload
+      ..rid = rid;
+  }
+
+  DSNormalPacket clone() {
+    var pkt = new DSNormalPacket();
+    copyTo(pkt);
+    return pkt;
+  }
 }
 
 class DSRequestPacket extends DSNormalPacket {
@@ -426,6 +497,21 @@ class DSRequestPacket extends DSNormalPacket {
     list.add("QOS: ${qos}");
     return list;
   }
+
+  @override
+  DSRequestPacket clone() {
+    var pkt = new DSRequestPacket();
+    copyTo(pkt);
+    return pkt;
+  }
+
+  @override
+  void copyTo(DSRequestPacket pkt) {
+    super.copyTo(pkt);
+    pkt
+      ..path = path
+      ..qos = qos;
+  }
 }
 
 class DSResponsePacket extends DSNormalPacket {
@@ -464,6 +550,21 @@ class DSResponsePacket extends DSNormalPacket {
     list.add("Mode: ${mode.name}");
     list.add("Status: ${status}");
     return list;
+  }
+
+  @override
+  DSResponsePacket clone() {
+    var pkt = new DSResponsePacket();
+    copyTo(pkt);
+    return pkt;
+  }
+
+  @override
+  void copyTo(DSResponsePacket pkt) {
+    super.copyTo(pkt);
+    pkt
+      ..mode = mode
+      ..status = status;
   }
 }
 
