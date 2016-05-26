@@ -407,7 +407,7 @@ class Responder extends ConnectionHandler {
   }
 
   void set(DSRequestPacket pkt) {
-    Path path = Path.getValidPath(pkt);
+    Path path = Path.getValidPath(pkt.path);
     if (path == null || !path.isAbsolute) {
       closeResponse(pkt.rid, error: DSError.INVALID_PATH);
       return;
@@ -463,7 +463,11 @@ class Responder extends ConnectionHandler {
         closeResponse(pkt.rid, error: DSError.PERMISSION_DENIED);
       } else {
         node.setConfig(
-            path.name, value, this, addResponse(new Response(pkt.method, this, rid)));
+          path.name,
+          value,
+          this,
+          addResponse(new Response(pkt.method, this, rid))
+        );
       }
     } else if (path.isAttribute) {
       LocalNode node;
@@ -488,10 +492,12 @@ class Responder extends ConnectionHandler {
 
   void remove(DSRequestPacket pkt) {
     Path path = Path.getValidPath(pkt.path);
+
     if (path == null || !path.isAbsolute) {
       closeResponse(pkt.rid, error: DSError.INVALID_PATH);
       return;
     }
+
     int rid = pkt.rid;
     if (path.isNode) {
       closeResponse(pkt.rid, error: DSError.INVALID_METHOD);
@@ -523,7 +529,10 @@ class Responder extends ConnectionHandler {
         closeResponse(pkt.rid, error: DSError.PERMISSION_DENIED);
       } else {
         node.removeAttribute(
-            path.name, this, addResponse(new Response(pkt.method, this, rid)));
+          path.name,
+          this,
+          addResponse(new Response(pkt.method, this, rid))
+        );
       }
     } else {
       // shouldn't be possible to reach here
