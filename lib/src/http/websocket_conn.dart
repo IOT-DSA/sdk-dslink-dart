@@ -255,7 +255,10 @@ class WebSocketConnection extends Connection {
         }
         var pkt = new DSMsgPacket();
         pkt.ackId = nextMsgId;
-        pkts.insert(0, pkt);
+
+        // Consider where the msg packet is, adding it last is best
+        // if we hit a frame limit.
+        pkts.add(pkt);
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
