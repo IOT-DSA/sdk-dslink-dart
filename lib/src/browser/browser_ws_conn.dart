@@ -254,13 +254,16 @@ class WebSocketConnection extends Connection {
       bool needsWrite = true;
 
       for (var pkt in pkts) {
+        needsWrite = true;
+
         if (logger.isLoggable(Level.FINEST)) {
           logger.finest("Send: ${pkt}");
         }
 
         pkt.writeTo(_writer);
 
-        if (_writer.currentLength > 150000) { // 150KB frame limit
+        if (_writer.currentLength > 76800) { // 75KB frame limit
+          logger.finer("Frame limit hit, sending packets.");
           addData(_writer.done());
           needsWrite = false;
         }

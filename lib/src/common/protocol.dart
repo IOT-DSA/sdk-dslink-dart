@@ -88,6 +88,8 @@ class DSPacketStore {
       return null;
     }
 
+    logger.finer("Assembled payload for ${rid} is ${full.lengthInBytes} bytes.");
+
     return full;
   }
 
@@ -348,7 +350,7 @@ class DSNormalPacket extends DSPacket {
   static const int payloadChunkSize =
     const int.fromEnvironment(
       "dsa.packet.payload.chunkSize",
-      defaultValue: 10240
+      defaultValue: 51200 // 50KB
     );
 
   bool isPartial = false;
@@ -448,6 +450,7 @@ class DSNormalPacket extends DSPacket {
     }
 
     return [
+      "Partial: ${isPartial}",
       "Side: ${side.name}",
       "Method: ${method.name}",
       "RID: ${rid}",
@@ -496,6 +499,11 @@ class DSNormalPacket extends DSPacket {
     if (out.isNotEmpty) {
       out.last.isPartial = false;
     }
+
+    logger.finer(
+      "Large payload of ${payloadData.lengthInBytes}"
+        " bytes was split into ${payloads.length} chunks"
+    );
 
     return out;
   }

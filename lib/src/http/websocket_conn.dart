@@ -253,29 +253,34 @@ class WebSocketConnection extends Connection {
         if (pendingAck.length > 0) {
           pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
+
         var pkt = new DSMsgPacket();
         pkt.ackId = nextMsgId;
 
-        // Consider where the msg packet is, adding it last is best
-        // if we hit a frame limit.
-        pkts.add(pkt);
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
           nextMsgId = 1;
         }
+
+        // Consider where the msg packet is, adding it last is best
+        // if we hit a frame limit.
+        pkts.add(pkt);
       }
 
       bool needsWrite = true;
 
       for (var pkt in pkts) {
+        needsWrite = true;
+
         if (logger.isLoggable(Level.FINEST)) {
           logger.finest(formatLogMessage("Send: ${pkt}"));
         }
 
         pkt.writeTo(_writer);
 
-        if (_writer.currentLength > 150000) { // 150KB frame limit
+        if (_writer.currentLength > 76800) { // 75KB frame limit
+          logger.finer("Frame limit hit, sending packets.");
           addData(_writer.done());
           needsWrite = false;
           frameOut++;
@@ -292,7 +297,9 @@ class WebSocketConnection extends Connection {
   }
 
   void addData(Uint8List data) {
-    socket.add(data);
+    new Future(() {
+      socket.add(data);
+    });
   }
 
   bool printDisconnectedMessage = true;
