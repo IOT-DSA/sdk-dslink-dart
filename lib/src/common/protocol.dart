@@ -19,7 +19,7 @@ class BinaryDataUtils {
     var startOffset = data.offsetInBytes;
     var d = data.lengthInBytes / chunkSize;
     var chunkCount = d.ceil();
-    var lastBytes = ((d - d.floor()) * chunkSize).toInt();
+    var lastBytes = ((d - d.floor()) * chunkSize).round();
     var out = new List<Uint8List>(chunkCount);
 
     var off = startOffset;
