@@ -40,7 +40,7 @@ class Base64 {
 
   static String encodeString(String content,
       [int lineSize = 0, int paddingSpace = 0]) {
-    return Base64.encode(toUTF8(content), lineSize, paddingSpace);
+    return Base64.encode(fastEncodeUtf8(content), lineSize, paddingSpace);
   }
 
   static String decodeString(String input) {

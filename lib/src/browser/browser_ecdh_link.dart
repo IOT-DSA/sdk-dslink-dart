@@ -65,7 +65,7 @@ class BrowserECDHLink extends ClientLink {
       // pre-generate tokenHash
       String tokenId = token.substring(0, 16);
       String hashStr = CryptoProvider.sha256(
-          toUTF8('$dsId$token'));
+          fastEncodeUtf8('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
     if (formats != null) {

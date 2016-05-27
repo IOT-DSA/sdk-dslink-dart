@@ -448,7 +448,7 @@ const List<int> numbers = const [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const List<String> specials = const ["@", "=", "_", "+", "-", "!", "."];
 
-Uint8List toUTF8(String str) {
+Uint8List fastEncodeUtf8(String str) {
   int length = str.length;
   Uint8List bytes = new Uint8List(length);
   for (int i = 0; i < length; i++) {

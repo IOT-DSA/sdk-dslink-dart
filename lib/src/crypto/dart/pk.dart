@@ -193,7 +193,7 @@ class ECDHImpl extends ECDH {
   }
 
   String hashSalt(String salt) {
-    Uint8List encoded = toUTF8(salt);
+    Uint8List encoded = fastEncodeUtf8(salt);
     Uint8List raw = new Uint8List(encoded.length + bytes.length);
     int i;
     for (i = 0; i < encoded.length; i++) {

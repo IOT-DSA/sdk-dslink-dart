@@ -97,7 +97,7 @@ class HttpClientLink extends ClientLink {
       // pre-generate tokenHash
       String tokenId = token.substring(0, 16);
       String hashStr = CryptoProvider.sha256(
-          toUTF8('$dsId$token'));
+          fastEncodeUtf8('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
   }
@@ -149,7 +149,7 @@ class HttpClientLink extends ClientLink {
 
       logger.fine(formatLogMessage("ID: ${dsId}"));
 
-      request.add(toUTF8(DsJson.encode(requestJson)));
+      request.add(fastEncodeUtf8(DsJson.encode(requestJson)));
       HttpClientResponse response = await request.close();
       List<int> merged = await response.fold(<int>[], foldList);
       String rslt = const Utf8Decoder().convert(merged);

@@ -724,7 +724,7 @@ class DSPacketWriter implements PackBuffer {
   void writeString(String input) {
     Uint8List data;
 
-    var encoded = const Utf8Encoder().convert(input);
+    var encoded = fastEncodeUtf8(input);
     if (encoded is Uint8List) {
       data = encoded;
     } else {
