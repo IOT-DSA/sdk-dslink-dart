@@ -94,7 +94,7 @@ class WebSocketConnection extends Connection {
     }
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
-    socket.sendString("{}");
+    socket.sendByteBuffer(new Uint8List(0).buffer);
     requireSend();
   }
 
@@ -275,7 +275,7 @@ class WebSocketConnection extends Connection {
   }
 
   void addData(Uint8List data) {
-    socket.sendByteBuffer(data.buffer);
+    socket.sendTypedData(data);
   }
 
   bool _authError = false;
@@ -287,7 +287,7 @@ class WebSocketConnection extends Connection {
       }
     }
 
-    logger.fine("socket disconnected");
+    logger.fine("Disconnected");
 
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
