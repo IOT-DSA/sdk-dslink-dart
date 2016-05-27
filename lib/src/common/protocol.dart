@@ -984,10 +984,11 @@ class DSPacketReader {
 
         var payloadSize = totalSize - offset;
 
-        if (status > 127) {
-          pkt.payloadData = new Uint8List(0);
-        } else {
-          pkt.payloadData = data.buffer.asUint8List(realOffset + offset, payloadSize);
+        if (status <= 127) {
+          pkt.payloadData = data.buffer.asUint8List(
+            realOffset + offset,
+            payloadSize
+          );
         }
 
         outs.add(pkt);
