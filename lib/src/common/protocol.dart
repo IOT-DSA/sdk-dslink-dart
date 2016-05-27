@@ -36,19 +36,11 @@ class BinaryDataUtils {
   }
 
   static Uint8List combineDataChunks(List<Uint8List> chunks) {
-    var len = 0;
-    for (var chunk in chunks) {
-      len += chunk.lengthInBytes;
+    var writer = new DSPacketWriter(bufferSize: DSNormalPacket.payloadChunkSize);
+    for (Uint8List list in chunks) {
+      writer.writeUint8List(list);
     }
-    var out = new Uint8List(len);
-    var i = 0;
-    for (var chunk in chunks) {
-      for (var x = 0; x < chunk.lengthInBytes; x++) {
-        out[i] = chunk[x];
-        i++;
-      }
-    }
-    return out;
+    return writer.done();
   }
 }
 
@@ -83,18 +75,20 @@ class DSPacketStore {
       return packets[0].payloadData;
     }
 
-    var buff = new DSPacketWriter();
+    var payloads = <Uint8List>[];
     for (DSNormalPacket pkt in packets) {
       if (pkt.payloadData != null) {
-        buff.writeUint8List(pkt.payloadData);
+        payloads.add(pkt.payloadData);
       }
     }
 
-    if (buff._totalLength == 0) {
+    var full = BinaryDataUtils.combineDataChunks(payloads);
+
+    if (full.lengthInBytes == 0) {
       return null;
     }
 
-    return buff.done();
+    return full;
   }
 
   DSNormalPacket formNewPacket() {
@@ -104,6 +98,7 @@ class DSPacketStore {
 
     var pkt = packets[0].clone();
     pkt.payloadData = readAllPayload();
+    pkt.isPartial = false;
     return pkt;
   }
 
@@ -432,6 +427,10 @@ class DSNormalPacket extends DSPacket {
       return null;
     }
 
+    if (isPartial) {
+      return "[Partial Data of ${payloadData.lengthInBytes} bytes]";
+    }
+
     if (payloadData.lengthInBytes == 0) {
       return null;
     }
@@ -483,24 +482,19 @@ class DSNormalPacket extends DSPacket {
       payloadChunkSize
     );
 
-    print("Sending ${payloads.length} payloads.");
-
     var out = <DSNormalPacket>[];
 
     var len = payloads.length;
-    var len1 = len - 1;
     for (var i = 0; i < len; i++) {
       var data = payloads[i];
       var pkt = clone();
       pkt.payloadData = data;
-
-      if (i != len1) {
-        pkt.isPartial = true;
-      } else {
-        pkt.isPartial = false;
-      }
-
+      pkt.isPartial = true;
       out.add(pkt);
+    }
+
+    if (out.isNotEmpty) {
+      out.last.isPartial = false;
     }
 
     return out;
