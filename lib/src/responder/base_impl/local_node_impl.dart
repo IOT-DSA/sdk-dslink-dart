@@ -34,6 +34,7 @@ abstract class LocalNodeImpl extends LocalNode {
 
   bool get loaded => _loaded;
 
+  @override
   void load(Map m) {
     if (_loaded) {
       configs.clear();
@@ -67,6 +68,7 @@ abstract class LocalNodeImpl extends LocalNode {
     listChangeController.add(name);
   }
 
+  @override
   Response setAttribute(String name, Object value, Responder responder,
       Response response) {
     if (!attributes.containsKey(name) || attributes[name] != value) {
@@ -80,6 +82,7 @@ abstract class LocalNodeImpl extends LocalNode {
     return response..close();
   }
 
+  @override
   Response removeAttribute(String name, Responder responder,
       Response response) {
     if (attributes.containsKey(name)) {
@@ -93,6 +96,7 @@ abstract class LocalNodeImpl extends LocalNode {
     return response..close();
   }
 
+  @override
   Response setConfig(String name, Object value, Responder responder,
       Response response) {
     var config = Configs.getConfig(name, profile);
@@ -100,11 +104,13 @@ abstract class LocalNodeImpl extends LocalNode {
     return response;
   }
 
+  @override
   Response removeConfig(String name, Responder responder, Response response) {
     var config = Configs.getConfig(name, profile);
     return response..close(config.removeConfig(this, responder));
   }
 
+  @override
   Response setValue(
     Object value,
     Responder responder,

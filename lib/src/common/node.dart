@@ -27,7 +27,7 @@ class Node {
 
   /// same as attributes for local node
   /// but different on remote node
-  Object getOverideAttributes(String attr) {
+  Object getOverrideAttributes(String attr) {
     return attributes[attr];
   }
 
@@ -182,7 +182,7 @@ class Path {
     }
     return str;
   }
-  
+
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);
