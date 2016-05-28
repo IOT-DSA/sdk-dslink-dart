@@ -20,7 +20,10 @@ class BrowserUserLink extends ClientLink {
 
   bool enableAck;
 
-  static const Map<String, int> saltNameMap = const {"salt": 0, "saltS": 1,};
+  static const Map<String, int> saltNameMap = const {
+    "salt": 0,
+    "saltS": 1
+  };
 
   updateSalt(String salt, [int saltId = 0]) {
     // TODO: implement updateSalt
@@ -54,12 +57,12 @@ class BrowserUserLink extends ClientLink {
 
   void connect() {
     lockCryptoProvider();
-    initWebsocket(false);
+    initWebSocket(false);
   }
 
   int _wsDelay = 1;
 
-  initWebsocket([bool reconnect = true]) {
+  initWebSocket([bool reconnect = true]) {
     var socket = new WebSocket("$wsUpdateUri?session=$session&format=$format");
     _wsConnection = new WebSocketConnection(
         socket, this, enableAck: enableAck, useCodec: DsCodec.getCodec(format));
@@ -80,13 +83,13 @@ class BrowserUserLink extends ClientLink {
       logger.info("Disconnected");
       if (_wsConnection._opened) {
         _wsDelay = 1;
-        initWebsocket(false);
+        initWebSocket(false);
       } else if (reconnect) {
-        DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
+        DsTimer.timerOnceAfter(initWebSocket, _wsDelay * 1000);
         if (_wsDelay < 60) _wsDelay++;
       } else {
         _wsDelay = 5;
-        DsTimer.timerOnceAfter(initWebsocket, 5000);
+        DsTimer.timerOnceAfter(initWebSocket, 5000);
       }
     });
   }

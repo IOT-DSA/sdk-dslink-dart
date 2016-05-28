@@ -109,7 +109,6 @@ class Node {
     return getChild(name);
   }
 
-
   /// Iterates over all the children of this node and passes them to the specified [callback].
   void forEachChild(void callback(String name, Node node)) {
     children.forEach(callback);

@@ -47,12 +47,13 @@ class BrowserECDHLink extends ClientLink {
   /// format received from broker
   String format = 'json';
 
-  BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider,
-      bool isRequester: true,
-      bool isResponder: true,
-      this.token, List formats})
-      : privateKey = privateKey,
+  BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey, {
+    NodeProvider nodeProvider,
+    bool isRequester: true,
+    bool isResponder: true,
+    this.token,
+    List formats
+  }) : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? new Requester() : null,
         responder = (isResponder && nodeProvider != null)
@@ -96,16 +97,21 @@ class BrowserECDHLink extends ClientLink {
         'version': DSA_VERSION,
         'enableWebSocketCompression': true
       };
-      HttpRequest request = await HttpRequest.request(connUrl,
-          method: 'POST',
-          withCredentials: false,
-          mimeType: 'application/json',
-          sendData: DsJson.encode(requestJson));
+
+      HttpRequest request = await HttpRequest.request(
+        connUrl,
+        method: 'POST',
+        withCredentials: false,
+        mimeType: 'application/json',
+        sendData: DsJson.encode(requestJson)
+      );
+
       Map serverConfig = DsJson.decode(request.responseText);
       saltNameMap.forEach((name, idx) {
-        //read salts
+        // read salts
         salts[idx] = serverConfig[name];
       });
+
       String tempKey = serverConfig['tempKey'];
       _nonce = await privateKey.getSecret(tempKey);
 
@@ -123,7 +129,7 @@ class BrowserECDHLink extends ClientLink {
       if (serverConfig['format'] is String) {
         format = serverConfig['format'];
       }
-      initWebsocket(false);
+      initWebSocket(false);
       _connDelay = 1;
       _wsDelay = 1;
     } catch (err) {
@@ -134,10 +140,10 @@ class BrowserECDHLink extends ClientLink {
 
   int _wsDelay = 1;
 
-  initWebsocket([bool reconnect = true]) {
+  initWebSocket([bool reconnect = true]) {
     if (_closed) return;
-    String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
-        salts[0])}&format=$format';
+    String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salts[0])}'
+      + '&format=$format';
     var socket = new WebSocket(wsUrl);
     _wsConnection =
     new WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
@@ -159,6 +165,7 @@ class BrowserECDHLink extends ClientLink {
         }
       });
     }
+
     _wsConnection.onDisconnected.then((authError) {
       logger.info('Disconnected');
       if (_closed) return;
@@ -168,18 +175,18 @@ class BrowserECDHLink extends ClientLink {
         if (authError) {
           connect();
         } else {
-          initWebsocket(false);
+          initWebSocket(false);
         }
       } else if (reconnect) {
         if (authError) {
           connect();
         } else {
-          DsTimer.timerOnceAfter(initWebsocket, _wsDelay * 1000);
+          DsTimer.timerOnceAfter(initWebSocket, _wsDelay * 1000);
           if (_wsDelay < 60) _wsDelay++;
         }
       } else {
         _wsDelay = 5;
-        DsTimer.timerOnceAfter(initWebsocket, 5000);
+        DsTimer.timerOnceAfter(initWebSocket, 5000);
       }
     });
   }
