@@ -92,7 +92,7 @@ class WebSocketConnection extends Connection {
       _dataSent = false;
       return;
     }
-    this.addConnCommand(null, null);
+    addConnCommand(null, null);
   }
 
   void requireSend() {
@@ -188,17 +188,22 @@ class WebSocketConnection extends Connection {
 
     var pkts = <DSPacket>[];
 
-    if (_serverCommand != null && _serverCommand["ack"] is int) {
-      var pkt = new DSAckPacket();
-      pkt.ackId = _serverCommand["ack"];
-      _serverCommand = null;
-      if (logger.isLoggable(Level.FINEST)) {
-        logger.finest(formatLogMessage("Send: ${pkt}"));
+    if (_serverCommand != null) {
+      if (_serverCommand["ack"] is int) {
+        var pkt = new DSAckPacket();
+        pkt.ackId = _serverCommand["ack"];
+        _serverCommand = null;
+        if (logger.isLoggable(Level.FINEST)) {
+          logger.finest(formatLogMessage("Send: ${pkt}"));
+        }
+        pkt.writeTo(_writer);
+        addData(_writer.done());
+        requireSend();
+        return;
+      } else {
+        needSend = true;
+        _serverCommand = null;
       }
-      pkt.writeTo(_writer);
-      addData(_writer.done());
-      requireSend();
-      return;
     }
 
     var pendingAck = <ConnectionProcessor>[];
