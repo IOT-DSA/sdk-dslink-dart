@@ -227,6 +227,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
               {'method': 'list', 'path': node.remotePath}, this);
     waitToSend = false;
   }
+
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
   }
 
