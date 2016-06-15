@@ -83,7 +83,7 @@ class DsTimer {
       if (it.ts50 > time50) {
         it.insertBefore(tf);
         break;
-      } else if (it.next != _pendingTimer) {
+      } else if (it.next != _pendingTimer && it.next != it) {
         it = it.next;
       } else {
         it = null;
