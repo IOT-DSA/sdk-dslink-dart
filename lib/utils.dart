@@ -88,13 +88,15 @@ class DSLogUtils {
   }
 }
 
+const bool _isJavaScript = identical(1, 1.0);
+
 bool _getLogSetting(LogRecord record, String name, [bool defaultValue = false]) {
-  try {
+  if (!_isJavaScript) {
     bool env = new bool.fromEnvironment(name, defaultValue: null);
     if (env != null) {
       return env;
     }
-  } catch (e) {}
+  }
 
   if (record.zone[name] is bool) {
     return record.zone[name];
