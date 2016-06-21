@@ -597,7 +597,11 @@ class SimpleNodeProvider extends NodeProviderImpl
       pnode.updateList(p.name);
     }
 
-    nodes.remove(path);
+    if (node.callbacks.isEmpty) {
+      nodes.remove(path);
+    } else {
+      node._stub = true;
+    }
   }
 
   Map<String, NodeFactory> _profiles = new Map<String, NodeFactory>();
