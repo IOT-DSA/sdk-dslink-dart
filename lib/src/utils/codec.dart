@@ -166,7 +166,7 @@ class DsMsgPackCodecImpl extends DsCodec {
     if (_unpacker == null) {
       _unpacker = new Unpacker(data.buffer, data.offsetInBytes);
     } else {
-      _unpacker.reset(data.buffer);
+      _unpacker.reset(data.buffer, 0);
       _unpacker.offset = data.offsetInBytes;
     }
     Object rslt = _unpacker.unpack();
