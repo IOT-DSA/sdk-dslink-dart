@@ -264,6 +264,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   SimpleCallback onAllListCancelCallback;
   SimpleCallback onListStartListen;
   Completer onLoadedCompleter;
+  ValueUpdateCallback<bool> onValueSetCallback;
 
   CallbackNode(String path,
       {SimpleNodeProvider provider,
@@ -274,6 +275,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
       SimpleCallback onRemoving,
       LoadChildCallback onLoadChild,
       SimpleCallback onSubscribe,
+      ValueUpdateCallback<bool> onValueSet,
       SimpleCallback onUnsubscribe})
       : onChildAddedCallback = onChildAdded,
         onChildRemovedCallback = onChildRemoved,
@@ -282,6 +284,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
         onLoadChildCallback = onLoadChild,
         onSubscribeCallback = onSubscribe,
         onUnsubscribeCallback = onUnsubscribe,
+        onValueSetCallback = onValueSet,
         super(path, provider);
 
   @override
@@ -385,6 +388,14 @@ class CallbackNode extends SimpleNode implements WaitForMe {
       onAllListCancelCallback();
     }
     super.onAllListCancel();
+  }
+
+  @override
+  onSetValue(value) {
+    if (onValueSetCallback != null) {
+      return onValueSetCallback(value);
+    }
+    return super.onSetValue(value);
   }
 }
 

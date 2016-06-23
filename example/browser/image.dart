@@ -31,7 +31,7 @@ setup(String path) {
     listener = null;
   }
 
-  listener = requester.subscribe(path, handleValueUpdate);
+  listener = requester.subscribe(path, handleValueUpdate, 0);
 }
 
 String url;
@@ -45,9 +45,10 @@ handleValueUpdate(ValueUpdate update) {
     Url.revokeObjectUrl(url);
   }
 
-  var bytes = (update.value as ByteData).buffer.asUint8List();
+  ByteData data = update.value;
+  var bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
-  var blob = new Blob([bytes]);
+  var blob = new Blob([bytes], "image/jpeg");
 
   url = image.src = Url.createObjectUrl(blob);
 }
