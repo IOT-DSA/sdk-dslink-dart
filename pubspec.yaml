@@ -9,7 +9,7 @@ dependencies:
     git: https://github.com/IOT-DSA/cipher.git
   logging: "^0.11.3"
   crypto: "0.9.1"
-  msgpack: "^0.6.0"
+  msgpack: "^0.7.1"
   json_diff: "^0.1.2"
 authors:
   - Kenneth Endfinger <k.endfinger@dglogik.com>
