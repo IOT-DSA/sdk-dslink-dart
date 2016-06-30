@@ -110,7 +110,10 @@ class WebSocketConnection extends Connection {
   }
 
   void onData(dynamic data) {
-    frameIn++;
+    if (throughputEnabled) {
+      frameIn++;
+    }
+
     if (_onDisconnectedCompleter.isCompleted) {
       return;
     }
@@ -146,12 +149,20 @@ class WebSocketConnection extends Connection {
         needAck = true;
         // send responses to requester channel
         _requesterChannel.onReceiveController.add(m["responses"]);
+
+        if (throughputEnabled) {
+          messageIn += (m["responses"] as List).length;
+        }
       }
 
       if (m["requests"] is List && (m["requests"] as List).length > 0) {
         needAck = true;
         // send requests to responder channel
         _responderChannel.onReceiveController.add(m["requests"]);
+
+        if (throughputEnabled) {
+          messageIn += (m["requests"] as List).length;
+        }
       }
 
       if (m["ack"] is int) {
@@ -298,7 +309,10 @@ class WebSocketConnection extends Connection {
       }
       addData(m);
       _dataSent = true;
-      frameOut++;
+
+      if (throughputEnabled) {
+        frameOut++;
+      }
     }
   }
 
