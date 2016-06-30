@@ -2,6 +2,7 @@ part of dslink.responder;
 
 typedef LocalNode NodeFactory(String path);
 typedef SimpleNode SimpleNodeFactory(String path);
+typedef Future<ByteData> IconResolver(String name);
 
 /// A simple table result.
 /// This is used to return simple tables from an action.
@@ -246,6 +247,42 @@ abstract class MutableNodeProvider {
   void addProfile(String name, NodeFactory factory);
 }
 
+class SysGetIconNode extends SimpleNode {
+  SysGetIconNode(String path, [SimpleNodeProvider provider]) : super(
+    path,
+    provider
+  ) {
+    configs.addAll({
+      r"$invokable": "read",
+      r"$params": [
+        {
+          "name": "Icon",
+          "type": "string"
+        }
+      ],
+      r"$columns": [
+        {
+          "name": "Data",
+          "type": "binary"
+        }
+      ],
+      r"$result": "table"
+    });
+  }
+
+  @override
+  onInvoke(Map<String, dynamic> params) async {
+    String name = params["Icon"];
+    IconResolver resolver = provider._iconResolver;
+
+    ByteData data = await resolver(name);
+
+    return [[
+      data
+    ]];
+  }
+}
+
 class SimpleNodeProvider extends NodeProviderImpl
     implements SerializableNodeProvider, MutableNodeProvider {
   /// Global instance.
@@ -253,6 +290,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   static SimpleNodeProvider instance;
 
   ExecutableFunction _persist;
+  IconResolver _iconResolver;
 
   /// All the nodes in this node provider.
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
@@ -262,6 +300,12 @@ class SimpleNodeProvider extends NodeProviderImpl
   @override
   LocalNode getNode(String path) {
     return _getNode(path);
+  }
+
+  void setIconResolver(IconResolver resolver) {
+    _iconResolver = resolver;
+
+    nodes["/sys/getIcon"] = new SysGetIconNode("/sys/getIcon", this);
   }
 
   LocalNode _getNode(String path, {bool allowStubs: false}) {
