@@ -6,9 +6,9 @@ import "dart:collection";
 
 import "requester.dart";
 import "responder.dart";
+import "utils.dart";
 
 import "src/crypto/pk.dart";
-import "utils.dart";
 
 part "src/common/node.dart";
 part "src/common/table.dart";

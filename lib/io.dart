@@ -107,7 +107,7 @@ class HttpHelper {
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    String nonce = CryptoUtils.bytesToBase64(nonceData);
+    String nonce = BASE64.encode(nonceData);
 
     int port = uri.port;
     if (port == 0) {
@@ -132,7 +132,7 @@ class HttpHelper {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
-        String auth = CryptoUtils.bytesToBase64(UTF8.encode(uri.userInfo));
+        String auth = BASE64.encode(UTF8.encode(uri.userInfo));
         request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
       }
       if (headers != null) {
@@ -170,10 +170,8 @@ class HttpHelper {
       if (accept == null) {
         error("Response did not contain a 'Sec-WebSocket-Accept' header");
       }
-      SHA1 sha1 = new SHA1();
-      sha1.add("$nonce$_webSocketGUID".codeUnits);
-      List<int> expectedAccept = sha1.close();
-      List<int> receivedAccept = CryptoUtils.base64StringToBytes(accept);
+      List<int> expectedAccept = sha1.convert("$nonce$_webSocketGUID".codeUnits).bytes;
+      List<int> receivedAccept = BASE64.decode(accept);
       if (expectedAccept.length != receivedAccept.length) {
         error("Response header 'Sec-WebSocket-Accept' is the wrong length");
       }
@@ -226,9 +224,9 @@ class HttpHelper {
         ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
         ..headers.add(HttpHeaders.UPGRADE, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
-      SHA1 sha1 = new SHA1();
-      sha1.add("$key$_webSocketGUID".codeUnits);
-      String accept = CryptoUtils.bytesToBase64(sha1.close());
+      String accept = BASE64.encode(
+        sha1.convert("$key$_webSocketGUID".codeUnits).bytes
+      );
       response.headers.add("Sec-WebSocket-Accept", accept);
       if (protocol != null) {
         response.headers.add("Sec-WebSocket-Protocol", protocol);

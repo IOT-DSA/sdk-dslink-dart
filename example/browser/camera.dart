@@ -1,9 +1,8 @@
 import "package:dslink/browser.dart";
 
+import "dart:convert";
 import "dart:html";
 import "dart:typed_data";
-
-import "package:crypto/crypto.dart";
 
 LinkProvider link;
 MediaStream stream;
@@ -84,7 +83,7 @@ ByteData captureImage() {
   stopwatch.start();
   var dataUrl = canvas.toDataUrl("image/webp", 0.2);
   stopwatch.stop();
-  var bytes = CryptoUtils.base64StringToBytes(dataUrl.substring("data:image/webp;base64,".length));
+  var bytes = BASE64.decode(dataUrl.substring("data:image/webp;base64,".length));
   var data = ByteDataUtil.fromList(bytes);
   print("Took ${stopwatch.elapsedMilliseconds} to create image.");
   return data;

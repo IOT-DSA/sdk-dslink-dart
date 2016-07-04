@@ -14,8 +14,6 @@ import "package:dslink/common.dart";
 import "package:dslink/src/crypto/pk.dart";
 import "package:dslink/utils.dart";
 
-import "package:crypto/crypto.dart";
-
 export "package:dslink/common.dart";
 export "package:dslink/requester.dart";
 export "package:dslink/responder.dart";
@@ -225,6 +223,6 @@ class BrowserUtils {
   static String createBinaryUrl(ByteData input,
       {String type: "application/octet-stream"}) {
     Uint8List data = ByteDataUtil.toUint8List(input);
-    return "data:${type};base64,${CryptoUtils.bytesToBase64(data)}";
+    return "data:${type};base64,${Base64.encode(data)}";
   }
 }
