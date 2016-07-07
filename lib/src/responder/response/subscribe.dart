@@ -327,6 +327,7 @@ class RespSubscribeController {
       }
       _isCacheValid = true;
     }
+    lastValue = null;
     return rslts;
   }
 
