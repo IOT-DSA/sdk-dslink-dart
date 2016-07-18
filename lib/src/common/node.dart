@@ -150,17 +150,33 @@ class Node {
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }
+
     if (configs.containsKey(r'$type')) {
       rslt[r'$type'] = configs[r'$type'];
     }
+
     if (configs.containsKey(r'$name')) {
       rslt[r'$name'] = configs[r'$name'];
     }
+
     if (configs.containsKey(r'$invokable')) {
       rslt[r'$invokable'] = configs[r'$invokable'];
     }
+
     if (configs.containsKey(r'$writable')) {
       rslt[r'$writable'] = configs[r'$writable'];
+    }
+
+    if (configs.containsKey(r'$params')) {
+      rslt[r'$params'] = configs[r'$params'];
+    }
+
+    if (configs.containsKey(r'$columns')) {
+      rslt[r'$columns'] = configs[r'$columns'];
+    }
+
+    if (configs.containsKey(r'$result')) {
+      rslt[r'$result'] = configs[r'$result'];
     }
 
     // TODO(rick): add permission of current requester
@@ -182,7 +198,7 @@ class Path {
     }
     return str;
   }
-  
+
   static Path getValidPath(Object path, [String basePath]) {
     if (path is String) {
       Path p = new Path(path);
