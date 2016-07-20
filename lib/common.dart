@@ -262,6 +262,7 @@ class DSError {
   static final DSError INVALID_VALUE = new DSError("invalidValue");
   static final DSError INVALID_PARAMETER = new DSError("invalidParameter");
   static final DSError DISCONNECTED = new DSError("disconnected", phase: ErrorPhase.request);
+  static final DSError FAILED = new DSError("failed");
 }
 
 /// Marks something as being unspecified.
