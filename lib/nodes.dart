@@ -412,7 +412,8 @@ class NodeNamer {
     r"<",
     r">",
     r"$",
-    r"@"
+    r"@",
+    r'"'
   ];
 
   static String createName(String input) {
