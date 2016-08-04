@@ -216,4 +216,18 @@ class ValueUpdate {
 
   /// could be the value or the key stored by ValueStorage
   Object storedData;
+  
+  bool _cloned = false;
+  ValueUpdate cloneForAckQueue(){
+    if (!_cloned) {
+      _cloned = true;
+      return this;
+    }
+    return new ValueUpdate(value, ts:ts,
+      status:status,
+      count: count,
+      sum: sum,
+      min: min,
+      max: max);
+  }
 }
