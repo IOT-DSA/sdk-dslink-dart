@@ -311,6 +311,10 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
   WorkerPool _pool;
 
+  WorkerSession getRemoteSession(String id) => _remoteSessions[id];
+
+  WorkerSession getLocalSession(String id) => _ourSessions[id];
+
   handleData(msg) {
     if (onReceivedMessageHandler != null) {
       onReceivedMessageHandler(msg);
