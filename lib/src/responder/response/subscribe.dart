@@ -252,6 +252,7 @@ class RespSubscribeController {
   bool _isCacheValid = true;
 
   void addValue(ValueUpdate val) {
+    val = val.cloneForAckQueue();
     if (_caching && _isCacheValid) {
       lastValues.add(val);
       if (lastValues.length > response.responder.maxCacheLength) {

@@ -1258,8 +1258,6 @@ class SimpleHiddenNode extends SimpleNode {
       rslt[r'$invokable'] = configs[r'$invokable'];
     }
 
-    if (configs.con)
-
     if (configs.containsKey(r'$writable')) {
       rslt[r'$writable'] = configs[r'$writable'];
     }
