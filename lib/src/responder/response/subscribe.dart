@@ -76,6 +76,10 @@ class SubscribeResponse extends Response {
           callback(update);
         }
       }
+      
+      if (subsriptionids.isEmpty) {
+        _waitingAckCount = 0;
+      }
     }
   }
 
