@@ -8,14 +8,21 @@ class RemoteNodeCache {
   RemoteNodeCache() {}
 
   RemoteNode getRemoteNode(String path) {
-    if (!_nodes.containsKey(path)) {
-      if (path.startsWith('defs')) {
-        _nodes[path] = new RemoteDefNode(path);
+    var node = _nodes[path];
+
+    if (node == null) {
+      if ((_nodes.length % 1000) == 0) {
+        logger.fine("Node Cache hit ${_nodes.length} nodes in size.");
+      }
+
+      if (path.startsWith("defs")) {
+        node = _nodes[path] = new RemoteDefNode(path);
       } else {
-        _nodes[path] = new RemoteNode(path);
+        node = _nodes[path] = new RemoteNode(path);
       }
     }
-    return _nodes[path];
+
+    return node;
   }
 
   Iterable<String> get cachedNodePaths => _nodes.keys;
