@@ -46,7 +46,5 @@ class DefinitionNode extends LocalNodeImpl {
     } else {
       return response..close(DSError.PERMISSION_DENIED);
     }
-
-    return response..close();
   }
 }

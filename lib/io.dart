@@ -257,7 +257,6 @@ class HttpHelper {
           ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
           ..close();
         throw error;
-        return null;
       }).then((result) {
         if (result is String) {
           return upgrade(result);

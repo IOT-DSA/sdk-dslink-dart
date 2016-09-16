@@ -1,5 +1,5 @@
-*.dart text
-*.sh text
-*.md text
-*.json text
-*.html text
+*.dart text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.html text eol=lf
