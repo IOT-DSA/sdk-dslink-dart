@@ -424,7 +424,8 @@ class LinkProvider {
         keyFile.writeAsStringSync(key);
       }
     }
-
+    SimpleNode.initEncryption(privateKey.saveToString());
+    
     if (opts["discover"]) {
       _discoverBroker = true;
     }

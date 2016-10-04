@@ -686,6 +686,38 @@ class SimpleNodeProvider extends NodeProviderImpl
 class SimpleNode extends LocalNodeImpl {
   final SimpleNodeProvider provider;
 
+  static  AESFastEngine _encryptEngine;
+  static  KeyParameter _encryptParams;
+  static initEncryption(String key) {
+    _encryptEngine = new AESFastEngine();
+    _encryptParams = new KeyParameter(UTF8.encode(key).sublist(48,80));
+  }
+  
+  static String encryptString(String str) {
+    if (str == '') {
+      return '';
+    }
+    _encryptEngine.reset();
+    _encryptEngine.init(true, _encryptParams);
+
+    Uint8List utf8bytes = UTF8.encode(str);
+    Uint8List block = new Uint8List((utf8bytes.length + 31 )~/32 * 32);
+    block.setRange(0, utf8bytes.length, utf8bytes);
+    return Base64.encode(_encryptEngine.process(block));
+  }
+  static String decryptString(String str) {
+    if (str.startsWith('\u001Bpw:')) {
+      _encryptEngine.reset();
+      _encryptEngine.init(false, _encryptParams);
+      String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str.substring(4))));
+      int pos = rslt.indexOf('\u0000');
+      if (pos >= 0) rslt = rslt.substring(0, pos);
+      return rslt;
+    } else {
+      return str;
+    }
+  }
+  
   bool _stub = false;
 
   /// Is this node a stub node?
@@ -725,7 +757,12 @@ class SimpleNode extends LocalNodeImpl {
           updateValue(value);
         }
       } else if (key.startsWith(r'$')) {
-        configs[key] = value;
+        if (_encryptEngine != null && key.startsWith(r'$$') && value is String) {
+          configs[key] = decryptString(value);
+        } else {
+          configs[key] = value;
+        }
+       
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
@@ -740,7 +777,11 @@ class SimpleNode extends LocalNodeImpl {
   Map save() {
     Map rslt = {};
     configs.forEach((str, val) {
-      rslt[str] = val;
+      if (_encryptEngine != null && val is String && str.startsWith(r'$$') && str.endsWith('password')) {
+        rslt[str] = encryptString(val);
+      } else {
+        rslt[str] = val;
+      }
     });
 
     attributes.forEach((str, val) {
