@@ -693,6 +693,8 @@ class SimpleNode extends LocalNodeImpl {
     _encryptParams = new KeyParameter(UTF8.encode(key).sublist(48,80));
   }
   
+  /// encrypt the string and prefix the value with '\u001Bpw:'
+  /// so it's compatible with old plain text password
   static String encryptString(String str) {
     if (str == '') {
       return '';
@@ -703,7 +705,7 @@ class SimpleNode extends LocalNodeImpl {
     Uint8List utf8bytes = UTF8.encode(str);
     Uint8List block = new Uint8List((utf8bytes.length + 31 )~/32 * 32);
     block.setRange(0, utf8bytes.length, utf8bytes);
-    return Base64.encode(_encryptEngine.process(block));
+    return '\u001Bpw:${Base64.encode(_encryptEngine.process(block))}';
   }
   static String decryptString(String str) {
     if (str.startsWith('\u001Bpw:')) {
@@ -713,6 +715,20 @@ class SimpleNode extends LocalNodeImpl {
       int pos = rslt.indexOf('\u0000');
       if (pos >= 0) rslt = rslt.substring(0, pos);
       return rslt;
+    } else if (str.length == 22) {
+      // a workaround for the broken password database, need to be removed later
+      // 22 is the length of a AES block after base64 encoding
+      // encoded password should always be 24 or more bytes, and a plain 22 bytes password is rare
+      try{
+        _encryptEngine.reset();
+         _encryptEngine.init(false, _encryptParams);
+         String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str)));
+         int pos = rslt.indexOf('\u0000');
+         if (pos >= 0) rslt = rslt.substring(0, pos);
+         return rslt;
+      } catch(err) {
+        return str;
+      }
     } else {
       return str;
     }
