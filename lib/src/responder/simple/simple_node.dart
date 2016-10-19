@@ -703,7 +703,7 @@ class SimpleNode extends LocalNodeImpl {
     Uint8List utf8bytes = UTF8.encode(str);
     Uint8List block = new Uint8List((utf8bytes.length + 31 )~/32 * 32);
     block.setRange(0, utf8bytes.length, utf8bytes);
-    return Base64.encode(_encryptEngine.process(block));
+    return '\u001Bpw:${Base64.encode(_encryptEngine.process(block))}';
   }
   static String decryptString(String str) {
     if (str.startsWith('\u001Bpw:')) {
@@ -713,6 +713,18 @@ class SimpleNode extends LocalNodeImpl {
       int pos = rslt.indexOf('\u0000');
       if (pos >= 0) rslt = rslt.substring(0, pos);
       return rslt;
+    } else if (str.length == 22) {
+      // a workaround for the broken password database, need to be removed later
+      try{
+        _encryptEngine.reset();
+         _encryptEngine.init(false, _encryptParams);
+         String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str)));
+         int pos = rslt.indexOf('\u0000');
+         if (pos >= 0) rslt = rslt.substring(0, pos);
+         return rslt;
+      } catch(err) {
+        return str;
+      }
     } else {
       return str;
     }
