@@ -8,6 +8,9 @@ class Responder extends ConnectionHandler {
   int maxCacheLength = ConnectionProcessor.DEFAULT_CACHE_SIZE;
 
   ISubscriptionResponderStorage storage;
+  
+  /// when true, the requester can't have higher permission than read
+  bool isReadOnly = false;
 
   void initStorage(ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage> nodes) {
     if (storage != null) {
