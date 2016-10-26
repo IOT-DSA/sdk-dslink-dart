@@ -183,6 +183,9 @@ class LinkProvider {
     _argp = _argp == null ? new ArgParser(allowTrailingOptions: !strictOptions) : _argp;
     _argp.addOption(name, defaultsTo: defaultValue);
   }
+  
+  String getCommandLineValue(String name) =>
+    parsedArguments == null ? null : parsedArguments[name];
 
   /// Configure the link.
   /// If [argp] is provided for argument parsing, it is used.
