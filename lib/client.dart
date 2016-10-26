@@ -116,6 +116,7 @@ class LinkProvider {
   /// [loadNodesJson] specifies whether to load the nodes.json file or not.
   /// [defaultLogLevel] specifies the default log level.
   /// [nodeProvider] is the same as [provider]. It is provided for backwards compatibility.
+  /// [commandLineOptions] specifies a map of an option name to a default value, for use in expanding the command parameters.
   LinkProvider(
       this.args,
       this.prefix,
@@ -138,7 +139,8 @@ class LinkProvider {
         this.overrideRequester,
         this.overrideResponder,
         NodeProvider nodeProvider, // For Backwards Compatibility
-        this.linkData
+        this.linkData,
+        Map<String, String> commandLineOptions
       }) {
     exitOnFailure = Zone.current["dslink.runtime.config"] is! Map;
 
@@ -148,6 +150,12 @@ class LinkProvider {
 
     if (nodes != null) {
       defaultNodes = nodes;
+    }
+
+    if (commandLineOptions != null) {
+      for (String key in commandLineOptions.keys) {
+        addCommandLineOption(key, commandLineOptions[key]);
+      }
     }
 
     if (autoInitialize) {
@@ -163,8 +171,17 @@ class LinkProvider {
 
   bool _configured = false;
 
+  ArgParser _argp = new ArgParser();
+  ArgResults _parsedArguments;
+  ArgResults get parsedArguments => _parsedArguments;
+
   String _logLevelToName(Level level) {
     return level.name.toLowerCase();
+  }
+
+  void addCommandLineOption(String name, [String defaultValue = ""]) {
+    _argp = _argp == null ? new ArgParser(allowTrailingOptions: !strictOptions) : _argp;
+    _argp.addOption(name, defaultsTo: defaultValue);
   }
 
   /// Configure the link.
@@ -183,7 +200,7 @@ class LinkProvider {
     }
 
     if (argp == null) {
-      argp = new ArgParser(allowTrailingOptions: !strictOptions);
+      argp = _argp == null ? _argp = new ArgParser(allowTrailingOptions: !strictOptions) : _argp;
     }
 
     argp.addOption("broker",
@@ -210,7 +227,7 @@ class LinkProvider {
     argp.addFlag("discover",
         abbr: "d", help: "Automatically Discover a Broker", negatable: false);
 
-    ArgResults opts = argp.parse(args);
+    ArgResults opts = _parsedArguments = argp.parse(args);
 
     if (opts["log"] == "auto") {
       if (DEBUG_MODE) {
