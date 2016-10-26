@@ -11,12 +11,19 @@ main(List<String> args) async {
       r"$name": "Message", // The pretty name of this node.
       r"$type": "string", // The type of the node is a string.
       r"$writable": "write", // This node's value can be set by a requester.
-      "?value": "Hello World", // The default message value.
+      "?value": null, // The default message value.
       "@icon": "dart-example-simple/message"
     }
-  }, encodePrettyJson: true);
+  }, encodePrettyJson: true, commandLineOptions: {
+    "default-message": "Hello World"
+  });
 
   SimpleNodeProvider provider = link.provider;
+
+  if (provider["/message"].value == null) {
+    provider.updateValue("/message", link.parsedArguments["default-message"]);
+  }
+
   provider.setIconResolver((String name) async {
     if (name == "dart-example-simple/message") {
       var file = new File(Platform.script.resolve("message.png").toFilePath());
