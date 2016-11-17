@@ -10,7 +10,7 @@ class Responder extends ConnectionHandler {
   ISubscriptionResponderStorage storage;
   
   /// when true, the requester can't have higher permission than read
-  bool isReadOnly = false;
+  int maxPermission = Permission.CONFIG;
 
   void initStorage(ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage> nodes) {
     if (storage != null) {
