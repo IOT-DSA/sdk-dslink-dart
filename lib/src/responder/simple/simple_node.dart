@@ -641,7 +641,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       pnode.updateList(p.name);
     }
 
-    if (node.callbacks.isEmpty) {
+    if (node.callbacks.isEmpty && !node._hasListListener) {
       nodes.remove(path);
     } else {
       node._stub = true;
