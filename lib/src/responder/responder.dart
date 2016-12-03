@@ -9,7 +9,9 @@ class Responder extends ConnectionHandler {
 
   ISubscriptionResponderStorage storage;
   
-  /// when true, the requester can't have higher permission than read
+  /// max permisison of the remote requester, this requester won't be able to do anything with higher
+  /// permission even when other permission setting allows it to.
+  /// This feature allows reverse proxy to override the permission for each connection with url parameter 
   int maxPermission = Permission.CONFIG;
 
   void initStorage(ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage> nodes) {
