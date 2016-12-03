@@ -73,6 +73,7 @@ class WebSocketConnection extends Connection {
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
+      logger.finest('close stale connection');
       this.close();
       return;
     }
