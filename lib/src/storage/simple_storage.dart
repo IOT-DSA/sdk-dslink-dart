@@ -282,12 +282,13 @@ class SimpleValueStorage extends IValueStorage {
       return;
     }
     _setValue = value;
+    _pendingValue = null;
     _pendingSet = true;
     _file.writeAsString(DsJson.encode(value)).then(onSetDone).catchError(onSetDone);
   }
   void onSetDone(Object obj) {
     _pendingSet = false;
-    if (_setValue != _pendingValue) {
+    if (_pendingValue != null) {
       setValue(_pendingValue);
     }
   }
