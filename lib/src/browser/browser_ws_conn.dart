@@ -58,7 +58,7 @@ class WebSocketConnection extends Connection {
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
-      this._onDone();
+      close();
       return;
     }
     _dataReceiveCount++;
@@ -241,7 +241,12 @@ class WebSocketConnection extends Connection {
       if (encoded is List<int>) {
         encoded = ByteDataUtil.list2Uint8List(encoded as List<int>);
       }
-      socket.send(encoded);
+      try {
+        socket.send(encoded);
+      } catch (e) {
+        logger.severe('Unable to send on socket', e);
+        close();
+      }
       _dataSent = true;
     }
   }
