@@ -39,7 +39,11 @@ class WebSocketConnection extends Connection {
     }
     _responderChannel = new PassiveChannel(this, true);
     _requesterChannel = new PassiveChannel(this, true);
-    socket.listen(onData, onDone: _onDone);
+    socket.listen(
+        onData,
+        onDone: _onDone,
+        onError: (err) => logger.warning(
+            formatLogMessage('Error listening to socket'), err));
     socket.add(codec.blankData);
     if (!enableAck) {
       nextMsgId = -1;
@@ -333,7 +337,12 @@ class WebSocketConnection extends Connection {
         logger.warning(formatLogMessage("invalid data frame"));
       }
     }
-    socket.add(encoded);
+    try {
+      socket.add(encoded);
+    } catch (e) {
+      logger.severe(formatLogMessage('Error writing to socket'), e);
+      close();
+    }
   }
 
   bool printDisconnectedMessage = true;
