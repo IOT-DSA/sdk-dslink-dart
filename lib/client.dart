@@ -788,4 +788,21 @@ class LinkProvider {
       return value;
     }
   }
+
+  /// persist value setting to disk, default to true;
+  bool get valuePersistenceEnabled {
+    if (dslinkJson is Map && dslinkJson['configs'] is Map && dslinkJson['configs']['valuePersistenceEnabled'] is Map
+        && dslinkJson['configs']['valuePersistenceEnabled']['value'] == false) {
+      return false;
+    }
+    return true;
+  }
+  /// persist qos2 and qos3 subscription to disk, default to false;
+  bool get qosPersistenceEnabled {
+    if (dslinkJson is Map && dslinkJson['configs'] is Map && dslinkJson['configs']['qosPersistenceEnabled'] is Map
+        && dslinkJson['configs']['qosPersistenceEnabled']['value'] == true) {
+      return true;
+    }
+    return false;
+  }
 }

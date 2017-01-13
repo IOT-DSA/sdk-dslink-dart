@@ -27,7 +27,9 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  link.onValueChange("/message").listen((update) => link.save());
+  if (link.valuePersistenceEnabled) {
+    link.onValueChange("/message").listen((update) => link.save());
+  }
 }
 
 // A simple node that resets the message value.
