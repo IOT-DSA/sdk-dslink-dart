@@ -42,7 +42,7 @@ main(List<String> args) async {
   link.connect();
 
   // Save the message when it changes.
-  if (link.persistValue) {
+  if (link.valuePersistenceEnabled) {
     link.onValueChange("/message").listen((_) => link.save());
   }
 }
