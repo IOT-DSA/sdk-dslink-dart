@@ -576,6 +576,12 @@ class SimpleNodeProvider extends NodeProviderImpl
       if (node is SimpleNode) {
         try {
           node._listChangeController = oldNode._listChangeController;
+          node._listChangeController.onStartListen = () {
+            node.onStartListListen();
+          };
+          node._listChangeController.onAllCancel = () {
+            node.onAllListCancel();
+          };
         } catch (e) {}
 
         if (node._hasListListener) {

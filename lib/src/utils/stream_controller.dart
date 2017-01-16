@@ -5,8 +5,8 @@ class BroadcastStreamController<T> implements StreamController<T> {
   CachedStreamWrapper<T> _stream;
   Stream<T> get stream => _stream;
 
-  Function _onStartListen;
-  Function _onAllCancel;
+  Function onStartListen;
+  Function onAllCancel;
 
   BroadcastStreamController([
     void onStartListen(),
@@ -19,8 +19,8 @@ class BroadcastStreamController<T> implements StreamController<T> {
         _controller.stream
             .asBroadcastStream(onListen: _onListen, onCancel: _onCancel),
         onListen);
-    _onStartListen = onStartListen;
-    _onAllCancel = onAllCancel;
+    this.onStartListen = onStartListen;
+    this.onAllCancel = onAllCancel;
   }
 
   /// whether there is listener or not
@@ -30,8 +30,8 @@ class BroadcastStreamController<T> implements StreamController<T> {
   bool _listenState = false;
   void _onListen(StreamSubscription<T> subscription) {
     if (!_listenState) {
-      if (_onStartListen != null) {
-        _onStartListen();
+      if (onStartListen != null) {
+        onStartListen();
       }
       _listenState = true;
     }
@@ -40,7 +40,7 @@ class BroadcastStreamController<T> implements StreamController<T> {
 
   void _onCancel(StreamSubscription<T> subscription) {
     _listening = false;
-    if (_onAllCancel != null) {
+    if (onAllCancel != null) {
       if (!_delayedCheckCanceling) {
         _delayedCheckCanceling = true;
         DsTimer.callLater(delayedCheckCancel);
@@ -54,7 +54,7 @@ class BroadcastStreamController<T> implements StreamController<T> {
   void delayedCheckCancel() {
     _delayedCheckCanceling = false;
     if (!_listening && _listenState) {
-      _onAllCancel();
+      onAllCancel();
       _listenState = false;
     }
   }
