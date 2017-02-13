@@ -104,6 +104,13 @@ class HttpClientLink extends ClientLink {
 
   int _connDelay = 0;
 
+  connDelay() {
+    DsTimer.timerOnceAfter(connect, (
+        _connDelay == 0 ? 20 : _connDelay * 500
+    ));
+    if (_connDelay < 30) _connDelay++;
+  }
+
   connect() async {
     if (_closed) {
       return;
@@ -187,14 +194,9 @@ class HttpClientLink extends ClientLink {
         format = serverConfig['format'];
       }
 
-      initWebsocket(false);
-      _connDelay = 0;
-      _wsDelay = 0;
+      await initWebsocket(false);
     } catch (err) {
-      DsTimer.timerOnceAfter(connect, (
-        _connDelay == 0 ? 20 : _connDelay * 500
-      ));
-      if (_connDelay < 30) _connDelay++;
+      connDelay();
     }
   }
 
@@ -228,6 +230,10 @@ class HttpClientLink extends ClientLink {
         _onConnectedCompleter.complete();
       }
 
+      // Reset delays, we've successfully connected.
+      _connDelay = 0;
+      _wsDelay = 0;
+
       if (responder != null) {
         responder.connection = _wsConnection.responderChannel;
       }
@@ -254,7 +260,7 @@ class HttpClientLink extends ClientLink {
           error.message.contains('not upgraded to websocket') // error from dart
               || error.message.contains('(401)') // error from nodejs
       )) {
-        DsTimer.timerOnceAfter(connect, 20);
+        connDelay();
       } else if (reconnect) {
         DsTimer.timerOnceAfter(
           initWebsocket,
