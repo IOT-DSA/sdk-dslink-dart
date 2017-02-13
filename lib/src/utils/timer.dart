@@ -107,7 +107,11 @@ class DsTimer {
       rslt.unlink();
       for (Function fun in rslt._functions) {
         _functionsMap.remove(fun);
-        fun();
+        try{
+          fun();
+        } catch(err,stack) {
+          print("callback error; $err\n$stack");
+        }
       }
       return rslt;
     }
@@ -204,7 +208,11 @@ class DsTimer {
     _callbacks = new List();
 
     for (var f in runnings) {
-      f();
+      try{
+        f();
+      } catch(err,stack) {
+        print("callback error; $err\n$stack");
+      }
     }
 
     int currentTime = (new DateTime.now()).millisecondsSinceEpoch;
