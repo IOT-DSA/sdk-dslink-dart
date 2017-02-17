@@ -234,6 +234,10 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void _onListen(callback(RequesterListUpdate update)) {
     if (_ready && request != null) {
       DsTimer.callLater(() {
+        if (request == null) {
+          return;
+        }
+
         var changes = <String>[];
         changes
           ..addAll(node.configs.keys)
