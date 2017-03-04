@@ -113,6 +113,12 @@ abstract class LocalNode extends Node {
 
   /// Disconnected Timestamp
   String get disconnected => null;
+  List getDisconnectedListResponse() {
+    return [
+      [r'$disconnectedTs', disconnected]
+    ];
+  }
+
 
   /// Checks if this node has a subscriber.
   /// Use this for things like polling when you
