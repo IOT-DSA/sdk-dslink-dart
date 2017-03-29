@@ -4,7 +4,7 @@ library dslink.worker;
 import "dart:async";
 import "dart:isolate";
 
-import "package:dslink/utils.dart" show generateBasicId,
+import "package:dslink/utils.dart" show generateBasicId, logger,
   ExecutableFunction,
   Taker;
 
@@ -18,8 +18,12 @@ WorkerSocket createWorker(
   }) {
   var receiver = new ReceivePort();
   var socket = new WorkerSocket.master(receiver);
-  Isolate.spawn(function, new Worker(receiver.sendPort, metadata)).then((x) {
+  var errorReceiver = new ReceivePort();
+  Isolate.spawn(function, new Worker(receiver.sendPort, metadata), onError: errorReceiver.sendPort).then((x) {
     socket._isolate = x;
+  });
+  errorReceiver.listen((data){
+    logger.severe(data);
   });
   return socket;
 }
