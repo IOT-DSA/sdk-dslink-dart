@@ -5,7 +5,7 @@ class Responder extends ConnectionHandler {
   /// reqId can be a dsId or a user name
   String reqId;
 
-  int maxCacheLength = ConnectionProcessor.DEFAULT_CACHE_SIZE;
+  int maxCacheLength = ConnectionProcessor.defaultCacheSize;
 
   ISubscriptionResponderStorage storage;
   
