@@ -169,6 +169,7 @@ class SubscribeResponse extends Response {
     _waitingAckCount = 0;
     _lastWaitingAckId = -1;
     _sendingAfterAck = false;
+    _pendingSending = false;
   }
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
