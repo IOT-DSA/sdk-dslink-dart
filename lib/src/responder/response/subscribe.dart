@@ -148,7 +148,7 @@ class SubscribeResponse extends Response {
   void _close() {
     List pendingControllers;
     subscriptions.forEach((path, RespSubscribeController controller) {
-      if (controller._qosLevel == 0) {
+      if (controller._qosLevel < 2) {
         controller.destroy();
       } else {
         controller.sid = -1;
