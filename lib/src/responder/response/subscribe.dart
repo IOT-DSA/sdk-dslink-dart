@@ -148,7 +148,7 @@ class SubscribeResponse extends Response {
   void _close() {
     List pendingControllers;
     subscriptions.forEach((path, RespSubscribeController controller) {
-      if (controller._qosLevel == 0) {
+      if (controller._qosLevel < 2) {
         controller.destroy();
       } else {
         controller.sid = -1;
@@ -169,6 +169,7 @@ class SubscribeResponse extends Response {
     _waitingAckCount = 0;
     _lastWaitingAckId = -1;
     _sendingAfterAck = false;
+    _pendingSending = false;
   }
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
@@ -214,8 +215,9 @@ class RespSubscribeController {
     if (waitingValues == null && _qosLevel > 0) {
       waitingValues = new ListQueue<ValueUpdate>();
     }
-    caching = (v & 1) == 1;
-    persist = (v & 2) == 2;
+    caching = (v > 0);
+    cachingQueue = (v > 1);
+    persist = (v > 2);
   }
 
   bool _caching = false;
@@ -227,6 +229,7 @@ class RespSubscribeController {
       lastValues.length = 0;
     }
   }
+  bool cachingQueue = false;
 
   bool _persist = false;
 
@@ -259,7 +262,11 @@ class RespSubscribeController {
     val = val.cloneForAckQueue();
     if (_caching && _isCacheValid) {
       lastValues.add(val);
-      if (lastValues.length > response.responder.maxCacheLength) {
+      bool needClearQueue = (lastValues.length > response.responder.maxCacheLength);
+      if (!needClearQueue && !cachingQueue && response._sendingAfterAck && lastValues.length > 1) {
+        needClearQueue = true;
+      }
+      if (needClearQueue) {
         // cache is no longer valid, fallback to rollup mode
         _isCacheValid = false;
         lastValue = new ValueUpdate(null, ts: '');
