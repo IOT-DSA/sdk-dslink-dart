@@ -21,8 +21,8 @@ dev_dependencies:
   test: ">=0.12.13"
   dsbroker:
     git: 
-	url: https://github.com/IOT-DSA/broker-dart.git
-	ref: "cisco-eff/1.1"
+      url: https://github.com/IOT-DSA/broker-dart.git
+      ref: "cisco-eff/1.1"
   browser: "^0.10.0"
 environment:
   sdk: ">=1.21.0"
