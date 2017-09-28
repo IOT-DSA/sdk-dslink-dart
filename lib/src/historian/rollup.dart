@@ -114,7 +114,14 @@ class MaxRollup extends Rollup {
       return;
     }
 
-    value = max(value == null ? double.INFINITY : value, input);
+    num left = double.INFINITY;
+    num right = input;
+
+    if (value is num) {
+      left = value;
+    }
+
+    value = max(left, right);
   }
 
   @override
@@ -136,7 +143,14 @@ class MinRollup extends Rollup {
       return;
     }
 
-    value = min(value == null ? double.NEGATIVE_INFINITY : value, input);
+    num left = double.NEGATIVE_INFINITY;
+    num right = input;
+
+    if (value is num) {
+      left = value;
+    }
+
+    value = min(left, right);
   }
 
   @override

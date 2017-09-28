@@ -153,7 +153,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
     LocalNode node = super.getNode(path);
     if (path != "/" && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
-        onLoaded.complete(node);
+        onLoaded.complete(node as CallbackNode);
       }
       return node;
     }
