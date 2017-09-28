@@ -77,7 +77,7 @@ class WebSocketConnection extends Connection {
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
-      logger.finest('close stale connection');
+      logger.finest("Closing stale connection.");
       this.close();
       return;
     }
@@ -135,7 +135,7 @@ class WebSocketConnection extends Connection {
         }
       } catch (err, stack) {
         logger.fine(
-          formatLogMessage("Failed to decode binary data in WebSocket Connection"),
+          formatLogMessage("Failed to decode binary data in WebSocket Connection."),
           err,
           stack
         );
@@ -188,7 +188,9 @@ class WebSocketConnection extends Connection {
         }
       } catch (err, stack) {
         logger.severe(
-          formatLogMessage("Failed to decode string data from WebSocket Connection"),
+          formatLogMessage(
+            "Failed to decode string data from WebSocket Connection."
+          ),
           err,
           stack
         );
@@ -334,13 +336,22 @@ class WebSocketConnection extends Connection {
       } else if (encoded is List<int>) {
         dataOut += encoded.length;
       } else {
-        logger.warning(formatLogMessage("invalid data frame"));
+        logger.warning(formatLogMessage("Invalid data frame."));
       }
     }
+
+    if (socket.readyState != WebSocket.OPEN) {
+      logger.severe(
+        formatLogMessage("Error writing to socket: socket is closed.")
+      );
+      close();
+      return;
+    }
+
     try {
       socket.add(encoded);
     } catch (e) {
-      logger.severe(formatLogMessage('Error writing to socket'), e);
+      logger.severe(formatLogMessage("Error writing to socket."), e);
       close();
     }
   }
@@ -399,6 +410,7 @@ class WebSocketConnection extends Connection {
   void close() {
     if (socket.readyState == WebSocket.OPEN ||
         socket.readyState == WebSocket.CONNECTING) {
+      logger.finest("Closing WebSocket connection.");
       socket.close();
     }
     _onDone();

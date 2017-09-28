@@ -16,9 +16,17 @@ main() async {
   video = querySelector("#video");
   videoObject = new JsObject.fromBrowserObject(video);
 
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath("broker_url", "http://localhost:8080/conn");
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
+    "broker_url",
+    "http://localhost:8080/conn"
+  );
 
-  link = new LinkProvider(brokerUrl, "VideoDisplay-", isRequester: true, isResponder: false);
+  link = new LinkProvider(
+    brokerUrl,
+    "VideoDisplay-",
+    isRequester: true,
+    isResponder: false
+  );
 
   await link.connect();
   requester = await link.onRequesterReady;

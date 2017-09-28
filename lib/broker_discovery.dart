@@ -38,10 +38,11 @@ class BrokerDiscoveryClient {
     try {
       for (var interface in interfaces) {
         try {
-          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
-        } catch (e) {
-          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
-        }
+          _socket.joinMulticast(
+            new InternetAddress("239.255.255.230"),
+            interface
+          );
+        } catch (e) {}
       }
     } catch (e) {
       _socket.joinMulticast(new InternetAddress("239.255.255.230"));
