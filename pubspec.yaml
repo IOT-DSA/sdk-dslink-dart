@@ -25,6 +25,6 @@ dev_dependencies:
       ref: "cisco-eff/1.1"
   browser: "^0.10.0"
 environment:
-  sdk: ">=1.21.0"
+  sdk: ">=1.11.0"
 executables:
   dsbeacon: beacon
