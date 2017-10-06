@@ -216,7 +216,7 @@ class RespSubscribeController {
       waitingValues = new ListQueue<ValueUpdate>();
     }
     caching = (v > 0);
-    cachingQueue = (v > 1);
+    //cachingQueue = (v > 1);
     persist = (v > 2);
   }
 
@@ -229,7 +229,7 @@ class RespSubscribeController {
       lastValues.length = 0;
     }
   }
-  bool cachingQueue = false;
+  //bool cachingQueue = false;
 
   bool _persist = false;
 
@@ -263,7 +263,7 @@ class RespSubscribeController {
     if (_caching && _isCacheValid) {
       lastValues.add(val);
       bool needClearQueue = (lastValues.length > response.responder.maxCacheLength);
-      if (!needClearQueue && !cachingQueue && response._sendingAfterAck && lastValues.length > 1) {
+      if (!needClearQueue && !_caching /*cachingQueue*/ && response._sendingAfterAck && lastValues.length > 1) {
         needClearQueue = true;
       }
       if (needClearQueue) {
