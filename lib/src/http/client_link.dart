@@ -135,7 +135,11 @@ class HttpClientLink extends ClientLink {
     }
     Uri connUri = Uri.parse(connUrl);
     logger.info(formatLogMessage("Connecting to ${_conn}"));
-    try {
+
+    // TODO: This runZoned is due to a bug in the DartVM
+    // https://github.com/dart-lang/sdk/issues/31275
+    // When it is fixed, we should go back to a regular try-catch
+    runZoned(() async {
       HttpClientRequest request = await client.postUrl(connUri);
       Map requestJson = {
         'publicKey': privateKey.publicKey.qBase64,
@@ -195,9 +199,10 @@ class HttpClientLink extends ClientLink {
       }
 
       await initWebsocket(false);
-    } catch (err) {
+    }, onError: (e) {
+      client.close();
       connDelay();
-    }
+    });
   }
 
   int _wsDelay = 0;
