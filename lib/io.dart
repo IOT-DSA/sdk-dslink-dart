@@ -7,6 +7,7 @@ import "dart:io";
 import "dart:typed_data";
 import "dart:math";
 
+import "package:path/path.dart" as pathlib;
 import "package:crypto/crypto.dart";
 
 const bool _tcpNoDelay = const bool.fromEnvironment(
@@ -294,4 +295,18 @@ Future<int> getRandomSocketPort() async {
   var port = server.port;
   await server.close();
   return port;
+}
+
+Future<File> safeWriteAsString(File targetFile, String content) async {
+  final tempDirectory = await Directory.current.createTemp();
+  final targetFileName = pathlib.basename(targetFile.path);
+  final separator = pathlib.separator;
+
+  var tempFile = new File("${tempDirectory.path}$separator${targetFileName}");
+  tempFile = await tempFile.writeAsString(content);
+  tempFile = await tempFile.rename(targetFile.absolute.path);
+
+  tempDirectory.delete();
+
+  return tempFile;
 }

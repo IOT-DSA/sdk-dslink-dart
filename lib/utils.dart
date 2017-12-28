@@ -115,7 +115,9 @@ Logger get logger {
   _logger = new Logger("DSA");
 
   _logger.onRecord.listen((record) {
-    List<String> lines = record.message.split("\n");
+    List<String> lines = record.message.split("\n")
+        .where((x) => x.trim().isNotEmpty)
+        .toList();
     bool inlineErrors = _getLogSetting(
       record,
       "dsa.logger.inline_errors",
@@ -130,13 +132,16 @@ Logger get logger {
 
     if (inlineErrors) {
       if (record.error != null) {
-        lines.addAll(record.error.toString().split("\n"));
+        lines.addAll(record.error.toString()
+            .split("\n")
+            .where((x) => x.trim().isNotEmpty)
+        );
       }
 
       if (record.stackTrace != null) {
         lines.addAll(record.stackTrace.toString()
           .split("\n")
-          .where((x) => x.isNotEmpty)
+          .where((x) => x.trim().isNotEmpty)
           .toList());
       }
     }
