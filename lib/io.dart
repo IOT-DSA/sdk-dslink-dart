@@ -299,12 +299,13 @@ Future<int> getRandomSocketPort() async {
 
 final _separator = pathlib.separator;
 
-Future<File> safeWriteAsString(File targetFile, String content) async {
+Future<File> _safeWriteBase(File targetFile, dynamic content,
+    writeFunction(File file, dynamic content)) async {
   final tempDirectory = await Directory.current.createTemp();
   final targetFileName = pathlib.basename(targetFile.path);
 
   var tempFile = new File("${tempDirectory.path}$_separator${targetFileName}");
-  tempFile = await tempFile.writeAsString(content);
+  tempFile = await writeFunction(tempFile, content);
   tempFile = await tempFile.rename(targetFile.absolute.path);
 
   tempDirectory.delete();
@@ -312,15 +313,12 @@ Future<File> safeWriteAsString(File targetFile, String content) async {
   return tempFile;
 }
 
+Future<File> safeWriteAsString(File targetFile, String content) async {
+  return _safeWriteBase(
+      targetFile, content, (File f, content) => f.writeAsString(content));
+}
+
 Future<File> safeWriteAsBytes(File targetFile, List<int> content) async {
-  final tempDirectory = await Directory.current.createTemp();
-  final targetFileName = pathlib.basename(targetFile.path);
-
-  var tempFile = new File("${tempDirectory.path}$_separator${targetFileName}");
-  tempFile = await tempFile.writeAsBytes(content);
-  tempFile = await tempFile.rename(targetFile.absolute.path);
-
-  tempDirectory.delete();
-
-  return tempFile;
+  return _safeWriteBase(
+      targetFile, content, (File f, content) => f.writeAsBytes(content));
 }
