@@ -307,15 +307,15 @@ Future<File> _safeWriteBase(File targetFile, dynamic content,
   final targetFileName = pathlib.basename(targetFile.path);
 
   var tempFile = new File("${tempDirectory.path}$_separator${targetFileName}");
-  tempFile = await writeFunction(tempFile, content);
 
   if (verifyJson) {
+    tempFile = await writeFunction(tempFile, content);
     final readContent = await tempFile.readAsString();
     try {
       JSON.decode(readContent);
-    } catch (e) {
+    } catch (e, s) {
      logger.severe(
-         "Couldn't parse JSON after trying to write ${targetFile.path}");
+         "Couldn't parse JSON after trying to write ${targetFile.path}", e, s);
     }
   }
 
