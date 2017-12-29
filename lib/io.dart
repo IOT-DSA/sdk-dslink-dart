@@ -307,23 +307,29 @@ Future<File> _safeWriteBase(File targetFile, dynamic content,
   final targetFileName = pathlib.basename(targetFile.path);
 
   var tempFile = new File("${tempDirectory.path}$_separator${targetFileName}");
+  tempFile = await writeFunction(tempFile, content);
+  var canOverwriteOriginalFile = true;
 
   if (verifyJson) {
-    tempFile = await writeFunction(tempFile, content);
     final readContent = await tempFile.readAsString();
     try {
       JSON.decode(readContent);
-    } catch (e, s) {
-     logger.severe(
+    } on FormatException catch (e, s) {
+      canOverwriteOriginalFile = false;
+      logger.severe(
          "Couldn't parse JSON after trying to write ${targetFile.path}", e, s);
     }
   }
 
-  tempFile = await tempFile.rename(targetFile.absolute.path);
-
-  tempDirectory.delete();
-
-  return tempFile;
+  if (canOverwriteOriginalFile) {
+    tempFile = await tempFile.rename(targetFile.absolute.path);
+    tempDirectory.delete();
+    return tempFile;
+  } else {
+    logger.severe(
+        "${targetFile.path} wasn't saved, the original will be preserved");
+    return targetFile;
+  }
 }
 
 Future<File> safeWriteAsString(File targetFile, String content,
