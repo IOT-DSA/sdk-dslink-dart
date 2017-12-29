@@ -300,7 +300,7 @@ Future<int> getRandomSocketPort() async {
 final _separator = pathlib.separator;
 
 Future<File> _safeWriteBase(File targetFile, dynamic content,
-    writeFunction(File file, dynamic content)) async {
+    Future<File> writeFunction(File file, dynamic content)) async {
   final tempDirectory = await Directory.current.createTemp();
   final targetFileName = pathlib.basename(targetFile.path);
 
