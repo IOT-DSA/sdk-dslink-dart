@@ -302,7 +302,7 @@ final _separator = pathlib.separator;
 
 Future<File> _safeWriteBase(File targetFile, dynamic content,
     Future<File> writeFunction(File file, dynamic content),
-    {bool verifyJson = false}) async {
+    {bool verifyJson : false}) async {
   final tempDirectory = await Directory.current.createTemp();
   final targetFileName = pathlib.basename(targetFile.path);
 
