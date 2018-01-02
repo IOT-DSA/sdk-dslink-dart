@@ -333,7 +333,7 @@ Future<File> _safeWriteBase(File targetFile, dynamic content,
 }
 
 Future<File> safeWriteAsString(File targetFile, String content,
-    {bool verifyJson = false}) async {
+    {bool verifyJson : false}) async {
   return _safeWriteBase(
       targetFile, content,
       (File f, content) => f.writeAsString(content, flush: true),
@@ -341,7 +341,7 @@ Future<File> safeWriteAsString(File targetFile, String content,
 }
 
 Future<File> safeWriteAsBytes(File targetFile, List<int> content,
-    {bool verifyJson = false}) async {
+    {bool verifyJson : false}) async {
   return _safeWriteBase(
       targetFile, content,
       (File f, content) => f.writeAsBytes(content, flush: true),
