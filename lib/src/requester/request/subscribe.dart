@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-class ReqSubscribeListener implements StreamSubscription {
+class ReqSubscribeListener implements StreamSubscription<ValueUpdate> {
   ValueUpdateCallback callback;
   Requester requester;
   String path;
@@ -15,8 +15,8 @@ class ReqSubscribeListener implements StreamSubscription {
     return null;
   }
 
-  // TODO: define a custom class to replace StreamSubscription
-  Future asFuture([futureValue]) {
+  // TODO: define a custom class to replace StreamSubscription.
+  Future<dynamic/*=E*/> asFuture/*<E>*/([/*=E*/ dynamic futureValue]) {
     return null;
   }
 

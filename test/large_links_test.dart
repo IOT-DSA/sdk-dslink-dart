@@ -19,7 +19,7 @@ largeLinksTest() {
   DsHttpServer server;
   int port;
   setUp(() async {
-    updateLogLevel("WARNING");
+    updateLogLevel("WARN");
     port = await getRandomSocketPort();
     server = await startBrokerServer(port, persist: false);
   });
@@ -100,7 +100,6 @@ largeLinksTest() {
     }
 
     await gap();
-
     sub.cancel();
 
     expect(received, equals(sent));

@@ -262,7 +262,6 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
   }
 }
 
-
 class SimpleValueStorage extends IValueStorage {
   String key;
   SimpleValueStorageBucket bucket;
@@ -273,7 +272,6 @@ class SimpleValueStorage extends IValueStorage {
   }
   bool _pendingSet = false;
   Object _pendingValue;
-  Object _setValue;
 
   /// set the value, if previous setting is not finished, it will be set later
   void setValue(Object value) {
@@ -281,11 +279,13 @@ class SimpleValueStorage extends IValueStorage {
     if (_pendingSet) {
       return;
     }
-    _setValue = value;
     _pendingValue = null;
     _pendingSet = true;
-    _file.writeAsString(DsJson.encode(value)).then(onSetDone).catchError(onSetDone);
+    _file.writeAsString(
+      DsJson.encode(value)
+    ).then(onSetDone).catchError(onSetDone);
   }
+
   void onSetDone(Object obj) {
     _pendingSet = false;
     if (_pendingValue != null) {
@@ -295,7 +295,6 @@ class SimpleValueStorage extends IValueStorage {
 
   void destroy() {
     _pendingValue = null;
-    _setValue = null;
     _file.delete().catchError(_ignoreError);
   }
 

@@ -1,8 +1,10 @@
 part of dslink.utils;
 
 class TimerFunctions extends LinkedListEntry<TimerFunctions> {
-  /// for better performance, use a low accuracy timer, ts50 is the floor of ts/50
+  /// for better performance, use a low accuracy timer.
+  /// ts50 is the floor of ts / 50
   final int ts50;
+
   List<Function> _functions = new List<Function>();
 
   TimerFunctions(this.ts50);
@@ -27,10 +29,7 @@ class DsTimer {
     return new Future.delayed(time, action);
   }
 
-  // TODO: does it need to use another hashset for quick search?
   static List<Function> _callbacks = [];
-
-  //static Map<Function, int> _timerCallbacks = new Map<Function, int>();
 
   static void _startTimer() {
     Timer.run(_dsLoop);
@@ -43,20 +42,6 @@ class DsTimer {
     }
     _callbacks.add(callback);
   }
-
-//  /// call the function and remove it from the pending listh
-//  static void callNow(Function callback) {
-//    if (_callbacks.contains(callback)) {
-//      _callbacks.remove(callback);
-//    }
-//    callback();
-//  }
-//
-//  static void cancel(Function callback) {
-//    if (_callbacks.contains(callback)) {
-//      _callbacks.remove(callback);
-//    }
-//  }
 
   static LinkedList<TimerFunctions> _pendingTimer =
       new LinkedList<TimerFunctions>();
@@ -109,8 +94,8 @@ class DsTimer {
         _functionsMap.remove(fun);
         try{
           fun();
-        } catch(err,stack) {
-          print("callback error; $err\n$stack");
+        } catch(err, stack) {
+          logger.warning("Timer callback error.", err, stack);
         }
       }
       return rslt;
@@ -218,7 +203,7 @@ class DsTimer {
     int currentTime = (new DateTime.now()).millisecondsSinceEpoch;
     _lastTimeRun = (currentTime / 50).floor();
     while (_removeTimerFunctions(_lastTimeRun) != null) {
-      // run the timer functions, empty loop
+      // run the timer functions, empty loop.
     }
 
     _looping = false;
@@ -234,7 +219,10 @@ class DsTimer {
           if (timerTimer != null && timerTimer.isActive) {
             timerTimer.cancel();
           }
-          var duration = new Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
+
+          var duration = new Duration(
+            milliseconds: timerTs50 * 50 + 1 - currentTime
+          );
           timerTimer = new Timer(duration, _startTimer);
         }
       }
