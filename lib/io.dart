@@ -7,8 +7,6 @@ import "dart:io";
 import "dart:typed_data";
 import "dart:math";
 
-import 'package:dslink/utils.dart';
-import "package:path/path.dart" as pathlib;
 import "package:crypto/crypto.dart";
 
 const bool _tcpNoDelay = const bool.fromEnvironment(
@@ -296,54 +294,4 @@ Future<int> getRandomSocketPort() async {
   var port = server.port;
   await server.close();
   return port;
-}
-
-final _separator = pathlib.separator;
-
-Future<File> _safeWriteBase(File targetFile, dynamic content,
-    Future<File> writeFunction(File file, dynamic content),
-    {bool verifyJson : false}) async {
-  final tempDirectory = await Directory.current.createTemp();
-  final targetFileName = pathlib.basename(targetFile.path);
-
-  var tempFile = new File("${tempDirectory.path}$_separator${targetFileName}");
-  tempFile = await writeFunction(tempFile, content);
-  var canOverwriteOriginalFile = true;
-
-  if (verifyJson) {
-    final readContent = await tempFile.readAsString();
-    try {
-      JSON.decode(readContent);
-    } on FormatException catch (e, s) {
-      canOverwriteOriginalFile = false;
-      logger.severe(
-         "Couldn't parse JSON after trying to write ${targetFile.path}", e, s);
-    }
-  }
-
-  if (canOverwriteOriginalFile) {
-    tempFile = await tempFile.rename(targetFile.absolute.path);
-    tempDirectory.delete();
-    return tempFile;
-  } else {
-    logger.severe(
-        "${targetFile.path} wasn't saved, the original will be preserved");
-    return targetFile;
-  }
-}
-
-Future<File> safeWriteAsString(File targetFile, String content,
-    {bool verifyJson : false}) async {
-  return _safeWriteBase(
-      targetFile, content,
-      (File f, content) => f.writeAsString(content, flush: true),
-      verifyJson: verifyJson);
-}
-
-Future<File> safeWriteAsBytes(File targetFile, List<int> content,
-    {bool verifyJson : false}) async {
-  return _safeWriteBase(
-      targetFile, content,
-      (File f, content) => f.writeAsBytes(content, flush: true),
-      verifyJson: verifyJson);
 }
