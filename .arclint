@@ -1,0 +1,20 @@
+{
+  "exclude": [
+    "(packages/)",
+    "(tool/)"
+  ],
+  "linters": {
+    "chmod": {
+      "type": "chmod"
+    },
+    "spelling": {
+      "type": "spelling"
+    },
+    "dart": {
+      "type": "dart"
+    },
+    "merge-conflict": {
+      "type": "merge-conflict"
+    }
+  }
+}
