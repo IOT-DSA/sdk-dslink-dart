@@ -275,7 +275,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
       SimpleCallback onRemoving,
       LoadChildCallback onLoadChild,
       SimpleCallback onSubscribe,
-      ValueUpdateCallback<bool> onValueSet,
+      ValueCallback<bool> onValueSet,
       SimpleCallback onUnsubscribe})
       : onChildAddedCallback = onChildAdded,
         onChildRemovedCallback = onChildRemoved,
