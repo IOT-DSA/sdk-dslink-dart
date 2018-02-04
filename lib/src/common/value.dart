@@ -1,6 +1,7 @@
 part of dslink.common;
 
 typedef T ValueUpdateCallback<T>(ValueUpdate update);
+typedef T ValueCallback<T>(value);
 
 /// Represents an update to a value subscription.
 class ValueUpdate {
