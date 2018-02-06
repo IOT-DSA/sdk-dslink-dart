@@ -118,9 +118,10 @@ class Requester extends ConnectionHandler {
     return controller.stream;
   }
 
-  Future<ValueUpdate> getNodeValue(String path) {
+  Future<ValueUpdate> getNodeValue(String path, {Duration timeout}) {
     var c = new Completer<ValueUpdate>();
     ReqSubscribeListener listener;
+    Timer to;
     listener = subscribe(path, (ValueUpdate update) {
       if (!c.isCompleted) {
         c.complete(update);
@@ -130,7 +131,19 @@ class Requester extends ConnectionHandler {
         listener.cancel();
         listener = null;
       }
+      if (to != null && to.isActive) {
+        to.cancel();
+        to = null;
+      }
     });
+    if (timeout != null && timeout > Duration.ZERO) {
+      to = new Timer(timeout, () {
+        listener?.cancel();
+        listener = null;
+
+        c.completeError(new TimeoutException("failed to receive value", timeout));
+      });
+    }
     return c.future;
   }
 
