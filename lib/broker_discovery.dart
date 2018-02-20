@@ -42,6 +42,8 @@ class BrokerDiscoveryClient {
       var joinMulticast = _socket.joinMulticast;
       for (var interface in interfaces) {
         try {
+          /// In old Dart versions, this is a named parameter.
+          /// We use Function.apply to avoid warnings with new Dart.
           Function.apply(joinMulticast, [kBroadcastAddress, interface]);
         } catch (e) {
           Function.apply(joinMulticast, [kBroadcastAddress], {
