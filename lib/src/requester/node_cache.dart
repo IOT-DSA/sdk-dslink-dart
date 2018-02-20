@@ -27,6 +27,8 @@ class RemoteNodeCache {
 
   Iterable<String> get cachedNodePaths => _nodes.keys;
 
+  int get count => _nodes.length;
+
   bool isNodeCached(String path) {
     return _nodes.containsKey(path);
   }

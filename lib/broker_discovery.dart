@@ -4,6 +4,9 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
+final InternetAddress kBroadcastAddress =
+  new InternetAddress("239.255.255.230");
+
 class BrokerDiscoveryClient {
   RawDatagramSocket _socket;
 
@@ -36,20 +39,23 @@ class BrokerDiscoveryClient {
 
     var interfaces = await NetworkInterface.list();
     try {
+      var joinMulticast = _socket.joinMulticast;
       for (var interface in interfaces) {
         try {
-          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
+          Function.apply(joinMulticast, [kBroadcastAddress, interface]);
         } catch (e) {
-          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
+          Function.apply(joinMulticast, [kBroadcastAddress], {
+            #interface: interface
+          });
         }
       }
     } catch (e) {
-      _socket.joinMulticast(new InternetAddress("239.255.255.230"));
+      _socket.joinMulticast(kBroadcastAddress);
     }
   }
 
   Stream<String> discover({Duration timeout: const Duration(seconds: 5)}) {
-    _send("DISCOVER", "239.255.255.230", 1900);
+    _send("DISCOVER", kBroadcastAddress.address, 1900);
     Stream<String> stream = _brokerController.stream;
     new Future.delayed(timeout, () {
       close();

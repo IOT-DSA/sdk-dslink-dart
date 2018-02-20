@@ -311,7 +311,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   LocalNode _getNode(String path, {bool allowStubs: false}) {
     if (nodes.containsKey(path)) {
       SimpleNode node = nodes[path];
-      if (allowStubs || node._stub == false) {
+      if (node._stub == false || allowStubs) {
         return node;
       }
     }

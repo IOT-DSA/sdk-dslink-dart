@@ -50,7 +50,7 @@ class ListResponse extends Response {
 
     if (waitingAckId != -1) {
       _waitingAckCount++;
-      _lastWatingAckId = waitingAckId;
+      _lastWaitingAckId = waitingAckId;
     }
 
     Object updateIs;
@@ -193,10 +193,10 @@ class ListResponse extends Response {
   }
 
   int _waitingAckCount = 0;
-  int _lastWatingAckId = -1;
+  int _lastWaitingAckId = -1;
 
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    if (receiveAckId == _lastWatingAckId) {
+    if (receiveAckId == _lastWaitingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount--;
