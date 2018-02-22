@@ -43,7 +43,7 @@ class WebSocketConnection extends Connection {
         onData,
         onDone: _onDone,
         onError: (err) => logger.warning(
-            formatLogMessage('Error listening to socket'), err));
+            formatLogMessage("Error listening to socket."), err));
     socket.add(codec.blankData);
     if (!enableAck) {
       nextMsgId = -1;
@@ -58,7 +58,7 @@ class WebSocketConnection extends Connection {
   Timer pingTimer;
 
   /// set to true when data is sent, reset the flag every 20 seconds
-  /// since the previous ping message will cause the next 20 seoncd to have a message
+  /// since the previous ping message will cause the next 20 seconds to have a message
   /// max interval between 2 ping messages is 40 seconds
   bool _dataSent = false;
 
@@ -77,8 +77,7 @@ class WebSocketConnection extends Connection {
 
   void onPingTimer(Timer t) {
     if (_dataReceiveCount >= 3) {
-      logger.finest('close stale connection');
-      this.close();
+      logger.finest(formatLogMessage("Closing stale connection."));
       return;
     }
 
@@ -322,6 +321,13 @@ class WebSocketConnection extends Connection {
   }
 
   void addData(Map m) {
+    if (_onDoneHandled) {
+      if (logger.isLoggable(Level.FINEST)) {
+        logger.finest(formatLogMessage("failed to send (socket closed): $m"));
+      }
+      return;
+    }
+
     Object encoded = codec.encodeFrame(m);
 
     if (logger.isLoggable(Level.FINEST)) {
@@ -334,13 +340,14 @@ class WebSocketConnection extends Connection {
       } else if (encoded is List<int>) {
         dataOut += encoded.length;
       } else {
-        logger.warning(formatLogMessage("invalid data frame"));
+        logger.warning(formatLogMessage("Invalid data frame."));
       }
     }
+
     try {
       socket.add(encoded);
     } catch (e) {
-      logger.severe(formatLogMessage('Error writing to socket'), e);
+      logger.severe(formatLogMessage("Error writing to socket."), e);
       close();
     }
   }

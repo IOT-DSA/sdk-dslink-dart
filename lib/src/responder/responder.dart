@@ -9,7 +9,7 @@ class Responder extends ConnectionHandler {
 
   ISubscriptionResponderStorage storage;
   
-  /// max permisison of the remote requester, this requester won't be able to do anything with higher
+  /// max permission of the remote requester, this requester won't be able to do anything with higher
   /// permission even when other permission setting allows it to.
   /// This feature allows reverse proxy to override the permission for each connection with url parameter 
   int maxPermission = Permission.CONFIG;
@@ -121,7 +121,8 @@ class Responder extends ConnectionHandler {
           if (method == 'close') {
             close(m);
           }
-          // when rid is invalid, nothing needs to be sent back
+          // when rid is invalid, nothing needs to be sent back.
+          // this is handled in the switch statement below.
           return;
         }
 
@@ -144,6 +145,9 @@ class Responder extends ConnectionHandler {
           case 'remove':
             remove(m);
             return;
+          case 'close':
+            // Ignore close requests for a response that we don't have.
+            return;
         }
       }
     }
@@ -154,7 +158,7 @@ class Responder extends ConnectionHandler {
   void closeResponse(int rid, {Response response, DSError error}) {
     if (response != null) {
       if (_responses[response.rid] != response) {
-        // this response is no longer valid
+        // this response is no longer valid.
         return;
       }
       response._sentStreamStatus = StreamStatus.closed;

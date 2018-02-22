@@ -10,7 +10,7 @@ import "../../utils.dart";
 void _ignoreError(Object obj) {}
 
 class SimpleStorageManager implements IStorageManager {
-  Map<String, SimpleResponderStorage> rsponders = new Map<String, SimpleResponderStorage>();
+  Map<String, SimpleResponderStorage> responders = new Map<String, SimpleResponderStorage>();
   Directory dir;
   Directory subDir;
 
@@ -26,28 +26,28 @@ class SimpleStorageManager implements IStorageManager {
   }
 
   ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String rpath) {
-    if (rsponders.containsKey(rpath)) {
-      return rsponders[rpath];
+    if (responders.containsKey(rpath)) {
+      return responders[rpath];
     }
     SimpleResponderStorage responder =
     new SimpleResponderStorage(
         "${subDir.path}/${Uri.encodeComponent(rpath)}", rpath);
-    rsponders[rpath] = responder;
+    responders[rpath] = responder;
     return responder;
   }
 
   void destroySubscriptionStorage(String rpath) {
-    if (rsponders.containsKey(rpath)) {
-      rsponders[rpath].destroy();
-      rsponders.remove(rpath);
+    if (responders.containsKey(rpath)) {
+      responders[rpath].destroy();
+      responders.remove(rpath);
     }
   }
 
   void destroy() {
-    rsponders.forEach((String rpath, SimpleResponderStorage responder) {
+    responders.forEach((String rpath, SimpleResponderStorage responder) {
       responder.destroy();
     });
-    rsponders.clear();
+    responders.clear();
     values.forEach((String name, SimpleValueStorageBucket store) {
       store.destroy();
     });
@@ -63,7 +63,7 @@ class SimpleStorageManager implements IStorageManager {
             entity.path.lastIndexOf(Platform.pathSeparator) + 1));
         SimpleResponderStorage responder =
         new SimpleResponderStorage(entity.path, rpath);
-        rsponders[rpath] = responder;
+        responders[rpath] = responder;
         loading.add(responder.load());
       }
     }

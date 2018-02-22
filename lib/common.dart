@@ -40,8 +40,8 @@ abstract class Connection {
 
   DsCodec codec = DsCodec.defaultCodec;
 
-  ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<
-      ConnectionAckGroup>();
+  ListQueue<ConnectionAckGroup> pendingAcks =
+    new ListQueue<ConnectionAckGroup>();
 
   void ack(int ackId) {
     ConnectionAckGroup findAckGroup;
