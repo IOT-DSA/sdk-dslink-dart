@@ -162,7 +162,7 @@ class RemoteNode extends Node {
   }
 
   /// used by list api to update simple data for children
-  void updateRemoteChildData(Map m, RemoteNodeCache cache) {
+  void updateRemoteChildData(Map<String, dynamic> m, RemoteNodeCache cache) {
     String childPathPre;
     if (remotePath == '/') {
       childPathPre = '/';

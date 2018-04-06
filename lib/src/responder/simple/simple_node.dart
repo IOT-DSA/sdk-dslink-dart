@@ -760,7 +760,7 @@ class SimpleNode extends LocalNodeImpl {
   bool serializable = true;
 
   /// Load this node from the provided map as [m].
-  void load(Map m) {
+  void load(Map<String, dynamic> m) {
     if (_loaded) {
       configs.clear();
       attributes.clear();
@@ -1282,12 +1282,11 @@ class SimpleNode extends LocalNodeImpl {
       }
     } else {
       if (value == null) {
-        return removeChild(name);
+        removeChild(name);
       } else if (value is Map) {
-        return createChild(name, value);
+        createChild(name, value);
       } else {
         addChild(name, value);
-        return value;
       }
     }
   }

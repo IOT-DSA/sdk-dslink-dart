@@ -20,3 +20,5 @@ doc/
 /defs.json
 /storage/
 /tmp
+.dart_tool/
+

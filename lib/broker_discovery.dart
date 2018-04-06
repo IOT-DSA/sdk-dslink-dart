@@ -23,7 +23,7 @@ class BrokerDiscoveryClient {
           return;
         }
 
-        var data = UTF8.decode(packet.data);
+        var data = utf8.decode(packet.data);
         _onMessage(packet, data);
       } else if (event == RawSocketEvent.CLOSED) {
         if (!_brokerController.isClosed) {
@@ -37,11 +37,7 @@ class BrokerDiscoveryClient {
     var interfaces = await NetworkInterface.list();
     try {
       for (var interface in interfaces) {
-        try {
-          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
-        } catch (e) {
-          _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface: interface);
-        }
+        _socket.joinMulticast(new InternetAddress("239.255.255.230"), interface);
       }
     } catch (e) {
       _socket.joinMulticast(new InternetAddress("239.255.255.230"));

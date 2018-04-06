@@ -19,7 +19,7 @@ class ListDefListener {
   bool ready = false;
 
   ListDefListener(this.node, this.requester,
-      void callback(RequesterListUpdate)) {
+      void callback(RequesterListUpdate update)) {
     listener = requester.list(node.remotePath).listen((RequesterListUpdate update) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
