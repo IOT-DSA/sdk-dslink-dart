@@ -1087,11 +1087,11 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Callback used to accept or reject a value of a config when it is set.
   /// Return true to reject the value, and false to accept it.
-  bool onSetConfig(String name, String value) => false;
+  bool onSetConfig(String name, Object value) => false;
 
   /// Callback used to accept or reject a value of an attribute when it is set.
   /// Return true to reject the value, and false to accept it.
-  bool onSetAttribute(String name, String value) => false;
+  bool onSetAttribute(String name, Object value) => false;
 
   // Callback used to notify a node that it is being subscribed to.
   void onSubscribe() {}
