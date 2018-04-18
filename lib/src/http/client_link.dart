@@ -105,6 +105,7 @@ class HttpClientLink extends ClientLink {
   int _connDelay = 0;
 
   connDelay() {
+    reconnectWSCount = 0;
     DsTimer.timerOnceAfter(connect, (
         _connDelay == 0 ? 20 : _connDelay * 500
     ));
@@ -208,8 +209,16 @@ class HttpClientLink extends ClientLink {
 
   int _wsDelay = 0;
 
+  int reconnectWSCount = 0;
   initWebsocket([bool reconnect = true]) async {
     if (_closed) return;
+
+    reconnectWSCount++;
+    if (reconnectWSCount > 10) {
+      // if reconnected ws for more than 10 times, do a clean reconnct
+      connDelay();
+      return;
+    }
 
     try {
       String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
