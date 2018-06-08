@@ -154,6 +154,7 @@ abstract class LocalNode extends Node {
         name = "@${name}";
       }
 
+      logger.finest('$path/$name set to: $value');
       attributes[name] = value;
 
       if (provider is SerializableNodeProvider) {
@@ -174,6 +175,7 @@ abstract class LocalNode extends Node {
         name = "@${name}";
       }
 
+      logger.finest('$path/$name attribute removed');
       attributes.remove(name);
 
       if (provider is SerializableNodeProvider) {
