@@ -37,6 +37,7 @@ abstract class LocalNodeImpl extends LocalNode {
   void load(Map m) {
     if (_loaded) {
       configs.clear();
+      logger.finest('LocalNode: $path - Clearing attributes');
       attributes.clear();
       children.clear();
     }
@@ -51,6 +52,7 @@ abstract class LocalNodeImpl extends LocalNode {
       if (key.startsWith(r'$')) {
         configs[key] = value;
       } else if (key.startsWith('@')) {
+        logger.finest('LocalNode: $path/$key - loading $value');
         attributes[key] = value;
       } else if (value is Map) {
         Node node = provider.getOrCreateNode('$childPathPre$key', false);
@@ -70,6 +72,7 @@ abstract class LocalNodeImpl extends LocalNode {
   Response setAttribute(String name, Object value, Responder responder,
       Response response) {
     if (!attributes.containsKey(name) || attributes[name] != value) {
+      logger.finest('LocalNode: $path/$name - $value');
       attributes[name] = value;
       updateList(name);
 
@@ -83,6 +86,7 @@ abstract class LocalNodeImpl extends LocalNode {
   Response removeAttribute(String name, Responder responder,
       Response response) {
     if (attributes.containsKey(name)) {
+      logger.finest('LocalNode: $path/$name removed');
       attributes.remove(name);
       updateList(name);
 
