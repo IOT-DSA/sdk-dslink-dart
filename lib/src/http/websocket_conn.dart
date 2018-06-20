@@ -250,6 +250,9 @@ class WebSocketConnection extends Connection {
   bool _sending = false;
 
   void _send() {
+    if (!_sending) {
+      return;
+    }
     _sending = false;
     bool needSend = false;
     Map m;
@@ -381,6 +384,7 @@ class WebSocketConnection extends Connection {
     if (pingTimer != null) {
       pingTimer.cancel();
     }
+    _sending = false;
   }
 
   String formatLogMessage(String msg) {
