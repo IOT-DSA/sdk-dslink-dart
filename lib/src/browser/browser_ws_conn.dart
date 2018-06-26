@@ -78,6 +78,8 @@ class WebSocketConnection extends Connection {
   }
 
   bool _opened = false;
+  bool get opened => _opened;
+
   void _onOpen(Event e) {
     logger.info("Connected");
     _opened = true;
