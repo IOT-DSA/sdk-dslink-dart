@@ -79,6 +79,9 @@ class LinkProvider {
   /// Load the nodes.json?
   bool loadNodesJson = true;
 
+  /// Strict TLS connections?
+  bool strictTls = false;
+
   /// Default Log Level.
   String defaultLogLevel = "INFO";
 
@@ -114,6 +117,7 @@ class LinkProvider {
   /// [strictOptions] toggles allowing trailing options in the argument parser.
   /// [exitOnFailure] toggles exiting when the link fails.
   /// [loadNodesJson] specifies whether to load the nodes.json file or not.
+  /// [strictTls] specifies if a link to a secure broker should fail, if the TLS Certificate is bad.
   /// [defaultLogLevel] specifies the default log level.
   /// [nodeProvider] is the same as [provider]. It is provided for backwards compatibility.
   /// [commandLineOptions] specifies a map of an option name to a default value, for use in expanding the command parameters.
@@ -134,6 +138,7 @@ class LinkProvider {
         this.strictOptions: false,
         this.exitOnFailure: true,
         this.loadNodesJson: true,
+        this.strictTls: false,
         this.defaultLogLevel: "INFO",
         this.savePrivateKey: true,
         this.overrideRequester,
@@ -581,6 +586,7 @@ class LinkProvider {
       nodeProvider: provider,
       overrideRequester: overrideRequester,
       overrideResponder: overrideResponder,
+      strictTls: strictTls,
       home: home,
       token: token,
       linkData: linkData

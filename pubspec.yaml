@@ -17,14 +17,14 @@ authors:
   - Kenneth Endfinger <k.endfinger@dglogik.com>
   - Rick Zhou <z.zhou@dglogik.com>
   - Michael Bullington <m.bullington@dglogik.com>
-  - Matthew Butler <m.butler@dglogik.com>
+  - Matthew Butler <matthew.butler@acuitybrands.com>
   - Joel Trottier-Hebert <joel.trottier-hebert@acuitybrands.com>
 dev_dependencies:
-  test: ">=0.12.13"
+  test: "any"
   dsbroker:
     git: "https://github.com/IOT-DSA/broker-dart.git"
   browser: "^0.10.0"
 environment:
-  sdk: ">=1.11.0"
+  sdk: ">=1.13.0"
 executables:
   dsbeacon: beacon

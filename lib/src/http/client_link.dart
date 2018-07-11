@@ -22,6 +22,7 @@ class HttpClientLink extends ClientLink {
   Responder responder;
 
   bool useStandardWebSocket = true;
+  final bool strictTls;
 
   @override
   String logName;
@@ -59,13 +60,18 @@ class HttpClientLink extends ClientLink {
   /// format received from broker
   String format = 'json';
 
-  HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {
-      NodeProvider nodeProvider, bool isRequester: true,
-      bool isResponder: true, Requester overrideRequester,
-      Responder overrideResponder, this.home, this.token, this.linkData, List formats
-      })
-      : privateKey = privateKey,
+  HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey, {
+    NodeProvider nodeProvider,
+    bool isRequester: true,
+    bool isResponder: true,
+    Requester overrideRequester,
+    Responder overrideResponder,
+    this.strictTls: false,
+    this.home,
+    this.token,
+    this.linkData,
+    List formats
+  }) : privateKey = privateKey,
         dsId = '${Path.escapeName(dsIdPrefix)}${privateKey.publicKey.qHash64}' {
     if (isRequester) {
       if (overrideRequester != null) {
@@ -122,9 +128,12 @@ class HttpClientLink extends ClientLink {
 
     HttpClient client = new HttpClient();
 
-    client.badCertificateCallback = (X509Certificate cert, String host,
-        int port) {
-      return true;
+    client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+      logger.info(formatLogMessage('Bad certificate for $host:$port.'));
+      logger.finest(formatLogMessage('Cert: ${cert.issuer}, ${cert.subject}: ' +
+          '${cert.startValidity} - ${cert.endValidity}'));
+
+      return !strictTls;
     };
 
     String connUrl = '$_conn?dsId=${Uri.encodeComponent(dsId)}';
@@ -155,10 +164,7 @@ class HttpClientLink extends ClientLink {
         requestJson['linkData'] = linkData;
       }
 
-      logger.finest(formatLogMessage(
-        "Handshake Request: ${requestJson}"
-      ));
-
+      logger.finest(formatLogMessage("Handshake Request: ${requestJson}"));
       logger.fine(formatLogMessage("ID: ${dsId}"));
 
       request.add(toUTF8(DsJson.encode(requestJson)));
@@ -167,9 +173,7 @@ class HttpClientLink extends ClientLink {
       String rslt = const Utf8Decoder().convert(merged);
       Map serverConfig = DsJson.decode(rslt);
 
-      logger.finest(formatLogMessage(
-        "Handshake Response: ${serverConfig}"
-      ));
+      logger.finest(formatLogMessage("Handshake Response: ${serverConfig}"));
 
       saltNameMap.forEach((name, idx) {
         //read salts
