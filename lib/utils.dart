@@ -17,6 +17,7 @@ part "src/utils/codec.dart";
 part "src/utils/dslink_json.dart";
 part "src/utils/list.dart";
 part "src/utils/uri_component.dart";
+part "src/utils/promise_timeout.dart";
 
 typedef ExecutableFunction();
 typedef T Producer<T>();

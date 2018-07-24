@@ -227,10 +227,14 @@ class HttpClientLink extends ClientLink {
         wsUrl = '$wsUrl$tokenHash';
       }
 
-      var socket = await HttpHelper.connectToWebSocket(
-        wsUrl,
-        useStandardWebSocket: useStandardWebSocket
-      );
+      var socket = await awaitWithTimeout(
+          HttpHelper.connectToWebSocket(wsUrl,
+              useStandardWebSocket: useStandardWebSocket),
+          // websocket initialization should take no more than 60 seconds
+          60000,
+          (WebSocket socket){socket.close();},
+          (err){}
+          );
 
       _wsConnection = new WebSocketConnection(
           socket,
