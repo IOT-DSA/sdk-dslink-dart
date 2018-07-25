@@ -92,11 +92,13 @@ class HttpHelper {
     }
 
     if (useStandardWebSocket == true && uri.scheme != "wss") {
-      return await WebSocket.connect(
+      return await awaitWithTimeout(WebSocket.connect(
         url,
         protocols: protocols,
         headers: headers
-      );
+      ), 60000, onSuccessAfterTimeout: (WebSocket socket){
+        socket.close();
+      });
     }
 
     if (uri.scheme != "ws" && uri.scheme != "wss") {
@@ -191,6 +193,9 @@ class HttpHelper {
           serverSide: false
         );
       });
+    }).timeout(new Duration(minutes: 1), onTimeout:(){
+      _client.close(force: true);
+      throw new WebSocketException('timeout');
     });
   }
 

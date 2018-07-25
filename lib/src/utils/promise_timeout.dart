@@ -1,24 +1,33 @@
 part of dslink.utils;
 
 Future<T> awaitWithTimeout<T>(Future<T> future, int timeoutMs,
-    Function onSuccessAfterTimeout, Function onErrorAfterTimeout) {
+    {Function onTimeout = null,
+    Function onSuccessAfterTimeout = null,
+    Function onErrorAfterTimeout = null}) {
   Completer<T> completer = new Completer();
 
   Timer timer = new Timer(new Duration(milliseconds: timeoutMs), () {
     if (!completer.isCompleted) {
+      if (onTimeout != null) {
+        onTimeout();
+      }
       completer.completeError(new Exception('Future timeout before complete'));
     }
   });
   future.then((T t) {
     if (completer.isCompleted) {
-      onSuccessAfterTimeout(t);
+      if (onSuccessAfterTimeout != null) {
+        onSuccessAfterTimeout(t);
+      }
     } else {
       timer.cancel();
       completer.complete(t);
     }
   }).catchError((err) {
     if (completer.isCompleted) {
-      onErrorAfterTimeout(err);
+      if (onErrorAfterTimeout != null) {
+        onErrorAfterTimeout(err);
+      }
     } else {
       timer.cancel();
       completer.completeError(err);
