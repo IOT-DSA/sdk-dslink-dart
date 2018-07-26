@@ -209,7 +209,11 @@ class HttpClientLink extends ClientLink {
     });
       await initWebsocket(false);
     }, onError: (e, s) {
-      logger.warning("Client socket crashed: $e $s");
+      if (logger.level <= Level.FINER ) {
+        logger.warning("Client socket crashed: $e $s");
+      } else {
+        logger.warning("Client socket crashed: $e");
+      }
       client.close();
       connDelay();
     });
