@@ -141,6 +141,7 @@ class HttpClientLink extends ClientLink {
     // https://github.com/dart-lang/sdk/issues/31275
     // When it is fixed, we should go back to a regular try-catch
     runZoned(() async {
+    await ()async{
       HttpClientRequest request = await client.postUrl(connUri);
       Map requestJson = {
         'publicKey': privateKey.publicKey.qBase64,
@@ -198,7 +199,10 @@ class HttpClientLink extends ClientLink {
       if (serverConfig['format'] is String) {
         format = serverConfig['format'];
       }
-
+    }().timeout(new Duration(minutes: 1), onTimeout:(){
+        _client.close(force: true);
+        throw new Exception('timeout');
+    });
       await initWebsocket(false);
     }, onError: (e, s) {
       logger.warning("Client socket crashed: $e $s");
@@ -227,10 +231,8 @@ class HttpClientLink extends ClientLink {
         wsUrl = '$wsUrl$tokenHash';
       }
 
-      var socket = await HttpHelper.connectToWebSocket(
-        wsUrl,
-        useStandardWebSocket: useStandardWebSocket
-      );
+      var socket = await HttpHelper.connectToWebSocket(wsUrl,
+              useStandardWebSocket: useStandardWebSocket);
 
       _wsConnection = new WebSocketConnection(
           socket,
