@@ -3,11 +3,12 @@ part of dslink.responder;
 class Response implements ConnectionProcessor {
   final Responder responder;
   final int rid;
+  String type;
   String _sentStreamStatus = StreamStatus.initialize;
-  
+
   String get sentStreamStatus => _sentStreamStatus;
-  
-  Response(this.responder, this.rid);
+
+  Response(this.responder, this.rid, [this.type = null]);
 
   /// close the request from responder side and also notify the requester
   void close([DSError err = null]) {
