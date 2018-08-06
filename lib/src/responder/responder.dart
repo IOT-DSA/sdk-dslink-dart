@@ -71,7 +71,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  Response addResponse(Response response, [Path path = null]) {
+  Response addResponse(Response response, [Path path = null, Object parameters = null]) {
     if (response._sentStreamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
       if (_traceCallbacks != null) {
@@ -364,7 +364,7 @@ class Responder extends ConnectionHandler {
             params,
             this,
             addResponse(
-              new InvokeResponse(this, rid, parentNode, node, path.name),
+              new InvokeResponse(this, rid, parentNode, node, path.name, params),
               path
             ),
             parentNode,
@@ -431,7 +431,7 @@ class Responder extends ConnectionHandler {
         }
 
         if (node.getSetPermission() <= permission) {
-          node.setValue(value, this, addResponse(new Response(this, rid, 'set'), path));
+          node.setValue(value, this, addResponse(new Response(this, rid, 'set'), path, value));
         } else {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }
@@ -454,7 +454,7 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.setConfig(
-            path.name, value, this, addResponse(new Response(this, rid, 'set'), path));
+            path.name, value, this, addResponse(new Response(this, rid, 'set'), path, value));
       }
     } else if (path.isAttribute) {
       LocalNode node;
@@ -465,7 +465,7 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.setAttribute(
-            path.name, value, this, addResponse(new Response(this, rid, 'set'), path));
+            path.name, value, this, addResponse(new Response(this, rid, 'set'), path, value));
       }
     } else {
       // shouldn't be possible to reach here
@@ -492,7 +492,7 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeConfig(
-            path.name, this, addResponse(new Response(this, rid, 'remove'), path));
+            path.name, this, addResponse(new Response(this, rid, 'set'), path));
       }
     } else if (path.isAttribute) {
       LocalNode node;
@@ -503,7 +503,7 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeAttribute(
-            path.name, this, addResponse(new Response(this, rid, 'remove'), path));
+            path.name, this, addResponse(new Response(this, rid, 'set'), path));
       }
     } else {
       // shouldn't be possible to reach here
