@@ -21,7 +21,7 @@ class InvokeResponse extends Response {
   final String name;
 
   InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
-      : super(responder, rid);
+      : super(responder, rid, 'invoke');
 
   List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
 

@@ -15,7 +15,7 @@ class RespSubscribeListener {
 }
 
 class SubscribeResponse extends Response {
-  SubscribeResponse(Responder responder, int rid) : super(responder, rid);
+  SubscribeResponse(Responder responder, int rid) : super(responder, rid, 'subscribe');
 
   final Map<String, RespSubscribeController> subscriptions =
     new Map<String, RespSubscribeController>();
