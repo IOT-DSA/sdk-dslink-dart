@@ -364,8 +364,9 @@ class Responder extends ConnectionHandler {
             params,
             this,
             addResponse(
-              new InvokeResponse(this, rid, parentNode, node, path.name, params),
-              path
+              new InvokeResponse(this, rid, parentNode, node, path.name),
+              path,
+              params
             ),
             parentNode,
             permission
