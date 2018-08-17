@@ -204,7 +204,7 @@ class HttpClientLink extends ClientLink {
         format = serverConfig['format'];
       }
     }().timeout(new Duration(minutes: 1), onTimeout:(){
-        _client.close(force: true);
+        client.close(force: true);
         throw new Exception('timeout');
     });
       await initWebsocket(false);
