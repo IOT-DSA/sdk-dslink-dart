@@ -234,6 +234,9 @@ class LinkProvider {
         abbr: "h", help: "Displays this Help Message", negatable: false);
     argp.addFlag("discover",
         abbr: "d", help: "Automatically Discover a Broker", negatable: false);
+    argp.addFlag("strictTls",
+        help: "Enforces valid SSL/TLS certificates for secure connections to " +
+            "broker.");
 
     ArgResults opts = _parsedArguments = argp.parse(args);
 
@@ -260,6 +263,9 @@ class LinkProvider {
     }
 
     _logFile = opts["log-file"];
+    if (opts["strictTls"]) {
+      strictTls = true;
+    }
 
     if (_logFile != null) {
       var file = new File(_logFile);
