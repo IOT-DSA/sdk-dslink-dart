@@ -204,7 +204,8 @@ class HttpClientLink extends ClientLink {
         }
       }().timeout(new Duration(minutes: 1), onTimeout:(){
           client.close(force: true);
-          throw new TimeoutException();
+          throw new TimeoutException('Connection to $_conn',
+              const Duration(minutes: 1));
       });
       await initWebsocket(false);
     }, onError: (e, s) {
