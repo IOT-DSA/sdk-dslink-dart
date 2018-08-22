@@ -129,10 +129,9 @@ class HttpClientLink extends ClientLink {
     HttpClient client = new HttpClient();
 
     client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-      logger.info(formatLogMessage('Bad certificate for $host:$port.'));
-      logger.finest(formatLogMessage('Cert: ${cert.issuer}, ${cert.subject}: ' +
-          '${cert.startValidity} - ${cert.endValidity}'));
-
+      logger.info(formatLogMessage('Bad certificate for $host:$port'));
+      logger.finest(formatLogMessage('Cert Issuer: ${cert.issuer}, ' +
+          'Subject: ${cert.subject}'));
       return !strictTls;
     };
 
@@ -150,63 +149,63 @@ class HttpClientLink extends ClientLink {
     // https://github.com/dart-lang/sdk/issues/31275
     // When it is fixed, we should go back to a regular try-catch
     runZoned(() async {
-    await ()async{
-      HttpClientRequest request = await client.postUrl(connUri);
-      Map requestJson = {
-        'publicKey': privateKey.publicKey.qBase64,
-        'isRequester': requester != null,
-        'isResponder': responder != null,
-        'formats': formats,
-        'version': DSA_VERSION,
-        'enableWebSocketCompression': true
-      };
+      await ()async{
+        HttpClientRequest request = await client.postUrl(connUri);
+        Map requestJson = {
+          'publicKey': privateKey.publicKey.qBase64,
+          'isRequester': requester != null,
+          'isResponder': responder != null,
+          'formats': formats,
+          'version': DSA_VERSION,
+          'enableWebSocketCompression': true
+        };
 
-      if (linkData != null) {
-        requestJson['linkData'] = linkData;
-      }
-
-      logger.finest(formatLogMessage("Handshake Request: ${requestJson}"));
-      logger.fine(formatLogMessage("ID: ${dsId}"));
-
-      request.add(toUTF8(DsJson.encode(requestJson)));
-      HttpClientResponse response = await request.close();
-      List<int> merged = await response.fold(<int>[], foldList);
-      String rslt = const Utf8Decoder().convert(merged);
-      Map serverConfig = DsJson.decode(rslt);
-
-      logger.finest(formatLogMessage("Handshake Response: ${serverConfig}"));
-
-      saltNameMap.forEach((name, idx) {
-        //read salts
-        salts[idx] = serverConfig[name];
-      });
-      String tempKey = serverConfig['tempKey'];
-      if (tempKey == null) {
-        // trusted client, don't do ECDH handshake
-        _nonce = const DummyECDH();
-      } else {
-        _nonce = await privateKey.getSecret(tempKey);
-      }
-      // server start to support version since 1.0.4
-      // and this is the version ack is added
-      enableAck = serverConfig.containsKey('version');
-      remotePath = serverConfig['path'];
-
-      if (serverConfig['wsUri'] is String) {
-        _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=${Uri.encodeComponent(dsId)}'
-            .replaceFirst('http', 'ws');
-        if (home != null) {
-          _wsUpdateUri = '$_wsUpdateUri&home=$home';
+        if (linkData != null) {
+          requestJson['linkData'] = linkData;
         }
-      }
 
-      if (serverConfig['format'] is String) {
-        format = serverConfig['format'];
-      }
-    }().timeout(new Duration(minutes: 1), onTimeout:(){
-        client.close(force: true);
-        throw new Exception('timeout');
-    });
+        logger.finest(formatLogMessage("Handshake Request: ${requestJson}"));
+        logger.fine(formatLogMessage("ID: ${dsId}"));
+
+        request.add(toUTF8(DsJson.encode(requestJson)));
+        HttpClientResponse response = await request.close();
+        List<int> merged = await response.fold(<int>[], foldList);
+        String rslt = const Utf8Decoder().convert(merged);
+        Map serverConfig = DsJson.decode(rslt);
+
+        logger.finest(formatLogMessage("Handshake Response: ${serverConfig}"));
+
+        saltNameMap.forEach((name, idx) {
+          //read salts
+          salts[idx] = serverConfig[name];
+        });
+        String tempKey = serverConfig['tempKey'];
+        if (tempKey == null) {
+          // trusted client, don't do ECDH handshake
+          _nonce = const DummyECDH();
+        } else {
+          _nonce = await privateKey.getSecret(tempKey);
+        }
+        // server start to support version since 1.0.4
+        // and this is the version ack is added
+        enableAck = serverConfig.containsKey('version');
+        remotePath = serverConfig['path'];
+
+        if (serverConfig['wsUri'] is String) {
+          _wsUpdateUri = '${connUri.resolve(serverConfig['wsUri'])}?dsId=${Uri.encodeComponent(dsId)}'
+              .replaceFirst('http', 'ws');
+          if (home != null) {
+            _wsUpdateUri = '$_wsUpdateUri&home=$home';
+          }
+        }
+
+        if (serverConfig['format'] is String) {
+          format = serverConfig['format'];
+        }
+      }().timeout(new Duration(minutes: 1), onTimeout:(){
+          client.close(force: true);
+          throw new TimeoutException();
+      });
       await initWebsocket(false);
     }, onError: (e, s) {
       if (logger.level <= Level.FINER ) {
