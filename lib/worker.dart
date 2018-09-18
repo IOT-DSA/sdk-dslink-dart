@@ -295,6 +295,8 @@ class Worker {
 typedef Future<T> WorkerMethod<T>([argument]);
 
 class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
+  static WorkerSocket globalSocket;
+
   final ReceivePort receiver;
   SendPort _sendPort;
 
