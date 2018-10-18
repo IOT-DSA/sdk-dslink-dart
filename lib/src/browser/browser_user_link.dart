@@ -78,6 +78,10 @@ class BrowserUserLink extends ClientLink {
     }
     _wsConnection.onDisconnected.then((connection) {
       logger.info("Disconnected");
+      if (_wsConnection == null) {
+        // connection is closed 
+        return;
+      }
       if (_wsConnection._opened) {
         _wsDelay = 1;
         initWebsocket(false);
@@ -90,7 +94,11 @@ class BrowserUserLink extends ClientLink {
       }
     });
   }
-
+  void reconnect() {
+    if (_wsConnection != null) {
+      _wsConnection.close();
+    }
+  }
   void close() {
     if (_wsConnection != null) {
       _wsConnection.close();
