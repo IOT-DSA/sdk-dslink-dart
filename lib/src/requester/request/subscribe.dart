@@ -271,12 +271,8 @@ class ReqSubscribeController {
     bool qosChanged = false;
 
     if (callbacks.containsKey(callback)) {
-      if (callbacks[callback] != 0) {
-        callbacks[callback] = qos;
-        qosChanged = updateQos();
-      } else {
-        callbacks[callback] = qos;
-      }
+      callbacks[callback] = qos;
+      qosChanged = updateQos();
     } else {
       callbacks[callback] = qos;
       int neededQos = qos;
