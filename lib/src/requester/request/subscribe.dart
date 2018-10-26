@@ -271,20 +271,14 @@ class ReqSubscribeController {
     bool qosChanged = false;
 
     if (callbacks.containsKey(callback)) {
-      if (callbacks[callback] != 0) {
-        callbacks[callback] = qos;
-        qosChanged = updateQos();
-      } else {
-        callbacks[callback] = qos;
-      }
+      callbacks[callback] = qos;
+      qosChanged = updateQos();
     } else {
       callbacks[callback] = qos;
-      int neededQos = qos;
-      if (currentQos > -1) {
-        neededQos |= currentQos;
+      if (qos > currentQos) {
+        qosChanged = true;
+        currentQos = qos;
       }
-      qosChanged = neededQos > currentQos;
-      currentQos = neededQos;
       if (_lastUpdate != null) {
         callback(_lastUpdate);
       }
@@ -307,14 +301,14 @@ class ReqSubscribeController {
   }
 
   bool updateQos() {
-    int qosCache = 0;
+    int maxQos = 0;
 
     for (var qos in callbacks.values) {
-      qosCache |= qos;
+      maxQos = (qos > maxQos ? qos : maxQos);
     }
 
-    if (qosCache != currentQos) {
-      currentQos = qosCache;
+    if (maxQos != currentQos) {
+      currentQos = maxQos;
       return true;
     }
     return false;
