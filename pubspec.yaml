@@ -25,6 +25,6 @@ dev_dependencies:
     git: "https://github.com/IOT-DSA/broker-dart.git"
   browser: "^0.10.0"
 environment:
-  sdk: ">=1.13.0"
+  sdk: ">=1.13.0 <2.0.0"
 executables:
   dsbeacon: beacon
