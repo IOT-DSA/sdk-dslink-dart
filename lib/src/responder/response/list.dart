@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 class ListResponse extends Response {
-  final LocalNode node;
+  LocalNode node;
   StreamSubscription _nodeChangeListener;
   int _permission;
 
@@ -64,10 +64,13 @@ class ListResponse extends Response {
           this,
           node.getDisconnectedListResponse(),
           streamStatus: StreamStatus.open);
+
       _disconnectSent = true;
       changes.clear();
       return;
-    } else if (_disconnectSent && !changes.contains(r'$disconnectedTs')) {
+    }
+
+    if (_disconnectSent && !changes.contains(r'$disconnectedTs')) {
       _disconnectSent = false;
       updateConfigs.add({'name': r'$disconnectedTs', 'change': 'remove'});
       if (node.configs.containsKey(r'$disconnectedTs')) {
@@ -77,52 +80,60 @@ class ListResponse extends Response {
 
     // TODO: handle permission and permission change
     if (initialResponse || changes.contains(r'$is')) {
+      if (!initialResponse) {
+        // If not initial response, check if the node that has the subscription
+        // has been replaced.
+        var tmpNode = responder.nodeProvider.getNode(node.path);
+        if (tmpNode != null && node != tmpNode) node = tmpNode;
+      }
+
       initialResponse = false;
-      if (_permission == Permission.NONE) {
-        return;
-      } else {
-        node.configs.forEach((name, value) {
-          Object update = [name, value];
-          if (name == r'$is') {
-            updateIs = update;
-          } else if (name == r'$base') {
-            updateBase = update;
-          } else if (name.startsWith(r'$$')) {
-            if (_permission == Permission.CONFIG && !name.startsWith(r'$$$')) {
-              updateConfigs.add(update);
-            }
-          } else {
-            if (_permission != Permission.CONFIG) {
-              if (name == r'$writable') {
-                if (_permission < Permission.WRITE) {
-                  return;
-                }
-              }
-              if (name == r'$invokable') {
-                int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
-                if (invokePermission > _permission) {
-                  updateConfigs.add([r'$invokable', 'never']);
-                  return;
-                }
-              } 
-            }
+      if (_permission == Permission.NONE) return;
+
+      node.configs.forEach((name, value) {
+        Object update = [name, value];
+        if (name == r'$is') {
+          updateIs = update;
+        } else if (name == r'$base') {
+          updateBase = update;
+        } else if (name.startsWith(r'$$')) {
+          if (_permission == Permission.CONFIG && !name.startsWith(r'$$$')) {
             updateConfigs.add(update);
           }
-        });
-        node.attributes.forEach((name, value) {
-          updateAttributes.add([name, value]);
-        });
-        node.children.forEach((name, Node value) {
-          Map simpleMap = value.getSimpleMap();
+        } else {
           if (_permission != Permission.CONFIG) {
-            int invokePermission = Permission.parse(simpleMap[r'$invokable']);
-            if (invokePermission != Permission.NEVER && invokePermission > _permission) {
-              simpleMap[r'$invokable'] = 'never';
+            if (name == r'$writable') {
+              if (_permission < Permission.WRITE) {
+                return;
+              }
+            }
+            if (name == r'$invokable') {
+              int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              if (invokePermission > _permission) {
+                updateConfigs.add([r'$invokable', 'never']);
+                return;
+              }
             }
           }
-          updateChildren.add([name, simpleMap]);
-        });
-      }
+          updateConfigs.add(update);
+        }
+      });
+
+      node.attributes.forEach((name, value) {
+        updateAttributes.add([name, value]);
+      });
+
+      node.children.forEach((name, Node value) {
+        Map simpleMap = value.getSimpleMap();
+        if (_permission != Permission.CONFIG) {
+          int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+          if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+            simpleMap[r'$invokable'] = 'never';
+          }
+        }
+        updateChildren.add([name, simpleMap]);
+      });
+
       if (updateIs == null) {
         updateIs = [r'$is', 'node'];
       }
@@ -183,11 +194,15 @@ class ListResponse extends Response {
     if (updateBase != null) {
       updates.add(updateBase);
     }
+
     if (updateIs != null) {
       updates.add(updateIs);
     }
-    updates..addAll(updateConfigs)..addAll(updateAttributes)..addAll(
-        updateChildren);
+
+    updates
+      ..addAll(updateConfigs)
+      ..addAll(updateAttributes)
+      ..addAll(updateChildren);
 
     responder.updateResponse(this, updates, streamStatus: StreamStatus.open);
   }
