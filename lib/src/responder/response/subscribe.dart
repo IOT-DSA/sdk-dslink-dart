@@ -218,6 +218,7 @@ class RespSubscribeController {
     caching = (v > 0);
     cachingQueue = (v > 1);
     persist = (v > 2);
+    _listener = node.subscribe(addValue, _qosLevel);
   }
 
   bool _caching = false;
@@ -250,7 +251,6 @@ class RespSubscribeController {
   RespSubscribeController(this.response, this.node, this.sid, this._permitted,
       int qos) {
     this.qosLevel = qos;
-    _listener = node.subscribe(addValue, _qosLevel);
     if (node.valueReady && node.lastValueUpdate != null) {
       addValue(node.lastValueUpdate);
     }
