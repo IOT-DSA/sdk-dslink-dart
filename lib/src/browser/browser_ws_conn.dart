@@ -88,7 +88,7 @@ class WebSocketConnection extends Connection {
     }
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
-    socket.sendString("{}");
+    socket.sendString(codec.blankData);
     requireSend();
   }
 
