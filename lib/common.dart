@@ -140,8 +140,6 @@ abstract class ServerLink extends BaseLink {
 abstract class ClientLink extends BaseLink {
   PrivateKey get privateKey;
 
-  /// shortPolling is only valid in http mode
-  /// saltId: 0 salt, 1:saltS, 2:saltL
   updateSalt(String salt);
 
   String get logName => null;
