@@ -142,7 +142,7 @@ abstract class ClientLink extends BaseLink {
 
   /// shortPolling is only valid in http mode
   /// saltId: 0 salt, 1:saltS, 2:saltL
-  updateSalt(String salt, [int saltId = 0]);
+  updateSalt(String salt);
 
   String get logName => null;
 

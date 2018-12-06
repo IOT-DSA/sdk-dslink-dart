@@ -22,7 +22,7 @@ class BrowserUserLink extends ClientLink {
 
   static const Map<String, int> saltNameMap = const {"salt": 0, "saltS": 1,};
 
-  updateSalt(String salt, [int saltId = 0]) {
+  updateSalt(String salt) {
     // TODO: implement updateSalt
   }
 
