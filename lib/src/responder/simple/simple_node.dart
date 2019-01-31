@@ -858,7 +858,6 @@ class SimpleNode extends LocalNodeImpl {
         rslt = [];
       }
     }
-
     if (rslt is Iterable) {
       response.updateStream(rslt.toList(), streamStatus: StreamStatus.closed);
     } else if (rslt is Map) {
@@ -880,6 +879,8 @@ class SimpleNode extends LocalNodeImpl {
     } else if (rslt is SimpleTableResult) {
       response.updateStream(rslt.rows,
           columns: rslt.columns, streamStatus: StreamStatus.closed);
+    } else if (rslt is DSError) {
+      response.close(rslt);
     } else if (rslt is AsyncTableResult) {
       (rslt as AsyncTableResult).write(response);
       response.onClose = (var response) {
@@ -991,7 +992,9 @@ class SimpleNode extends LocalNodeImpl {
       };
 
       rslt.then((value) {
-        if (value is LiveTable) {
+        if (value is DSError) {
+          response.close(value);
+        } else if (value is LiveTable) {
           r = null;
           value.sendTo(response);
         } else if (value is Stream) {
