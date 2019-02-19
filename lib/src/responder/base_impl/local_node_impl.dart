@@ -34,7 +34,7 @@ abstract class LocalNodeImpl extends LocalNode {
 
   bool get loaded => _loaded;
 
-  void load(Map m) {
+  void load(Map<String, dynamic> m) {
     if (_loaded) {
       configs.clear();
       attributes.clear();

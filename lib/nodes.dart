@@ -153,7 +153,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
     LocalNode node = super.getNode(path);
     if (path != "/" && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
-        onLoaded.complete(node);
+        onLoaded.complete(node as CallbackNode);
       }
       return node;
     }
@@ -463,7 +463,7 @@ class NodeNamer {
   static String decodeName(String input) {
     var out = new StringBuffer();
     cu(String n) => const Utf8Encoder().convert(n)[0];
-    mainLoop: for (var i = 0; i < input.length; i++) {
+    for (var i = 0; i < input.length; i++) {
       String char = input[i];
 
       if (char == "%") {

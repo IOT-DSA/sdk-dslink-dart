@@ -200,7 +200,7 @@ class HttpHelper {
   }
 
   static Future<WebSocket> upgradeToWebSocket(HttpRequest request, [
-    protocolSelector(List<String> protocols),
+    String protocolSelector(List<String> protocols),
     bool useStandardWebSocket
   ]) {
     if (useStandardWebSocket == null) {
