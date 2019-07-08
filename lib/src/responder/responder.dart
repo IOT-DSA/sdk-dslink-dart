@@ -436,7 +436,6 @@ class Responder extends ConnectionHandler {
         } else {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }
-        closeResponse(m['rid']);
       }, (e, stack) {
         var error = new DSError(
           "nodeError",
