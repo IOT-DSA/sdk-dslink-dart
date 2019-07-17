@@ -10,8 +10,9 @@ abstract class RequestUpdater {
 
 class RequesterUpdate {
   final String streamStatus;
+  final DSError error;
 
-  RequesterUpdate(this.streamStatus);
+  RequesterUpdate(this.streamStatus, [this.error = null]);
 }
 
 class Requester extends ConnectionHandler {
