@@ -8,16 +8,16 @@ import "dart:math" as Math;
 import "dart:isolate";
 
 import "package:bignum/bignum.dart";
-import "package:cipher/cipher.dart" hide PublicKey, PrivateKey;
-import "package:cipher/digests/sha256.dart";
-import "package:cipher/key_generators/ec_key_generator.dart";
-import "package:cipher/params/key_generators/ec_key_generator_parameters.dart";
-import "package:cipher/random/secure_random_base.dart";
-import "package:cipher/random/block_ctr_random.dart";
-import "package:cipher/block/aes_fast.dart";
+import "package:dscipher/cipher.dart" hide PublicKey, PrivateKey;
+import "package:dscipher/digests/sha256.dart";
+import "package:dscipher/key_generators/ec_key_generator.dart";
+import "package:dscipher/params/key_generators/ec_key_generator_parameters.dart";
+import "package:dscipher/random/secure_random_base.dart";
+import "package:dscipher/random/block_ctr_random.dart";
+import "package:dscipher/block/aes_fast.dart";
 
-import "package:cipher/ecc/ecc_base.dart";
-import "package:cipher/ecc/ecc_fp.dart" as fp;
+import "package:dscipher/ecc/ecc_base.dart";
+import "package:dscipher/ecc/ecc_fp.dart" as fp;
 
 import "../pk.dart";
 import "../../../utils.dart";

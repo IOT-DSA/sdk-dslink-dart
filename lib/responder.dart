@@ -5,8 +5,8 @@ import "dart:async";
 import "dart:collection";
 import "dart:typed_data";
 import 'dart:convert';
-import 'package:cipher/block/aes_fast.dart';
-import 'package:cipher/params/key_parameter.dart';
+import 'package:dscipher/block/aes_fast.dart';
+import 'package:dscipher/params/key_parameter.dart';
 
 import "common.dart";
 import "utils.dart";

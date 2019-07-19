@@ -1,18 +1,16 @@
 name: dslink
-version: 1.0.2
+version: 1.0.3
 description: "DSA IoT Platform - DSLink SDK for Dart"
 homepage: "http://iot-dsa.org"
 documentation: "https://iot-dsa.github.io/docs/sdks/dart/"
 dependencies:
   args: "^0.13.4"
   bignum: "^0.1.0"
-  cipher:
-    git: https://github.com/IOT-DSA/cipher.git
+  dscipher: "^0.7.2"
   logging: "^0.11.3"
   crypto: ">=0.9.2 <3.0.0"
   path: "^1.3.7"
-  msgpack:
-    git: https://github.com/IOT-DSA/msgpack.dart.git
+  msgpack: "^0.9.0"
   json_diff: "^0.1.2"
 authors:
   - Kenneth Endfinger <k.endfinger@dglogik.com>
@@ -22,8 +20,7 @@ authors:
   - Joel Trottier-Hebert <joel.trottier-hebert@acuitybrands.com>
 dev_dependencies:
   test: "0.12.15+8"
-  dsbroker:
-    git: "https://github.com/IOT-DSA/broker-dart.git"
+  dsbroker: "^1.1.1+1"
   browser: "^0.10.0"
 environment:
   sdk: ">=1.13.0 <2.0.0"
