@@ -70,7 +70,10 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void onUpdate(String streamStatus, List updates, List columns, Map meta,
       DSError error) {
     bool reseted = false;
-    // TODO implement error handling
+    if (error != null && updates == null) {
+      // pass error to the requester
+      updates = [[r'$disconnectedTs', (new DateTime.now()).toIso8601String()]];
+    }
     if (updates != null) {
       for (Object update in updates) {
         String name;
