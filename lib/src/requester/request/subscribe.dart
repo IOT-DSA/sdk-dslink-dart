@@ -16,7 +16,10 @@ class ReqSubscribeListener implements StreamSubscription {
   }
 
   // TODO: define a custom class to replace StreamSubscription
-  Future asFuture([futureValue]) {
+  //FIXME: Dart 1.0
+Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
+  //FIXME: Dart 2.0
+//Future<T> asFuture<T>([T futureValue]) {
     return null;
   }
 

@@ -84,7 +84,7 @@ WorkerPool createWorkerScriptPool(int count, Uri uri,
     workers.add(createWorkerScript(uri,
       metadata: {
         "workerId": i
-      }..addAll(metadata == null ? {} : metadata)
+      }..addAll(metadata is! Map<String, int> ? {} : metadata as Map<String, int>)
     ));
   }
   return new WorkerPool(workers);
@@ -97,7 +97,7 @@ WorkerPool createWorkerPool(int count, WorkerFunction function,
     workers.add(
       createWorker(function, metadata: {
         "workerId": i
-      }..addAll(metadata == null ? {} : metadata)));
+      }..addAll(metadata is! Map<String, int> ? {} : metadata as Map<String, int>)));
   }
   return new WorkerPool(workers);
 }
@@ -145,7 +145,7 @@ class WorkerPool {
       for (var i = sockets.length + 1; i <= count; i++) {
         var sock = createWorker(function, metadata: {
           "workerId": i
-        }..addAll(metadata == null ? {} : metadata));
+        }..addAll(metadata is! Map<String, int> ? {} : metadata as Map<String, int>));
         sock._pool = this;
         sock.onReceivedMessageHandler = (msg) {
           if (onMessageReceivedHandler != null) {

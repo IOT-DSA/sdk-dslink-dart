@@ -4,6 +4,7 @@ import "dart:convert";
 
 import "package:test/test.dart";
 import "package:dslink/utils.dart" show Base64, ByteDataUtil, DsCodec, DsJson;
+import "package:dslink/convert_consts.dart";
 
 void main() {
   group("JSON", jsonTests);

@@ -12,6 +12,8 @@ import "package:dslink/io.dart";
 import "package:dslink/nodes.dart";
 import "package:test/test.dart";
 
+import "package:dslink/convert_consts.dart";
+
 import "common.dart";
 
 main() {

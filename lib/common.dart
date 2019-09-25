@@ -9,6 +9,7 @@ import "responder.dart";
 import "utils.dart";
 
 import "src/crypto/pk.dart";
+import 'package:dslink/convert_consts.dart';
 
 part "src/common/node.dart";
 part "src/common/table.dart";

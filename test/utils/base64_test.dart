@@ -5,6 +5,8 @@ import "dart:convert";
 import "package:test/test.dart";
 import "package:dslink/utils.dart" show Base64;
 
+import "package:dslink/convert_consts.dart";
+
 void main() {
   group("Base64", base64Tests);
 }

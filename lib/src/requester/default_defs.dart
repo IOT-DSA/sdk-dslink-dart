@@ -75,10 +75,10 @@ class DefaultDefNodes {
 
   static final Map<String, Node> nameMap = () {
     var rslt = new Map<String, Node>();
-    _defaultDefs.forEach((String k, Map m) {
+    _defaultDefs.forEach((/*String*/ k, /*Map*/ m) {
       String path = '/defs/profile/$k';
       RemoteDefNode node = new RemoteDefNode(path);
-      m.forEach((String n, Object v) {
+      (m as Map).forEach((/*String*/ n, Object v) {
         if (n.startsWith(r'$')) {
           node.configs[n] = v;
         } else if (n.startsWith('@')) {
