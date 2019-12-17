@@ -70,81 +70,84 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void onUpdate(String streamStatus, List updates, List columns, Map meta,
       DSError error) {
     bool reseted = false;
-    if (error != null && updates == null) {
-      // pass error to the requester
-      updates = [[r'$disconnectedTs', (new DateTime.now()).toIso8601String()]];
+    if (updates == null) {
+      if (error != null) {
+        // pass error to the requester
+        updates = [[r'$disconnectedTs', (new DateTime.now()).toIso8601String()]];
+      } else {
+        updates = [];
+      }
     }
-    if (updates != null) {
-      for (Object update in updates) {
-        String name;
-        Object value;
-        bool removed = false;
-        if (update is Map) {
-          if (update['name'] is String) {
-            name = update['name'];
-          } else {
-            continue; // invalid response
-          }
-          if (update['change'] == 'remove') {
-            removed = true;
-          } else {
-            value = update['value'];
-          }
-        } else if (update is List) {
-          if (update.length > 0 && update[0] is String) {
-            name = update[0];
-            if (update.length > 1) {
-              value = update[1];
-            }
-          } else {
-            continue; // invalid response
+
+    for (Object update in updates) {
+      String name;
+      Object value;
+      bool removed = false;
+      if (update is Map) {
+        if (update['name'] is String) {
+          name = update['name'];
+        } else {
+          continue; // invalid response
+        }
+        if (update['change'] == 'remove') {
+          removed = true;
+        } else {
+          value = update['value'];
+        }
+      } else if (update is List) {
+        if (update.length > 0 && update[0] is String) {
+          name = update[0];
+          if (update.length > 1) {
+            value = update[1];
           }
         } else {
           continue; // invalid response
         }
-        if (name.startsWith(r'$')) {
-          if (!reseted &&
-              (name == r'$is' ||
-                  name == r'$base' ||
-                  (name == r'$disconnectedTs' && value is String))) {
-            reseted = true;
-            node.resetNodeCache();
-          }
-          if (name == r'$is') {
-            loadProfile(value);
-          }
-          changes.add(name);
-          if (removed) {
-            node.configs.remove(name);
-          } else {
-            node.configs[name] = value;
-          }
-        } else if (name.startsWith('@')) {
-          changes.add(name);
-          if (removed) {
-            node.attributes.remove(name);
-          } else {
-            node.attributes[name] = value;
-          }
+      } else {
+        continue; // invalid response
+      }
+      if (name.startsWith(r'$')) {
+        if (!reseted &&
+            (name == r'$is' ||
+                name == r'$base' ||
+                (name == r'$disconnectedTs' && value is String))) {
+          reseted = true;
+          node.resetNodeCache();
+        }
+        if (name == r'$is') {
+          loadProfile(value);
+        }
+        changes.add(name);
+        if (removed) {
+          node.configs.remove(name);
         } else {
-          changes.add(name);
-          if (removed) {
-            node.children.remove(name);
-          } else if (value is Map) {
-            // TODO, also wait for children $is
-            node.children[name] =
-                requester.nodeCache.updateRemoteChildNode(node, name, value);
-          }
+          node.configs[name] = value;
+        }
+      } else if (name.startsWith('@')) {
+        changes.add(name);
+        if (removed) {
+          node.attributes.remove(name);
+        } else {
+          node.attributes[name] = value;
+        }
+      } else {
+        changes.add(name);
+        if (removed) {
+          node.children.remove(name);
+        } else if (value is Map) {
+          // TODO, also wait for children $is
+          node.children[name] =
+              requester.nodeCache.updateRemoteChildNode(node, name, value);
         }
       }
-      if (request.streamStatus != StreamStatus.initialize) {
-        node.listed = true;
-      }
-      if (_pendingRemoveDef) {
-        _checkRemoveDef();
-      }
-      onProfileUpdated();
     }
+    if (request.streamStatus != StreamStatus.initialize) {
+      node.listed = true;
+    }
+    if (_pendingRemoveDef) {
+      _checkRemoveDef();
+    }
+    onProfileUpdated();
   }
 
   ListDefListener _profileLoader;
