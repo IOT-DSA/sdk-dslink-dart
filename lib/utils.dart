@@ -208,8 +208,19 @@ Logger get logger {
 void updateLogLevel(String name) {
   name = name.trim().toUpperCase();
 
-  if (name == "DEBUG") {
-    name = "ALL";
+  switch (name) {
+    case 'DEBUG':
+      name = Level.ALL.name;
+      break;
+    case 'ERROR':
+      name = Level.SEVERE.name;
+      break;
+    case 'TRACE':
+      name = Level.FINEST.name;
+      break;
+    case 'WARN':
+      name = Level.WARNING.name;
+      break;
   }
 
   Map<String, Level> levels = {};
