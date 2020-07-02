@@ -222,8 +222,8 @@ class LinkProvider {
     argp.addOption("watch-file", help: "Watch File for DSLink", hide: true);
     argp.addOption("log-file", help: "Log File for DSLink");
 
-    List<String> logLevelNames = Level.LEVELS.map(_logLevelToName).toList();
-    logLevelNames.addAll(["auto", "debug"]);
+    List<String> logLevelNames = Level.LEVELS.map(_logLevelToName).toList()
+      ..addAll(['auto', 'error', 'debug', 'warn', 'trace']);
 
     argp.addOption("log",
         abbr: "l",
