@@ -265,23 +265,13 @@ class ReqSubscribeController {
   }
 
   void listen(callback(ValueUpdate update), int qos) {
-    if (qos < 0 || qos > 3) {
-      qos = 0;
-    }
-    bool qosChanged = false;
+    qos = qos.clamp(0, 3);
 
-    if (callbacks.containsKey(callback)) {
-      callbacks[callback] = qos;
-      qosChanged = updateQos();
-    } else {
-      callbacks[callback] = qos;
-      if (qos > currentQos) {
-        qosChanged = true;
-        currentQos = qos;
-      }
-      if (_lastUpdate != null) {
-        callback(_lastUpdate);
-      }
+    callbacks[callback] = qos;
+    bool qosChanged = updateQos();
+
+    if (_lastUpdate != null) {
+      callback(_lastUpdate);
     }
 
     if (qosChanged) {
