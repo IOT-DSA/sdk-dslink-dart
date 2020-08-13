@@ -207,9 +207,8 @@ class RespSubscribeController {
   ISubscriptionNodeStorage _storage;
 
   void set qosLevel(int v) {
-    if (v < 0 || v > 3) v = 0;
-    if (_qosLevel == v)
-      return;
+    v = v.clamp(0, 3);
+    if (_qosLevel == v) return;
 
     _qosLevel = v;
     if (waitingValues == null && _qosLevel > 0) {
