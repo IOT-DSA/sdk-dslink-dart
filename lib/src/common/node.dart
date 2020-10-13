@@ -73,10 +73,15 @@ class Node {
   /// [input] can be either an instance of [Node] or a [String].
   String removeChild(dynamic input) {
     if (input is String) {
-      children.remove(getChild(input));
+      children.remove(input);
       return input;
     } else if (input is Node) {
-      children.remove(input);
+      for (var nodeName in children.keys.toList()) {
+        if ((input as Node) == children[nodeName]) {
+          children.remove(nodeName);
+          return nodeName;
+        }
+      }
     } else {
       throw new Exception("Invalid Input");
     }
