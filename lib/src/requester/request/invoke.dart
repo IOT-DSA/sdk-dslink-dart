@@ -4,13 +4,12 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   List rawColumns;
   List<TableColumn> columns;
   List updates;
-  DSError error;
   Map meta;
 
   RequesterInvokeUpdate(this.updates, this.rawColumns, this.columns,
       String streamStatus,
-      {this.meta, this.error})
-      : super(streamStatus);
+      {this.meta, error})
+      : super(streamStatus, error);
 
   List<List> _rows;
 

@@ -45,7 +45,7 @@ class BrokerDiscoveryClient {
         }
       }
     } catch (e) {
-      _socket.joinMulticast(new InternetAddress("239.255.255.230"));
+      socketJoinMulticast(_socket, new InternetAddress("239.255.255.230"));
     }
   }
 

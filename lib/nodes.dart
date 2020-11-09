@@ -267,7 +267,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   SimpleCallback onAllListCancelCallback;
   SimpleCallback onListStartListen;
   Completer onLoadedCompleter;
-  ValueUpdateCallback<bool> onValueSetCallback;
+  ValueCallback<bool> onValueSetCallback;
 
   CallbackNode(String path,
       {SimpleNodeProvider provider,
