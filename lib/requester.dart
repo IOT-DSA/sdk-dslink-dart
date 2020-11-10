@@ -6,6 +6,7 @@ import "dart:collection";
 
 import "common.dart";
 import "utils.dart";
+import 'package:dslink/convert_consts.dart';
 
 export "package:dslink/utils.dart" show parseEnumType;
 

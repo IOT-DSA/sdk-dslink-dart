@@ -7,6 +7,6 @@ main() async {
 
 transformStringWorker(Worker worker) async {
   await worker.init(methods: {
-    "transform": (String input) => input.toLowerCase()
+    "transform": (/*String*/ input) => input.toLowerCase()
   });
 }

@@ -7,11 +7,16 @@ dependencies:
   args: "^0.13.4"
   bignum: "^0.1.0"
   dscipher: "^0.7.2"
+#  pointycastle: 1.0.2
   logging: "^0.11.3"
   crypto: ">=0.9.2 <3.0.0"
   path: "^1.3.7"
   msgpack: "^0.9.0"
-  json_diff: "^0.1.2"
+#  msgpack:
+#   git: https://github.com/tbelousova/msgpack.dart
+  json_diff: '^0.1.2'
+#  json_diff:
+#    git: https://github.com/tbelousova/dart-json_diff
 authors:
   - Kenneth Endfinger <k.endfinger@dglogik.com>
   - Rick Zhou <z.zhou@dglogik.com>
@@ -19,10 +24,15 @@ authors:
   - Matthew Butler <matthew.butler@acuitybrands.com>
   - Joel Trottier-Hebert <joel.trottier-hebert@acuitybrands.com>
 dev_dependencies:
-  test: "0.12.15+8"
+  test: '0.12.15+8'
+#  test: any
   dsbroker: "^1.1.1+1"
-  browser: "^0.10.0"
+#  browser: '^0.10.0'
+#  build_runner: any
+#  build_test: any
+#  build_web_compilers: any
 environment:
-  sdk: ">=1.13.0 <2.0.0"
+#  sdk: '>=2.0.0'
+  sdk: '>=1.13.0 <2.0.0'
 executables:
   dsbeacon: beacon

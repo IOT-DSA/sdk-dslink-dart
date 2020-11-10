@@ -170,7 +170,7 @@ class RemoteNode extends Node {
       childPathPre = '$remotePath/';
     }
 
-    m.forEach((String key, value) {
+    m.forEach((/*String*/ key, value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;
       } else if (key.startsWith('@')) {

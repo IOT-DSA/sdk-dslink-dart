@@ -773,7 +773,7 @@ class SimpleNode extends LocalNodeImpl {
       childPathPre = '$path/';
     }
 
-    m.forEach((String key, value) {
+    m.forEach((/*String*/ key, value) {
       if (key.startsWith('?')) {
         if (key == '?value') {
           updateValue(value);
@@ -1285,12 +1285,14 @@ class SimpleNode extends LocalNodeImpl {
       }
     } else {
       if (value == null) {
-        return removeChild(name);
+          removeChild(name);
+        return;
       } else if (value is Map) {
-        return createChild(name, value);
+          createChild(name, value);
+        return;
       } else {
         addChild(name, value);
-        return value;
+        return;// value;
       }
     }
   }

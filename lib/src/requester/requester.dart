@@ -137,7 +137,7 @@ class Requester extends ConnectionHandler {
         to = null;
       }
     });
-    if (timeout != null && timeout > Duration.ZERO) {
+    if (timeout != null && timeout > Duration_ZERO) {
       to = new Timer(timeout, () {
         listener?.cancel();
         listener = null;

@@ -11,6 +11,9 @@ import 'package:dslink/utils.dart';
 import "package:path/path.dart" as pathlib;
 import "package:crypto/crypto.dart";
 
+//FIXME:Dart2.0
+//import "convert_consts.dart";
+
 const bool _tcpNoDelay = const bool.fromEnvironment(
   "dsa.io.tcpNoDelay",
   defaultValue: true
@@ -253,7 +256,7 @@ class HttpHelper {
       // consisting of multiple protocols. To unify all of them, first join
       // the lists with ', ' and then tokenize.
       protocols = HttpHelper.tokenizeFieldValue(protocols.join(', '));
-      return new Future(() => protocolSelector(protocols)).then((String protocol) {
+      return new Future(() => protocolSelector(protocols)).then((/*String*/ protocol) {
         if (protocols.indexOf(protocol) < 0) {
           throw new WebSocketException(
             "Selected protocol is not in the list of available protocols");

@@ -30,6 +30,6 @@ void workerTests(WorkerSocket factory(WorkerFunction func, [Map<String, dynamic>
 
 transformStringWorker(Worker worker) async {
   await worker.init(methods: {
-    "transform": (String input) => input.toLowerCase()
+    "transform": (/*String*/ input) => input.toLowerCase()
   });
 }

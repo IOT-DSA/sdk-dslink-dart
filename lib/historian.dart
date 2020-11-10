@@ -7,6 +7,8 @@ import "package:dslink/dslink.dart";
 import "package:dslink/nodes.dart";
 import "package:dslink/utils.dart";
 
+import 'package:dslink/convert_consts.dart';
+
 part "src/historian/interval.dart";
 part "src/historian/rollup.dart";
 part "src/historian/get_history.dart";

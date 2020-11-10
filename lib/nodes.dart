@@ -11,6 +11,9 @@ import "package:json_diff/json_diff.dart" as JsonDiff;
 
 import "package:dslink/utils.dart" show Producer;
 
+//FIXME:Dart2.0
+//import 'package:dslink/convert_consts.dart';
+
 part "src/nodes/json.dart";
 
 /// An Action for Deleting a Given Node
@@ -153,7 +156,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
     LocalNode node = super.getNode(path);
     if (path != "/" && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
-        onLoaded.complete(node);
+        onLoaded.complete(node as CallbackNode);
       }
       return node;
     }
@@ -264,7 +267,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   SimpleCallback onAllListCancelCallback;
   SimpleCallback onListStartListen;
   Completer onLoadedCompleter;
-  ValueUpdateCallback<bool> onValueSetCallback;
+  ValueCallback<bool> onValueSetCallback;
 
   CallbackNode(String path,
       {SimpleNodeProvider provider,

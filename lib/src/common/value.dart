@@ -73,9 +73,9 @@ class ValueUpdate {
       Map meta,
       this.status,
       this.count: 1,
-      this.sum: double.NAN,
-      this.min: double.NAN,
-      this.max: double.NAN}) {
+      this.sum: double_NAN,
+      this.min: double_NAN,
+      this.max: double_NAN}) {
     if (ts == null) {
       ts = getTs();
     }

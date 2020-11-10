@@ -184,7 +184,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     r'$settings'
   ];
 
-  void _onProfileUpdate(RequesterListUpdate update) {
+  void _onProfileUpdate(/*RequesterListUpdate*/ update) {
     if (_profileLoader == null) {
       logger.finest('warning, unexpected state of profile loading');
       return;
@@ -192,7 +192,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     _profileLoader.cancel();
     _profileLoader = null;
     changes.addAll(
-        update.changes.where((str) => !_ignoreProfileProps.contains(str)));
+        (update as RequesterListUpdate).changes.where((str) => !_ignoreProfileProps.contains(str)));
     _ready = true;
     onProfileUpdated();
   }
