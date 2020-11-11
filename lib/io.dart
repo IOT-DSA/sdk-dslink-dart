@@ -12,7 +12,7 @@ import "package:path/path.dart" as pathlib;
 import "package:crypto/crypto.dart";
 
 //FIXME:Dart2.0
-//import "convert_consts.dart";
+import "convert_consts.dart";
 
 const bool _tcpNoDelay = const bool.fromEnvironment(
   "dsa.io.tcpNoDelay",

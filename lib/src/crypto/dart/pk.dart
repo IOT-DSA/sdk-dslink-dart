@@ -5,22 +5,22 @@ import "dart:convert";
 import "dart:typed_data";
 import "dart:math" as Math;
 //FIXME:Dart1.0
-//*Dart1-open-block
+/*Dart1-open-block
 import "dart:collection";
 import "dart:isolate";
-//Dart1-close-block*/
+Dart1-close-block*/
 
 //FIXME:Dart2.0
-/*Dart2-open-block
+//*Dart2-open-block
 import "package:pointycastle/ecc/ecc_fp.dart" as fp;
 import "package:pointycastle/export.dart" hide PublicKey, PrivateKey;
-Dart2-close-block*/
+//Dart2-close-block*/
 
 import 'package:dslink/convert_consts.dart';
 
 
 //FIXME:Dart1.0
-//*Dart1-open-block
+/*Dart1-open-block
 import "package:dscipher/cipher.dart" hide PublicKey, PrivateKey;
 import "package:dscipher/digests/sha256.dart";
 import "package:dscipher/key_generators/ec_key_generator.dart";
@@ -31,16 +31,16 @@ import "package:dscipher/block/aes_fast.dart";
 
 import "package:dscipher/ecc/ecc_base.dart";
 import "package:dscipher/ecc/ecc_fp.dart" as fp;
-//Dart1-close-block*/
+Dart1-close-block*/
 
 
 import "../pk.dart";
 import "../../../utils.dart";
 
 //FIXME:Dart1.0
-//*Dart1-open-block
+/*Dart1-open-block
 part "isolate.dart";
-//Dart1-close-block*/
+Dart1-close-block*/
 
 /// hard code the EC curve data here, so the compiler don"t have to register all curves
 ECDomainParameters __secp256r1;
@@ -86,7 +86,7 @@ class DartCryptoProvider implements CryptoProvider {
 
   Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async {
 //FIXME:Dart1.0
-//*Dart1-open-block
+/*Dart1-open-block
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
         return ECDHIsolate._sendRequest(
@@ -97,7 +97,7 @@ class DartCryptoProvider implements CryptoProvider {
         return ECDHIsolate._sendRequest(publicKeyRemote, null);
       }
     }
-//Dart1-close-block*/
+Dart1-close-block*/
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
 
     /// reuse same ECDH server pair for up to 1 minute
@@ -128,11 +128,11 @@ class DartCryptoProvider implements CryptoProvider {
 
   Future<ECDH> getSecret(PublicKey publicKeyRemote) async {
 //FIXME:Dart1.0
-//*Dart1-open-block
+/*Dart1-open-block
     if (ECDHIsolate.running) {
       return ECDHIsolate._sendRequest(publicKeyRemote, "");
     }
-//Dart1-close-block*/
+Dart1-close-block*/
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, random);

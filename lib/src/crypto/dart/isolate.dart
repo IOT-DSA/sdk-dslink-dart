@@ -1,5 +1,5 @@
 //FIXME:Dart1.0
-//*Dart1-open-block
+/*Dart1-open-block
 part of dslink.pk.dart;
 
 ECPrivateKey _cachedPrivate;
@@ -116,4 +116,4 @@ class ECDHIsolateRequest {
   Completer<ECDH> _completer = new Completer<ECDH>();
   Future<ECDH> get future => _completer.future;
 }
-//Dart1-close-block*/
+Dart1-close-block*/

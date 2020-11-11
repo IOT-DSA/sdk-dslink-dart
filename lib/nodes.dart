@@ -12,7 +12,7 @@ import "package:json_diff/json_diff.dart" as JsonDiff;
 import "package:dslink/utils.dart" show Producer;
 
 //FIXME:Dart2.0
-//import 'package:dslink/convert_consts.dart';
+import 'package:dslink/convert_consts.dart';
 
 part "src/nodes/json.dart";
 
