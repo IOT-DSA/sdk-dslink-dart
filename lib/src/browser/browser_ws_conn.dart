@@ -50,30 +50,41 @@ class WebSocketConnection extends Connection {
   }
 
   Timer pingTimer;
-  bool _dataSent = false;
 
-  /// add this count every 20 seconds, set to 0 when receiving data
-  /// when the count is 3, disconnect the link
-  int _dataReceiveCount = 0;
+  int _dataReceiveTs = new DateTime.now().millisecondsSinceEpoch;
+  int _dataSentTs = new DateTime.now().millisecondsSinceEpoch;
 
   void onPingTimer(Timer t) {
-    if (_dataReceiveCount >= 3) {
+    int currentTs = new DateTime.now().millisecondsSinceEpoch;
+    if (currentTs - this._dataReceiveTs >= 65000) {
+      // close the connection if no message received in the last 65 seconds
       close();
       return;
     }
-    _dataReceiveCount++;
 
-    if (_dataSent) {
-      _dataSent = false;
-      return;
+    if (currentTs - this._dataSentTs > 21000) {
+      // add message if no data was sent in the last 21 seconds
+      this.addConnCommand(null, null);
     }
-    addConnCommand(null, null);
   }
 
   void requireSend() {
     if (!_sending) {
       _sending = true;
       DsTimer.callLater(_send);
+    }
+  }
+
+  // sometimes setTimeout and setInterval is not run due to browser throttling
+  checkBrowserThrottling() {
+    int currentTs = new DateTime.now().millisecondsSinceEpoch;
+    if (currentTs - this._dataSentTs > 25000) {
+      logger.finest('Throttling detected');
+      // timer is supposed to be run every 20 seconds, if that passes 25 seconds, force it to run
+      this.onPingTimer(null);
+      if (this._sending) {
+        this._send();
+      }
     }
   }
 
@@ -109,7 +120,7 @@ class WebSocketConnection extends Connection {
 
   void _onData(MessageEvent e) {
     logger.fine("onData:");
-    _dataReceiveCount = 0;
+    this._dataReceiveTs = new DateTime.now().millisecondsSinceEpoch;
     Map m;
     if (e.data is ByteBuffer) {
       try {
@@ -117,6 +128,7 @@ class WebSocketConnection extends Connection {
 
         m = codec.decodeBinaryFrame(bytes);
         logger.fine("$m");
+        checkBrowserThrottling();
 
         if (m["salt"] is String) {
           clientLink.updateSalt(m["salt"]);
@@ -151,6 +163,7 @@ class WebSocketConnection extends Connection {
       try {
         m = codec.decodeStringFrame(e.data);
         logger.fine("$m");
+        checkBrowserThrottling();
 
         bool needAck = false;
         if (m["responses"] is List && (m["responses"] as List).length > 0) {
@@ -249,7 +262,7 @@ class WebSocketConnection extends Connection {
         logger.severe('Unable to send on socket', e);
         close();
       }
-      _dataSent = true;
+      _dataSentTs = new DateTime.now().millisecondsSinceEpoch;
     }
   }
 
