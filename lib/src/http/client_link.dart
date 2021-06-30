@@ -135,7 +135,15 @@ class HttpClientLink extends ClientLink {
     if (tokenHash != null) {
       connUrl = '$connUrl$tokenHash';
     }
-    Uri connUri = Uri.parse(connUrl);
+
+    Uri connUri;
+    try {
+      connUri = Uri.parse(connUrl);
+    } catch (error) {
+      logger.severe('Invalid connection address: $_conn', error);
+      close(); // We'll never be able to connect, so close connection.
+    }
+
     logger.info(formatLogMessage("Connecting to ${_conn}"));
 
     // TODO: This runZoned is due to a bug in the DartVM
