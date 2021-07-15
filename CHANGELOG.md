@@ -1,5 +1,6 @@
 # ChangeLog
 
+* v1.0.7 - Handle mistyped upstream broker addresses.
 * v1.0.6 - Fix a logic error in removeChild method of Nodes.
 * v1.0.5 - Ensure that QOS downgrades are propagated.
 * v1.0.4+1 - Map logger names to match DSA log levels.
